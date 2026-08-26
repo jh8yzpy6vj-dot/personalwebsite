@@ -14,9 +14,9 @@ Hier stehen alle offenen Aufgaben, aufgeteilt in kurzfristig und langfristig.
 ## Kurzfristig
 
 - [ ] Prüfen, ob `jakobsax.de` und `www.jakobsax.de` inzwischen für alle stabil ohne Fehler erreichbar sind (DNS-Propagation nach dem 525-Fix abschließend testen).
+- [ ] Next.js + TypeScript Projekt-Setup aufsetzen (App Router, `@opennextjs/cloudflare`-Adapter), bestehende `index.html` als Startpunkt migrieren, Deploy auf Cloudflare Worker testen. Details/Vorgaben siehe `TECH-STACK.md`.
 
 ## Langfristig
 
 - 🔲 Klären, wozu die Seite dienen soll (CV/Portfolio, Business, Blog, o.ä.) — bestimmt Inhalt und Struktur.
 - 🔲 Echten Content sammeln: Texte, Bilder, Kontaktdaten (aktuell nur Platzhalter in `index.html`).
-- 🔲 Technische Vorgaben in `TECH-STACK.md` festlegen/erweitern, sobald Entscheidungen getroffen werden (z.B. ob ein Framework/CMS gebraucht wird oder reines HTML reicht).

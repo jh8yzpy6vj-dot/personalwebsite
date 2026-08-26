@@ -6,6 +6,12 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-08-26 — Ziel-Stack festgelegt: Next.js + TypeScript + @opennextjs/cloudflare
+- Entscheidung getroffen: Umstellung von reinem statischem HTML auf Next.js (App Router) mit TypeScript, Deploy weiterhin als Cloudflare Worker über den `@opennextjs/cloudflare`-Adapter (analog zum CLAER-Projekt).
+- `TECH-STACK.md` entsprechend ergänzt (neuer Abschnitt "Ziel-Stack"), `TODO.md` um den kurzfristigen Punkt "Next.js-Setup aufsetzen" erweitert.
+- Migration selbst ist noch **nicht** durchgeführt, aktueller Code ist weiterhin reines HTML.
+- Von: Jan (mit Claude)
+
 ## 2026-08-26 — CLAUDE.md mit Branch- und DNS-Regeln angelegt
 - `CLAUDE.md` erstellt: Branch-Regel (main = live, Jan & Jakob gleichberechtigt, direktes Pushen erlaubt) und DNS-Warnhinweise (IONOS-Mail-Records nie löschen, DNS läuft über Cloudflare) dokumentiert.
 - Von: Jan (mit Claude)
