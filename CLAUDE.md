@@ -29,7 +29,23 @@ Die Nameserver von `jakobsax.de` liegen bei **Cloudflare** (nicht mehr bei IONOS
 - Falls jemals wieder ein reiner `A`/`AAAA`-Eintrag für `jakobsax.de` oder `www` auftaucht, der **nicht** über "Custom Domains" des Workers erzeugt wurde: das ist ein Überbleibsel und verursacht einen SSL-Fehler (Cloudflare Error 525), weil die Anfrage dann an einen falschen Server geht statt an den Worker. Löschen, dann die Domain erneut über Workers & Pages → Domains & Routes hinzufügen.
 - DNS-Änderungen können 1–5 Minuten brauchen, bis sie überall (Router, Provider) ankommen. Bei "geht bei der einen Person, bei der anderen nicht" direkt nach dem Ändern: normal, kurz abwarten oder mobile Daten zum Testen nutzen statt WLAN.
 
+## 📁 Dokumentenstruktur — Pflicht für alle Agenten
+
+Damit nichts verloren geht und sich Jan, Jakob und jede KI-Session (Claude, sonstige) jederzeit denselben Stand anschauen können, gibt es genau drei Kerndokumente. Keine neuen Planungs-/Log-Dateien frei erfinden — alles kommt in eines dieser drei:
+
+1.  **`AGENT-LOG.md` (das unantastbare Protokoll)**
+    *   Chronologisches, *append-only* Protokoll aller **abgeschlossenen** Arbeiten.
+    *   **Nie löschen oder überschreiben.** Neue Einträge kommen immer oben rein.
+    *   Vor jeder neuen Änderung am Projekt lesen, um den aktuellen Stand zu kennen.
+2.  **`TODO.md` (offene Aufgaben)**
+    *   Zwei Abschnitte: **Kurzfristig** und **Langfristig**.
+    *   Erledigte kurzfristige Punkte werden hier entfernt und stattdessen als Eintrag in `AGENT-LOG.md` dokumentiert — Todo-Erledigung ist also immer auch ein Log-Eintrag, nicht nur ein Häkchen.
+    *   Langfristige Punkte bleiben stehen und bekommen ein Status-Symbol (🔲/⏳/✅), bis sie abgeschlossen und geloggt sind.
+3.  **`TECH-STACK.md` (technische Vorgaben)**
+    *   Beschreibt Hosting, Deploy-Weg, Domains, DNS-Besonderheiten und Code-Konventionen.
+    *   Bei jeder technischen Entscheidung (neues Framework, andere Hosting-Lösung, neue Abhängigkeit) **sofort** aktualisieren — nicht im Nachhinein.
+
 ## Konventionen
 
 - Keine unnötige Komplexität einbauen (kein Build-Framework, kein Static-Site-Generator), solange die Seite einfach bleibt — reines HTML/CSS reicht für den aktuellen Umfang.
-- Neue größere Strukturentscheidungen (Framework-Wechsel, Umzug auf Pages statt Worker, Mehrsprachigkeit etc.) hier in dieser Datei dokumentieren, sobald sie getroffen werden.
+- Neue größere Strukturentscheidungen (Framework-Wechsel, Umzug auf Pages statt Worker, Mehrsprachigkeit etc.) in `TECH-STACK.md` dokumentieren, sobald sie getroffen werden.
