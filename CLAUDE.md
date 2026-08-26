@@ -48,7 +48,8 @@ Damit nichts verloren geht und sich Jan, Jakob und jede KI-Session (Claude, sons
 Für das Design gibt es zusätzlich zwei Dokumente:
 
 *   **`SITE-PLAN.md`** — Struktur und Absicht: welche Sections gibt es, was kommt wohin, welche offenen Content-Fragen bestehen.
-*   **`design/UI-SPEC.md`** — der **verbindliche Design-Vertrag**: exakte Abstände (4er-Skala), genau 4 Schriftgrößen und 2 Schriftgewichte, Farbregeln inkl. Liste wofür die Akzentfarbe reserviert ist, Copy-Texte, Zustands-Abdeckung, visuelle Hierarchie. **Bei Widerspruch zu SITE-PLAN.md gilt das UI-SPEC.** Vor jeder Design-/CSS-Änderung lesen und einhalten; wenn eine Änderung dem Vertrag widerspricht, erst den Vertrag anpassen (und die Änderung begründen), dann den Code.
+*   **`design/UI-SPEC.md`** — der **verbindliche Design-Vertrag**: Abstände, Schriftskala, Farbregeln inkl. Liste wofür die Akzentfarbe reserviert ist, Copy-Texte, Bildbehandlung, Zustands-Abdeckung. **Bei Widerspruch zu SITE-PLAN.md gilt das UI-SPEC.** Vor jeder Design-/CSS-Änderung lesen und einhalten; wenn eine Änderung dem Vertrag widerspricht, erst den Vertrag anpassen (und die Änderung begründen), dann den Code.
+    *   ⚠️ **Konkrete Zahlen stehen ausschließlich im UI-SPEC, nicht hier.** Werden sie doppelt geführt, laufen die Dokumente auseinander — genau das ist einmal passiert.
 
 ## Konventionen
 

@@ -1,50 +1,88 @@
 # SITE-PLAN.md — Aufbau, Design & Inhalt der Seite
 
-Dieses Dokument legt fest, wie die Seite aussieht, wo was hinkommt und mit welchen Farben/Links gearbeitet wird. Wird aktualisiert, sobald Design- oder Struktur-Entscheidungen getroffen werden — **vor** der Umsetzung im Code, nicht danach.
+Struktur und Absicht: welche Bereiche gibt es, was kommt wohin, was ist noch offen.
 
-> 📐 **Verbindliche Design-Werte stehen in [`design/UI-SPEC.md`](design/UI-SPEC.md).** Dieses Dokument hier beschreibt Struktur und Absicht ("was kommt wohin"); der genaue Design-Vertrag (exakte Abstände, Schriftgrößen/-gewichte, Farbregeln, Copy-Texte, Zustands-Abdeckung) ist im UI-SPEC festgehalten und wurde geprüft. Bei Widerspruch gilt das UI-SPEC.
+> 📐 **Verbindliche Design-Werte stehen in [`design/UI-SPEC.md`](design/UI-SPEC.md).** Dieses
+> Dokument beschreibt die Absicht, das UI-SPEC den genauen Vertrag (Abstände, Schriftgrößen,
+> Farbregeln, Copy, Bildbehandlung). **Bei Widerspruch gilt das UI-SPEC.**
 
-⚠️ **Status: Erster Entwurf / Platzhalter.** Der eigentliche Zweck der Seite (CV? Portfolio? Business?) und echte Inhalte sind laut `TODO.md` (Langfristig) noch offen. Struktur, Farben und Layout hier sind ein sinnvoller Startpunkt, kein finales Ergebnis — beim Ausfüllen mit echtem Content jederzeit anpassen.
+## Was die Seite leisten soll
 
-## Seitenstruktur (eine Seite, Scroll-Sections)
+Aufgabe in einem Satz: *aus „ich habe etwas von ihm gesehen" ein „ich will mit ihm arbeiten oder
+reden" machen.*
 
-| Reihenfolge | Section | Inhalt (Platzhalter) |
-|---|---|---|
-| 1 | Header/Nav | Name links, Navigations-Links rechts (Über mich, Kontakt) |
-| 2 | Hero | Name groß, Rolle/Tagline, kurzer Einleitungssatz |
-| 3 | Über mich | Bio-Text, evtl. Foto (noch nicht vorhanden) |
-| 4 | Kontakt | E-Mail, Social-Links als Buttons |
-| 5 | Footer | Kleine Copyright-/Meta-Zeile |
+Jakob Sax hat **drei Standbeine**, und die Seite muss alle drei tragen, ohne dass eines das
+andere entwertet:
 
-Weitere Sections (z.B. Portfolio/Projekte, Skills, Lebenslauf) kommen erst dazu, wenn der Zweck der Seite geklärt ist.
+1. **Fotografie & Video für Kultur und Theater im öffentlichen Raum** — das kommerzielle
+   Kerngeschäft. Foto steht vor Video.
+2. **Redaktioneller Journalismus** (SWR, Klima und Wirtschaft) — Glaubwürdigkeitsanker, **keine
+   Ware**.
+3. **Filmworkshops / Medienpädagogik** — kleineres, eigenständiges Angebot.
 
-## Farb-Palette
+**Drei Zielgruppen:**
+- **Festivalleitungen, Kulturämter, Veranstalter, Compagnien** — entscheiden über *Bilder*, nicht
+  über Text. Ein Festivalkurator sieht drei Fotos und weiß Bescheid.
+- **Redaktionen** — was kann er, was hat er gemacht, wie erreiche ich ihn?
+- **Quellen und Menschen, die ihn nach einem Beitrag googeln** — ist der seriös, und wie erreiche
+  ich ihn vertraulich?
 
-Dunkles Theme, ein Akzentton. Als CSS-Variablen im Code hinterlegt (`app/globals.css`), hier die Referenz:
+## Strukturprinzip: die zwei Hälften
 
-| Name | Hex | Verwendung |
-|---|---|---|
-| `--bg` | `#0f1115` | Seitenhintergrund |
-| `--surface` | `#171a21` | Karten/Boxen, Header-Hintergrund |
-| `--text` | `#eef0f4` | Haupttext |
-| `--muted` | `#9aa3b2` | Nebentext, Bio, Footer |
-| `--accent` | `#6ee7b7` | Buttons, Hervorhebungen, Rolle/Tagline |
+Statt das Doppelrollen-Problem mit einer Überschrift zu lösen, löst es die Fläche:
 
-## Typografie
+- **dunkel = sehen.** Fotografie und Bewegtbild. Randlose Bilder, minimale Typografie. Hier wird
+  gebucht.
+- **hell = lesen.** Buchbar, Referenzen, Über, Kontakt. Papier, Serifenschrift. Hier wird
+  Vertrauen gelesen.
 
-- System-Font-Stack (kein Web-Font-Import nötig): `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif`
-- Name/Hero: groß und fett
-- Fließtext: ruhig, gut lesbar, Zeilenhöhe ~1.6
+Die dunkle Hälfte steht **oben**: wer bucht, sieht zuerst Bilder; wer prüft, scrollt weiter. Der
+Journalismus rutscht bewusst nach unten — er ist Beleg, nicht Angebot.
 
-## Navigation & Links
+## Seitenstruktur
 
-- Nav-Links (Platzhalter, aktuell Anker auf derselben Seite): `#ueber-mich`, `#kontakt`
-- Kontakt-Buttons (Platzhalter, echte Werte fehlen noch): E-Mail (`mailto:`), LinkedIn, GitHub
-- Sobald echte Profile/Adressen feststehen, hier eintragen und im Code ersetzen.
+| # | Bereich | Hälfte | Inhalt |
+|---|---------|--------|--------|
+| 1 | Topbar (fix) | wechselnd | Wortmarke + ●REC-Chip |
+| 2 | Hero | dunkel | Randloses Video, darüber Positionierungssatz + Orte |
+| 3 | Filter | dunkel | `alle.` `festivals.` `bewegtbild.` `redaktion.` |
+| 4 | Arbeiten | dunkel | Randloses 2-Spalten-Raster, pro Kachel Auftraggeber · Titel · Ort · Rolle · Jahr |
+| 5 | buchbar. | hell | Drei Leistungen mit Zielgruppe und Eckdaten, dann der CTA |
+| 6 | schon fotografiert für. | hell | Referenzzeile |
+| 7 | über. | hell | Kurzbio erste Person + Link zur SWR-Autorenseite |
+| 8 | kontakt. | hell | Buchungsanfragen / Vertraulich |
+| 9 | Footer | hell | Impressum · Datenschutz, Instagram |
 
-## Offene Fragen (siehe auch TODO.md → Langfristig)
+**Vorbild für die Struktur:** [bildmanufaktur.de](https://www.bildmanufaktur.de) — fixe Topbar
+mit Wortmarke, randloses Hero-Video, Kategoriefilter, randlos aneinanderstoßendes Kachelraster
+mit Sender-/Auftraggeber-Label. Übernommen wurde die Struktur, nicht die Gestaltung: die zwei
+Hälften, die Schriftwahl und die ●REC-Marke sind eigenständig.
 
-- Zweck der Seite (bestimmt, ob z.B. eine Portfolio-/Projekte-Section dazukommt)
-- Echtes Foto/Bildmaterial
-- Echte Kontakt-/Social-Links
-- Ob eine zweite Sprache (Englisch) gebraucht wird
+## Inhalte
+
+Alle Inhalte liegen zentral in [`lib/content.ts`](lib/content.ts) — Arbeiten, Leistungen,
+Referenzen, Bio, Kontakt. Wer Inhalte ändert, ändert nur diese Datei.
+
+⚠️ **Alle Angaben stammen aus dem Briefing und sind nicht von Jakob freigegeben.** Siehe die
+Launch-Blocker in [`TODO.md`](TODO.md).
+
+## Bewusst (noch) nicht enthalten
+
+- **Onetake-Arbeiten** — liefen über eine Firma, an der Jakob nicht mehr beteiligt ist; Freigabe
+  und Nutzungsrechte sind ungeklärt.
+- **Preisangaben** — das Briefing empfiehlt einen Richtwert („Tagessatz ab €"), er steht aber
+  noch nicht fest.
+- **Bildstrecken** — als Ausbaustufe vorgesehen (8–12 Bilder je Festival mit kurzem Vorspann),
+  sinnvoll erst mit genug Material.
+- **Impressum und Datenschutz** — Pflichtseiten, müssen vor dem Livegang angelegt werden.
+
+## Tonalität
+
+Erste Person, aktiv. Konkrete Nennungen (Sender, Format, Jahr) statt Eigenschaftswörtern —
+der Leser soll sich das Bild selbst bauen. Kurze, direkte Sätze. Saubere Credits.
+
+**Nicht:** „durfte" (untergräbt auf einer Auftragsseite die Autorität), „mega", Emoji,
+Werbe-Sprech über magische Atmosphäre und unvergessliche Momente. Wer sonst über Klimapolitik
+schreibt, kann das daneben nicht schreiben.
+
+Zielregister: *präzise, konkret, unangestrengt* — wie ein guter Hörfunkbeitrag.

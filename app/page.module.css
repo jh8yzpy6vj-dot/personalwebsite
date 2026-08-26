@@ -1,129 +1,294 @@
-.header {
-  position: sticky;
-  top: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-md);
-  flex-wrap: wrap;
-  padding: var(--space-md) var(--space-xl);
-  background: var(--surface);
+/* Topbar liegt in components/Topbar.module.css — sie wechselt je nach
+   Hälfte (dunkel/hell) die Farbe und braucht dafür eigenen Zustand. */
+
+/* ── Hero ───────────────────────────────────────────────────────── */
+
+.hero {
+  position: relative;
+  height: 82vh;
+  min-height: 420px;
+  overflow: hidden;
+  background: #000;
 }
 
-.headerName {
-  font-size: var(--text-label);
-  font-weight: var(--weight-bold);
-  line-height: var(--leading-label);
-}
-
-.nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-lg);
-}
-
-.nav a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  text-decoration: none;
-  color: var(--muted);
-  font-size: var(--text-label);
-  line-height: var(--leading-label);
-}
-
-.nav a:hover {
-  color: var(--text);
-}
-
-.main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 0 var(--space-lg);
-}
-
-.section {
-  max-width: 640px;
+.heroMedia {
   width: 100%;
-  padding: var(--space-3xl) 0;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
-.section + .section {
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+.heroPlaceholder {
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(
+      120% 80% at 30% 20%,
+      rgba(225, 27, 27, 0.16) 0%,
+      transparent 60%
+    ),
+    linear-gradient(160deg, #17171b 0%, #0b0b0d 100%);
 }
 
-.heroName {
-  margin: 0 0 var(--space-xs);
+.heroCaption {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: var(--space-2xl) var(--space-lg) var(--space-xl);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+}
+
+.positioning {
+  margin: 0;
+  max-width: 22ch;
+  font-family: var(--font-display), system-ui, sans-serif;
   font-size: var(--text-display);
   font-weight: var(--weight-bold);
   line-height: var(--leading-display);
+  color: var(--papier);
 }
 
-.role {
-  color: var(--accent);
+.locations {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin: var(--space-md) 0 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
   font-size: var(--text-label);
-  font-weight: var(--weight-bold);
   line-height: var(--leading-label);
-  margin-bottom: var(--space-lg);
+  color: var(--stein);
 }
 
-.bio {
-  color: var(--muted);
-  font-size: var(--text-body);
-  line-height: var(--leading-body);
+.locationDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--rec);
 }
 
-.bio + .bio {
-  margin-top: var(--space-md);
+/* ── Heller Lesebereich ─────────────────────────────────────────── */
+
+.light {
+  background: var(--papier);
+  color: var(--buehne);
+}
+
+.section {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: var(--space-3xl) var(--space-lg);
+  border-bottom: 1px solid var(--stein);
+  /* Damit Ankersprünge nicht unter der fixen Topbar landen. */
+  scroll-margin-top: 88px;
 }
 
 .sectionTitle {
-  margin: 0 0 var(--space-md);
+  margin: 0 0 var(--space-xl);
+  font-family: var(--font-display), system-ui, sans-serif;
   font-size: var(--text-heading);
   font-weight: var(--weight-bold);
   line-height: var(--leading-heading);
 }
 
-.links {
-  display: flex;
-  gap: var(--space-sm);
-  margin-top: var(--space-lg);
-  flex-wrap: wrap;
+.services {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-xl);
 }
 
-.links a {
+.service {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.serviceTitle {
+  margin: 0;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-heading);
+}
+
+.serviceAudience {
+  margin: 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-papier);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.serviceText {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.serviceFacts {
+  margin: var(--space-sm) 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-papier);
+}
+
+/* Primary CTA — der einzige gefüllte Button der Seite. */
+.ctaRow {
+  margin: var(--space-xl) 0 0;
+}
+
+.cta {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  color: var(--bg);
-  background: var(--accent);
-  text-decoration: none;
   padding: var(--space-md) var(--space-lg);
-  border-radius: 999px;
+  background: var(--rec);
+  color: var(--auf-rec);
+  text-decoration: none;
+  font-family: var(--font-mono), ui-monospace, monospace;
   font-size: var(--text-label);
-  font-weight: var(--weight-bold);
   line-height: var(--leading-label);
+  letter-spacing: 0.03em;
+  transition: background-color 120ms ease;
+}
+
+.cta:hover {
+  background: #c41616;
+}
+
+.referenceLine {
+  margin: 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-body);
+  color: var(--ton-papier);
+}
+
+.prose {
+  max-width: 62ch;
+}
+
+.prose p {
+  margin: 0 0 var(--space-md);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.prose p:last-child {
+  margin-bottom: 0;
+}
+
+.authorLink {
+  margin: var(--space-lg) 0 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+}
+
+.authorLink a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--buehne);
+  text-decoration-color: var(--rec);
+  text-underline-offset: 4px;
+}
+
+.contact {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-xl);
+}
+
+.contactHeading {
+  margin: 0 0 var(--space-sm);
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-heading);
+}
+
+.contactNote {
+  margin: 0 0 var(--space-md);
+  max-width: 46ch;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.contactValue {
+  margin: var(--space-md) 0 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-papier);
+}
+
+.channels {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-papier);
 }
 
 .footer {
-  text-align: center;
-  color: var(--muted);
+  max-width: 1040px;
+  margin: 0 auto;
   padding: var(--space-xl) var(--space-lg) var(--space-2xl);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  justify-content: space-between;
+  font-family: var(--font-mono), ui-monospace, monospace;
   font-size: var(--text-label);
   line-height: var(--leading-label);
+  color: var(--ton-papier);
 }
 
-@media (max-width: 640px) {
-  .header {
-    padding: var(--space-md) var(--space-lg);
+.footer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+/* ── Mobil ──────────────────────────────────────────────────────── */
+
+@media (max-width: 700px) {
+  .hero {
+    height: 72vh;
+  }
+
+  .heroCaption {
+    padding: var(--space-xl) var(--space-md) var(--space-lg);
+  }
+
+  .positioning {
+    font-size: var(--text-heading);
   }
 
   .section {
-    padding: var(--space-2xl) 0;
+    padding: var(--space-2xl) var(--space-md);
+    /* Topbar ist mobil niedriger (16px Padding + 18px Wortmarke). */
+    scroll-margin-top: 64px;
   }
 
-  .heroName {
-    font-size: var(--text-heading);
+  .services,
+  .contact {
+    grid-template-columns: 1fr;
+    gap: var(--space-2xl);
+  }
+
+  .footer {
+    padding: var(--space-lg) var(--space-md) var(--space-xl);
   }
 }

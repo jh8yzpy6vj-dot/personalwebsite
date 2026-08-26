@@ -1,0 +1,140 @@
+.works {
+  background: var(--buehne);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  /* Explizit, damit die Browser-Vorgabe (1.5em) keine undeklarierte
+     Schriftgröße in die Skala einschleppt. */
+  font-size: var(--text-heading);
+  margin: 0;
+}
+
+.filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-lg);
+  padding: var(--space-xl) var(--space-lg);
+}
+
+.filterButton {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: var(--space-sm) 0;
+  min-height: 44px;
+  cursor: pointer;
+  color: var(--ton-buehne);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  transition: color 120ms ease;
+}
+
+.filterButton:hover {
+  color: var(--papier);
+}
+
+.filterButton[aria-pressed="true"] {
+  color: var(--papier);
+  border-bottom: 2px solid var(--rec);
+}
+
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+}
+
+.tile {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: #000;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  background: linear-gradient(150deg, #17171b 0%, #0b0b0d 100%);
+  border: 1px solid rgba(244, 243, 239, 0.06);
+}
+
+.placeholderDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--rec);
+  opacity: 0.5;
+}
+
+.placeholderNote {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  color: var(--ton-buehne);
+}
+
+.meta {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-lg);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
+}
+
+.client {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--rec-text);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.title {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-heading);
+  color: var(--papier);
+}
+
+.details {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-buehne);
+}
+
+@media (max-width: 700px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filter {
+    padding: var(--space-lg) var(--space-md);
+    gap: var(--space-md);
+  }
+}

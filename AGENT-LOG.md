@@ -6,6 +6,24 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-08-26 — Echte Seitenstruktur nach Briefing gebaut, Inhalte zu Jakob Sax eingesetzt
+- **Grundlage:** Briefing „Private Website Jakob Sax" (Rev. 5, liegt außerhalb des Repos) und die Referenzseite [bildmanufaktur.de](https://www.bildmanufaktur.de). Deren Struktur wurde analysiert (fixe Topbar, randloses Hero-Video mit `loop`/`muted`/`playsinline`, Kategoriefilter, randlos aneinanderstoßendes 2-Spalten-Kachelraster mit `gap: 0` und Auftraggeber-Label) und übernommen — die Gestaltung ist eigenständig.
+- **Positionierung korrigiert:** Jakob ist nicht „Journalist mit Nebenerwerb", sondern Fotograf für Straßentheater und zeitgenössischen Zirkus *und* SWR-Journalist. Umgesetzt über das Zwei-Hälften-Prinzip: dunkel = sehen (Fotografie, hier wird gebucht), hell = lesen (Vertrauen, Journalismus als Beleg). Die dunkle Hälfte steht oben.
+- **Inhalte** zentral in neuer Datei `lib/content.ts`: Arbeiten (tête-à-tête Rastatt, WiWaWo 50–52 des Bayerischen Kanu-Verbands, Filmworkshop, SWR-Klimaredaktion, ARD aktuell, STRG_F/Panorama, SWR Heimat), drei Leistungen, Referenzen, Kurzbio in erster Person, Kontakt. Jede Arbeit trägt Auftraggeber, Rolle und Jahr — saubere Credits sind belegt Jakobs Arbeitsweise.
+- **Bewusst weggelassen:** Onetake-Arbeiten (Freigabe und Nutzungsrechte ungeklärt), Preisangaben (stehen nicht fest), erfundene Details. Wo Angaben fehlen, steht „noch festzulegen" statt einer Erfindung.
+- **Design nach Briefing-Tokens:** `rec` #E11B1B (seine eigene ●REC-Bildmarke), `buehne`, `papier`, `stein`, `ton`. Schriften Bricolage Grotesque / Newsreader / Martian Mono über `next/font/google`. Sektionstitel klein mit Schlusspunkt (`buchbar.`, `kontakt.`) — belegt seine Handschrift.
+- **Neue Komponenten:** `app/components/Works.tsx` (Kategoriefilter, Client Component) und `app/components/Topbar.tsx`. Die Topbar wechselt per `IntersectionObserver` die Farbe je nach Hälfte — ohne das wäre die weiße Wortmarke über dem hellen Bereich unlesbar (im Test aufgefallen).
+- **Design-Vertrag `design/UI-SPEC.md` komplett neu geschrieben** (der alte ging von einer falschen Positionierung aus) und **drei Runden vom `gsd-ui-checker` geprüft**:
+  - Runde 1 → BLOCKED: deklarierter CTA „E-Mail schreiben" existierte gar nicht im Code; 5 statt 4 Schriftgrößen, wobei 12px und 14px derselbe Schriftschnitt waren; tote Impressum-/Datenschutz-Elemente.
+  - Runde 2 → BLOCKED: der Launch-Blocker im Vertrag verwies auf `TODO.md`, dort stand aber nichts.
+  - Runde 3 → **APPROVED**, 6/6 Dimensionen.
+- **Behoben:** CTA an zwei Stellen ergänzt (einziger gefüllter Button der Seite); Skala auf genau 4 Größen (14/18/28/56) und 2 Gewichte reduziert; ●-Punkt überall einheitlich 8px (vorher 7/8/10); `scroll-margin-top` mobil ergänzt; unsichtbare Screenreader-Überschrift bekam eine explizite Größe, weil die Browser-Vorgabe sonst einen undeklarierten 27px-Wert einschleppte.
+- **Kontraste gemessen statt geschätzt:** Die Briefing-Farben verfehlen als kleiner Text die im Briefing selbst gesetzten 4.5:1 (`ton` auf Papier 4.11, `rec` auf Schwarz 4.37). Deshalb zugängliche Textvarianten eingeführt (`--ton-papier`, `--ton-buehne`, `--rec-text`, `--auf-rec`); Markenfarben bleiben für Flächen, Punkte und Linien. Gemessenes Minimum jetzt **4.80:1**.
+- **Verifiziert im Browser:** genau 4 Schriftgrößen und 2 Gewichte im gerenderten DOM nachgezählt, alle Kontraste geprüft, Filter getestet (9 → 1 → 4 → 9 Kacheln, `aria-pressed` korrekt), Mobilansicht bei 375px ohne horizontalen Überlauf, keine Konsolenfehler.
+- **`TODO.md` um einen Abschnitt „🚫 LAUNCH-BLOCKER" erweitert** — Pflichtangaben (Impressum/Datenschutz), Freigabe aller Inhalte durch Jakob, echte Kontaktdaten, Nebentätigkeitsgenehmigung SWR, Bild- und Persönlichkeitsrechte, Freigabe der Referenznennungen.
+- **Wichtig:** Die Seite ist **nicht live gegangen**. Alle Inhalte stammen aus dem Briefing und sind ungeprüft; Bildmaterial und Hero-Video fehlen noch (Kacheln zeigen „Bild folgt", Hero einen Farbverlauf).
+- Von: Jan (mit Claude, geprüft durch `gsd-ui-checker`)
+
 ## 2026-08-26 — Design-Vertrag `design/UI-SPEC.md` erstellt, geprüft und im Code umgesetzt
 - Neues Verzeichnis `design/` mit `UI-SPEC.md` — verbindlicher Design-Vertrag (Spacing-Skala, Typografie, Farbregeln inkl. Accent-Reservierung, Copywriting, Zustands-Abdeckung, Visual Hierarchy).
 - Erstellt mit dem GSD-Agenten `gsd-ui-researcher`, anschließend unabhängig geprüft vom `gsd-ui-checker` (6-Dimensionen-Review). Ergebnis: 5× PASS, 1× FLAG (fehlender Fokuspunkt der Hero-Section) — FLAG behoben durch neue Sektion "Visual Hierarchy", danach `status: approved`.

@@ -1,10 +1,25 @@
-/* Design-Tokens — Werte und Verwendungsregeln siehe design/UI-SPEC.md */
+/*
+ * Design-Tokens — Werte und Verwendungsregeln siehe design/UI-SPEC.md.
+ * Farbnamen folgen dem Briefing (rec / buehne / papier / stein / ton).
+ */
 :root {
-  --bg: #0f1115;
-  --surface: #171a21;
-  --text: #eef0f4;
-  --muted: #9aa3b2;
-  --accent: #6ee7b7;
+  --rec: #e11b1b;
+  --buehne: #0e0e10;
+  --papier: #f4f3ef;
+  --stein: #d9d5cc;
+  --ton: #6e7873;
+
+  /*
+   * Zugängliche Textvarianten. Die Briefing-Tokens --rec und --ton erreichen
+   * als kleiner Text die geforderten 4.5:1 nicht (--ton auf Papier: 4.11,
+   * --rec auf Schwarz: 4.37). Deshalb: Markenfarben bleiben für Punkte,
+   * Chip-Fläche, Linien und Fokus — kleiner Text nutzt diese Varianten.
+   * Gemessene Werte siehe design/UI-SPEC.md.
+   */
+  --ton-papier: #5c665f; /* 5.37:1 auf --papier */
+  --ton-buehne: #7a857f; /* 5.04:1 auf --buehne */
+  --rec-text: #ee3b3b; /* 5.32:1 auf Schwarz */
+  --auf-rec: #ffffff; /* 4.80:1 auf --rec */
 
   --space-xs: 4px;
   --space-sm: 8px;
@@ -14,10 +29,11 @@
   --space-2xl: 48px;
   --space-3xl: 64px;
 
+  /* Genau 4 Größen. Kein Wert unter 14px — auch Credits bleiben lesbar. */
   --text-label: 14px;
-  --text-body: 16px;
-  --text-heading: 24px;
-  --text-display: 40px;
+  --text-body: 18px;
+  --text-heading: 28px;
+  --text-display: 56px;
 
   --weight-regular: 400;
   --weight-bold: 700;
@@ -25,7 +41,7 @@
   --leading-label: 1.4;
   --leading-body: 1.6;
   --leading-heading: 1.2;
-  --leading-display: 1.1;
+  --leading-display: 1;
 }
 
 * {
@@ -39,12 +55,12 @@ body {
 }
 
 body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-    Arial, sans-serif;
+  background: var(--buehne);
+  color: var(--papier);
+  font-family: var(--font-serif), Georgia, "Times New Roman", serif;
   font-size: var(--text-body);
   line-height: var(--leading-body);
+  -webkit-font-smoothing: antialiased;
 }
 
 a {
@@ -52,6 +68,16 @@ a {
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline: 2px solid var(--rec);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

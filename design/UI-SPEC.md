@@ -1,6 +1,6 @@
 ---
-phase: 1
-slug: personalwebsite-erstentwurf
+phase: 2
+slug: jakobsax-media-erstentwurf
 status: approved
 shadcn_initialized: false
 preset: none
@@ -8,161 +8,244 @@ created: 2026-08-26
 reviewed_at: 2026-08-26
 ---
 
-# Phase 1 — UI Design Contract (jakobsax.de, Erstentwurf)
+# UI Design Contract — jakobsax.de
 
-> Visual and interaction contract für die persönliche Website von Jakob Sax. Erstellt als
-> standalone Ersatz für den GSD-Orchestrator-Flow — Grundlage sind `CLAUDE.md`, `SITE-PLAN.md`,
-> `TECH-STACK.md`, `TODO.md` und der bestehende Platzhalter-Code (`app/page.tsx`,
-> `app/page.module.css`, `app/globals.css`). Verifiziert werden kann dies später vom
-> `gsd-ui-checker`.
+> Verbindlicher Design-Vertrag. Bei Widerspruch zu `SITE-PLAN.md` gilt dieses Dokument.
 >
-> ⚠️ **Status:** Erster Entwurf. Der eigentliche Zweck der Seite (CV/Portfolio/Business) ist laut
-> `TODO.md` noch offen. Alle Copywriting-Werte unten sind bewusst konkrete, aber vorläufige
-> Platzhalter — sie sind klar als PLATZHALTER markiert und müssen überschrieben werden, sobald
-> der echte Zweck feststeht.
+> **Grundlage:** das Briefing „Private Website Jakob Sax" (Rev. 5) sowie die Referenz-Seite
+> bildmanufaktur.de, deren Struktur übernommen wurde. Ersetzt den vorherigen Entwurf
+> (dunkles Theme mit Mint-Akzent) vollständig — der war vor dem Briefing entstanden und ging
+> von einer falschen Positionierung aus.
 
 ---
 
-## Design System
+## Positionierung (bestimmt das Design)
 
-| Property | Value |
-|----------|-------|
-| Tool | none (bewusste Entscheidung) |
-| Preset | not applicable |
-| Component library | none |
-| Icon library | none — falls später Social-Icons gebraucht werden: einzelne Inline-SVGs ohne zusätzliche Paket-Abhängigkeit, keine Icon-Library |
-| Font | System-Font-Stack: `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif` (bereits in `app/globals.css`, kein Web-Font-Import) |
+Jakob Sax ist **Journalist beim SWR** *und* **Fotograf für Straßentheater und zeitgenössischen
+Zirkus**. Kerngeschäft ist die Fotografie, Journalismus ist Glaubwürdigkeitsbeleg — keine Ware.
+Das Design muss beides zeigen, ohne dass eines das andere entwertet.
 
-**Begründung "Tool: none":** `TECH-STACK.md` legt explizit fest, "keine unnötige Komplexität
-einbauen (kein Build-Framework, kein Static-Site-Generator)" für den aktuellen Umfang der Seite.
-Tailwind/shadcn würden eine zusätzliche Abhängigkeit + Build-Schritt-Komplexität einführen, die
-für eine kleine, statische persönliche Seite mit aktuell einer Handvoll Sections nicht
-gerechtfertigt ist. Weiterarbeit mit reinem CSS: CSS-Custom-Properties (`globals.css`) für
-Tokens + CSS-Modules (`page.module.css`) pro Komponente/Section — Muster, das bereits im Code
-etabliert ist. Die shadcn-Init-Gate-Frage wurde deshalb nicht interaktiv gestellt.
+**Strukturprinzip: die zwei Hälften.**
+
+| Hälfte | Zweck | Umsetzung |
+|--------|-------|-----------|
+| **dunkel = sehen** | Fotografie, Bewegtbild. Hier wird gebucht. | Randlose Bilder auf `--buehne`, minimale Typografie |
+| **hell = lesen** | Buchbar, Referenzen, Über, Kontakt. Hier wird Vertrauen gelesen. | `--papier`, Serifenschrift, Text vorn |
+
+Der Wechsel selbst ist das Strukturelement. Die dunkle Hälfte steht **oben**: wer bucht, sieht
+zuerst Bilder; wer prüft, scrollt weiter.
 
 ---
 
-## Spacing Scale
+## Seitenstruktur
 
-Deklarierte Werte (Vielfache von 4px):
+Übernommen von bildmanufaktur.de, angepasst an die zwei Hälften:
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| xs | 4px | Icon-Abstände, enge Inline-Abstände |
-| sm | 8px | Kompakte Element-Abstände (z.B. Link-Untergruppen) |
-| md | 16px | Standard-Element-Abstand (Absatzabstände, Button-Innenabstand vertikal) |
-| lg | 24px | Section-interner Innenabstand, Button-Innenabstand horizontal |
-| xl | 32px | Layout-Lücken zwischen größeren Blöcken, Header-Innenabstand horizontal |
-| 2xl | 48px | Größere vertikale Abstände (mobil: Section-Padding) |
-| 3xl | 64px | Section-Padding vertikal (Desktop) — entspricht dem bereits bestehenden `4rem` in `.section` |
+| # | Bereich | Hälfte | Inhalt |
+|---|---------|--------|--------|
+| 1 | Topbar (fix) | wechselnd | Wortmarke + ●REC-Chip |
+| 2 | Hero | dunkel | Randloses Video (`loop`, `muted`, `playsinline`), darüber Positionierungssatz + Orte |
+| 3 | Filter | dunkel | `alle.` `festivals.` `bewegtbild.` `redaktion.` |
+| 4 | Arbeiten-Raster | dunkel | 2 Spalten, **gap 0**, randlos. Pro Kachel: Auftraggeber, Titel, Ort · Rolle · Jahr |
+| 5 | buchbar. | hell | Drei Leistungen mit Zielgruppe, Beschreibung, Eckdaten |
+| 6 | schon fotografiert für. | hell | Referenzzeile |
+| 7 | über. | hell | Kurzbio erste Person + Link SWR-Autorenseite |
+| 8 | kontakt. | hell | Buchungsanfragen / Vertraulich (zweispaltig) |
+| 9 | Footer | hell | Impressum · Datenschutz, Instagram |
 
-**Exceptions:**
-- Touch-Targets (Nav-Links, Kontakt-Buttons) müssen auf Mobile mindestens 44×44px effektive
-  Klickfläche haben (Accessibility-Mindestmaß) — Button-Innenabstand ggf. so anpassen, dass die
-  Gesamthöhe inkl. Padding 44px erreicht, auch wenn der reine Innenabstand-Wert selbst kleiner
-  ist.
-- Bestehender Code weicht an zwei Stellen leicht von der Skala ab (Header-Padding `1.25rem` =
-  20px statt 16/24px; Button-Padding `0.6rem/1.1rem` = 9.6px/17.6px statt 8/16px). Beim nächsten
-  Durchgang auf `md`(16px)/`lg`(24px) vereinheitlichen.
+**⚠️ Pflichtangaben — Launch-Blocker.** „Impressum · Datenschutz" steht derzeit als reiner Text
+ohne Verlinkung im Footer, weil die Seiten noch nicht existieren. Das ist bewusst so: Links auf
+nicht existierende Pflichtseiten wären schlechter als gar keine, und eine Pflichtseite mit
+Platzhaltertext wäre rechtlich wertlos. **Vor dem Livegang zwingend:** `/impressum` und
+`/datenschutz` mit echten Inhalten anlegen (§ 5 DDG, DSGVO) und hier verlinken. Siehe `TODO.md`.
 
----
-
-## Typography
-
-| Role | Size | Weight | Line Height |
-|------|------|--------|-------------|
-| Label (Nav, Buttons, Footer, Tagline) | 14px | 400 | 1.4 |
-| Body (Fließtext/Bio) | 16px | 400 | 1.6 |
-| Heading (Section-Titel, Header-Name) | 24px | 700 | 1.2 |
-| Display (Hero-Name) | 40px | 700 | 1.1 |
-
-Genau 2 Gewichte: **400 (Regular)** für Fließtext/Label, **700 (Bold)** für Headings/Display.
-
-**Abweichung vom Platzhalter-Code:** Aktuell nutzt der Code teils `font-weight: 600` (Rolle/
-Tagline, Kontakt-Buttons). Für die 2-Gewichte-Regel auf **700** vereinheitlichen — visuell kaum
-unterscheidbar bei dieser Schriftgröße, hält den Font-Weight-Vertrag aber sauber.
-
-Die Tagline/Rolle im Hero (`--accent`-Farbe) nutzt die **Label**-Rolle (14px/700), nicht eine
-eigene Größe.
+**Topbar-Verhalten:** Sie gehört optisch zu der Hälfte, über der sie steht — über `--buehne`
+transparent mit heller Wortmarke, über `--papier` mit Papier-Grund, `--stein`-Unterkante und
+dunkler Wortmarke. Ohne diesen Wechsel wäre die weiße Wortmarke auf dem hellen Bereich
+unlesbar (im Test bestätigt). Umgesetzt via `IntersectionObserver` auf `#lesen`.
 
 ---
 
-## Color
+## Bildbehandlung & Fokuspunkt
 
-| Role | Value | Usage |
-|------|-------|-------|
-| Dominant (60%) | `#0f1115` (`--bg`) | Seitenhintergrund, Haupt-Content-Fläche |
-| Secondary (30%) | `#171a21` (`--surface`) | Sticky Header/Nav-Leiste; zukünftige Karten/Boxen |
-| Accent (10%) | `#6ee7b7` (`--accent`) | Ausschließlich: Hero-Tagline/Rolle, Kontakt-Buttons (Hintergrund), Fokus-/Hover-Indikatoren interaktiver Elemente |
-| Destructive | not applicable in diesem Scope | Aktuell keine destruktiven Aktionen (keine Formulare, kein Löschen). Falls später ein Kontaktformular mit z.B. Abo-Abmeldung dazukommt: `#f87171` (Rot, passend zum dunklen Theme) reservieren. |
+| Element | Regel |
+|---------|-------|
+| Hero | Höhe `82vh` (mobil `72vh`), `min-height: 420px`. Randlos, `object-fit: cover`. Video: `loop`, `muted`, `playsinline` — ohne Ton, ohne Bedienelemente. |
+| Kachel | Seitenverhältnis **4:3**, `object-fit: cover`. Randlos aneinanderstoßend (`gap: 0`). |
+| Metazeile | Liegt **über** dem Bild am unteren Rand, auf einem Verlauf nach Schwarz — nie unter dem Bild. |
 
-Zusätzliche Textfarben (nicht Teil der 60/30/10-Flächenaufteilung, sondern Textfarben-Tokens):
-`--text` (`#eef0f4`) für Haupttext, `--muted` (`#9aa3b2`) für Nebentext (Bio, Footer, Nav-Links
-im Ruhezustand).
+**Fokuspunkt:** Im Hero ist das **Bild** der primäre Anker, nicht die Schrift — der
+Positionierungssatz sitzt bewusst unten und tritt hinter das Motiv zurück. In der hellen Hälfte
+übernimmt der Sektionstitel (28px) die Ankerrolle, in `buchbar.` zusätzlich der rote CTA als
+einziger gefüllter Button. Auf einer Kachel führt der Blick vom Bild über das rote
+Auftraggeber-Label zum Titel.
 
-**Accent reserved for:** Hero-Tagline/Rolle-Text, Kontakt-Buttons (E-Mail/LinkedIn/GitHub) als
-Hintergrundfarbe, Fokus-Ring auf interaktiven Elementen. **Nicht** für Section-Titel, normale
-Fließtext-Links oder die Nav-Links im Header (die bleiben `--muted` → `--text` im Hover, siehe
-bestehender Code).
+**Wenn die Bilder gut sind, ist jedes erklärende Wort davor ein Verlust** — deshalb keine
+Überschrift über dem Hero, kein Text über dem Motiv außer der einen Zeile unten.
 
 ---
 
-## Visual Hierarchy
+## Farbe
 
-Primärer Fokuspunkt der Hero-Section (erste Section, die der Besuch sieht): der **Display-Name**
-("Jakob Sax", 40px/700) ist der primäre visuelle Anker — größte Schriftgröße, höchster Kontrast
-(`--text` auf `--bg`). Die **Tagline/Rolle** direkt darunter ist der sekundäre Blickpunkt, über die
-`--accent`-Farbe hervorgehoben (nicht über Größe). Der Bio-Fließtext ist bewusst zurückhaltend
-(`--muted`, 16px/400) und tritt hinter Name und Tagline zurück. In den Sections "Über mich" und
-"Kontakt" übernimmt jeweils die Section-Überschrift (24px/700) die gleiche Anker-Rolle auf
-Section-Ebene; in "Kontakt" sind zusätzlich die Accent-Buttons der klar dominante interaktive
-Fokuspunkt gegenüber dem einleitenden Fließtext.
+Tokens aus dem Briefing:
+
+| Token | Hex | Einsatz |
+|-------|-----|---------|
+| `--rec` | `#E11B1B` | **Seine eigene Bildmarke** (●REC). Chip-Fläche, Punkte, aktive Filter-Unterkante, Fokusring, Unterstreichungen |
+| `--buehne` | `#0E0E10` | Dunkle Hälfte — Galerieflächen, fast neutral, damit die Fotos die Farbe machen |
+| `--papier` | `#F4F3EF` | Helle Hälfte — Lesebereiche |
+| `--stein` | `#D9D5CC` | Trennlinien, ruhige Abstufung |
+| `--ton` | `#6E7873` | Basiswert für Meta-/Sekundärtext |
+
+**60/30/10:** `--buehne`/`--papier` als dominante Flächen (60), Bilder und `--stein`-Abstufungen
+(30), `--rec` als einziger Akzent (10).
+
+**Accent reserved for:** ●REC-Chip in der Topbar, Punkt vor der Ortsangabe, Punkt in der
+Bild-Platzhalterkachel, Unterkante des aktiven Filters, Fokusring, Unterstreichungsfarbe von
+Links im Lesebereich, Auftraggeber-Label auf den Kacheln. **Nicht** für Fließtext, nicht für
+Überschriften, nicht für alle interaktiven Elemente.
+
+### Zugängliche Textvarianten (Abweichung mit Begründung)
+
+Die Briefing-Tokens verfehlen als **kleiner Text** die im Briefing selbst gesetzte Untergrenze
+von 4.5:1 — gemessen im Browser: `--ton` auf `--papier` = 4.11, `--rec` auf Schwarz = 4.37,
+`--papier` auf `--rec` = 4.32. Deshalb: die Markenfarben bleiben unverändert für Flächen,
+Punkte, Linien und Fokus; **kleiner Text** nutzt diese Varianten:
+
+| Token | Hex | Kontrast | Einsatz |
+|-------|-----|----------|---------|
+| `--ton-papier` | `#5C665F` | 5.37:1 auf `--papier` | Meta-Text in der hellen Hälfte |
+| `--ton-buehne` | `#7A857F` | 5.04:1 auf `--buehne` | Meta-Text in der dunklen Hälfte |
+| `--rec-text` | `#EE3B3B` | 5.32:1 auf Schwarz | Auftraggeber-Label auf Kacheln |
+| `--auf-rec` | `#FFFFFF` | 4.80:1 auf `--rec` | Schrift und Punkt im ●REC-Chip |
+
+Gemessenes Minimum über die gesamte Seite: **4.80:1**.
+
+---
+
+## Typografie
+
+**Genau 4 Größen, genau 2 Gewichte.** Alle sieben Rollen sind vollständig deklariert — mehrere
+Rollen teilen sich bewusst eine Größe und unterscheiden sich über Schriftschnitt, Gewicht und
+Farbe:
+
+| Rolle | Schrift | Größe | Gewicht | Zeilenhöhe |
+|-------|---------|-------|---------|------------|
+| Display (Positionierung im Hero) | Bricolage Grotesque | 56px | 700 | 1.0 |
+| Heading (Sektionstitel, Wortmarke) | Bricolage Grotesque | 28px | 700 | 1.2 |
+| Subheading (Leistungstitel, Kontakt-Überschriften, Kachel-Titel) | Bricolage Grotesque | 18px | 700 | 1.2 |
+| Body (Fließtext) | Newsreader | 18px | 400 | 1.6 |
+| Label (Filter, CTA, Links) | Martian Mono | 14px | 400 | 1.4 |
+| Meta (Credits, Eckdaten, Footer) | Martian Mono | 14px | 400 | 1.4 |
+| Screenreader-Überschrift (unsichtbar) | — | 28px | — | — |
+
+Skala: 14 · 18 · 28 · 56 — Abstände 1.29 / 1.56 / 2.0, keine zu nah beieinanderliegenden Werte.
+
+**Mobil (≤ 700px)** stufen zwei Rollen innerhalb derselben Skala herunter — das ist vertraglich
+gedeckt und **kein** Verstoß:
+
+| Rolle | Desktop | Mobil |
+|-------|---------|-------|
+| Display (Positionierung) | 56px | 28px |
+| Wortmarke in der Topbar | 28px | 18px |
+
+**Kein Wert unter 14px.** Ein früherer Entwurf sah zusätzlich 12px für Credits vor — verworfen,
+weil 12px und 14px **derselbe** Schriftschnitt (Martian Mono 400/1.4) waren und mit Faktor 1.17
+zu dicht lagen. Die Rollenteilung der drei Schriftfamilien rechtfertigt drei Größen, nicht fünf.
+
+Die unsichtbare Screenreader-Überschrift bekommt eine explizite Größe, damit die
+Browser-Vorgabe (1.5em → 27px) keinen undeklarierten Wert in die Skala einschleppt.
+
+**Eingebunden über `next/font/google`** — kein externer Ladevorgang zur Laufzeit, Fallbacks
+sind gesetzt.
+
+**Schreibweise:** Sektionstitel und Filter durchgehend **klein mit Schlusspunkt**
+(`buchbar.` `kontakt.` `festivals.`). Das ist belegt seine eigene Handschrift, keine
+Design-Erfindung. Eigennamen im Fließtext bleiben normal geschrieben.
+
+---
+
+## Spacing
+
+4er-Skala: 4 · 8 · 16 · 24 · 32 · 48 · 64px als `--space-xs` bis `--space-3xl`.
+
+**Barrierefreiheits-Untergrenze (keine Ausnahme — 44 liegt auf der Skala):** Klickflächen
+mindestens 44×44px, umgesetzt via `min-height: 44px` auf Links, Buttons und Filter.
+
+**Ausnahmen:**
+- `scroll-margin-top`: 88px Desktop, 64px mobil (die Topbar ist dort niedriger). Ohne diese
+  Werte landen Ankersprünge unter der fixen Topbar.
+- Das Arbeiten-Raster hat bewusst **gap: 0** — randlos aneinanderstoßende Kacheln sind das
+  übernommene Kernmerkmal der Referenz.
+- Die ●REC-Marke hat **durchgehend 8px** Durchmesser, an allen drei Fundstellen (Topbar-Chip,
+  Ortsangabe im Hero, Platzhalterkachel). Ein Markenzeichen in drei Größen wäre eine
+  Inkonsistenz.
 
 ---
 
 ## Copywriting Contract
 
-> ⚠️ Alle Einträge unten sind konkrete, aber **vorläufige PLATZHALTER**, da der Zweck der Seite
-> laut `TODO.md` (Langfristig) noch nicht feststeht. Keine erfundenen Fakten über Jakob Sax —
-> nur generische, aber spezifische Formulierungen als Ausgangspunkt.
-
 | Element | Copy |
 |---------|------|
-| Primary CTA | "E-Mail schreiben" (mailto-Link im Kontakt-Bereich; ersetzt das aktuelle knappe "E-Mail"-Label für einen klaren Verb+Nomen-CTA) — **PLATZHALTER**, austauschbar sobald echter Ansprechzweck feststeht (z.B. "Termin anfragen" bei Business-Zweck, "Lebenslauf anfordern" bei CV-Zweck) |
-| Empty state heading | "Noch keine Projekte veröffentlicht" — **PLATZHALTER**, relevant erst sobald eine Portfolio-/Projekte-Section ergänzt wird (aktuell keine Liste/Kollektion auf der Seite vorhanden) |
-| Empty state body | "Hier erscheinen bald ausgewählte Projekte und Arbeiten." — **PLATZHALTER**, gleiche Abhängigkeit wie oben |
-| Error state | "Nachricht konnte nicht gesendet werden. Bitte versuche es erneut oder schreib mir direkt eine E-Mail." — **PLATZHALTER**, relevant erst falls ein Kontaktformular mit Versand-Logik ergänzt wird (aktuell nur reine `mailto:`-Links, kein Formular, kein Fehlerfall möglich) |
-| Destructive confirmation | Not applicable — keine destruktiven Aktionen im aktuellen Scope (statische Seite ohne Formulare, ohne Datenlöschung/Abmeldung) |
+| Positionierung (H1) | „fotografie für kultur & theater im öffentlichen raum" — seine eigene Selbstbeschreibung, unverändert |
+| Primary CTA | „E-Mail schreiben" (Verb + Nomen). Erscheint **zweimal**: am Ende von `buchbar.` und im Buchungs-Block unter `kontakt.` Einziger gefüllter Button der Seite (`--rec`-Fläche, `--auf-rec`-Schrift). Die Adresse selbst steht darunter als Meta-Text, nicht als Linktext. |
+| Kontakt-Trennung | „buchungsanfragen." / „vertraulich." |
+| Vertraulich-Hinweis | „Für Hinweise an mich als Journalist. Ich behandle Quellen vertraulich und nenne niemanden ohne Absprache." |
+| Leerzustand Kachel | „Bild folgt" — ehrlicher Platzhalter, solange Bildmaterial fehlt |
+| Fehlzustand | Nicht anwendbar — statische Seite ohne Formular |
+| Destruktive Aktion | Nicht anwendbar |
+
+**Tonalität** (aus der Tonalitätsanalyse des Briefings): erste Person, aktiv, konkrete Nennungen
+(Sender, Format, Jahr), kurze Sätze. **Nicht** verwenden: „durfte", „mega", Emoji, Werbe-Sprech
+über Emotionen und unvergessliche Momente. Zielregister: präzise, konkret, unangestrengt.
+
+**⚠️ Sämtliche Copy ist unbestätigt.** Alle Texte stammen aus dem Briefing und sind **nicht von
+Jakob freigegeben**. Besonders: die Adresse `hallo@jakobsax.media` ist ein **erfundener
+Platzhalter**, ebenso die vertraulichen Kanäle und alle Preis-/Lieferzeit-Angaben („noch
+festzulegen"). Nichts davon gilt als freigegebene Copy — siehe Launch-Blocker in `TODO.md`.
+
+**Credit-Pflicht:** Jede Arbeit trägt Auftraggeber, Rolle und Jahr. Das ist keine Kür — saubere
+Credits sind belegt seine Arbeitsweise, und sie decken die Nutzungsrechtefrage mit ab.
 
 ---
 
 ## UI Considerations
 
-> Populated by the ui-phase UI-consideration probe. Shape-rooted UI *state* coverage
-> (empty / loading / error / populated / partial / overflow / zero-one-many / long-text).
-
-Applicable state considerations resolved: **4 covered, 2 backstop, 0 unresolved** (Kategorien
-`empty`, `populated`, `partial`, `zero-one-many` sind aktuell **not applicable** — die Seite hat
-im jetzigen Scope kein `form`-, `list-collection`- oder `media`-Element: keine Formulare, keine
-Liste/Kollektion, kein Bildmaterial. Diese Kategorien werden relevant, sobald z.B. eine
-Portfolio-/Projekte-Liste oder ein Kontaktformular ergänzt wird.)
+Applicable state considerations resolved: **4 covered, 3 backstop, 0 unresolved**
 
 | Category | Element(s) | Status | Resolution / Reason |
 |----------|------------|--------|---------------------|
-| loading | Header-Nav (`nav`) | ✅ covered | Nav ist rein statisch/serverseitig gerendert (Next.js, Anker-Links auf derselben Seite), keine asynchrone Datenladung — kein Loading-Zustand nötig. |
-| error | Header-Nav (`nav`) | ✅ covered | Keine Netzwerk-/Datenoperation hinter der Nav (nur Seiten-Anker) — kein Error-Zustand möglich. |
-| overflow | Header-Nav (`nav`) | 🧪 backstop | Nav braucht `flex-wrap: wrap` (aktuell nicht gesetzt), damit bei wachsender Linkzahl oder sehr schmalen Viewports (~320px) kein horizontales Scrollen/Clipping entsteht — visuell auf kleinen Viewports zu verifizieren. |
-| overflow | Bio-Text Hero/Über-mich (`static-content`) | ✅ covered | Fließtext bricht im normalen Blockfluss um; `max-width: 640px` auf `.section` verhindert überlange Zeilen unabhängig vom Viewport. |
-| long-text | Bio-Text Hero/Über-mich (`static-content`) | 🧪 backstop | Echter Bio-Text ist laut `TODO.md` noch nicht final; Section muss bei mehreren Absätzen/deutlich längerem Text weiterhin lesbar bleiben ohne Layout-Bruch — zu verifizieren, sobald echter Content vorliegt. |
-| long-text | Kontakt-Buttons/Nav-Links (`interactive-control`) | ✅ covered | Alle Link-/Button-Labels sind kurze, feste Begriffe (max. 2 Wörter: "Über mich", "Kontakt", "E-Mail schreiben", "LinkedIn", "GitHub") — geringes Overflow-Risiko im aktuellen Scope. |
+| empty | Arbeiten-Raster (`list-collection`) | 🧪 backstop | Filter kann theoretisch 0 Treffer liefern. Aktuell hat jede Kategorie mindestens einen Eintrag, daher kein sichtbarer Leerzustand — sobald Kategorien dazukommen oder leer laufen können, Leerzustands-Copy ergänzen und visuell prüfen. |
+| empty | Bildkachel (`media`) | ✅ covered | Fehlt ein Bild, rendert die Kachel den Platzhalter mit ●-Punkt und „Bild folgt" statt eines kaputten `img` — im Browser bestätigt. Der Platzhalter trägt bewusst `aria-hidden="true"`: „Bild folgt" ist eine Notiz an uns, keine Information für Nutzende — die Metazeile darunter trägt Auftraggeber, Titel und Jahr und bleibt für Screenreader vollständig lesbar. |
+| loading | Hero-Video (`media`) | 🧪 backstop | Solange `HERO_VIDEO` `null` ist, greift ein Farbverlauf-Platzhalter. Mit echtem Video: Poster-Bild setzen (`HERO_POSTER`), damit vor dem Laden keine schwarze Fläche steht — zu verifizieren, sobald das Video vorliegt. |
+| error | Kontaktbereich (`interactive-control`) | ✅ covered | Nur `mailto:`-Links, kein Formular, keine Netzwerkoperation — kein Fehlerzustand möglich. |
+| zero-one-many | Arbeiten-Raster (`list-collection`) | ✅ covered | Einspaltig auf Mobil, zweispaltig ab 700px; getestet mit 1, 4 und 9 Kacheln über den Filter — Layout trägt in allen drei Fällen. |
+| long-text | Kachel-Titel (`static-content`) | ✅ covered | Titel brechen im Blockfluss um; Metazeile setzt sich aus optionalen Feldern zusammen und lässt fehlende Werte weg statt leere Trenner zu zeigen. |
+| overflow | Filterzeile (`interactive-control`) | 🧪 backstop | `flex-wrap: wrap` gesetzt, bei 375px bestätigt (bricht auf zwei Zeilen um, kein horizontales Scrollen). Bei weiteren Kategorien erneut prüfen. |
 
-<!-- Status vocabulary (locked by probe-core projectTruths):
-     ✅ covered   → a plain truth string lifted into must_haves.truths
-     🧪 backstop  → a flat scalar { statement, verification: backstop }; at verify time, no explicit
-                    evidence → insufficient_spec → human_needed (never a silent pass, #1154)
-     ⚠ unresolved → an explicit planner assumption (surfaced, never silently dropped)
-     Rows are REPLACED (not appended) on a probe re-run — idempotent. -->
+---
+
+## Motion
+
+- Topbar wechselt Farbe mit 160ms Übergang beim Hälftenwechsel.
+- Filter-Zustände mit 120ms Farbübergang.
+- `prefers-reduced-motion: reduce` schaltet alle Übergänge global ab (in `globals.css`).
+- **Sonst nichts.** Kein Parallax, kein Ken Burns über Standbildern, keine Filter über Fotos.
+  Bei guten Fotos ist jeder Effekt ein Abzug.
+
+---
+
+## Qualitätsuntergrenze
+
+- [x] Voll responsiv, kein horizontales Scrollen (bei 375px und Desktop bestätigt)
+- [x] Sichtbarer Tastaturfokus (`:focus-visible`, 2px `--rec`)
+- [x] Semantische Struktur (`ul`/`li` für das Raster, `button` mit `aria-pressed` für Filter)
+- [x] Kontraste ≥ 4.5:1 (gemessenes Minimum 4.80:1)
+- [x] Klickflächen ≥ 44px
+- [ ] `srcset`, moderne Bildformate, Lazy Loading unterhalb des Falzes, Hero eager — **offen,
+      greift erst mit echtem Bildmaterial** (`loading="lazy"` ist bereits gesetzt)
+- [ ] Alt-Texte, die die Szene beschreiben — Feld `alt` existiert pro Arbeit, muss mit den
+      Bildern befüllt werden
 
 ---
 
@@ -170,17 +253,21 @@ Portfolio-/Projekte-Liste oder ein Kontaktformular ergänzt wird.)
 
 | Registry | Blocks Used | Safety Gate |
 |----------|-------------|-------------|
-| — | — | not applicable — kein shadcn/keine Registry im Einsatz (siehe Design System → Tool: none) |
+| — | — | not applicable — kein shadcn, keine Registry. Reines CSS mit Custom Properties und CSS-Modules, siehe `TECH-STACK.md`. |
 
 ---
 
 ## Checker Sign-Off
 
+> Dieser Block gehört dem `gsd-ui-checker`, nicht dem Verfasser. Er wird erst nach einer
+> tatsächlich durchgeführten Prüfung ausgefüllt.
+
 - [x] Dimension 1 Copywriting: PASS
-- [x] Dimension 2 Visuals: PASS (nach Ergänzung "Visual Hierarchy"-Sektion; ursprünglich FLAG)
+- [x] Dimension 2 Visuals: PASS
 - [x] Dimension 3 Color: PASS
 - [x] Dimension 4 Typography: PASS
 - [x] Dimension 5 Spacing: PASS
 - [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** approved 2026-08-26 (gsd-ui-checker, standalone-Verifikation ohne GSD-Orchestrator)
+**Approval:** approved 2026-08-26 durch `gsd-ui-checker` (dritter Durchgang; die ersten beiden
+ergaben BLOCKED — fehlender CTA, fünf Schriftgrößen, ins Leere zeigender Launch-Blocker-Verweis).

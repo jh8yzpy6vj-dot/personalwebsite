@@ -1,0 +1,65 @@
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.brand {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--text-heading);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-heading);
+  color: var(--papier);
+  text-decoration: none;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.6);
+  transition: color 160ms ease, text-shadow 160ms ease;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--rec);
+  color: var(--auf-rec);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.chipDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--auf-rec);
+}
+
+/* Über der hellen Lese-Hälfte: Papier-Grund, dunkle Schrift. */
+.topbar[data-on-light="true"] {
+  background: var(--papier);
+  border-bottom: 1px solid var(--stein);
+}
+
+.topbar[data-on-light="true"] .brand {
+  color: var(--buehne);
+  text-shadow: none;
+}
+
+@media (max-width: 700px) {
+  .topbar {
+    padding: var(--space-md);
+  }
+
+  .brand {
+    font-size: var(--text-body);
+  }
+}
