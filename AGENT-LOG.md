@@ -6,6 +6,16 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-08-26 — Design-Vertrag `design/UI-SPEC.md` erstellt, geprüft und im Code umgesetzt
+- Neues Verzeichnis `design/` mit `UI-SPEC.md` — verbindlicher Design-Vertrag (Spacing-Skala, Typografie, Farbregeln inkl. Accent-Reservierung, Copywriting, Zustands-Abdeckung, Visual Hierarchy).
+- Erstellt mit dem GSD-Agenten `gsd-ui-researcher`, anschließend unabhängig geprüft vom `gsd-ui-checker` (6-Dimensionen-Review). Ergebnis: 5× PASS, 1× FLAG (fehlender Fokuspunkt der Hero-Section) — FLAG behoben durch neue Sektion "Visual Hierarchy", danach `status: approved`.
+- Bewusste Entscheidung im Vertrag festgehalten: **kein Tailwind/shadcn** (Tool: none), stattdessen CSS-Custom-Properties + CSS-Modules — begründet mit der `TECH-STACK.md`-Konvention "keine unnötige Komplexität".
+- Code an den Vertrag angeglichen: Design-Tokens (Spacing, Schriftgrößen, -gewichte, Zeilenhöhen) als CSS-Variablen in `app/globals.css`; `app/page.module.css` nutzt durchgängig diese Tokens; Font-Gewichte auf genau 2 vereinheitlicht (400/700, vorher zusätzlich 600); Abstände auf 4er-Skala korrigiert (vorher u.a. 20px/9.6px); Touch-Targets auf min. 44px; sichtbarer Fokus-Ring ergänzt; Mobile-Breakpoint bei 640px; CTA-Label von "E-Mail" auf "E-Mail schreiben" (Verb+Nomen).
+- Verifiziert: Build fehlerfrei; im Browser gegen den Vertrag geprüft (via DOM-Auslesen, nicht nur visuell) — exakt 4 Schriftgrößen (14/16/24/40px), exakt 2 Gewichte (400/700), Farbwerte korrekt, Touch-Targets 44px, kein horizontaler Überlauf. Zusätzlich auf 375px Mobile-Breite getestet: kein Überlauf, Nav bricht um.
+- `SITE-PLAN.md` verweist jetzt auf `design/UI-SPEC.md` als verbindliche Quelle für Design-Werte (SITE-PLAN bleibt für Struktur/Absicht).
+- **Weiterhin offen:** Copywriting-Werte im Vertrag sind bewusst als vorläufige Platzhalter markiert, bis der Zweck der Seite (CV/Portfolio/Business) feststeht.
+- Von: Jan (mit Claude, GSD-Agenten `gsd-ui-researcher` + `gsd-ui-checker`)
+
 ## 2026-08-26 — Migration auf Next.js + TypeScript umgesetzt, SITE-PLAN.md angelegt
 - `SITE-PLAN.md` erstellt: Seitenstruktur (Header/Hero/Über mich/Kontakt/Footer), Farb-Palette (Hex-Codes), Typografie und offene Content-Fragen dokumentiert.
 - Next.js-Projekt aufgesetzt: `package.json`, `tsconfig.json`, `next.config.mjs`, `wrangler.toml`, `open-next.config.ts`, `app/layout.tsx`, `app/page.tsx`, `app/page.module.css`, `app/globals.css`, `.gitignore`.

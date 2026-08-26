@@ -2,6 +2,8 @@
 
 Dieses Dokument legt fest, wie die Seite aussieht, wo was hinkommt und mit welchen Farben/Links gearbeitet wird. Wird aktualisiert, sobald Design- oder Struktur-Entscheidungen getroffen werden — **vor** der Umsetzung im Code, nicht danach.
 
+> 📐 **Verbindliche Design-Werte stehen in [`design/UI-SPEC.md`](design/UI-SPEC.md).** Dieses Dokument hier beschreibt Struktur und Absicht ("was kommt wohin"); der genaue Design-Vertrag (exakte Abstände, Schriftgrößen/-gewichte, Farbregeln, Copy-Texte, Zustands-Abdeckung) ist im UI-SPEC festgehalten und wurde geprüft. Bei Widerspruch gilt das UI-SPEC.
+
 ⚠️ **Status: Erster Entwurf / Platzhalter.** Der eigentliche Zweck der Seite (CV? Portfolio? Business?) und echte Inhalte sind laut `TODO.md` (Langfristig) noch offen. Struktur, Farben und Layout hier sind ein sinnvoller Startpunkt, kein finales Ergebnis — beim Ausfüllen mit echtem Content jederzeit anpassen.
 
 ## Seitenstruktur (eine Seite, Scroll-Sections)

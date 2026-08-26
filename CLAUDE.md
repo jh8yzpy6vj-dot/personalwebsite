@@ -7,7 +7,7 @@ Diese Datei wird von Claude (und anderen KI-Agenten) automatisch gelesen, bevor 
 - **Was**: Persönliche Website für Jakob Sax.
 - **Wer arbeitet dran**: Jan und Jakob, beide gleichberechtigt.
 - **Domain**: `jakobsax.de` und `www.jakobsax.de` (beide auf denselben Cloudflare Worker gebunden).
-- **Deploy**: Cloudflare Worker `personalwebsite` (Cloudflare-Konto, in dem auch die Domain liegt). Kein Build-Framework, aktuell reines statisches HTML.
+- **Deploy**: Cloudflare Worker `personalwebsite` (Cloudflare-Konto, in dem auch die Domain liegt). Next.js + TypeScript, gebaut über den `@opennextjs/cloudflare`-Adapter — Details in `TECH-STACK.md`.
 
 ## 🔒 Branch- & Deploy-Regel
 
@@ -45,7 +45,12 @@ Damit nichts verloren geht und sich Jan, Jakob und jede KI-Session (Claude, sons
     *   Beschreibt Hosting, Deploy-Weg, Domains, DNS-Besonderheiten und Code-Konventionen.
     *   Bei jeder technischen Entscheidung (neues Framework, andere Hosting-Lösung, neue Abhängigkeit) **sofort** aktualisieren — nicht im Nachhinein.
 
+Für das Design gibt es zusätzlich zwei Dokumente:
+
+*   **`SITE-PLAN.md`** — Struktur und Absicht: welche Sections gibt es, was kommt wohin, welche offenen Content-Fragen bestehen.
+*   **`design/UI-SPEC.md`** — der **verbindliche Design-Vertrag**: exakte Abstände (4er-Skala), genau 4 Schriftgrößen und 2 Schriftgewichte, Farbregeln inkl. Liste wofür die Akzentfarbe reserviert ist, Copy-Texte, Zustands-Abdeckung, visuelle Hierarchie. **Bei Widerspruch zu SITE-PLAN.md gilt das UI-SPEC.** Vor jeder Design-/CSS-Änderung lesen und einhalten; wenn eine Änderung dem Vertrag widerspricht, erst den Vertrag anpassen (und die Änderung begründen), dann den Code.
+
 ## Konventionen
 
-- Keine unnötige Komplexität einbauen (kein Build-Framework, kein Static-Site-Generator), solange die Seite einfach bleibt — reines HTML/CSS reicht für den aktuellen Umfang.
+- Keine unnötige Komplexität einbauen: kein Tailwind, kein Design-System-Framework (shadcn o.ä.), kein CMS — solange die Seite klein bleibt, reichen CSS-Variablen + CSS-Modules. Diese Entscheidung ist in `design/UI-SPEC.md` begründet festgehalten.
 - Neue größere Strukturentscheidungen (Framework-Wechsel, Umzug auf Pages statt Worker, Mehrsprachigkeit etc.) in `TECH-STACK.md` dokumentieren, sobald sie getroffen werden.

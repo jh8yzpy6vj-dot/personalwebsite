@@ -34,7 +34,7 @@ export default function Home() {
           <h2 className={styles.sectionTitle}>Kontakt</h2>
           <p className={styles.bio}>Erreichbar über:</p>
           <div className={styles.links}>
-            <a href="mailto:hallo@example.com">E-Mail</a>
+            <a href="mailto:hallo@example.com">E-Mail schreiben</a>
             <a href="#">LinkedIn</a>
             <a href="#">GitHub</a>
           </div>
