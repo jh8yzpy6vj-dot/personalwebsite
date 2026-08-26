@@ -8,7 +8,8 @@ Verbindliche technische Fakten und Regeln für dieses Projekt. Bei jeder technis
 - **Cloudflare-Adapter**: `@opennextjs/cloudflare`. Next.js baut normalerweise für Node-Server/Vercel; dieser Adapter übersetzt den Next.js-Build so, dass er als **Cloudflare Worker** läuft. Ohne diesen Adapter funktioniert ein Next.js-Projekt auf Cloudflare Workers nicht sauber — das ist der "Connector", den es braucht.
 - **Build-Command** (Cloudflare Build-Konfiguration): `npx opennextjs-cloudflare build` — falls eine ältere Next.js-Version (z.B. 14) verwendet wird, zusätzlich das Flag `--dangerouslyUseUnsupportedNextVersion` anhängen (siehe CLAER-Projekt als Referenz, dort war das nötig).
 - **TypeScript**: durchgängig für neuen Code, kein plain JavaScript mehr für neue Dateien.
-- Status: **Zielbild, Migration noch nicht durchgeführt** — siehe `TODO.md` (Kurzfristig). Der aktuelle Code ist noch reines statisches HTML (siehe "Aktueller Stand" unten), bis die Migration umgesetzt ist.
+- Status: **Umgesetzt.** Next.js 16.3.3 + `@opennextjs/cloudflare` 1.20.3 (offiziell unterstützte Kombination, kein Legacy-Flag nötig). Lokal via `npm run build` und `npx opennextjs-cloudflare build` getestet.
+- ⚠️ **Offen:** Die Build-/Deploy-Befehle im Cloudflare-Dashboard (Workers & Pages → personalwebsite → Settings → Build) müssen noch manuell auf `npx opennextjs-cloudflare build` (Build) / `npx wrangler deploy` (Deploy) umgestellt werden — siehe `TODO.md`.
 
 ## Hosting & Deploy
 
@@ -20,8 +21,9 @@ Verbindliche technische Fakten und Regeln für dieses Projekt. Bei jeder technis
 
 ## Aktueller Stand (Code)
 
-- Aktuell noch reines statisches HTML/CSS, eine einzelne `index.html`, kein Build-Schritt, kein `package.json`.
-- Migration auf Next.js + TypeScript + `@opennextjs/cloudflare` ist beschlossen (siehe "Ziel-Stack" oben), aber noch nicht umgesetzt.
+- Next.js App Router unter `app/` (`layout.tsx`, `page.tsx`, `page.module.css`, `globals.css`).
+- Struktur folgt `SITE-PLAN.md`: Header/Nav, Hero, Über-mich-Section, Kontakt-Section, Footer — aktuell mit Platzhalter-Inhalten.
+- Farb-Palette als CSS-Variablen in `app/globals.css` hinterlegt (siehe `SITE-PLAN.md` für die Referenztabelle).
 
 ## Konventionen
 

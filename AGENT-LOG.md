@@ -6,6 +6,15 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-08-26 — Migration auf Next.js + TypeScript umgesetzt, SITE-PLAN.md angelegt
+- `SITE-PLAN.md` erstellt: Seitenstruktur (Header/Hero/Über mich/Kontakt/Footer), Farb-Palette (Hex-Codes), Typografie und offene Content-Fragen dokumentiert.
+- Next.js-Projekt aufgesetzt: `package.json`, `tsconfig.json`, `next.config.mjs`, `wrangler.toml`, `open-next.config.ts`, `app/layout.tsx`, `app/page.tsx`, `app/page.module.css`, `app/globals.css`, `.gitignore`.
+- Next.js 16.3.3 + `@opennextjs/cloudflare` 1.20.3 verwendet (offiziell unterstützte Kombination, kein `--dangerouslyUseUnsupportedNextVersion`-Flag nötig).
+- Alte statische `index.html` entfernt, Inhalt nach `app/page.tsx` migriert (gleiche Platzhalter-Inhalte, jetzt nach SITE-PLAN.md strukturiert: Header mit Nav, Hero, Über-mich-Section, Kontakt-Section, Footer).
+- Lokal getestet: `npm run build` (Next.js-Build) und `npx opennextjs-cloudflare build` liefen fehlerfrei; `npx wrangler dev` lokal gestartet und die Seite im Browser visuell geprüft (Layout, Farben, Kontakt-Buttons) — funktioniert wie geplant.
+- **Offener Punkt (siehe TODO.md, Kurzfristig):** Die Build-/Deploy-Befehle im Cloudflare-Dashboard für das Worker-Projekt `personalwebsite` müssen manuell auf den Next.js-Workflow umgestellt werden (Build command `npx opennextjs-cloudflare build`, Deploy command `npx wrangler deploy`) — das kann nicht per Code/Git erledigt werden, sondern nur direkt im Cloudflare Dashboard.
+- Von: Jan (mit Claude)
+
 ## 2026-08-26 — Ziel-Stack festgelegt: Next.js + TypeScript + @opennextjs/cloudflare
 - Entscheidung getroffen: Umstellung von reinem statischem HTML auf Next.js (App Router) mit TypeScript, Deploy weiterhin als Cloudflare Worker über den `@opennextjs/cloudflare`-Adapter (analog zum CLAER-Projekt).
 - `TECH-STACK.md` entsprechend ergänzt (neuer Abschnitt "Ziel-Stack"), `TODO.md` um den kurzfristigen Punkt "Next.js-Setup aufsetzen" erweitert.
