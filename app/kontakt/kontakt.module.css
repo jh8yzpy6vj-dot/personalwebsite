@@ -1,0 +1,73 @@
+.columns {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2xl);
+}
+
+.heading {
+  margin: 0 0 var(--space-sm);
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-heading);
+}
+
+.note {
+  margin: 0 0 var(--space-md);
+  max-width: 46ch;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.ctaRow {
+  margin: var(--space-lg) 0 0;
+}
+
+/* Primary CTA — der einzige gefüllte Button der Seite. */
+.cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: var(--space-md) var(--space-lg);
+  background: var(--rec);
+  color: var(--auf-rec);
+  text-decoration: none;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  letter-spacing: 0.03em;
+  transition: background-color 120ms ease;
+}
+
+.cta:hover {
+  background: #c41616;
+}
+
+/* Ehrlicher Hinweis statt eines Knopfs auf eine erfundene Adresse. */
+.pending {
+  margin: var(--space-lg) 0 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-papier);
+}
+
+.channels {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-papier);
+}
+
+@media (max-width: 700px) {
+  .columns {
+    grid-template-columns: 1fr;
+    gap: var(--space-2xl);
+  }
+}

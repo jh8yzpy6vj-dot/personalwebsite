@@ -1,0 +1,38 @@
+/* Das Archiv gehört zur dunklen „sehen"-Hälfte. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--buehne);
+}
+
+.main {
+  flex: 1;
+}
+
+/* Linksbündig auf derselben Kante wie Filterzeile und Raster — nicht auf
+   1040px zentriert. Die Galerie ist randlos, ein eingerückter Titel darüber
+   würde die Kante brechen. */
+.title {
+  margin: 0;
+  padding: calc(var(--space-3xl) + var(--space-2xl)) var(--space-lg) 0;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--text-heading);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-heading);
+  color: var(--papier);
+}
+
+/* Der Footer bleibt hell wie überall — der Wechsel markiert das Ende der
+   Galerie, statt sie ausfransen zu lassen. */
+.light {
+  background: var(--papier);
+  color: var(--buehne);
+}
+
+@media (max-width: 700px) {
+  .title {
+    padding: calc(var(--space-2xl) + var(--space-xl)) var(--space-md) 0;
+  }
+}

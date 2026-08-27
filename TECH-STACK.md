@@ -25,6 +25,84 @@ Verbindliche technische Fakten und Regeln für dieses Projekt. Bei jeder technis
 - Struktur folgt `SITE-PLAN.md`: Header/Nav, Hero, Über-mich-Section, Kontakt-Section, Footer — aktuell mit Platzhalter-Inhalten.
 - Farb-Palette als CSS-Variablen in `app/globals.css` hinterlegt (siehe `SITE-PLAN.md` für die Referenztabelle).
 
+## Beschlossene Richtungen — noch nicht umgesetzt (Stand 2026-08-27)
+
+Ergebnis des Feature-/SEO-Brainstorms. **Richtung steht, Code existiert noch nicht.** Sobald ein
+Punkt gebaut ist, wird er hier auf „umgesetzt" gesetzt und in `AGENT-LOG.md` protokolliert. Die
+Aufgaben selbst stehen in `TODO.md`.
+
+### Kontaktformular
+
+- Formular-Endpoint als Route im bestehenden Worker — **kein zusätzlicher Dienst, kein Backend**.
+- **Versand:** ⚠️ MailChannels' Gratis-Versand für Cloudflare Workers ist seit 2024 eingestellt.
+  Deshalb ein Transaktions-Mailer mit API — **Resend oder Postmark** (beide mit ausreichendem
+  Gratiskontingent für dieses Volumen). API-Key als Worker-Secret über `wrangler secret put`,
+  **nicht** in `wrangler.toml` und nicht ins Repo.
+- **Spam-Schutz:** Cloudflare Turnstile — läuft im selben Konto, ist datenschutzfreundlich und
+  braucht kein Google reCAPTCHA.
+- **Felder:** Datum, Ort, Art der Veranstaltung, Budgetrahmen, Freitext, Absenderadresse.
+- **Datenschutz:** Die Formulardaten gehen an einen Auftragsverarbeiter — das muss in der
+  Datenschutzerklärung stehen, und für den Anbieter wird ein AV-Vertrag gebraucht. Gehört zum
+  Launch-Blocker „Pflichtangaben" in `TODO.md`.
+- ⚠️ **Folge für den Design-Vertrag:** `design/UI-SPEC.md` führt Fehler- und Ladezustände bisher
+  als „nicht anwendbar — statische Seite ohne Formular". Mit dem Formular gilt das nicht mehr;
+  die Zustände müssen dort ergänzt werden, **bevor** der Code entsteht.
+
+### Analytics & Datenschutz
+
+- **Cloudflare Web Analytics** (cookielos, keine Einwilligung nötig, keine personenbezogene
+  Speicherung). Bewusst **kein** Google Analytics — das würde ein Consent-Banner erzwingen, siehe
+  die Anti-Feature-Liste in `SITE-PLAN.md`.
+- **Schriften sind bereits unbedenklich:** `next/font/google` lädt die Schriften zur Build-Zeit
+  herunter und liefert sie vom eigenen Worker aus. Es gibt **keine** Anfrage des Browsers an ein
+  Google-CDN — die bekannte Google-Fonts-Abmahnfalle greift hier nicht. Das darf nicht
+  versehentlich rückgängig gemacht werden (kein `<link>` auf `fonts.googleapis.com`).
+
+### Bilder & EXIF
+
+- Auslieferung als **AVIF/WebP mit `srcset`**, LQIP-Blur als Ladezustand, hartes Größenbudget
+  fürs Hero. Ziel ist eine Seite, die auf dem Festivalgelände bei schlechtem LTE sofort steht.
+- **EXIF-Zeile:** Aufnahmedaten werden **zur Build-Zeit** ausgelesen (z.B. mit `exifr`) und als
+  statischer Text mitgerendert — keine Laufzeit-Abhängigkeit, kein Client-JS.
+- ⚠️ **GPS-Tags müssen entfernt werden**, bevor Bilder ausgeliefert werden. Bei Aufnahmeorten und
+  bei einem Journalisten ist das kein Randthema.
+- ⚠️ Aus dem EXIF kommen nur **Uhrzeit, Blende, Belichtungszeit, ISO, Brennweite, Kamera**.
+  Kontext wie Wetter steht **nicht** im EXIF und müsste ein optionales Handfeld in
+  `lib/content.ts` werden.
+
+### SEO-Technik
+
+- ✅ **Umgesetzt am 2026-08-27:** `metadataBase`, OpenGraph/Twitter-Tags, Canonical,
+  `app/robots.ts`, `app/sitemap.ts` und JSON-LD (`app/StructuredData.tsx`) mit `Person` +
+  `sameAs` und `ProfessionalService` + `areaServed`.
+- **OG-Images zur Build-Zeit** generieren, nicht zur Laufzeit — auf dem Worker ist eine
+  Build-Zeit-Lösung die risikoärmere Variante. Noch offen, hängt an Bildmaterial.
+
+### Indexierbarkeit — ein zentraler Schalter
+
+`lib/site.ts` hält zwei technische Werte, bewusst getrennt von den Inhalten in `content.ts`:
+
+- **`SITE_URL`** — die kanonische Basis-URL an genau einer Stelle. Die Domain-Entscheidung
+  (`.de` vs. `.media`) ist offen, ein Wechsel ist dadurch ein Einzeiler.
+- **`INDEXABLE`** — steht auf `false` und steuert `robots` in `app/layout.tsx` sowie die
+  Sitemap-Anmeldung in `app/robots.ts`. Grund: Die Seite ist live und war bis dahin
+  uneingeschränkt indexierbar — mit erfundener E-Mail-Adresse, Preisen auf „noch festzulegen",
+  ungeprüften Inhalten und **ohne Impressum**.
+
+⚠️ **Feinheit, die oft falsch gemacht wird:** `robots.txt` enthält bewusst **kein** `Disallow`.
+`Disallow` verbietet das *Crawlen*, nicht das *Indexieren* — wer beides kombiniert, erreicht das
+Gegenteil, weil der Crawler das `noindex` im HTML dann nie liest. Richtig ist: **Crawlen
+erlauben, Indexieren per `noindex` verbieten.** Das ist in `app/robots.ts` auskommentiert
+festgehalten, damit es niemand „korrigiert".
+
+⚠️ **Keine Platzhalter in strukturierten Daten.** `app/StructuredData.tsx` enthält bewusst keine
+Kontaktdaten, solange die Adresse in `content.ts` erfunden ist — Google übernimmt solche Angaben
+in Wissensfelder, wo sie schwerer zu korrigieren sind als auf der Seite.
+- **Routing:** perspektivisch eine statisch vorgerenderte Route pro Arbeit
+  (`/arbeiten/[slug]`), gespeist aus dem bestehenden `WORKS`-Array in `lib/content.ts`. Die
+  `id`-Felder dort dienen dann als Slug — sie sind entsprechend stabil zu halten, ein späterer
+  Umbenennung wäre ein URL-Bruch.
+
 ## Konventionen
 
 - Keine weiteren Frameworks/Build-Tools zusätzlich zum beschlossenen Next.js-Stack einführen, ohne dass es hier dokumentiert wird und beide (Jan & Jakob) das mittragen.

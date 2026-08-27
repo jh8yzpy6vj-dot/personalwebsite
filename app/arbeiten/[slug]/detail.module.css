@@ -1,0 +1,129 @@
+/*
+ * Detailseite einer Arbeit: oben das Bild (dunkel = sehen), darunter der
+ * Kontext (hell = lesen). Dieselbe Naht wie auf der Startseite, nur enger.
+ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--buehne);
+}
+
+.media {
+  position: relative;
+  height: 72vh;
+  min-height: 360px;
+  overflow: hidden;
+  background: #000;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  background: linear-gradient(150deg, #17171b 0%, #0b0b0d 100%);
+}
+
+.placeholderDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--rec);
+  opacity: 0.5;
+}
+
+.placeholderNote {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  color: var(--ton-buehne);
+}
+
+.light {
+  background: var(--papier);
+  color: var(--buehne);
+}
+
+.inner {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: var(--space-3xl) var(--space-lg);
+}
+
+.client {
+  margin: 0 0 var(--space-sm);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-papier);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.title {
+  margin: 0 0 var(--space-md);
+  max-width: 24ch;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--text-heading);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-heading);
+}
+
+.meta {
+  margin: 0 0 var(--space-xl);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-papier);
+}
+
+/* Ehrlicher Hinweis, solange Text und Bildstrecke fehlen. */
+.pending {
+  margin: 0 0 var(--space-2xl);
+  max-width: 62ch;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--ton-papier);
+}
+
+.back {
+  margin: 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-papier);
+}
+
+.back a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--buehne);
+  text-decoration-color: var(--rec);
+  text-underline-offset: 4px;
+}
+
+.backCategory {
+  color: var(--ton-papier);
+}
+
+@media (max-width: 700px) {
+  .media {
+    height: 56vh;
+  }
+
+  .inner {
+    padding: var(--space-2xl) var(--space-md);
+  }
+}

@@ -1,6 +1,13 @@
 /* Topbar liegt in components/Topbar.module.css — sie wechselt je nach
    Hälfte (dunkel/hell) die Farbe und braucht dafür eigenen Zustand. */
 
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--buehne);
+}
+
 /* ── Hero ───────────────────────────────────────────────────────── */
 
 .hero {
@@ -89,19 +96,21 @@
   line-height: var(--leading-heading);
 }
 
-.services {
+/* ── Drei Türen ─────────────────────────────────────────────────── */
+
+.doors {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-xl);
 }
 
-.service {
+.door {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
 }
 
-.serviceTitle {
+.doorTitle {
   margin: 0;
   font-family: var(--font-display), system-ui, sans-serif;
   font-size: var(--text-body);
@@ -109,7 +118,7 @@
   line-height: var(--leading-heading);
 }
 
-.serviceAudience {
+.doorAudience {
   margin: 0;
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: var(--text-label);
@@ -119,13 +128,13 @@
   letter-spacing: 0.05em;
 }
 
-.serviceText {
+.doorText {
   margin: 0;
   font-size: var(--text-body);
   line-height: var(--leading-body);
 }
 
-.serviceFacts {
+.doorFacts {
   margin: var(--space-sm) 0 0;
   padding: 0;
   list-style: none;
@@ -136,6 +145,115 @@
   font-size: var(--text-label);
   line-height: var(--leading-label);
   color: var(--ton-papier);
+}
+
+/* ── zuletzt. ───────────────────────────────────────────────────── */
+
+.recent {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--stein);
+}
+
+.recent li {
+  border-bottom: 1px solid var(--stein);
+}
+
+/* Zeile statt Kachel: Auf der Startseite geht es um Aktualität, nicht um
+   Bilder — die stehen im Archiv. */
+/* `minmax(0, …)` in beiden flexiblen Spalten: Ohne das weigert sich eine
+   Grid-Spalte, unter ihre Inhaltsbreite zu schrumpfen, und die lange
+   Metazeile drückt gegen den Titel. */
+.recentLink {
+  display: grid;
+  grid-template-columns: 13rem minmax(0, 1fr) minmax(0, auto);
+  align-items: baseline;
+  gap: var(--space-lg);
+  min-height: 44px;
+  padding: var(--space-md) 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.recentMeta {
+  text-align: right;
+}
+
+.recentLink:hover .recentTitle {
+  text-decoration: underline;
+  text-decoration-color: var(--rec);
+  text-underline-offset: 4px;
+}
+
+.recentClient {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-papier);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.recentTitle {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-heading);
+}
+
+.recentMeta {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-papier);
+}
+
+.moreRow {
+  margin: var(--space-xl) 0 0;
+}
+
+.more {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  color: var(--buehne);
+  text-decoration-color: var(--rec);
+  text-underline-offset: 4px;
+}
+
+/* ── Vertrauen ──────────────────────────────────────────────────── */
+
+.referenceLine {
+  margin: 0 0 var(--space-md);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-body);
+  color: var(--ton-papier);
+}
+
+.trustNote {
+  margin: 0;
+  max-width: 62ch;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.trustNote a {
+  color: var(--buehne);
+  text-decoration-color: var(--rec);
+  text-underline-offset: 4px;
+}
+
+/* ── Kontakt ────────────────────────────────────────────────────── */
+
+.contactNote {
+  margin: 0;
+  max-width: 46ch;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
 }
 
 /* Primary CTA — der einzige gefüllte Button der Seite. */
@@ -162,105 +280,6 @@
   background: #c41616;
 }
 
-.referenceLine {
-  margin: 0;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: var(--text-label);
-  line-height: var(--leading-body);
-  color: var(--ton-papier);
-}
-
-.prose {
-  max-width: 62ch;
-}
-
-.prose p {
-  margin: 0 0 var(--space-md);
-  font-size: var(--text-body);
-  line-height: var(--leading-body);
-}
-
-.prose p:last-child {
-  margin-bottom: 0;
-}
-
-.authorLink {
-  margin: var(--space-lg) 0 0;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: var(--text-label);
-}
-
-.authorLink a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  color: var(--buehne);
-  text-decoration-color: var(--rec);
-  text-underline-offset: 4px;
-}
-
-.contact {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-xl);
-}
-
-.contactHeading {
-  margin: 0 0 var(--space-sm);
-  font-family: var(--font-display), system-ui, sans-serif;
-  font-size: var(--text-body);
-  font-weight: var(--weight-bold);
-  line-height: var(--leading-heading);
-}
-
-.contactNote {
-  margin: 0 0 var(--space-md);
-  max-width: 46ch;
-  font-size: var(--text-body);
-  line-height: var(--leading-body);
-}
-
-.contactValue {
-  margin: var(--space-md) 0 0;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: var(--text-label);
-  line-height: var(--leading-label);
-  color: var(--ton-papier);
-}
-
-.channels {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: var(--text-label);
-  line-height: var(--leading-label);
-  color: var(--ton-papier);
-}
-
-.footer {
-  max-width: 1040px;
-  margin: 0 auto;
-  padding: var(--space-xl) var(--space-lg) var(--space-2xl);
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-md);
-  justify-content: space-between;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: var(--text-label);
-  line-height: var(--leading-label);
-  color: var(--ton-papier);
-}
-
-.footer a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-}
-
 /* ── Mobil ──────────────────────────────────────────────────────── */
 
 @media (max-width: 700px) {
@@ -282,13 +301,19 @@
     scroll-margin-top: 64px;
   }
 
-  .services,
-  .contact {
+  .doors {
     grid-template-columns: 1fr;
     gap: var(--space-2xl);
   }
 
-  .footer {
-    padding: var(--space-lg) var(--space-md) var(--space-xl);
+  /* Die dreispaltige Zeile bricht mobil auf gestapelte Zeilen um. */
+  .recentLink {
+    grid-template-columns: 1fr;
+    gap: var(--space-xs);
+    padding: var(--space-md) 0;
+  }
+
+  .recentMeta {
+    text-align: left;
   }
 }

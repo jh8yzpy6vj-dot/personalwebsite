@@ -39,25 +39,63 @@ zuerst Bilder; wer prüft, scrollt weiter.
 
 ## Seitenstruktur
 
-Übernommen von bildmanufaktur.de, angepasst an die zwei Hälften:
+> **Umgesetzt am 2026-08-27.** Die frühere Einzelseite ist abgelöst; Absicht und Begründung
+> stehen in `SITE-PLAN.md`. **Dieser Abschnitt ist noch nicht unabhängig geprüft** — das
+> Sign-Off unten deckt den Stand vom 2026-08-26.
 
-| # | Bereich | Hälfte | Inhalt |
-|---|---------|--------|--------|
-| 1 | Topbar (fix) | wechselnd | Wortmarke + ●REC-Chip |
-| 2 | Hero | dunkel | Randloses Video (`loop`, `muted`, `playsinline`), darüber Positionierungssatz + Orte |
-| 3 | Filter | dunkel | `alle.` `festivals.` `bewegtbild.` `redaktion.` |
-| 4 | Arbeiten-Raster | dunkel | 2 Spalten, **gap 0**, randlos. Pro Kachel: Auftraggeber, Titel, Ort · Rolle · Jahr |
-| 5 | buchbar. | hell | Drei Leistungen mit Zielgruppe, Beschreibung, Eckdaten |
-| 6 | schon fotografiert für. | hell | Referenzzeile |
-| 7 | über. | hell | Kurzbio erste Person + Link SWR-Autorenseite |
-| 8 | kontakt. | hell | Buchungsanfragen / Vertraulich (zweispaltig) |
-| 9 | Footer | hell | Impressum · Datenschutz, Instagram |
+| Route | Hälfte | Aufbau |
+|-------|--------|--------|
+| `/` | Hero dunkel, Rest hell | Hero → `buchbar.` (drei Türen) → `zuletzt.` → `schon fotografiert für.` → `kontakt.` → Footer |
+| `/arbeiten` | dunkel | Titel, Filter (`alle.` `festivals.` `bewegtbild.` `redaktion.`), randloses 2-Spalten-Raster (**gap 0**), heller Footer |
+| `/arbeiten/[slug]` | Bild dunkel, Kontext hell | Bild → Auftraggeber · Titel · Meta → Rückweg |
+| `/ueber` | hell | Kurzbio, Belege, Referenzzeile |
+| `/kontakt` | hell | Buchungsanfragen / Vertraulich, zweispaltig |
+| `/impressum`, `/datenschutz` | hell | Pflichtangaben, `noindex` |
 
-**⚠️ Pflichtangaben — Launch-Blocker.** „Impressum · Datenschutz" steht derzeit als reiner Text
-ohne Verlinkung im Footer, weil die Seiten noch nicht existieren. Das ist bewusst so: Links auf
-nicht existierende Pflichtseiten wären schlechter als gar keine, und eine Pflichtseite mit
-Platzhaltertext wäre rechtlich wertlos. **Vor dem Livegang zwingend:** `/impressum` und
-`/datenschutz` mit echten Inhalten anlegen (§ 5 DDG, DSGVO) und hier verlinken. Siehe `TODO.md`.
+**Genau eine Naht pro Seite.** Der Wechsel dunkel → hell ist das Strukturelement und passiert je
+Seite höchstens einmal. Deshalb liegt `zuletzt.` auf der Startseite im **hellen** Bereich und
+zeigt **Zeilen statt Kacheln**: Auf der Weiche geht es um Aktualität, nicht um Bilder — die
+stehen im Archiv. Ein dunkler Bilderblock zwischen zwei hellen Textblöcken hätte die Naht
+verdoppelt.
+
+**Topbar:** trägt nur die Wortmarke und den ●REC-Chip, keine Navigation — über dem Hero soll sie
+nicht mit dem Bild konkurrieren. **Die Navigation liegt im Footer** (`arbeiten.` `über.`
+`kontakt.` + Rechtliches), auf jeder Seite gleich, der aktuelle Punkt mit `aria-current="page"`
+markiert statt verlinkt.
+
+**`variant="light"` ist Pflicht** auf durchgehend hellen Seiten (`LightPage`). Ohne das startet
+die Topbar im Dunkel-Modus und die weiße Wortmarke ist auf Papier unlesbar. Auf `/` bleibt der
+`IntersectionObserver` auf `#lesen` — die id ist deshalb kein Ankerziel, sondern der
+Beobachtungspunkt.
+
+**Kachel = Link.** Im Archiv ist die ganze Kachel klickbar, nicht nur der Titel — bei einem
+randlosen Raster ist das Bild die Klickfläche, die Leute erwarten. Der Fokusring liegt **innen**
+(`outline-offset: -4px`), sonst schneidet ihn das `overflow: hidden` der Kachel ab.
+
+**Vorbild für Topbar, ●REC-Marke, Kategoriefilter und randloses Raster war**
+[bildmanufaktur.de](https://www.bildmanufaktur.de) — übernommen wurde die Struktur, nicht die
+Gestaltung.
+
+**⚠️ Pflichtangaben — Launch-Blocker, teilweise erledigt.** Seit 2026-08-27 existieren
+`/impressum` und `/datenschutz` als Gerüst und sind im Footer **verlinkt**. Die frühere
+Entscheidung (unverlinkter Text, weil Links ins Leere schlechter wären als keine) ist damit
+überholt: Eine erreichbare Seite, die ihre Lücken benennt, ist besser als toter Text.
+
+**Weiterhin offen und Launch-Blocker:** Die Pflichtangaben selbst — ladungsfähige Anschrift,
+E-Mail, Umsatzsteuer-Angabe. Solange sie fehlen, zeigen beide Seiten oben einen Hinweis und an
+der jeweiligen Stelle einen sichtbaren Platzhalter in `--rec`. Gesteuert über
+`LEGAL_DATA_COMPLETE` in `lib/legal.ts`. Siehe `TODO.md`.
+
+**Regel für die Rechtsseiten:** Sie gehören zur hellen „lesen"-Hälfte und nutzen ausschließlich
+die bestehenden Tokens — keine fünfte Schriftgröße, kein drittes Gewicht. Die Topbar läuft dort
+mit `variant="light"`; ohne das startete sie im Dunkel-Modus und die weiße Wortmarke wäre auf
+Papier unlesbar.
+
+**⚠️ Keine internen Notizen im gerenderten Text.** Beim Bau der Seiten standen zunächst
+Arbeitshinweise („hier stand früher ein Verweis auf die OS-Plattform …") und ⚠️-Emoji in der
+sichtbaren Copy — beides verstößt gegen den Copywriting Contract unten (Emoji sind dort
+ausdrücklich ausgeschlossen) und gehört in Code-Kommentare. Beim Prüfen der gerenderten Seiten
+aufgefallen und korrigiert.
 
 **Topbar-Verhalten:** Sie gehört optisch zu der Hälfte, über der sie steht — über `--buehne`
 transparent mit heller Wortmarke, über `--papier` mit Papier-Grund, `--stein`-Unterkante und
@@ -188,7 +226,7 @@ mindestens 44×44px, umgesetzt via `min-height: 44px` auf Links, Buttons und Fil
 | Element | Copy |
 |---------|------|
 | Positionierung (H1) | „fotografie für kultur & theater im öffentlichen raum" — seine eigene Selbstbeschreibung, unverändert |
-| Primary CTA | „E-Mail schreiben" (Verb + Nomen). Erscheint **zweimal**: am Ende von `buchbar.` und im Buchungs-Block unter `kontakt.` Einziger gefüllter Button der Seite (`--rec`-Fläche, `--auf-rec`-Schrift). Die Adresse selbst steht darunter als Meta-Text, nicht als Linktext. |
+| Primary CTA | „Anfrage stellen" (Verb + Nomen). Erscheint auf `/` **zweimal mit genau demselben Label**: am Ende von `buchbar.` und unter `kontakt.` Einziger gefüllter Button der Seite (`--rec`-Fläche, `--auf-rec`-Schrift), als Konstante `CTA_LABEL` in `app/page.tsx` gehalten. **Zwei verschieden beschriftete rote Knöpfe wären zwei konkurrierende Aufforderungen** — beim Umbau einmal passiert und korrigiert. Ziel ist `/kontakt`, nicht `mailto:`: Die Adresse in `content.ts` ist erfunden, ein Knopf darauf wäre ein toter Link. Sobald echte Kontaktdaten vorliegen, kann er wieder direkt auf `mailto:` zeigen (gesteuert über `LEGAL_DATA_COMPLETE`). |
 | Kontakt-Trennung | „buchungsanfragen." / „vertraulich." |
 | Vertraulich-Hinweis | „Für Hinweise an mich als Journalist. Ich behandle Quellen vertraulich und nenne niemanden ohne Absprache." |
 | Leerzustand Kachel | „Bild folgt" — ehrlicher Platzhalter, solange Bildmaterial fehlt |
@@ -233,6 +271,9 @@ Applicable state considerations resolved: **4 covered, 3 backstop, 0 unresolved*
 - **Sonst nichts.** Kein Parallax, kein Ken Burns über Standbildern, keine Filter über Fotos.
   Bei guten Fotos ist jeder Effekt ein Abzug.
 
+> 📌 Zu dieser Regel liegt **ein begründeter Änderungsvorschlag** vor (der „Burst") — siehe
+> „Geplante Erweiterungen" weiter unten. Bis der geprüft ist, gilt die Regel oben unverändert.
+
 ---
 
 ## Qualitätsuntergrenze
@@ -246,6 +287,80 @@ Applicable state considerations resolved: **4 covered, 3 backstop, 0 unresolved*
       greift erst mit echtem Bildmaterial** (`loading="lazy"` ist bereits gesetzt)
 - [ ] Alt-Texte, die die Szene beschreiben — Feld `alt` existiert pro Arbeit, muss mit den
       Bildern befüllt werden
+
+---
+
+## Geplante Erweiterungen — noch **nicht** Vertragsbestandteil
+
+> ⚠️ **Dieser Abschnitt ist vom Sign-Off unten nicht gedeckt.** Er hält Änderungsvorschläge aus
+> dem Feature-Brainstorm vom 2026-08-27 fest, damit sie begründet dokumentiert sind, **bevor**
+> Code entsteht (so verlangt es `CLAUDE.md`). Jeder Punkt muss vor der Umsetzung vom
+> `gsd-ui-checker` geprüft und dann in den regulären Vertrag oben eingearbeitet werden.
+> Die Aufgaben selbst stehen in `TODO.md`, die Technik in `TECH-STACK.md`.
+
+### 1. Der Burst — Änderungsvorschlag zum Motion-Vertrag
+
+**Was:** Beim Hover (Desktop) bzw. Tap (Touch) spielt eine Kachel fünf Frames derselben
+Aufnahmeserie mit ~6 fps ab — die vier daneben und den einen, der es geworden ist — und bleibt
+auf dem gewählten Bild stehen. Mono-Zeile darunter: `5 bilder. eins zählt.`
+
+**Warum das kein Verstoß gegen „Bei guten Fotos ist jeder Effekt ein Abzug" ist:** Die bisherige
+Regel richtet sich gegen Effekte, die **über** ein Foto gelegt werden (Parallax, Ken Burns,
+Filter) — sie schmücken das Bild, statt es zu zeigen. Der Burst legt nichts über das Bild; er
+zeigt **weitere echte Bilder desselben Fotografen**. Er behauptet nicht, was die Copy sagt
+(„Ein Moment auf dem Hochseil passiert genau einmal") und was im `über.`-Text steht
+(„antizipieren, warten, im richtigen Moment auslösen") — er belegt es. Damit fällt er unter die
+Tonalitätsregel *konkrete Nennungen statt Eigenschaftswörter*, nicht unter Dekoration.
+
+**Bedingungen, ohne die der Vorschlag hinfällig ist:**
+
+| Regel | Grund |
+|-------|-------|
+| `prefers-reduced-motion: reduce` → Standbild, kein Burst | Die globale Abschaltung in `globals.css` gilt weiter, ohne Ausnahme |
+| Kein Autoplay, nie im Viewport ausgelöst | Neun gleichzeitig flackernde Kacheln wären genau der Zirkus, den die Motion-Regel verhindern soll |
+| Hover nur bei `pointer: fine` | Auf Touch sonst unbeabsichtigt beim Scrollen ausgelöst |
+| Höchstens eine Kachel gleichzeitig | siehe oben |
+| Endzustand ist immer der gewählte Frame | Der Effekt darf nie auf einem schwächeren Bild stehen bleiben |
+| Frames werden erst bei Interaktion geladen | Sonst verfünffacht sich das Ladegewicht der Startseite und widerspricht dem Ladezeit-Ziel |
+
+**Voraussetzung:** fünf Frames je Arbeit. Ohne Bildmaterial nicht umsetzbar.
+
+### 2. EXIF-Zeile
+
+**Was:** Unter dem Bild eine Zeile aus den echten Aufnahmedaten, z.B.
+`22:14 uhr · 1/500 · f/2.8 · iso 6400`.
+
+**Typografie:** nutzt die **bestehende** Rolle *Meta* (Martian Mono, 14px, 400, 1.4) — **keine
+neue Größe, kein neues Gewicht**, die Skala 14 · 18 · 28 · 56 bleibt unangetastet.
+**Farbe:** `--ton-buehne` in der dunklen Hälfte, `--ton-papier` in der hellen.
+**Schreibweise:** klein, mit `·` als Trenner — konsistent zur bestehenden Metazeile.
+
+⚠️ Zwei Einschränkungen, die die Copy betreffen: **GPS-Tags müssen vor der Auslieferung raus**,
+und **Wetter oder Lichtsituation stehen nicht im EXIF** — wenn solcher Kontext gewünscht ist,
+braucht es ein optionales Handfeld in `lib/content.ts` und damit eine Copy-Freigabe.
+
+### 3. Zustände, die das Kontaktformular neu aufmacht
+
+Der Vertrag oben führt bisher:
+
+- Copywriting Contract → „Fehlzustand | **Nicht anwendbar** — statische Seite ohne Formular"
+- UI Considerations → „error | Kontaktbereich | ✅ covered | Nur `mailto:`-Links, kein Formular,
+  keine Netzwerkoperation — kein Fehlerzustand möglich."
+
+**Mit dem geplanten Anfrageformular stimmt beides nicht mehr.** Vor dem Code sind zu ergänzen und
+zu prüfen: Ladezustand des Absende-Buttons, Erfolgszustand, Fehlerzustand bei Netzwerk- oder
+Serverfehler (inklusive Copy, die die Eingaben nicht verwirft), Validierungsfehler je Feld,
+Turnstile-Fehlschlag, sowie ein Fokus-Management, das den Erfolgs- bzw. Fehlerhinweis für
+Screenreader ankündigt. Der CTA „E-Mail schreiben" muss dabei sichtbar erhalten bleiben — er ist
+laut Copywriting Contract der einzige gefüllte Button der Seite.
+
+### 4. Offene Punkte der Qualitätsuntergrenze, jetzt mit Zielwert
+
+Die beiden unerledigten Haken unter „Qualitätsuntergrenze" bekommen eine messbare Vorgabe:
+AVIF/WebP mit `srcset`, LQIP-Blur als Ladezustand, Hero eager mit Größenbudget, alles andere
+lazy. **Zielbild: die Seite steht auf dem Festivalgelände bei schlechtem Mobilfunk in unter einer
+Sekunde.** Das ist kein Nice-to-have — es ist der Zustand, in dem ein Kurator sie tatsächlich
+öffnet.
 
 ---
 
@@ -271,3 +386,7 @@ Applicable state considerations resolved: **4 covered, 3 backstop, 0 unresolved*
 
 **Approval:** approved 2026-08-26 durch `gsd-ui-checker` (dritter Durchgang; die ersten beiden
 ergaben BLOCKED — fehlender CTA, fünf Schriftgrößen, ins Leere zeigender Launch-Blocker-Verweis).
+
+**Geltungsbereich:** Dieses Sign-Off deckt den Vertragsstand vom 2026-08-26. Der am 2026-08-27
+ergänzte Abschnitt „Geplante Erweiterungen" ist **ausdrücklich nicht** davon gedeckt und braucht
+eine eigene Prüfung, bevor daraus Code wird.

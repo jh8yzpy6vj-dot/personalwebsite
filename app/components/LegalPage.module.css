@@ -1,0 +1,51 @@
+/*
+ * Nur das, was ausschließlich Rechtsseiten brauchen. Rahmen, Titel und
+ * Fließtext kommen aus LightPage.module.css — sonst gäbe es zwei Layouts,
+ * die auseinanderlaufen.
+ */
+
+/* Hinweis auf fehlende Pflichtangaben. Nur sichtbar, solange sie fehlen. */
+.notice {
+  margin: 0 0 var(--space-2xl);
+  padding: var(--space-md) var(--space-lg);
+  border-left: 3px solid var(--rec);
+  background: rgba(225, 27, 27, 0.06);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-body);
+  color: var(--ton-papier);
+}
+
+.noticeTitle {
+  margin: 0 0 var(--space-sm);
+  font-size: var(--text-label);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-label);
+  color: var(--buehne);
+}
+
+.noticeText {
+  margin: 0;
+}
+
+.noticeList {
+  margin: var(--space-sm) 0 0;
+  padding-left: var(--space-md);
+}
+
+/* Sichtbare Lücke, wo eine Pflichtangabe fehlt. Bewusst nicht zu übersehen. */
+.missing {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  color: var(--rec);
+  /* Der Text ist bereits in Grossbuchstaben notiert — kein text-transform,
+     damit Screenreader ihn nicht buchstabieren. */
+}
+
+.updated {
+  margin: var(--space-2xl) 0 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-papier);
+}

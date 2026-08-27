@@ -1,0 +1,52 @@
+.footer {
+  /* `width: 100%` ist nötig, nicht kosmetisch: Auf den Flex-Column-Seiten
+     (LightPage) hebt `margin: 0 auto` das `align-items: stretch` auf, der
+     Footer schrumpft dann auf Inhaltsbreite und steht schmaler als der Text
+     darüber. Auf der Startseite fiel das nicht auf, weil er dort in einem
+     normalen Block liegt. */
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: var(--space-xl) var(--space-lg) var(--space-2xl);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--stein);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-papier);
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.footer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--ton-papier);
+  text-decoration-color: var(--rec);
+  text-underline-offset: 4px;
+}
+
+/* Der aktuelle Bereich wird nicht verlinkt, sondern markiert. */
+.current {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--buehne);
+}
+
+@media (max-width: 700px) {
+  .footer {
+    padding: var(--space-lg) var(--space-md) var(--space-xl);
+    gap: var(--space-sm);
+  }
+}
