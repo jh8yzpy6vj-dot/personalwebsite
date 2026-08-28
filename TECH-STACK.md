@@ -9,7 +9,86 @@ Verbindliche technische Fakten und Regeln für dieses Projekt. Bei jeder technis
 - **Build-Command** (Cloudflare Build-Konfiguration): `npx opennextjs-cloudflare build` — falls eine ältere Next.js-Version (z.B. 14) verwendet wird, zusätzlich das Flag `--dangerouslyUseUnsupportedNextVersion` anhängen (siehe CLAER-Projekt als Referenz, dort war das nötig).
 - **TypeScript**: durchgängig für neuen Code, kein plain JavaScript mehr für neue Dateien.
 - Status: **Umgesetzt.** Next.js 16.3.3 + `@opennextjs/cloudflare` 1.20.3 (offiziell unterstützte Kombination, kein Legacy-Flag nötig). Lokal via `npm run build` und `npx opennextjs-cloudflare build` getestet.
-- ⚠️ **Offen:** Die Build-/Deploy-Befehle im Cloudflare-Dashboard (Workers & Pages → personalwebsite → Settings → Build) müssen noch manuell auf `npx opennextjs-cloudflare build` (Build) / `npx wrangler deploy` (Deploy) umgestellt werden — siehe `TODO.md`.
+- ✅ **Erledigt am 2026-08-27:** Die Build-/Deploy-Befehle im Cloudflare-Dashboard (Workers & Pages → personalwebsite → Settings → Build) sind auf den Next.js-Workflow umgestellt (`npx opennextjs-cloudflare build` / `npx wrangler deploy`). Erster erfolgreicher Build und Livegang mit dem neuen Stack bestätigt.
+
+## Bildmaterial ablegen
+
+⚠️ **Alles unter `public/` wird unverändert und öffentlich ausgeliefert** — der Pfad in der URL
+entspricht dem Pfad im Ordner, nur ohne `public`. Deshalb steht diese Anleitung hier und **nicht**
+als `public/README.md`: Die lag dort kurzzeitig und wäre unter `jakobsax.de/README.md` für jeden
+lesbar gewesen, inklusive der Hinweise auf ungeklärte Bildrechte. Beim Code-Review aufgefallen.
+
+| Datei | Erreichbar unter | In `lib/content.ts` |
+|---|---|---|
+| `public/hero/hero.mp4` | `jakobsax.de/hero/hero.mp4` | `"/hero/hero.mp4"` |
+| `public/arbeiten/tete-a-tete-2026.jpg` | `jakobsax.de/arbeiten/…` | `"/arbeiten/tete-a-tete-2026.jpg"` |
+
+**Der führende Schrägstrich ist Pflicht** — ohne ihn wird die Datei auf Unterseiten nicht
+gefunden.
+
+### Bilder der Arbeiten → `public/arbeiten/`
+
+**Dateiname = die `id` der Arbeit aus `lib/content.ts`.**
+
+- JPEG, sRGB, **1600 px an der langen Kante** (die Kacheln sind höchstens ~720 px breit, das
+  reicht auch für Retina), Qualität ~80, **unter 500 KB**.
+- Seitenverhältnis egal — die Kacheln schneiden auf 4:3 (mobil 4:5) zu. Wichtige Bildteile also
+  nicht ganz an den Rand legen.
+- ⚠️ **Standortdaten beim Export entfernen, Kameradaten drin lassen.** Die geplante EXIF-Zeile
+  liest Uhrzeit, Blende und ISO — die Lightroom-Option „Alle Metadaten außer
+  Kamera-Informationen" wäre genau falsch herum.
+
+### Hero-Video → `public/hero/`
+
+Zwei Dateien, beide nötig: `hero.mp4` und `hero-poster.jpg`.
+
+**Das Poster ist nicht optional** — iPhones spielen im Energiesparmodus gar kein Video ab, auch
+kein stummes. Ohne Poster sehen diese Besucher eine schwarze Fläche.
+
+| | Wert | Warum |
+|---|---|---|
+| Tonspur | **gar keine**, nicht nur stumm | Spart Bytes, garantiert Autoplay auf iOS |
+| Länge | 8–15 s | Läuft in Schleife |
+| Auflösung | 1920×1080 | Der Hero schneidet ohnehin zu |
+| Größe | **unter 3 MB** | Lädt vor allem anderen |
+
+```
+ffmpeg -i original.mov -an -t 12 -vf "scale=1920:-2" \
+  -c:v libx264 -profile:v high -pix_fmt yuv420p \
+  -crf 26 -preset slow -movflags +faststart public/hero/hero.mp4
+
+ffmpeg -i public/hero/hero.mp4 -ss 2 -vframes 1 -q:v 2 public/hero/hero-poster.jpg
+```
+
+`-an` entfernt die Tonspur komplett, `-movflags +faststart` lässt das Video starten, bevor es
+fertig geladen ist.
+
+**Nicht nach `public/` gehören:** Rohdateien, interne Notizen und Bilder mit ungeklärten Rechten.
+
+## Prüfen vor dem Deploy — nicht mit `next build` aufhören
+
+⚠️ **`npm run build` und `npm start` prüfen die falsche Umgebung.** Das ist ein Node-Server;
+live läuft die Seite als Cloudflare Worker über den OpenNext-Adapter — anderer Build, andere
+Laufzeit. Ein Build, der in Node durchläuft, kann im Worker scheitern.
+
+Die aussagekräftige Prüfung ist deshalb:
+
+```
+npx opennextjs-cloudflare build     # der Build, der auch live gebaut wird
+npx wrangler dev --local            # der Worker in der echten Laufzeit (workerd)
+```
+
+Erst dagegen testen, nicht gegen `next start`. Am 2026-08-27 lief die gesamte Entwicklung eines
+Tages nur gegen den Node-Server — der Adapter-Build wurde erst auf Nachfrage überhaupt einmal
+ausgeführt. Er lief zwar durch, aber das war Glück, keine Prüfung.
+
+**Sinnvoll dabei mitzutesten**, weil es im Build nicht auffällt: Topbar-Farbwechsel beim Scrollen
+(`IntersectionObserver`), Kategoriefilter, Tastaturfokus, `prefers-reduced-motion`, Mobilbreiten
+375px und 320px.
+
+**Was auch das nicht abdeckt:** Safari und iOS (lokal steht nur Chromium zur Verfügung), die
+Live-Domain selbst, und alles mit echtem Bildmaterial. Nach einem Deploy mit sichtbaren
+Änderungen gehört ein Blick auf ein echtes iPhone dazu.
 
 ## Hosting & Deploy
 

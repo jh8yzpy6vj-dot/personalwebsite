@@ -1,0 +1,173 @@
+/*
+ * Anfrageformular. Nur bestehende Tokens — keine neue Schriftgröße, kein
+ * neues Gewicht. Feldbeschriftungen nutzen die Rolle *Label* (Mono 14px),
+ * Eingaben die Rolle *Body*.
+ */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  max-width: 46ch;
+}
+
+.feld {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin: 0;
+}
+
+.zweiSpalten {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-lg);
+}
+
+.label {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--buehne);
+}
+
+.hinweis {
+  color: var(--ton-papier);
+}
+
+.eingabe {
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--stein);
+  border-radius: 0;
+  background: #fff;
+  color: var(--buehne);
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.eingabe:focus-visible {
+  outline: 2px solid var(--rec);
+  outline-offset: 2px;
+}
+
+/* Fehlerhafte Felder tragen zusätzlich zur Farbe eine dickere Kante —
+   Farbe allein wäre für Menschen mit Farbsehschwäche kein Signal. */
+.eingabe[aria-invalid="true"] {
+  border-width: 2px;
+  border-color: var(--rec);
+}
+
+.textfeld {
+  resize: vertical;
+  min-height: 140px;
+}
+
+.feldFehler {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--rec-papier);
+}
+
+/* Fehlermeldung über dem Formular. */
+.fehlerBox {
+  padding: var(--space-md) var(--space-lg);
+  border-left: 3px solid var(--rec);
+  background: rgba(225, 27, 27, 0.06);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-body);
+  color: var(--buehne);
+}
+
+.fehlerBox a {
+  color: var(--buehne);
+  text-decoration-color: var(--rec);
+  text-underline-offset: 4px;
+}
+
+/* Bestätigung — sagt, was als Nächstes passiert, nicht bloß „Danke". */
+.erfolg {
+  max-width: 46ch;
+  padding: var(--space-lg);
+  border-left: 3px solid var(--rec);
+  background: rgba(225, 27, 27, 0.06);
+}
+
+.erfolgTitel {
+  margin: 0 0 var(--space-sm);
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-heading);
+}
+
+.erfolgText {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+/* Auf /kontakt der Primary CTA und damit der einzige gefüllte Button —
+   der mailto:-Weg steht daneben als schlichter Textlink. */
+.absenden {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: var(--space-md) var(--space-lg);
+  border: 0;
+  background: var(--rec);
+  color: var(--auf-rec);
+  cursor: pointer;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  letter-spacing: 0.03em;
+  transition: background-color 120ms ease;
+}
+
+.absenden:hover:not(:disabled) {
+  background: #c41616;
+}
+
+.absenden:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.datenschutz {
+  margin: 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-body);
+  color: var(--ton-papier);
+}
+
+.datenschutz a {
+  color: var(--ton-papier);
+  text-decoration-color: var(--rec);
+  text-underline-offset: 4px;
+}
+
+/*
+ * Honeypot. Nicht `display: none` — manche Bots erkennen das und lassen
+ * das Feld dann korrekt leer. Stattdessen aus dem Sichtbereich geschoben.
+ */
+.honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+@media (max-width: 700px) {
+  .zweiSpalten {
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+  }
+}

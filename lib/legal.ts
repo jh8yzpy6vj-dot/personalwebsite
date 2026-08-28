@@ -7,19 +7,48 @@
  * lassen, der das darf — besonders die Frage der ladungsfähigen Anschrift
  * und der journalistisch-redaktionellen Verantwortung.
  *
- * ⚠️ **Alle personenbezogenen Werte sind `null`.** Nichts hier erfinden —
- * ein Impressum mit erfundener Anschrift ist schlimmer als keines. Solange
- * Werte fehlen, zeigen die Seiten an der Stelle eine sichtbare Lücke.
+ * ⚠️ **Nichts hier erfinden** — ein Impressum mit erfundener Anschrift ist
+ * schlimmer als keines. Fehlende Werte bleiben `null`; die Seiten zeigen an
+ * der Stelle dann eine sichtbare Lücke statt einer Behauptung.
+ *
+ * Anschrift und E-Mail sind seit 2026-08-27 gefüllt. Offen: USt-IdNr.
+ * (nur falls vorhanden) und die Angabe nach § 18 Abs. 2 MStV (nur falls
+ * einschlägig) — beide erscheinen im Impressum nur, wenn gesetzt.
  */
 
 /**
- * Steht auf `false`, solange Pflichtangaben fehlen. Steuert den Hinweis
- * oben auf beiden Rechtsseiten.
+ * Steuert den Hinweis „noch nicht vollständig" auf beiden Rechtsseiten und
+ * ob die Kontaktadresse als anklickbarer `mailto:`-Link ausgegeben wird.
  *
- * **Auf `true` setzen**, wenn alle `null`-Werte unten gefüllt sind und
- * jemand mit juristischem Sachverstand drübergeschaut hat.
+ * Steht seit 2026-08-27 auf `true`: Anschrift und E-Mail liegen vor.
+ *
+ * ⚠️ **Das heißt nicht, dass die Texte juristisch geprüft sind.** Struktur
+ * und Bausteine sind üblich, aber nicht anwaltlich abgenommen — siehe den
+ * Hinweis oben und den offenen Punkt in `TODO.md`.
+ *
+ * **Zur Anschrift:** Sie ist eine Wohnadresse und mit dem Impressum
+ * dauerhaft öffentlich auffindbar. Das Risiko wurde benannt (Jakob hat für
+ * STRG_F zu Rechtsextremismus recherchiert), die Alternativen ebenfalls
+ * (Geschäftsadresse, Anbieter für ladungsfähige Adressen). **Jakob hat sich
+ * am 2026-08-27 ausdrücklich für diese Adresse entschieden.** Nicht ohne
+ * Rücksprache ändern.
  */
-export const LEGAL_DATA_COMPLETE = false;
+export const LEGAL_DATA_COMPLETE = true;
+
+/**
+ * Ist der E-Mail-Versand des Anfrageformulars eingerichtet?
+ *
+ * Steuert **einen Absatz der Datenschutzerklärung**: Solange kein
+ * Versanddienstleister im Spiel ist, darf dort auch keiner genannt werden —
+ * eine Erklärung, die nicht stattfindende Verarbeitungen aufführt, ist
+ * genauso falsch wie eine, die welche verschweigt.
+ *
+ * **Auf `true` setzen, sobald die Worker-Secrets gesetzt sind**
+ * (`RESEND_API_KEY`, `ANFRAGE_AN`, `ANFRAGE_VON` — siehe `lib/mailer.ts`)
+ * und ein Auftragsverarbeitungsvertrag mit dem Anbieter vorliegt.
+ * Beides gehört zusammen; ohne AV-Vertrag darf der Versand nicht laufen.
+ */
+export const VERSAND_AKTIV = false;
 
 export const LEGAL = {
   /** Vollständiger Name des Diensteanbieters. */
@@ -31,12 +60,12 @@ export const LEGAL = {
    * damit öffentlich. Übliche Lösungen sind eine Geschäftsadresse, ein
    * Coworking-Space oder ein Anbieter für ladungsfähige Adressen.
    */
-  street: null as string | null,
-  postalCity: null as string | null,
+  street: "Röttererbergstraße 1" as string | null,
+  postalCity: "76437 Rastatt" as string | null,
   country: "Deutschland",
 
   /** Kontakt — E-Mail ist Pflicht, Telefon üblich, aber nicht zwingend. */
-  email: null as string | null,
+  email: "mail@jakobsax.de" as string | null,
   phone: null as string | null,
 
   /**

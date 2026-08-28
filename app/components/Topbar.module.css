@@ -11,7 +11,14 @@
   transition: background-color 160ms ease, color 160ms ease;
 }
 
+/* Die Wortmarke ist auf allen Unterseiten der Weg zurück zur Startseite —
+   also ein echtes Navigationsziel und keine Zierde. Deshalb die 44px-
+   Untergrenze aus design/UI-SPEC.md: Die Schrift allein ergab nur 22px
+   Höhe, was auf dem Handy zu treffen schwer ist. */
 .brand {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   font-family: var(--font-display), system-ui, sans-serif;
   font-size: var(--text-heading);
   font-weight: var(--weight-bold);

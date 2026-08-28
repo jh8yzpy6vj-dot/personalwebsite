@@ -25,7 +25,7 @@ export default function Arbeiten() {
     <div className={styles.page}>
       <Topbar homeHref="/" />
 
-      <main className={styles.main}>
+      <main className={styles.main} id="inhalt" tabIndex={-1}>
         <h1 className={styles.title}>arbeiten.</h1>
         <Works headingId="arbeiten-titel" />
       </main>

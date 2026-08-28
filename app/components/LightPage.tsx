@@ -22,7 +22,7 @@ export default function LightPage({
   return (
     <div className={styles.page}>
       <Topbar variant="light" homeHref="/" />
-      <main className={styles.inner}>
+      <main className={styles.inner} id="inhalt" tabIndex={-1}>
         <h1 className={styles.title}>{title}</h1>
         {children}
       </main>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import LegalPage, { Missing, legalStyles as styles } from "../components/LegalPage";
-import { LEGAL } from "@/lib/legal";
+import { LEGAL, VERSAND_AKTIV } from "@/lib/legal";
 
 /**
  * Datenschutzerklärung nach DSGVO.
@@ -13,13 +13,15 @@ import { LEGAL } from "@/lib/legal";
  * verschweigt — und sie macht es später unmöglich zu erkennen, was wirklich
  * läuft.
  *
+ * Das **Anfrageformular** ist seit 2026-08-27 beschrieben. Der Absatz zum
+ * Versanddienstleister hängt an `VERSAND_AKTIV` in `lib/legal.ts` — solange
+ * kein Dienstleister eingesetzt wird, darf hier auch keiner stehen.
+ *
  * **Noch NICHT enthalten, weil noch nicht umgesetzt** (siehe TODO.md) —
- * beim Umsetzen jeweils hier ergänzen:
- * - Cloudflare Web Analytics (cookielos, aber verarbeitet Daten)
- * - Anfrageformular inkl. Versanddienstleister (Resend/Postmark)
+ * beim Umsetzen jeweils hier ergänzen, jeweils mit
+ * Auftragsverarbeitungsvertrag:
+ * - Cloudflare Web Analytics (cookielos, verarbeitet aber Daten)
  * - Cloudflare Turnstile (Spam-Schutz)
- * Für die externen Dienste wird jeweils ein Auftragsverarbeitungsvertrag
- * gebraucht, der hier zu nennen ist.
  */
 export const metadata: Metadata = {
   title: "Datenschutz — jakob sax",
@@ -99,6 +101,44 @@ export default function Datenschutz() {
           Auslieferung ist seit Jahren Selbstverständlichkeit und keine
           Informationspflicht nach DSGVO. Der Absatz stand in Mustertexten
           aus einer Zeit, in der HTTPS noch die Ausnahme war. */}
+
+      <h2>Anfrageformular</h2>
+      <p>
+        Auf der Kontaktseite können Sie eine Anfrage über ein Formular
+        stellen. Die dort eingegebenen Angaben — Name, E-Mail-Adresse,
+        Nachricht sowie die freiwilligen Angaben zu Art der Veranstaltung,
+        Datum, Ort und Budgetrahmen — werden an den Server dieser Website
+        übertragen und ausschließlich zur Bearbeitung Ihrer Anfrage
+        verwendet.
+      </p>
+      <p>
+        Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO, soweit die Anfrage
+        der Anbahnung eines Vertrags dient, sonst Art. 6 Abs. 1 lit. f DSGVO
+        aufgrund des berechtigten Interesses an der Beantwortung. Eine
+        Speicherung über die Bearbeitung hinaus findet nicht statt.
+      </p>
+      <p>
+        Zum Schutz vor automatisierten Einsendungen enthält das Formular ein
+        für Sie unsichtbares Feld und misst die Zeit bis zum Absenden. Dabei
+        werden <strong>keine</strong> zusätzlichen personenbezogenen Daten
+        erhoben und keine Cookies gesetzt.
+      </p>
+      {VERSAND_AKTIV ? (
+        <p>
+          Für die Zustellung der Anfrage per E-Mail setze ich einen
+          Versanddienstleister ein, der die Daten auf Grundlage eines
+          Auftragsverarbeitungsvertrags nach Art. 28 DSGVO in meinem Auftrag
+          verarbeitet.
+        </p>
+      ) : (
+        /* Bewusst kein Dienstleister genannt, solange keiner eingesetzt
+           wird — siehe VERSAND_AKTIV in lib/legal.ts. Beim Aktivieren muss
+           dort auch der Anbieter namentlich ergänzt werden. */
+        <p>
+          Der E-Mail-Versand des Formulars ist derzeit nicht aktiv; eine
+          Weitergabe an Dritte findet dabei nicht statt.
+        </p>
+      )}
 
       <h2>Kontaktaufnahme</h2>
       <p>

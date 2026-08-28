@@ -84,8 +84,9 @@
   margin: 0 auto;
   padding: var(--space-3xl) var(--space-lg);
   border-bottom: 1px solid var(--stein);
-  /* Damit Ankersprünge nicht unter der fixen Topbar landen. */
-  scroll-margin-top: 88px;
+  /* Damit Ankersprünge nicht unter der fixen Topbar landen. Wert aus
+     --topbar-h in globals.css, plus etwas Luft. */
+  scroll-margin-top: calc(var(--topbar-h) + var(--space-md));
 }
 
 .sectionTitle {
@@ -116,6 +117,15 @@
   font-size: var(--text-body);
   font-weight: var(--weight-bold);
   line-height: var(--leading-heading);
+}
+
+.doorLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--buehne);
+  text-decoration-color: var(--rec);
+  text-underline-offset: 4px;
 }
 
 .doorAudience {
@@ -297,8 +307,8 @@
 
   .section {
     padding: var(--space-2xl) var(--space-md);
-    /* Topbar ist mobil niedriger (16px Padding + 18px Wortmarke). */
-    scroll-margin-top: 64px;
+    /* scroll-margin-top braucht hier keinen eigenen Wert mehr —
+       --topbar-h wird mobil selbst kleiner. */
   }
 
   .doors {

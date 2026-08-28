@@ -65,7 +65,34 @@ export default function RootLayout({
       lang="de"
       className={`${display.variable} ${serif.variable} ${mono.variable}`}
     >
+      <head>
+        {/*
+          Speculation Rules: Der Browser lädt eine Seite schon vor, wenn der
+          Zeiger länger auf einem Link verweilt. Der Klick fühlt sich dann
+          nicht „schnell" an, sondern sofort.
+
+          `moderate` statt `eager`: Vorgeladen wird erst bei erkennbarer
+          Absicht, nicht bei jedem Link im Blickfeld — sonst zahlt jemand mit
+          teurem Mobilfunk für Seiten, die er nie öffnet.
+
+          Progressive Enhancement: Browser ohne Unterstützung ignorieren den
+          Block. Kein JavaScript im eigentlichen Sinn, nur eine Anweisung.
+        */}
+        <script
+          type="speculationrules"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              prerender: [{ where: { href_matches: "/*" }, eagerness: "moderate" }],
+            }),
+          }}
+        />
+      </head>
       <body>
+        {/* Erstes fokussierbares Element jeder Seite. Zielt auf #inhalt,
+            das jede Seite auf ihrem <main> trägt. */}
+        <a className="skip-link" href="#inhalt">
+          Zum Inhalt springen
+        </a>
         <StructuredData />
         {children}
       </body>

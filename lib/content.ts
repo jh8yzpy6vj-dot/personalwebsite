@@ -140,18 +140,38 @@ export const WORKS: Work[] = [
 ];
 
 export type Service = {
+  /** Zugleich der URL-Slug: `/leistungen/<id>`. URL-stabil halten. */
   id: string;
   title: string;
+  /** Kurzform ohne Schlusspunkt — für Seitentitel und Navigation. */
+  shortTitle: string;
   audience: string;
   description: string;
   /** Konkrete Eckdaten. Preise erst eintragen, wenn Jakob sie festgelegt hat. */
   facts: string[];
+  /**
+   * Passende Arbeiten, **explizit zugeordnet** statt über die Kategorie
+   * abgeleitet: Der Filmworkshop liegt in der Kategorie `bewegtbild`,
+   * gehört inhaltlich aber zu den Workshops. Eine geratene Ableitung würde
+   * ihn der falschen Leistung zuschlagen.
+   */
+  works: string[];
+  /**
+   * Richtwert für den Preis. `null`, solange keiner feststeht — dann zeigt
+   * die Seite an der Stelle nichts statt einer erfundenen Zahl.
+   *
+   * ⚠️ **Der wichtigste offene Punkt dieser Seiten.** Ein Kulturamt plant
+   * mit festen Budgets; ohne Anker schreibt es entweder gar nicht oder
+   * fragt zuerst nach dem Preis. Siehe TODO.md.
+   */
+  priceAnchor: string | null;
 };
 
 export const SERVICES: Service[] = [
   {
-    id: "fotos",
+    id: "festivalfotografie",
     title: "festival- & bühnenfotos.",
+    shortTitle: "Festival- und Bühnenfotografie",
     audience: "Festivals, Compagnien, Kulturämter",
     description:
       "Fotografie von Auftritten im öffentlichen Raum — Höhenartistik, Stelzentheater, Feuerperformance, Publikum. Ein Moment auf dem Hochseil passiert genau einmal.",
@@ -160,10 +180,13 @@ export const SERVICES: Service[] = [
       "Lieferzeit: noch festzulegen",
       "Nutzungsrechte: noch festzulegen",
     ],
+    works: ["tete-a-tete-2026"],
+    priceAnchor: null,
   },
   {
     id: "bewegtbild",
     title: "bewegtbild & aftermovie.",
+    shortTitle: "Bewegtbild und Aftermovie",
     audience: "Veranstalter, Kulturämter, Verbände",
     description:
       "Filme, die einen Zweck haben — beim Bayerischen Kanu-Verband ging es um Nachwuchs- und Mitgliedergewinnung, nicht um Dekoration.",
@@ -172,10 +195,13 @@ export const SERVICES: Service[] = [
       "Lieferzeit: noch festzulegen",
       "Nutzungsrechte: noch festzulegen",
     ],
+    works: ["wiwawo-52", "wiwawo-51", "wiwawo-50"],
+    priceAnchor: null,
   },
   {
     id: "workshops",
     title: "filmworkshops.",
+    shortTitle: "Filmworkshops",
     audience: "Jugendarbeit, Vereine, Verbände",
     description:
       "Mehrtägige Workshops, in denen die Teilnehmenden selbst konzipieren, drehen und schneiden. Beim Bayerischen Kanu-Verband entstanden so eine Doku und ein Werbeclip.",
@@ -184,6 +210,8 @@ export const SERVICES: Service[] = [
       "Ab acht Teilnehmenden",
       "Konditionen: noch festzulegen",
     ],
+    works: ["bkv-filmworkshop"],
+    priceAnchor: null,
   },
 ];
 
@@ -204,15 +232,22 @@ export const ABOUT = {
 } as const;
 
 /**
- * Kontakt. ⚠️ Alle Werte sind Platzhalter — echte Daten erst eintragen,
- * wenn Jakob sie freigibt (E-Mail, Telefon, vertrauliche Kanäle, Anschrift).
+ * Kontakt.
+ *
+ * `booking.email` ist seit 2026-08-27 die **echte** Adresse (vorher der
+ * erfundene Platzhalter `hallo@jakobsax.media`).
+ *
+ * ⚠️ Die vertraulichen Kanäle stehen weiterhin auf „noch einzutragen" —
+ * echte Werte einsetzen oder den Block entfernen, siehe `TODO.md`. Ein
+ * Vertraulichkeitsversprechen ohne funktionierenden Kanal ist schlimmer
+ * als keines.
  */
 export const CONTACT = {
   booking: {
     heading: "buchungsanfragen.",
     /** Primary CTA — Verb + Nomen, siehe design/UI-SPEC.md. */
     cta: "E-Mail schreiben",
-    email: "hallo@jakobsax.media",
+    email: "mail@jakobsax.de",
     note: "Für Anfragen von Festivals, Kulturämtern, Veranstaltern und Compagnien.",
   },
   confidential: {

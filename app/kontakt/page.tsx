@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import LightPage, { lightStyles as styles } from "../components/LightPage";
+import LightPage from "../components/LightPage";
+import AnfrageForm from "../components/AnfrageForm";
 import { CONTACT } from "@/lib/content";
 import { LEGAL_DATA_COMPLETE } from "@/lib/legal";
 import kontakt from "./kontakt.module.css";
@@ -11,10 +12,11 @@ import kontakt from "./kontakt.module.css";
  * eine will buchen, die andere vertraulich reden. Beides in ein Formular zu
  * werfen wäre bequem und falsch.
  *
- * ⚠️ Die Adresse in `content.ts` ist ein Platzhalter. Solange
- * `LEGAL_DATA_COMPLETE` false ist, wird sie hier **nicht** als anklickbarer
- * `mailto:`-Link ausgegeben — eine erfundene Adresse anzubieten wäre
- * schlimmer, als vorübergehend keinen Knopf zu haben.
+ * Die `mailto:`-Schaltfläche hängt an `LEGAL_DATA_COMPLETE`: Solange keine
+ * echte Adresse hinterlegt ist, erscheint statt eines toten Knopfes ein
+ * ehrlicher Hinweis. Seit 2026-08-27 ist die Adresse echt, der Knopf also
+ * aktiv. Die Verzweigung bleibt bestehen — sie ist die Sicherung dagegen,
+ * dass je wieder ein Platzhalter als klickbarer Kontakt ausgeliefert wird.
  */
 export const metadata: Metadata = {
   title: "kontakt — jakob sax",
@@ -33,27 +35,26 @@ export default function Kontakt() {
 
           {LEGAL_DATA_COMPLETE ? (
             <>
-              <p className={kontakt.ctaRow}>
-                <a
-                  className={kontakt.cta}
-                  href={`mailto:${CONTACT.booking.email}`}
-                >
-                  {CONTACT.booking.cta}
+              <AnfrageForm email={CONTACT.booking.email} />
+
+              {/* Der mailto:-Weg bleibt sichtbar, aber als schlichter
+                  Textlink: Der Absende-Button des Formulars ist auf dieser
+                  Seite der einzige gefüllte Button (siehe UI-SPEC). Zwei
+                  rote Knöpfe wären zwei konkurrierende Aufforderungen. */}
+              <p className={kontakt.direkt}>
+                Lieber ohne Formular?{" "}
+                <a href={`mailto:${CONTACT.booking.email}`}>
+                  {CONTACT.booking.email}
                 </a>
               </p>
-              <p className={styles.meta}>{CONTACT.booking.email}</p>
             </>
           ) : (
-            /* Kein toter mailto:-Link auf eine erfundene Adresse. */
+            /* Kein totes Formular und kein mailto: auf eine erfundene
+               Adresse — greift, falls die echten Daten je entfernt werden. */
             <p className={kontakt.pending}>
               Die Kontaktadresse wird gerade eingerichtet.
             </p>
           )}
-
-          {/* Hier landet später das Anfrageformular mit strukturierten
-              Feldern (Datum, Ort, Art der Veranstaltung, Budgetrahmen) —
-              siehe TODO.md und TECH-STACK.md. Der mailto:-Link bleibt dann
-              als sichtbarer Fallback daneben stehen. */}
         </section>
 
         <section>

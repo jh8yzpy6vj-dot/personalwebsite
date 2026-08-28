@@ -20,9 +20,9 @@
   width: 100%;
   max-width: 1040px;
   margin: 0 auto;
-  /* Oben zusätzlicher Abstand, damit der Titel nicht unter die fixe Topbar
-     rutscht — dieselbe Logik wie scroll-margin-top auf der Startseite. */
-  padding: calc(var(--space-3xl) + var(--space-2xl)) var(--space-lg)
+  /* Oben Topbar-Höhe plus Luft, damit der Titel nicht darunter rutscht.
+     Wert aus --topbar-h in globals.css. */
+  padding: calc(var(--topbar-h) + var(--space-2xl)) var(--space-lg)
     var(--space-3xl);
 }
 
@@ -100,7 +100,7 @@
 
 @media (max-width: 700px) {
   .inner {
-    padding: calc(var(--space-2xl) + var(--space-xl)) var(--space-md)
+    padding: calc(var(--topbar-h) + var(--space-xl)) var(--space-md)
       var(--space-2xl);
   }
 }

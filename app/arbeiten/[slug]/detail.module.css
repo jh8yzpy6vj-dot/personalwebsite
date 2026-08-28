@@ -97,6 +97,55 @@
   color: var(--ton-papier);
 }
 
+/* ── vor / zurück ───────────────────────────────────────────────── */
+
+.blaettern {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  margin: 0 0 var(--space-xl);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--stein);
+}
+
+.blaetternPrev,
+.blaetternNext {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-height: 44px;
+  max-width: 20ch;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Die nächste Arbeit rechts, damit die Leserichtung stimmt. */
+.blaetternNext {
+  text-align: right;
+  margin-left: auto;
+}
+
+.blaetternLabel {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-papier);
+}
+
+.blaetternTitel {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-heading);
+}
+
+.blaetternPrev:hover .blaetternTitel,
+.blaetternNext:hover .blaetternTitel {
+  text-decoration: underline;
+  text-decoration-color: var(--rec);
+  text-underline-offset: 4px;
+}
+
 .back {
   margin: 0;
   font-family: var(--font-mono), ui-monospace, monospace;

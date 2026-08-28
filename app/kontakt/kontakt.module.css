@@ -19,28 +19,27 @@
   line-height: var(--leading-body);
 }
 
-.ctaRow {
+/*
+ * Der direkte E-Mail-Weg neben dem Formular — bewusst **kein** gefüllter
+ * Button. Auf dieser Seite ist der Absende-Button des Formulars der
+ * Primary CTA; zwei rote Knöpfe wären zwei konkurrierende Aufforderungen
+ * (siehe design/UI-SPEC.md).
+ */
+.direkt {
   margin: var(--space-lg) 0 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-body);
+  color: var(--ton-papier);
 }
 
-/* Primary CTA — der einzige gefüllte Button der Seite. */
-.cta {
+.direkt a {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  padding: var(--space-md) var(--space-lg);
-  background: var(--rec);
-  color: var(--auf-rec);
-  text-decoration: none;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: var(--text-label);
-  line-height: var(--leading-label);
-  letter-spacing: 0.03em;
-  transition: background-color 120ms ease;
-}
-
-.cta:hover {
-  background: #c41616;
+  color: var(--buehne);
+  text-decoration-color: var(--rec);
+  text-underline-offset: 4px;
 }
 
 /* Ehrlicher Hinweis statt eines Knopfs auf eine erfundene Adresse. */

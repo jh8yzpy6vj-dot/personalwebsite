@@ -52,3 +52,26 @@ export function allSlugs(): string[] {
 export function metaLine(work: Work): string {
   return [work.place, work.role, work.year].filter(Boolean).join(" · ");
 }
+
+/**
+ * Vorherige und nächste Arbeit **innerhalb derselben Kategorie**.
+ *
+ * Ohne das ist jede Detailseite eine Sackgasse — man kann nur zurück. Wer
+ * eine Festivalarbeit anschaut, will die nächste Festivalarbeit sehen, nicht
+ * einen Radiobeitrag; deshalb innerhalb der Kategorie und nicht global.
+ *
+ * Bewusst **ohne Umlauf**: Am Ende der Liste ist Schluss. Ein Ring würde
+ * vortäuschen, es ginge endlos weiter, und man liefe im Kreis, ohne es zu
+ * merken.
+ */
+export function neighbours(work: Work): { prev?: Work; next?: Work } {
+  const liste = byCategory(work.category);
+  const i = liste.findIndex((w) => w.id === work.id);
+  if (i === -1) return {};
+  return { prev: liste[i - 1], next: liste[i + 1] };
+}
+
+/** Arbeiten zu einer Leistung, in der Reihenfolge der `works`-Liste. */
+export function forService(ids: readonly string[]): Work[] {
+  return ids.map(bySlug).filter((w): w is Work => Boolean(w));
+}

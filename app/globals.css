@@ -19,6 +19,7 @@
   --ton-papier: #5c665f; /* 5.37:1 auf --papier */
   --ton-buehne: #7a857f; /* 5.04:1 auf --buehne */
   --rec-text: #ee3b3b; /* 5.32:1 auf Schwarz */
+  --rec-papier: #d01414; /* rote Schrift auf --papier, siehe UI-SPEC */
   --auf-rec: #ffffff; /* 4.80:1 auf --rec */
 
   --space-xs: 4px;
@@ -42,6 +43,25 @@
   --leading-body: 1.6;
   --leading-heading: 1.2;
   --leading-display: 1;
+
+  /*
+   * Höhe der fixen Topbar. Im Browser gemessen, nicht geschätzt:
+   * 2 × --space-lg Innenabstand + 44px Mindesthöhe der Wortmarke.
+   *
+   * ⚠️ Wer Innenabstand, Schriftgröße oder Mindesthöhe der Topbar ändert,
+   * muss diesen Wert neu messen. Alle Seiten halten ihren oberen Abstand
+   * und ihre Ankersprünge daran fest — vorher standen an vier Stellen
+   * handgerechnete Werte, die nach einer Änderung der Topbar still falsch
+   * wurden und den Titel fast unter die Leiste geschoben haben.
+   */
+  --topbar-h: 92px;
+}
+
+@media (max-width: 700px) {
+  :root {
+    /* 2 × --space-md + 44px */
+    --topbar-h: 76px;
+  }
 }
 
 * {
@@ -72,6 +92,54 @@ a {
   outline-offset: 3px;
 }
 
+/*
+ * Sprungmarke zum Inhalt. Unsichtbar, bis sie den Tastaturfokus bekommt —
+ * dann das erste Element der Seite.
+ *
+ * Ohne sie muss sich jede Person, die mit der Tastatur navigiert, auf
+ * *jeder* Seite zuerst durch die fixe Topbar arbeiten. Bewusst nicht mit
+ * `display: none` versteckt: Ein so verstecktes Element ist gar nicht
+ * fokussierbar und die Marke damit wirkungslos.
+ */
+.skip-link {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 200;
+  /* Aus dem Sichtbereich geschoben, aber fokussierbar. */
+  transform: translateY(-200%);
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: var(--space-md) var(--space-lg);
+  background: var(--rec);
+  color: var(--auf-rec);
+  text-decoration: none;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+/*
+ * Seitenübergreifende View Transitions.
+ *
+ * Beim Wechsel von einer Kachel auf ihre Detailseite blendet der Browser
+ * beide Seiten ineinander, statt hart umzuschalten. Das ist genau das, wofür
+ * man früher eine Animationsbibliothek gebraucht hätte — hier sind es drei
+ * Zeilen CSS und **kein Byte JavaScript**.
+ *
+ * **Reines Progressive Enhancement:** Browser, die es nicht können (derzeit
+ * vor allem Firefox), wechseln die Seite wie eh und je. Nichts geht kaputt,
+ * nichts muss nachgeladen werden.
+ */
+@view-transition {
+  navigation: auto;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -79,5 +147,11 @@ a {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  /* Auch den Seitenübergang abschalten — er ist eine Animation wie jede
+     andere, und `animation-duration` allein greift hier nicht. */
+  @view-transition {
+    navigation: none;
   }
 }

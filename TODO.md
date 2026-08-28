@@ -1,6 +1,11 @@
 # TODO.md — Offene Aufgaben
 
-Hier stehen alle offenen Aufgaben, aufgeteilt in kurzfristig und langfristig.
+Hier stehen alle offenen Aufgaben.
+
+**Wer macht was:** Der Abschnitt „🙋 Nur Jan & Jakob können das" führt kompakt auf, was an einem
+Menschen hängt — Freigaben, Konten, Material, Entscheidungen. Alles andere kann Claude selbst
+erledigen. Die ausführlichen Beschreibungen stehen weiterhin unter „Kurzfristig" und
+„Langfristig"; die Personenliste verweist nur darauf, damit es nicht zwei Wahrheiten gibt.
 
 **Regel für kurzfristige Todos:** Wenn ein kurzfristiger Punkt erledigt ist, wird er hier **entfernt** und stattdessen als Eintrag in `AGENT-LOG.md` dokumentiert (siehe dort für Format).
 
@@ -15,18 +20,63 @@ Hier stehen alle offenen Aufgaben, aufgeteilt in kurzfristig und langfristig.
 
 > ⚠️ Achtung: Laut `TECH-STACK.md` geht **jeder Push auf `main` sofort live**. Zwischen „hier notiert" und „öffentlich online" steht nichts. Diese Punkte deshalb vor dem Push abarbeiten oder den Push zurückhalten.
 
-- [ ] **Pflichtangaben — Gerüst steht, Daten fehlen.** ⏳ `/impressum` und `/datenschutz` existieren seit 2026-08-27 mit vollständiger Struktur und Rechtstexten und sind im Footer verlinkt. **Es fehlen nur noch Jakobs Daten** — einzutragen in `lib/legal.ts`, danach dort `LEGAL_DATA_COMPLETE = true` setzen:
-  - **ladungsfähige Anschrift** (§ 5 DDG, ein Postfach genügt nicht). ⚠️ Für Journalisten ein sensibler Punkt — die Adresse wird öffentlich. Übliche Lösungen: Geschäftsadresse, Coworking-Space oder ein Anbieter für ladungsfähige Adressen.
-  - **E-Mail-Adresse** (dieselbe wie im Launch-Blocker „Kontaktdaten")
-  - **USt-IdNr., falls vorhanden** (`DE` + neun Ziffern). § 5 DDG fordert sie nur „soweit vorhanden" — ohne eine erscheint der Abschnitt gar nicht, und ein Hinweis auf § 19 UStG ist **nicht** nötig (der gehört auf Rechnungen). ⚠️ **Niemals die normale Steuernummer eintragen** — nicht gefordert und ein unnötiges Risiko.
+- [ ] **Pflichtangaben — Daten sind drin, Prüfung fehlt.** ✅ Anschrift (Röttererbergstraße 1, 76437 Rastatt) und E-Mail (`mail@jakobsax.de`) sind am 2026-08-27 eingetragen, `LEGAL_DATA_COMPLETE` steht auf `true`. Offen bleibt:
+  - ⚠️ **Von jemandem gegenlesen lassen, der Rechtsberatung darf.** Struktur und Bausteine sind üblich, aber **nicht anwaltlich geprüft**. Das ist der eigentliche verbleibende Blocker.
+  - ✅ **Wohnadresse: von Jakob am 2026-08-27 ausdrücklich bestätigt.** Das Risiko (dauerhaft öffentlich auffindbar, bei einem Journalisten mit Rechtsextremismus-Recherche relevant) und die Alternativen wurden vorher benannt. Nicht ohne Rücksprache ändern.
+  - **USt-IdNr., falls vorhanden** (`DE` + neun Ziffern) in `lib/legal.ts` ergänzen. § 5 DDG fordert sie nur „soweit vorhanden" — ohne eine erscheint der Abschnitt gar nicht, und ein Hinweis auf § 19 UStG ist **nicht** nötig (der gehört auf Rechnungen). ⚠️ **Niemals die normale Steuernummer eintragen.**
   - **§ 18 Abs. 2 MStV, falls einschlägig:** Der Abschnitt erscheint nur, wenn `mstvResponsible` gesetzt ist. Ein reines Portfolio ist in der Regel kein journalistisch-redaktionelles Angebot; eigene Beiträge oder redaktionell aufbereitete Bildstrecken können die Pflicht auslösen.
-  - ⚠️ **Von jemandem gegenlesen lassen, der Rechtsberatung darf.** Struktur und Bausteine sind üblich, aber nicht anwaltlich geprüft.
   - **Beim Umsetzen des Kontaktformulars und der Analytics:** Die Datenschutzerklärung beschreibt bewusst nur, was tatsächlich passiert. Formular, Versanddienstleister, Turnstile und Web Analytics müssen dort ergänzt werden, sobald sie live sind — Stellen sind in `app/datenschutz/page.tsx` als Kommentar markiert.
 - [ ] **Alle Inhalte von Jakob freigeben lassen.** Sämtliche Angaben in `lib/content.ts` stammen aus dem Briefing und sind **nicht gegengeprüft**. Nichts davon darf ungeprüft live gehen.
-- [ ] **Kontaktdaten sind Platzhalter:** `hallo@jakobsax.media` ist erfunden, die vertraulichen Kanäle (Signal/Threema/PGP) stehen auf „noch einzutragen". Echte Werte einsetzen oder die Blöcke entfernen.
+- [ ] **Vertrauliche Kanäle sind noch Platzhalter.** ✅ Die E-Mail-Adresse ist seit 2026-08-27 echt (`mail@jakobsax.de`, ersetzt den erfundenen Platzhalter). ⚠️ **Signal, Threema und PGP stehen weiterhin auf „noch einzutragen"** — echte Werte einsetzen oder den Block entfernen. Ein Vertraulichkeitsversprechen an Quellen ohne funktionierenden Kanal ist schlimmer als keines.
 - [ ] **Nebentätigkeit klären:** Braucht Jakob für die selbstständige Tätigkeit eine Genehmigung des SWR? Dürfen SWR-Beiträge eingebettet werden, oder nur auf die Autorenseite verlinkt?
 - [ ] **Bild- und Persönlichkeitsrechte** an den Festivalfotos klären: Was darf werblich auf die eigene Seite, was nur ins Kundenarchiv? Bei Auftritten im öffentlichen Raum sind Persönlichkeitsrechte von Künstlerinnen, Künstlern und Publikum ein reales Thema.
 - [ ] **Referenznennungen freigeben lassen:** Dürfen tête-à-tête und der Bayerische Kanu-Verband namentlich genannt werden?
+
+## 🙋 Nur Jan & Jakob können das — Claude nicht
+
+Kurzliste dessen, was an einem Menschen hängt. **Die Details stehen jeweils weiter unten**, hier
+nur, wer was anstoßen muss. Alles, was nicht hier steht, kann Claude selbst erledigen.
+
+### Jakob
+
+| | Was | Warum es an ihm hängt |
+|---|---|---|
+| 🔲 | **Bilder liefern und auswählen** | Ohne Fotos ist die Seite Kosmetik. 12–20 starke schlagen 60 gute — die Auswahl kann nur er treffen |
+| 🔲 | **Hero-Video liefern** (stumm, plus Standbild) | Vorgaben in `TECH-STACK.md` |
+| 🔲 | **Bestandsaufnahme ausfüllen** (CSV liegt bei Jan) | Nur er weiß, was es gibt und was gezeigt werden darf |
+| 🔲 | **Alle Inhalte gegenlesen** | Alles in `lib/content.ts` stammt ungeprüft aus dem Briefing |
+| 🔲 | **Zwei Sätze Kontext je Arbeit** schreiben | Wird nicht erfunden |
+| 🔲 | **Preisrahmen festlegen** — und sei es „Tagessatz ab X" | Halbiert die unpassenden Anfragen |
+| 🔲 | **Vertrauliche Kanäle** einrichten (Signal, Threema, PGP) | ⚠️ Stehen auf „noch einzutragen". Ein Vertraulichkeitsversprechen ohne funktionierenden Kanal ist schlimmer als keines |
+| 🔲 | **USt-IdNr. mitteilen**, falls vorhanden | Nie die normale Steuernummer |
+| 🔲 | **Nebentätigkeit beim SWR klären** | Genehmigung nötig? Dürfen Beiträge eingebettet werden? |
+| 🔲 | **Bild- und Persönlichkeitsrechte klären** | Was darf werblich auf die Seite, was nur ins Kundenarchiv? |
+| 🔲 | **Referenznennungen freigeben lassen** (tête-à-tête, BKV) | Dazu gleich um ein **Zitat** bitten — billigstes Vertrauenselement überhaupt |
+| 🔲 | **Onetake-Rechte klären**, falls die Arbeiten gezeigt werden sollen | Liefen über eine Firma, an der er nicht mehr beteiligt ist |
+| 🔲 | **Lebenslauf anlegen** (Notion o.ä.) | `/ueber` verlinkt bewusst keinen, weil es keinen gibt |
+
+### Jan
+
+| | Was | Warum es an ihm hängt |
+|---|---|---|
+| 🔲 | **Patches einspielen und pushen** | Claude hat keinen Schreibzugriff |
+| 🔲 | **Schreibzugriff für Claude freischalten** | GitHub-App auf „Read and write", siehe unten |
+| 🔲 | **Mailer-Anbieter wählen** + Konto + **AV-Vertrag** | Vertrag nach Art. 28 DSGVO, Häkchen im Anbieterkonto |
+| 🔲 | **Absenderdomain verifizieren** und **Worker-Secrets setzen** | Nur mit Zugang zum Cloudflare- und Anbieterkonto möglich |
+| 🔲 | **Cloudflare Web Analytics aktivieren** | Dashboard, nicht per Code |
+| 🔲 | **Turnstile-Site-Key** besorgen, falls gewünscht | Dashboard |
+| 🔲 | **DNS abschließend prüfen** (`jakobsax.de`, `www`) | Nach dem 525-Fix nie final getestet |
+
+### Gemeinsam zu entscheiden
+
+| | Was | Stand |
+|---|---|---|
+| 🔲 | **Rechtstexte anwaltlich prüfen lassen** | ⚠️ **Der letzte echte Launch-Blocker.** Impressum und Datenschutz sind inhaltlich vollständig, aber von mir geschrieben, nicht von einer Kanzlei |
+| 🔲 | **Domain: `.de` oder `.media`?** | Meine Empfehlung: `.de` behalten. Vor dem ersten externen Link entscheiden |
+| 🔲 | **Tailwind ja oder nein?** | Meine Empfehlung: nein. Braucht laut `TECH-STACK.md` beider Zustimmung |
+| 🔲 | **Design-Vertrag unabhängig prüfen lassen** | Der Abschnitt „Seitenstruktur" ist von Claude geschrieben und selbst nicht abgenommen |
+
+---
 
 ## Reihenfolge (Stand 2026-08-27)
 
@@ -47,8 +97,9 @@ Stelle anfängt:
 
 ## Kurzfristig
 
+- [ ] **Schreibzugriff für Claude einrichten.** Aktuell kann Claude nicht selbst pushen: Der Git-Proxy der Session hat keine GitHub-Autorisierung für das Repo (`403`), der GitHub-MCP-Zugang nur Leserechte. Änderungen müssen deshalb als ZIP/Bundle exportiert und von Hand eingespielt werden. Zu tun: Claude GitHub App unter https://github.com/apps/claude/installations/select_target für `jh8yzpy6vj-dot/personalwebsite` freigeben (Contents: Read **and write**), und die GitHub-Verbindung unter claude.ai → Einstellungen → Connectors neu verbinden.
+  - ⚠️ **Wenn das steht: Claude weiterhin auf einem Arbeitsbranch pushen lassen, nicht auf `main`.** Laut `CLAUDE.md` geht jeder Push auf `main` sofort live, ohne Preview — die Regel „Änderungen vor dem Pushen kurz selbst gegenlesen" existiert genau deswegen. Der Merge nach `main` bleibt eine menschliche Entscheidung.
 - [ ] Prüfen, ob `jakobsax.de` und `www.jakobsax.de` inzwischen für alle stabil ohne Fehler erreichbar sind (DNS-Propagation nach dem 525-Fix abschließend testen).
-- [ ] **Wichtig — manueller Schritt in Cloudflare nötig:** Im Cloudflare Dashboard → Workers & Pages → personalwebsite → Settings → Build prüfen/setzen: Build command auf `npx opennextjs-cloudflare build`, Deploy command auf `npx wrangler deploy`. Ohne diese Umstellung erkennt Cloudflare das neue Next.js-Projekt beim nächsten Push evtl. nicht richtig (vorher war es eine reine statische Seite ohne Build-Schritt).
 - [ ] **Bildmaterial beschaffen.** Die Seite lebt von Fotos, aktuell zeigt jede Kachel „Bild folgt". Laut Briefing schlagen 12–20 wirklich starke Bilder 60 gute. Klären, wer auswählt. Danach: `srcset`, moderne Formate, Alt-Texte, die die Szene beschreiben (Feld `alt` existiert je Arbeit in `lib/content.ts`).
 - [ ] **Hero-Video.** Die Referenzseite hat ein randloses Loop-Video; unser Hero unterstützt das bereits (`HERO_VIDEO` in `lib/content.ts`), zeigt bis dahin einen Farbverlauf. Video liefern, zusätzlich ein Poster-Bild (`HERO_POSTER`) setzen.
 - [ ] **Domain-Entscheidung:** Briefing empfiehlt `jakobsax.media` als primäre Domain (passend zum bestehenden Handle `@jakobsax.media`), `jakobsax.de` weiterleiten. Aktuell läuft alles auf `jakobsax.de`. Entscheiden, bevor Adressen gedruckt werden.
@@ -60,8 +111,13 @@ Stelle anfängt:
 - [ ] **Drei Türen: Bilder und Preisanker fehlen noch.** Der Block steht auf der Startseite, zeigt aber nur Text aus `SERVICES`. Es fehlen je drei starke Bilder und der Preisanker — letzterer beantwortet die Frage, die ein Kulturamt zuerst hat. Hängt an „Bildmaterial" und am langfristigen Punkt „Preisangaben".
 - [ ] **Projektkontext je Arbeit.** Die Detailseiten zeigen aktuell nur Credits und den Hinweis „Beschreibung und Bildstrecke folgen". Zwei Sätze Kontext je Arbeit schreiben, dann in `lib/content.ts` ein Feld `context` ergänzen und in `app/arbeiten/[slug]/page.tsx` ausgeben (Stelle ist im Code markiert). **Nicht erfinden** — die Sätze müssen von Jakob kommen.
 - [ ] **Lebenslauf verlinken.** `/ueber` hat bewusst keinen CV-Link, weil es noch keinen gibt. Sobald ein ausführlicher Lebenslauf vorliegt (Notion o.ä.), dort verlinken.
-- [ ] **Anfrageformular statt reinem `mailto:`.** `mailto:` ist derzeit der schwächste Punkt der Seite: Wer im Kulturamt mit Webmail arbeitet, klickt „E-Mail schreiben" und es passiert nichts oder ein leeres Outlook geht auf. Ersatz: kleines Formular auf dem Worker mit **strukturierten Feldern** — Datum, Ort, Art der Veranstaltung, Budgetrahmen. Qualifiziert die Anfrage, statt nur bequemer zu sein. `mailto:` bleibt sichtbar als Fallback daneben. Technik und offene Punkte siehe `TECH-STACK.md`, Abschnitt „Kontaktformular"; Zustands-Abdeckung siehe `design/UI-SPEC.md`.
-- [ ] **Budgetband im Formular** — löst das Preisproblem, ohne einen Preis festzulegen. Drei bis vier Bänder („unter 500 · 500–1.500 · über 1.500 · weiß ich noch nicht") filtern unpassende Anfragen weg und liefern Jakob Marktdaten, bevor er sich auf einen Tagessatz festlegen muss. Hängt am langfristigen Punkt „Preisangaben".
+- [ ] **Versand des Anfrageformulars scharfschalten.** ⏳ Das Formular steht seit 2026-08-27 auf `/kontakt`, inklusive Validierung, aller Zustände und Spam-Grundschutz. **Es kann nur noch nicht zustellen** — dafür fehlen:
+  1. Konto bei **Resend** (oder Postmark, dann `lib/mailer.ts` anpassen) und ein **Auftragsverarbeitungsvertrag**.
+  2. Eine bei dem Anbieter **verifizierte Absenderdomain**.
+  3. Drei Worker-Secrets setzen: `npx wrangler secret put RESEND_API_KEY`, `ANFRAGE_AN`, `ANFRAGE_VON`.
+  4. `VERSAND_AKTIV` in `lib/legal.ts` auf `true` — das schaltet den Absatz zum Versanddienstleister in der Datenschutzerklärung frei. ⚠️ **Erst nach dem AV-Vertrag**, beides gehört zusammen.
+  - Bis dahin antwortet die Route mit einer klaren Meldung, die auf die E-Mail-Adresse verweist — keine Anfrage geht still verloren.
+- [ ] **Turnstile ergänzen**, sobald ein Site-Key vorliegt. Aktuell nur Honeypot und Mindest-Ausfüllzeit als Grundschutz. Beim Aktivieren die Datenschutzerklärung mitziehen (Stelle im Code markiert).
 - [ ] **`INDEXABLE` auf `true` setzen** (`lib/site.ts`), sobald die Launch-Blocker oben erledigt sind. Steht bewusst auf `false` — die Seite ist live und war bis dahin uneingeschränkt indexierbar, mit erfundener E-Mail-Adresse und ohne Impressum. **Beim Umlegen zusätzlich:** OpenGraph-Bild in `app/layout.tsx` ergänzen und echte Kontaktdaten in `app/StructuredData.tsx` nachtragen (beides dort als Kommentar markiert).
 - [ ] **Cloudflare Web Analytics aktivieren** — cookielos, damit **kein Cookie-Banner nötig** ist. Das ist eine bewusste Entscheidung, kein Verzicht: siehe die Anti-Feature-Liste in `SITE-PLAN.md`.
 - [ ] **Ein Zitat von tête-à-tête einholen.** Ein Satz der Festivalleitung mit Namen und Funktion schlägt drei Absätze Selbstbeschreibung. Billigstes Vertrauenselement überhaupt — braucht nur eine Freigabe-Mail, die für die Referenznennung ohnehin fällig ist (siehe Launch-Blocker).

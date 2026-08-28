@@ -48,9 +48,21 @@ zuerst Bilder; wer prüft, scrollt weiter.
 | `/` | Hero dunkel, Rest hell | Hero → `buchbar.` (drei Türen) → `zuletzt.` → `schon fotografiert für.` → `kontakt.` → Footer |
 | `/arbeiten` | dunkel | Titel, Filter (`alle.` `festivals.` `bewegtbild.` `redaktion.`), randloses 2-Spalten-Raster (**gap 0**), heller Footer |
 | `/arbeiten/[slug]` | Bild dunkel, Kontext hell | Bild → Auftraggeber · Titel · Meta → Rückweg |
+| `/leistungen/[slug]` | hell | Eine Seite je Angebot: Zielgruppe, Beschreibung, Eckdaten, Preisanker, passende Arbeiten, CTA |
 | `/ueber` | hell | Kurzbio, Belege, Referenzzeile |
 | `/kontakt` | hell | Buchungsanfragen / Vertraulich, zweispaltig |
 | `/impressum`, `/datenschutz` | hell | Pflichtangaben, `noindex` |
+| 404 (`not-found`) | hell | „hier ist nichts." — führt weiter zu Arbeiten, Start, Kontakt |
+
+**Eigene 404-Seite ist Pflicht, nicht Kür.** Ohne sie greift die Next.js-Standardseite: weißer
+Grund, englischer Text, kein Bezug zur Seite. Bei eigenen URLs je Arbeit passiert das
+zwangsläufig — Tippfehler, alte Links, entfernte Arbeiten. Die Copy **führt weiter statt sich zu
+entschuldigen**: Wer dort landet, suchte etwas Bestimmtes und braucht den nächsten Schritt.
+
+**Sprungmarke zum Inhalt.** Erstes fokussierbares Element jeder Seite, unsichtbar bis zum
+Tastaturfokus, Ziel `#inhalt` auf dem `<main>`. Ohne sie muss man sich auf *jeder* Seite erst
+durch die fixe Topbar tabben. Bewusst mit `transform` aus dem Bild geschoben statt mit
+`display: none` — ein so verstecktes Element ist gar nicht fokussierbar und die Marke wirkungslos.
 
 **Genau eine Naht pro Seite.** Der Wechsel dunkel → hell ist das Strukturelement und passiert je
 Seite höchstens einmal. Deshalb liegt `zuletzt.` auf der Startseite im **hellen** Bereich und
@@ -71,6 +83,37 @@ Beobachtungspunkt.
 **Kachel = Link.** Im Archiv ist die ganze Kachel klickbar, nicht nur der Titel — bei einem
 randlosen Raster ist das Bild die Klickfläche, die Leute erwarten. Der Fokusring liegt **innen**
 (`outline-offset: -4px`), sonst schneidet ihn das `overflow: hidden` der Kachel ab.
+
+**Die drei Türen auf `/` sind Anrisse, keine Angebote.** Der vollständige Text steht auf
+`/leistungen/[slug]`. Vorher hatten die Angebote keine eigene URL — man konnte weder darauf
+verlinken, noch konnte eine Suche nach „Festivalfotograf Rastatt" auf einer Seite *über
+Festivalfotografie* landen. Verkauf und Suchmaschine wollen hier dasselbe.
+
+**Detailseiten sind keine Sackgassen.** `vorherige / nächste` innerhalb derselben Kategorie —
+wer eine Festivalarbeit anschaut, will die nächste Festivalarbeit sehen, keinen Radiobeitrag.
+**Ohne Umlauf:** Am Ende ist Schluss; ein Ring würde vortäuschen, es ginge endlos weiter.
+
+### Bewegung ohne Bibliothek
+
+Drei Browser-Techniken ersetzen, wofür sonst eine Animationsbibliothek nötig wäre. **Alle drei
+sind Progressive Enhancement** — wo sie fehlen, verhält sich die Seite wie vorher.
+
+| Technik | Wirkung | Kosten |
+|---------|---------|--------|
+| `@view-transition` | Seitenwechsel blendet über statt hart umzuschalten | 3 Zeilen CSS, **kein JavaScript** |
+| Speculation Rules | Lädt die Zielseite bei erkennbarer Absicht vor — der Klick wirkt sofort | ein `<script type="speculationrules">` |
+| `content-visibility: auto` | Kacheln außerhalb des Bildschirms werden nicht gerendert | eine Zeile je Kachel |
+
+⚠️ **`prefers-reduced-motion` schaltet auch den Seitenübergang ab** (`navigation: none`). Die
+globale `animation-duration`-Regel greift dort **nicht** — View Transitions brauchen eine eigene
+Abschaltung.
+
+⚠️ **Speculation Rules stehen auf `moderate`, nicht `eager`.** Vorgeladen wird erst bei
+erkennbarer Absicht, nicht bei jedem Link im Blickfeld — sonst zahlt jemand mit teurem Mobilfunk
+für Seiten, die er nie öffnet.
+
+⚠️ **`content-visibility` braucht `contain-intrinsic-size`**, sonst kennt der Browser die Höhe
+nicht gerenderter Kacheln nicht und die Bildlaufleiste springt.
 
 **Vorbild für Topbar, ●REC-Marke, Kategoriefilter und randloses Raster war**
 [bildmanufaktur.de](https://www.bildmanufaktur.de) — übernommen wurde die Struktur, nicht die
@@ -109,7 +152,7 @@ unlesbar (im Test bestätigt). Umgesetzt via `IntersectionObserver` auf `#lesen`
 | Element | Regel |
 |---------|-------|
 | Hero | Höhe `82vh` (mobil `72vh`), `min-height: 420px`. Randlos, `object-fit: cover`. Video: `loop`, `muted`, `playsinline` — ohne Ton, ohne Bedienelemente. |
-| Kachel | Seitenverhältnis **4:3**, `object-fit: cover`. Randlos aneinanderstoßend (`gap: 0`). |
+| Kachel | Seitenverhältnis **4:3** am Desktop, **4:5 mobil**, `object-fit: cover`. Randlos aneinanderstoßend (`gap: 0`). |
 | Metazeile | Liegt **über** dem Bild am unteren Rand, auf einem Verlauf nach Schwarz — nie unter dem Bild. |
 
 **Fokuspunkt:** Im Hero ist das **Bild** der primäre Anker, nicht die Schrift — der
@@ -117,6 +160,11 @@ Positionierungssatz sitzt bewusst unten und tritt hinter das Motiv zurück. In d
 übernimmt der Sektionstitel (28px) die Ankerrolle, in `buchbar.` zusätzlich der rote CTA als
 einziger gefüllter Button. Auf einer Kachel führt der Blick vom Bild über das rote
 Auftraggeber-Label zum Titel.
+
+**Warum die Kachel mobil hochkant wird:** Einspaltig ist eine 4:3-Kachel auf 375px nur rund
+280px hoch. Ein zweizeiliger Titel plus Metazeile belegt davon fast die Hälfte — mit echten Fotos
+würde der Text das Motiv verdecken. 4:5 gibt dem Bild den Raum zurück und nutzt das hohe Display
+besser. Beim Mobil-Test aufgefallen, vorher stand hier nur 4:3.
 
 **Wenn die Bilder gut sind, ist jedes erklärende Wort davor ein Verlust** — deshalb keine
 Überschrift über dem Hero, kein Text über dem Motiv außer der einen Zeile unten.
@@ -140,8 +188,17 @@ Tokens aus dem Briefing:
 
 **Accent reserved for:** ●REC-Chip in der Topbar, Punkt vor der Ortsangabe, Punkt in der
 Bild-Platzhalterkachel, Unterkante des aktiven Filters, Fokusring, Unterstreichungsfarbe von
-Links im Lesebereich, Auftraggeber-Label auf den Kacheln. **Nicht** für Fließtext, nicht für
-Überschriften, nicht für alle interaktiven Elemente.
+Links im Lesebereich, Auftraggeber-Label auf den Kacheln, Randstreifen des Hinweises auf
+unvollständige Pflichtangaben, sichtbare Lücken (`[ … FEHLT ]`). **Nicht** für Fließtext, nicht
+für Überschriften, nicht für alle interaktiven Elemente.
+
+**Zwei gefüllte `--rec`-Flächen, mit Begründung:**
+
+1. Der **Primary CTA** — der einzige gefüllte Button im sichtbaren Layout.
+2. Die **Sprungmarke zum Inhalt** — sie ist nur bei Tastaturfokus sichtbar und steht damit nie
+   gleichzeitig mit dem CTA im Bild. Als Barrierefreiheits-Element muss sie sich maximal
+   abheben; sie konkurriert nicht um Aufmerksamkeit, weil sie erst erscheint, wenn jemand sie
+   aktiv ansteuert. Beim Code-Review als Vertragskonflikt aufgefallen und hier aufgelöst.
 
 ### Zugängliche Textvarianten (Abweichung mit Begründung)
 
@@ -207,12 +264,25 @@ Design-Erfindung. Eigennamen im Fließtext bleiben normal geschrieben.
 
 4er-Skala: 4 · 8 · 16 · 24 · 32 · 48 · 64px als `--space-xs` bis `--space-3xl`.
 
-**Barrierefreiheits-Untergrenze (keine Ausnahme — 44 liegt auf der Skala):** Klickflächen
-mindestens 44×44px, umgesetzt via `min-height: 44px` auf Links, Buttons und Filter.
+**Barrierefreiheits-Untergrenze:** Klickflächen mindestens 44×44px, umgesetzt via
+`min-height: 44px` auf Links, Buttons und Filter — **auch auf der Wortmarke in der Topbar.** Sie
+ist auf allen Unterseiten der Weg zurück zur Startseite, also ein echtes Navigationsziel; die
+Schrift allein ergab nur 22px Höhe (beim Mobil-Test aufgefallen).
+
+**Eine begründete Ausnahme: Links im Fließtext.** Ein Link mitten in einem Satz („mehr über
+mich", „SWR-Autorenseite") bleibt auf Zeilenhöhe. WCAG 2.5.8 nimmt Ziele *innerhalb eines
+Textblocks* ausdrücklich von der Mindestgröße aus, und 44px hohe Inline-Links würden den
+Zeilenfluss zerreißen. Die Regel gilt weiterhin für **alle eigenständigen** Links und Buttons.
+
+**Topbar-Höhe als Token:** `--topbar-h` (92px Desktop, 76px mobil), im Browser gemessen.
+Ankersprünge und der obere Abstand jeder Seite hängen daran. Vorher standen an **vier Stellen**
+handgerechnete Werte — als die Topbar durch die 44px-Untergrenze wuchs, wurden alle vier still
+falsch und der Titel auf `/arbeiten` stand mobil nur noch 3px unter der Leiste. Wer Innenabstand
+oder Schriftgröße der Topbar ändert, muss `--topbar-h` neu messen.
 
 **Ausnahmen:**
-- `scroll-margin-top`: 88px Desktop, 64px mobil (die Topbar ist dort niedriger). Ohne diese
-  Werte landen Ankersprünge unter der fixen Topbar.
+- `scroll-margin-top`: `--topbar-h` plus `--space-md`. Ohne das landen Ankersprünge unter der
+  fixen Topbar.
 - Das Arbeiten-Raster hat bewusst **gap: 0** — randlos aneinanderstoßende Kacheln sind das
   übernommene Kernmerkmal der Referenz.
 - Die ●REC-Marke hat **durchgehend 8px** Durchmesser, an allen drei Fundstellen (Topbar-Chip,
@@ -226,7 +296,7 @@ mindestens 44×44px, umgesetzt via `min-height: 44px` auf Links, Buttons und Fil
 | Element | Copy |
 |---------|------|
 | Positionierung (H1) | „fotografie für kultur & theater im öffentlichen raum" — seine eigene Selbstbeschreibung, unverändert |
-| Primary CTA | „Anfrage stellen" (Verb + Nomen). Erscheint auf `/` **zweimal mit genau demselben Label**: am Ende von `buchbar.` und unter `kontakt.` Einziger gefüllter Button der Seite (`--rec`-Fläche, `--auf-rec`-Schrift), als Konstante `CTA_LABEL` in `app/page.tsx` gehalten. **Zwei verschieden beschriftete rote Knöpfe wären zwei konkurrierende Aufforderungen** — beim Umbau einmal passiert und korrigiert. Ziel ist `/kontakt`, nicht `mailto:`: Die Adresse in `content.ts` ist erfunden, ein Knopf darauf wäre ein toter Link. Sobald echte Kontaktdaten vorliegen, kann er wieder direkt auf `mailto:` zeigen (gesteuert über `LEGAL_DATA_COMPLETE`). |
+| Primary CTA | „Anfrage stellen" (Verb + Nomen). Erscheint auf `/` **zweimal mit genau demselben Label**: am Ende von `buchbar.` und unter `kontakt.` Einziger gefüllter Button der Seite (`--rec`-Fläche, `--auf-rec`-Schrift), als Konstante `CTA_LABEL` in `app/page.tsx` gehalten. **Zwei verschieden beschriftete rote Knöpfe wären zwei konkurrierende Aufforderungen** — beim Umbau einmal passiert und korrigiert. **Ziel ist dauerhaft `/kontakt`, nicht `mailto:`** — auch jetzt, wo die Adresse echt ist: Dort ist nach Absicht getrennt (Buchung / vertraulich), und dort landet das Anfrageformular. Ein `mailto:` von der Startseite würde an dieser Trennung vorbeiführen. Auf `/kontakt` selbst steht der `mailto:`-Knopf, gesteuert über `LEGAL_DATA_COMPLETE`. |
 | Kontakt-Trennung | „buchungsanfragen." / „vertraulich." |
 | Vertraulich-Hinweis | „Für Hinweise an mich als Journalist. Ich behandle Quellen vertraulich und nenne niemanden ohne Absprache." |
 | Leerzustand Kachel | „Bild folgt" — ehrlicher Platzhalter, solange Bildmaterial fehlt |
@@ -339,20 +409,45 @@ neue Größe, kein neues Gewicht**, die Skala 14 · 18 · 28 · 56 bleibt unange
 und **Wetter oder Lichtsituation stehen nicht im EXIF** — wenn solcher Kontext gewünscht ist,
 braucht es ein optionales Handfeld in `lib/content.ts` und damit eine Copy-Freigabe.
 
-### 3. Zustände, die das Kontaktformular neu aufmacht
+### 3. Anfrageformular auf `/kontakt` — Zustände und Regeln
 
-Der Vertrag oben führt bisher:
+> Am 2026-08-27 **vor** dem Code festgelegt, wie `CLAUDE.md` es verlangt.
 
-- Copywriting Contract → „Fehlzustand | **Nicht anwendbar** — statische Seite ohne Formular"
-- UI Considerations → „error | Kontaktbereich | ✅ covered | Nur `mailto:`-Links, kein Formular,
-  keine Netzwerkoperation — kein Fehlerzustand möglich."
+**Die Hierarchie ändert sich auf dieser einen Seite.** Der Absende-Button des Formulars wird dort
+der Primary CTA und damit der einzige gefüllte Button; **der `mailto:`-Weg bleibt sichtbar, aber
+als schlichter Textlink.** Zwei gefüllte Knöpfe nebeneinander wären zwei konkurrierende
+Aufforderungen — und die inhaltlich richtige Reihenfolge ist ohnehin: Formular zuerst,
+E-Mail als Ausweg für alle, die keins ausfüllen wollen.
 
-**Mit dem geplanten Anfrageformular stimmt beides nicht mehr.** Vor dem Code sind zu ergänzen und
-zu prüfen: Ladezustand des Absende-Buttons, Erfolgszustand, Fehlerzustand bei Netzwerk- oder
-Serverfehler (inklusive Copy, die die Eingaben nicht verwirft), Validierungsfehler je Feld,
-Turnstile-Fehlschlag, sowie ein Fokus-Management, das den Erfolgs- bzw. Fehlerhinweis für
-Screenreader ankündigt. Der CTA „E-Mail schreiben" muss dabei sichtbar erhalten bleiben — er ist
-laut Copywriting Contract der einzige gefüllte Button der Seite.
+**Felder** (Reihenfolge = Reihenfolge im Kopf des Anfragenden): Art der Veranstaltung · Datum ·
+Ort · Budgetrahmen · Nachricht · Name · E-Mail. Pflicht sind nur **Name, E-Mail und Nachricht** —
+jedes zusätzliche Pflichtfeld kostet Anfragen.
+
+**Der Budgetrahmen ist ein Auswahlfeld, kein Freitext**, mit einer ausdrücklichen Option „weiß
+ich noch nicht". Er beantwortet die Preisfrage, ohne dass ein Preis festgelegt werden muss.
+
+| Zustand | Verhalten |
+|---------|-----------|
+| **idle** | Absende-Button aktiv, keine Meldungen sichtbar |
+| **submitting** | Button deaktiviert, Beschriftung wechselt zu „wird gesendet…", Felder bleiben lesbar und **behalten ihre Werte** |
+| **success** | Formular wird durch eine Bestätigung ersetzt, die sagt, **was als Nächstes passiert** — nicht bloß „Danke" |
+| **error** | Fehlermeldung **über** dem Formular, **alle Eingaben bleiben erhalten**, Button wieder aktiv. Copy nennt den `mailto:`-Ausweg |
+| **Validierungsfehler** | Je Feld unter dem Feld, `aria-invalid` und `aria-describedby` gesetzt; Fokus springt auf das erste fehlerhafte Feld |
+| **Versand nicht konfiguriert** | Fehlt der API-Schlüssel, antwortet die Route mit einer klaren Meldung, die auf die E-Mail-Adresse verweist — **nie eine stille Fehlermeldung** |
+
+**Barrierefreiheit:** Erfolgs- und Fehlermeldung liegen in einer `role="status"`-Region, damit
+Screenreader sie ankündigen. Nach dem Absenden wandert der Fokus dorthin — sonst merkt man
+mit Tastatur oder Screenreader nicht, dass etwas passiert ist.
+
+**Spam:** Ein verstecktes Honeypot-Feld plus Mindest-Ausfüllzeit als Grundschutz. Turnstile wird
+ergänzt, sobald ein Site-Key vorliegt — bis dahin **kein Platzhalter-Widget**.
+
+**Datenschutz:** Unter dem Formular ein Satz mit Link auf `/datenschutz`. ⚠️ Die
+Datenschutzerklärung beschreibt bewusst nur, was tatsächlich passiert — sie muss **im selben
+Schritt** um Formular und Versanddienstleister ergänzt werden, in dem das Formular live geht.
+
+**Typografie:** Feldbeschriftungen und Hilfetexte nutzen die bestehende Rolle *Label* (Martian
+Mono 14px), Eingabefelder die Rolle *Body*. **Keine neue Größe, kein neues Gewicht.**
 
 ### 4. Offene Punkte der Qualitätsuntergrenze, jetzt mit Zielwert
 

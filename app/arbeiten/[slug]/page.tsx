@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import Topbar from "../../components/Topbar";
 import SiteFooter from "../../components/SiteFooter";
 import { CATEGORIES } from "@/lib/content";
-import { allSlugs, bySlug, metaLine } from "@/lib/works";
+import { allSlugs, bySlug, metaLine, neighbours, yearOf } from "@/lib/works";
+import { SITE_URL } from "@/lib/site";
 import styles from "./detail.module.css";
 
 /**
@@ -47,12 +48,43 @@ export default async function WorkDetail({
   if (!work) notFound();
 
   const category = CATEGORIES.find((c) => c.id === work.category);
+  const { prev, next } = neighbours(work);
+
+  /*
+   * Strukturierte Daten je Arbeit. Verknüpft über `@id` mit der Person aus
+   * app/StructuredData.tsx — Google soll die Arbeit demselben Jakob Sax
+   * zuordnen wie die SWR-Autorenseite.
+   *
+   * `CreativeWork` statt eines spezifischeren Typs, weil die Arbeiten
+   * Fotostrecken, Filme und redaktionelle Beiträge mischen. Nur belegte
+   * Felder — nichts, was nicht auch auf der Seite steht.
+   */
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name: work.title,
+    url: `${SITE_URL}/arbeiten/${work.id}`,
+    datePublished: String(yearOf(work)),
+    creator: { "@id": `${SITE_URL}/#person` },
+    /*
+     * `sourceOrganization`, nicht `sponsor`: `sponsor` bedeutet bei
+     * schema.org einen **finanziellen Förderer**. Ein Auftraggeber, für den
+     * gearbeitet wurde, ist etwas anderes — die Seite behauptet das auch
+     * nirgends. Im Code-Review aufgefallen.
+     */
+    sourceOrganization: { "@type": "Organization", name: work.client },
+    ...(work.place ? { locationCreated: { "@type": "Place", name: work.place } } : {}),
+  };
 
   return (
     <div className={styles.page}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Topbar homeHref="/" />
 
-      <main>
+      <main id="inhalt" tabIndex={-1}>
         {/* Dunkel: das Bild. Solange keins vorliegt, ein ehrlicher Platzhalter
             statt eines kaputten img. */}
         <div className={styles.media}>
@@ -84,6 +116,29 @@ export default async function WorkDetail({
             <p className={styles.pending}>
               Beschreibung und Bildstrecke folgen.
             </p>
+
+            {/* Ohne vor/zurück ist jede Detailseite eine Sackgasse — man
+                kann nur zurück. Innerhalb derselben Kategorie, weil wer eine
+                Festivalarbeit anschaut, die nächste Festivalarbeit sehen
+                will und keinen Radiobeitrag. */}
+            {(prev || next) && (
+              <nav className={styles.blaettern} aria-label="Weitere Arbeiten">
+                {prev ? (
+                  <a className={styles.blaetternPrev} href={`/arbeiten/${prev.id}`}>
+                    <span className={styles.blaetternLabel}>vorherige</span>
+                    <span className={styles.blaetternTitel}>{prev.title}</span>
+                  </a>
+                ) : (
+                  <span />
+                )}
+                {next && (
+                  <a className={styles.blaetternNext} href={`/arbeiten/${next.id}`}>
+                    <span className={styles.blaetternLabel}>nächste</span>
+                    <span className={styles.blaetternTitel}>{next.title}</span>
+                  </a>
+                )}
+              </nav>
+            )}
 
             <p className={styles.back}>
               <a href="/arbeiten">← alle Arbeiten</a>

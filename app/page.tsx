@@ -18,8 +18,9 @@ import { latest, metaLine } from "@/lib/works";
  * wären zwei konkurrierende Aufforderungen und verstießen gegen die Regel
  * „einziger gefüllter Button der Seite" in design/UI-SPEC.md.
  *
- * Verb + Nomen, wie der Copywriting Contract es verlangt. Ziel ist
- * `/kontakt`, nicht `mailto:` — die Adresse in content.ts ist erfunden.
+ * Verb + Nomen, wie der Copywriting Contract es verlangt. Ziel ist bewusst
+ * `/kontakt` und nicht `mailto:` — dort ist nach Absicht getrennt
+ * (Buchung / vertraulich), und dort landet später das Anfrageformular.
  */
 const CTA_LABEL = "Anfrage stellen";
 
@@ -39,7 +40,7 @@ export default function Home() {
     <div className={styles.page}>
       <Topbar />
 
-      <main>
+      <main id="inhalt" tabIndex={-1}>
         {/* ── 1. Hero: ein Bild, ein Satz. Eine Behauptung. ───────────── */}
         <section className={styles.hero} aria-label="Startbild">
           {HERO_VIDEO ? (
@@ -75,7 +76,17 @@ export default function Home() {
             <div className={styles.doors}>
               {SERVICES.map((service) => (
                 <article key={service.id} className={styles.door}>
-                  <h3 className={styles.doorTitle}>{service.title}</h3>
+                  {/* Der Titel ist der Link — die Tür führt jetzt wirklich
+                      irgendwohin. Vorher waren die drei Angebote nur Text
+                      ohne eigene URL. */}
+                  <h3 className={styles.doorTitle}>
+                    <a
+                      className={styles.doorLink}
+                      href={`/leistungen/${service.id}`}
+                    >
+                      {service.title}
+                    </a>
+                  </h3>
                   <p className={styles.doorAudience}>{service.audience}</p>
                   <p className={styles.doorText}>{service.description}</p>
                   <ul className={styles.doorFacts}>

@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/site";
 import { allSlugs } from "@/lib/works";
+import { SERVICES } from "@/lib/content";
 
 /**
  * sitemap.xml
@@ -22,6 +23,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const routes: MetadataRoute.Sitemap = [
     { url: `${SITE_URL}/`, changeFrequency: "monthly", priority: 1 },
     { url: `${SITE_URL}/arbeiten`, changeFrequency: "monthly", priority: 0.8 },
+    /* Leistungsseiten mit hoher Priorität: Sie sind die Landepunkte für die
+       kommerziellen Suchanfragen („Festivalfotograf Rastatt"). */
+    ...SERVICES.map((s) => ({
+      url: `${SITE_URL}/leistungen/${s.id}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.9,
+    })),
     { url: `${SITE_URL}/ueber`, changeFrequency: "yearly", priority: 0.5 },
     { url: `${SITE_URL}/kontakt`, changeFrequency: "yearly", priority: 0.5 },
     ...allSlugs().map((slug) => ({

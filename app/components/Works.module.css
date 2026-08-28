@@ -59,6 +59,14 @@
   aspect-ratio: 4 / 3;
   overflow: hidden;
   background: #000;
+  /*
+   * Kacheln außerhalb des Bildschirms werden gar nicht erst gerendert.
+   * Bei neun Arbeiten kaum messbar — bei sechzig ein spürbarer Unterschied
+   * beim Scrollen. `contain-intrinsic-size` verhindert dabei, dass die
+   * Bildlaufleiste springt, weil der Browser sonst die Höhe nicht kennt.
+   */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 400px;
 }
 
 /* Die ganze Kachel ist der Link — nicht nur der Titel. Bei einem randlosen
@@ -156,6 +164,21 @@
 @media (max-width: 700px) {
   .grid {
     grid-template-columns: 1fr;
+  }
+
+  /* Hochkant statt 4:3. Einspaltig ist eine 4:3-Kachel nur rund 280px hoch —
+     ein zweizeiliger Titel plus Metazeile belegt davon fast die Hälfte und
+     würde mit echten Fotos das Motiv verdecken. 4:5 gibt dem Bild den Raum
+     zurück und nutzt das hohe Display besser.
+     Abweichung vom „4:3"-Eintrag in design/UI-SPEC.md, dort begründet. */
+  .tile {
+    aspect-ratio: 4 / 5;
+  }
+
+  /* Der Verlauf muss auf der höheren Kachel nicht weiter hochreichen —
+     die Metazeile bleibt unten, das Motiv darüber frei. */
+  .meta {
+    padding: var(--space-md);
   }
 
   .filter {

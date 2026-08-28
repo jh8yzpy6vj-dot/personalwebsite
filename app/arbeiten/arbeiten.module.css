@@ -16,7 +16,8 @@
    würde die Kante brechen. */
 .title {
   margin: 0;
-  padding: calc(var(--space-3xl) + var(--space-2xl)) var(--space-lg) 0;
+  /* Topbar-Höhe plus Luft — Wert aus --topbar-h in globals.css. */
+  padding: calc(var(--topbar-h) + var(--space-2xl)) var(--space-lg) 0;
   font-family: var(--font-display), system-ui, sans-serif;
   font-size: var(--text-heading);
   font-weight: var(--weight-bold);
@@ -33,6 +34,7 @@
 
 @media (max-width: 700px) {
   .title {
-    padding: calc(var(--space-2xl) + var(--space-xl)) var(--space-md) 0;
+    /* --topbar-h passt sich mobil selbst an, nur der Seitenrand ändert sich. */
+    padding: calc(var(--topbar-h) + var(--space-xl)) var(--space-md) 0;
   }
 }

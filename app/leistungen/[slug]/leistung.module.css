@@ -1,0 +1,156 @@
+/* Leistungsseite. Nur bestehende Tokens — keine neue Größe, kein neues Gewicht. */
+
+.audience {
+  margin: 0 0 var(--space-md);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-papier);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.h2 {
+  margin: var(--space-2xl) 0 var(--space-md);
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-heading);
+}
+
+.facts {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-papier);
+}
+
+.price {
+  margin: var(--space-md) 0 0;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-heading);
+}
+
+/* ── Passende Arbeiten ──────────────────────────────────────────── */
+
+.works {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--stein);
+  max-width: 62ch;
+}
+
+.works li {
+  border-bottom: 1px solid var(--stein);
+}
+
+.workLink {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-height: 44px;
+  padding: var(--space-md) 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.workLink:hover .workTitle {
+  text-decoration: underline;
+  text-decoration-color: var(--rec);
+  text-underline-offset: 4px;
+}
+
+.workClient {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-papier);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.workTitle {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-heading);
+}
+
+.workMeta {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-papier);
+}
+
+/* ── CTA ────────────────────────────────────────────────────────── */
+
+.ctaRow {
+  margin: var(--space-2xl) 0 0;
+}
+
+/* Der einzige gefüllte Button dieser Seite. */
+.cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: var(--space-md) var(--space-lg);
+  background: var(--rec);
+  color: var(--auf-rec);
+  text-decoration: none;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  letter-spacing: 0.03em;
+  transition: background-color 120ms ease;
+}
+
+.cta:hover {
+  background: #c41616;
+}
+
+.direkt {
+  margin: var(--space-md) 0 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-body);
+  color: var(--ton-papier);
+}
+
+.direkt a {
+  color: var(--buehne);
+  text-decoration-color: var(--rec);
+  text-underline-offset: 4px;
+}
+
+/* ── Andere Leistungen ──────────────────────────────────────────── */
+
+.andere {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-lg);
+}
+
+.andere a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  color: var(--buehne);
+  text-decoration-color: var(--rec);
+  text-underline-offset: 4px;
+}
