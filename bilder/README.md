@@ -11,6 +11,7 @@ Seite automatisch (`scripts/bilder.mjs`).
 |---|---|---|
 | Leitbild einer Arbeit | `bilder/arbeiten/` | genau die `id` der Arbeit aus `lib/content.ts`, z. B. `tete-a-tete-2026.jpg` |
 | Standbild fürs Hero | `bilder/hero/` | `standbild.jpg` |
+| **Porträt von Jakob** | `bilder/` (direkt darin) | `portrait.jpg` |
 
 Die `id` steht in `lib/content.ts` bei jeder Arbeit ganz oben (`id: "..."`).
 Sie ist zugleich die Adresse der Seite: `jakobsax.de/arbeiten/tete-a-tete-2026`.
@@ -20,6 +21,15 @@ Groß-/Kleinschreibung im Dateinamen zählt.
 
 Liegt zu einer Arbeit keine Datei da, zeigt die Seite weiterhin ihren
 Platzhalter („Bild folgt"). Das ist kein Fehler.
+
+**Das Porträt** erscheint an zwei Stellen: im Kurzanriss auf der Startseite und
+oben auf `/ueber`. **Es wird nicht zugeschnitten** — quer oder hochkant, beides
+geht, das Bild behält seine Form. Fehlt es, zeigt die Startseite einen
+Platzhalter und `/ueber` einfach direkt den Text.
+
+⚠️ Die Bildbeschreibung dazu steht in `lib/content.ts` unter
+`ABOUT.portraitAlt` und beschreibt die **aktuelle** Aufnahme. Wer das Foto
+austauscht, muss sie mit austauschen.
 
 ## Wie groß sollen die Originale sein
 

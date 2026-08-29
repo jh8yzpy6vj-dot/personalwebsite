@@ -45,7 +45,7 @@ zuerst Bilder; wer prüft, scrollt weiter.
 
 | Route | Hälfte | Aufbau |
 |-------|--------|--------|
-| `/` | Hero dunkel, Rest hell | Hero → `buchbar.` (drei Türen) → `zuletzt.` → `schon fotografiert für.` → `kontakt.` → Footer |
+| `/` | Hero, Porträt und Material dunkel, Rest hell | Hero (volle Fensterhöhe) → `jakob.` (Porträt, zwei Sätze, Weiterweg) → `arbeiten.` (Kachelraster) → **Naht** → `schon fotografiert für.` → `buchbar.` (drei Türen, Hinweis, CTA) → Footer |
 | `/arbeiten` | dunkel | Titel, Filter (`alle.` `festivals.` `bewegtbild.` `redaktion.`), randloses 2-Spalten-Raster (**gap 0**), heller Footer |
 | `/arbeiten/[slug]` | Bild dunkel, Kontext hell | Bild → Auftraggeber · Titel · Meta → Rückweg |
 | `/leistungen/[slug]` | hell | Eine Seite je Angebot: Zielgruppe, Beschreibung, Eckdaten, Preisanker, passende Arbeiten, CTA |
@@ -65,10 +65,26 @@ durch die fixe Topbar tabben. Bewusst mit `transform` aus dem Bild geschoben sta
 `display: none` — ein so verstecktes Element ist gar nicht fokussierbar und die Marke wirkungslos.
 
 **Genau eine Naht pro Seite.** Der Wechsel dunkel → hell ist das Strukturelement und passiert je
-Seite höchstens einmal. Deshalb liegt `zuletzt.` auf der Startseite im **hellen** Bereich und
-zeigt **Zeilen statt Kacheln**: Auf der Weiche geht es um Aktualität, nicht um Bilder — die
-stehen im Archiv. Ein dunkler Bilderblock zwischen zwei hellen Textblöcken hätte die Naht
-verdoppelt.
+Seite höchstens einmal.
+
+**Reihenfolge der Startseite, geändert am 2026-08-29 auf Jans Ansage: Hero → wer → was →
+Angebot.** Vorher stand `buchbar.` direkt hinter dem Hero — die Antwort auf eine Frage, die zu
+dem Zeitpunkt noch niemand gestellt hat. Wer auf einer Fotografenseite landet, will erst sehen,
+dann wissen, wer das ist, und zuletzt, was es kostet.
+
+Daraus folgt zwingend, **wo die Naht liegt**: Hero, Porträt und Material sind zusammen das
+„Sehen"; darunter beginnt einmalig das „Lesen". Deshalb steht der Kurzanriss über Jakob auf
+dunklem Grund, obwohl er Text ist — zwei Sätze und ein Porträt sind Bildseite, ein Textblock
+wäre es nicht. Die Alternative (Anriss hell) hätte die Naht auf drei Wechsel verdreifacht.
+
+**`zuletzt.` als Zeilenliste ist entfallen.** An seiner Stelle steht `arbeiten.` mit demselben
+randlosen Kachelraster wie das Archiv — die Startseite soll Material zeigen, nicht Titel
+aufzählen. Beide benutzen jetzt dieselbe Komponente (`Kachelraster.tsx`), damit sie nicht
+auseinanderlaufen.
+
+**Der eigene Abschnitt `kontakt.` ist entfallen.** Er trug nur einen Hinweissatz und denselben
+roten Knopf wie `buchbar.` darüber — zwei gefüllte Knöpfe auf einer Seite verstoßen gegen die
+Regel unten. Der Hinweissatz steht jetzt am Ende von `buchbar.`, direkt über dem einen CTA.
 
 **Topbar:** Wortmarke, ●REC-Chip und rechts der **Menü-Knopf** (drei Striche). Keine
 ausgeschriebene Navigation — die würde über dem Hero mit dem Bild konkurrieren, und genau das
@@ -185,7 +201,8 @@ unlesbar (im Test bestätigt). Umgesetzt via `IntersectionObserver` auf `#lesen`
 
 | Element | Regel |
 |---------|-------|
-| Hero | Höhe `82vh` (mobil `72vh`), `min-height: 420px`. Randlos, `object-fit: cover`. Video: `loop`, `muted`, `playsinline` — ohne Ton, ohne Bedienelemente. |
+| Hero | **Volle Fensterhöhe** (`100svh`, `min-height: 420px`), randlos, `object-fit: cover`. Video: `loop`, `muted`, `playsinline` — ohne Ton, ohne Bedienelemente. ⚠️ `svh` und nicht `vh`: `vh` meint auf dem Telefon die Höhe ohne die ein- und ausfahrende Browserleiste, das Hero ragte damit unten heraus. |
+| Porträt | **Ohne Zuschnitt** — kein festes Seitenverhältnis, das Bild bringt seine Form mit. Anders als eine Rasterkachel muss es sich an keinem Nachbarn ausrichten, und ein erzwungenes Hochformat schnitte beim vorliegenden Querformat den halben Bildinhalt weg. |
 | Kachel | Seitenverhältnis **4:3** am Desktop, **4:5 mobil**, `object-fit: cover`. Randlos aneinanderstoßend (`gap: 0`). |
 | Metazeile | Liegt **über** dem Bild am unteren Rand, auf einem Verlauf nach Schwarz — nie unter dem Bild. Form des Verlaufs: siehe „Text über Fotos" unter *Farbe*. |
 | Auslieferung | AVIF und WebP mit `srcset` in bis zu fünf Breiten (480–2400), ein JPEG als Rückfall, `width`/`height` am `img` gegen Layoutsprünge. Erzeugt zur Bauzeit aus `bilder/`; Regeln in `lib/bilder-regeln.mjs`, Bedienung in `bilder/README.md`. |

@@ -106,15 +106,27 @@ sein.** Sie wird zur Weiche.
 
 ### Startseite — jeder Block hat genau einen Job
 
+> **Reihenfolge am 2026-08-29 auf Jans Ansage geändert.** Vorher standen die drei Türen direkt
+> hinter dem Hero. Die alte Fassung steht unter der Tabelle.
+
 | # | Block | Job |
 |---|-------|-----|
-| 1 | Hero | Ein Bild, ein Satz. Eine **Behauptung**, kein Stimmungsbild. Video nur kurz, stumm, mit sofort geladenem Standbild, das für sich funktioniert |
-| 2 | **Drei Türen** | Festivalfotografie · Bewegtbild · Filmworkshops. Je drei starke Bilder, ein Satz, **ein Preisanker**. Der wichtigste Block der Seite |
-| 3 | `zuletzt.` | Die vier bis sechs neuesten Arbeiten mit Datum, gemischt. Das Aktualitätssignal — der sichtbare Beweis, dass letzte Woche etwas passiert ist |
-| 4 | Vertrauen, kurz | Auftraggeberzeile, ein Zitat, ein Satz zum SWR mit Link. Bewusst knapp — wer mehr will, klickt auf `/ueber` |
-| 5 | Kontakt | Einstieg, Details auf `/kontakt` |
+| 1 | Hero | Ein Bild, ein Satz. Eine **Behauptung**, kein Stimmungsbild. **Volle Fensterhöhe** — darunter darf nichts hervorlugen, sonst ist es ein Ausschnitt und kein Bild. Video kurz, stumm, mit sofort geladenem Standbild, das für sich funktioniert |
+| 2 | `jakob.` | Porträt, zwei Sätze, ein Weiterweg auf `/ueber`. Beantwortet die Frage, mit der jemand eine Fotografenseite öffnet: **wer ist das** |
+| 3 | `arbeiten.` | Das Material — dasselbe randlose Kachelraster wie im Archiv, gekürzt auf sechs. Der eigentliche Beleg, und der Grund, überhaupt weiterzuscrollen |
+| 4 | Vertrauen, kurz | Auftraggeberzeile und der Weg auf `/ueber`. Bewusst knapp. Ein **Zitat** fehlt noch (siehe TODO.md) |
+| 5 | **Drei Türen** (`buchbar.`) | Festivalfotografie · Bewegtbild · Filmworkshops. Je ein Satz, Eckdaten, **ein Preisanker**, und als Abschluss der einzige gefüllte Knopf der Seite |
 
 Die Startseite soll in unter einer Minute lesbar sein.
+
+**Warum das Angebot nach hinten gewandert ist.** Direkt hinter dem Hero war es die Antwort auf
+eine Frage, die zu dem Zeitpunkt noch niemand gestellt hat. Die Reihenfolge ist jetzt
+**sehen → wer → was → Angebot**: Erst das Bild, dann die Person, dann der Beleg, dann der Preis.
+Wer bis `buchbar.` gescrollt hat, hat sich die Frage inzwischen selbst gestellt.
+
+**Was dabei entfallen ist:** `zuletzt.` als Zeilenliste (das Material zeigt jetzt Bilder statt
+Titel) und der eigene Abschnitt `kontakt.` (er trug nur einen Satz und einen zweiten roten Knopf;
+der Satz steht jetzt am Ende von `buchbar.`).
 
 ### Das Archiv
 

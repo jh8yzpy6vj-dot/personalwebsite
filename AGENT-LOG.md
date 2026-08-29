@@ -6,6 +6,24 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-08-29 — Startseite neu sortiert, Hero auf volle Höhe, Porträt eingebaut
+- **Auf Jans Ansage.** Drei Dinge: Das Hero war zu klein (am Laptop lugte schon `buchbar.` hervor), die Reihenfolge sollte **Hero → kurzes Über Jakob → Material → buchbar** lauten, und ein Porträtfoto soll auf `/ueber`.
+- **Hero füllt jetzt das Fenster.** Vorher 82vh, mobil 72vh — genau deshalb war unten der nächste Block zu sehen. Nachgemessen: 820 von 820px am Laptop, 844 von 844 auf dem Telefon, nichts lugt hervor.
+  - ⚠️ `100svh` statt `100vh`. `vh` meint auf dem Telefon die Höhe **ohne** die ein- und ausfahrende Browserleiste; das Hero hätte unten herausgeragt. Der frühere Abschlag auf 72vh war der Behelf dafür und ist jetzt überflüssig.
+- **Neue Reihenfolge: Hero → `jakob.` → `arbeiten.` → `schon fotografiert für.` → `buchbar.` → Footer.** Der Gedanke dahinter, jetzt auch so im Vertrag: **sehen → wer → was → Angebot.** Vorher stand das Angebot direkt hinter dem Hero — die Antwort auf eine Frage, die zu dem Zeitpunkt noch niemand gestellt hat.
+- **Die Naht musste mitwandern.** Die Seite hat laut Vertrag genau **einen** Wechsel dunkel → hell. Hero, Porträt und Material sind jetzt zusammen die dunkle Hälfte; darunter beginnt einmalig das Helle. Deshalb steht der Kurzanriss über Jakob auf dunklem Grund, obwohl er Text ist — die Alternative hätte drei Nähte ergeben.
+- **Zwei Blöcke sind entfallen**, beide bewusst:
+  - `zuletzt.` als Zeilenliste — an seiner Stelle steht dasselbe randlose Kachelraster wie im Archiv. Eine Fotografenseite soll Material zeigen, nicht Titel aufzählen. Dafür wurde das Raster aus `Works.tsx` nach `Kachelraster.tsx` herausgezogen; Archiv und Startseite teilen sich jetzt eine Komponente statt zweier Kopien.
+  - Der eigene Abschnitt `kontakt.` — er trug nur einen Satz und **denselben roten Knopf** wie `buchbar.` darüber. Zwei gefüllte Knöpfe verstoßen gegen die eigene Regel; der Satz steht jetzt am Ende von `buchbar.`, direkt über dem einen CTA. Im Browser nachgezählt: genau ein gefüllter Knopf (der zweite Treffer war die unsichtbare Sprungmarke, die der Vertrag ausdrücklich ausnimmt).
+- **Das Porträt wird nicht zugeschnitten.** Erste Fassung hatte einen 4:5-Rahmen — bei der vorliegenden Aufnahme (quer, Sonnenuntergang links neben dem Gesicht) hätte das genau den Sonnenuntergang weggeschnitten. Ein Porträt muss sich an keinem Rasternachbarn ausrichten; es bringt seine Form mit. Auf `/ueber` steht es über dem Text, nicht daneben: Wer wissen will, wer da schreibt, schaut zuerst.
+- **⚠️ Die Datei fehlt noch, und zwar aus einem Grund, den ich nicht beheben kann:** Ein Bild aus dem Chat lässt sich nicht ins Repo schreiben. Gebaut und gegen ein Testbild im selben Seitenverhältnis (16:9) geprüft ist alles; **Jan muss die Datei nach `bilder/portrait.jpg` legen.** Steht als eigener Punkt in `TODO.md`.
+- **Die Bildbeschreibung** (`ABOUT.portraitAlt`) ist aus der Aufnahme abgeleitet — Gegenlicht, untergehende Sonne, unscharf Bäume und Dächer. Wie alles in `content.ts` **nicht von Jakob freigegeben**.
+- **Ein Fehler beim Bauen selbst gefunden:** Im Vertrauensblock hatte ich einen Satz geschrieben, den niemand gesagt hat („Redaktionelle Arbeit beim SWR, beim NDR und bei ARD aktuell"). Das verstößt gegen die Regel, nichts zu erfinden. Ersetzt durch die Referenzzeile und den Weg auf `/ueber`. Nebeneffekt: Der Absatz, der dort bisher wörtlich wie auf `/ueber` stand, ist damit auch weg — genau die Dopplung, die das Review im August notiert hatte.
+- **Ein Ausrichtungsfehler im Screenshot gesehen:** „jakob." stand eingerückt (zentrierter Block) über einem randlosen „arbeiten." — zwei Rastergesetze auf zwölf Zentimetern. Der Anriss ist jetzt randlos wie das Raster darunter.
+- Geprüft: kein waagerechtes Scrollen bei 320/390/800/1440px auf allen acht Seiten, Schriftskala unverändert 14/18/28/56 bei zwei Gewichten, 63 Tests, Lint und Build sauber.
+- **Geändert:** neu `app/components/UeberAnriss.tsx`+CSS, `Kachelraster.tsx`+CSS, `app/ueber/portrait.module.css`; umgebaut `app/page.tsx`, `app/page.module.css`, `app/components/Works.tsx`+CSS, `app/ueber/page.tsx`; erweitert `lib/content.ts` (`portraitAlt`, `anriss`); Verträge in `design/UI-SPEC.md` und `SITE-PLAN.md`, Anleitung in `bilder/README.md`, Aufgabe in `TODO.md`.
+- Von: Jan (mit Claude)
+
 ## 2026-08-29 — Sechs Punkte aus dem Brainstorm gebaut; drei echte Fehler dabei gefunden
 - **Auf Jans Auswahl:** Rang 1 und 2 sowie alles aus der zweiten Reihe außer Zufallsarbeit und Offline-Lesbarkeit.
 - **1. Das Foto wandert von der Kachel auf die Detailseite.** Kachel und Zielbild tragen denselben `view-transition-name`; der Browser erkennt beide als dasselbe Element und bewegt das Foto über einen echten Seitenwechsel hinweg. **Kein JavaScript.** Mit verlangsamtem Übergang Zwischenbilder aufgenommen und angesehen, nicht nur „müsste gehen".

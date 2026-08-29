@@ -1,0 +1,149 @@
+/*
+ * Das randlose Kachelraster — von `/arbeiten` **und** vom Materialblock der
+ * Startseite benutzt.
+ *
+ * Ausgelagert aus `Works.module.css`, als die Startseite dasselbe Raster
+ * bekam: Zwei Kopien wären zwei Orte, an denen Kachelhöhe, Verlauf und
+ * Metazeile auseinanderlaufen können.
+ */
+
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+}
+.tile {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: #000;
+  /*
+   * Kacheln außerhalb des Bildschirms werden gar nicht erst gerendert.
+   * Bei neun Arbeiten kaum messbar — bei sechzig ein spürbarer Unterschied
+   * beim Scrollen. `contain-intrinsic-size` verhindert dabei, dass die
+   * Bildlaufleiste springt, weil der Browser sonst die Höhe nicht kennt.
+   */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 400px;
+}
+/* Die ganze Kachel ist der Link — nicht nur der Titel. Bei einem randlosen
+   Raster ist das Bild die Klickfläche, die Leute erwarten. */
+.tileLink {
+  display: block;
+  width: 100%;
+  height: 100%;
+  text-decoration: none;
+}
+/* Der Fokusring muss innen liegen, sonst schneidet ihn das overflow:hidden
+   der Kachel ab. */
+.tileLink:focus-visible {
+  outline: 2px solid var(--rec);
+  outline-offset: -4px;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  background: linear-gradient(150deg, #17171b 0%, #0b0b0d 100%);
+  border: 1px solid rgba(244, 243, 239, 0.06);
+}
+.placeholderDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--rec);
+  opacity: 0.5;
+}
+.placeholderNote {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  color: var(--ton-buehne);
+}
+/*
+ * Der Verlauf ist **deckend, wo Text steht, und blendet nur im oberen
+ * Innenabstand aus** — nicht über die ganze Höhe.
+ *
+ * Der Unterschied ist keine Kosmetik: Bei einem Verlauf über die volle Höhe
+ * liegt die oberste Textzeile dort, wo er fast durchsichtig ist. Solange
+ * jede Kachel schwarz war, fiel das nicht auf; über einem hellen Foto
+ * (Bühnenlicht, Himmel) ist der Auftraggeber-Name dann unlesbar.
+ *
+ * 0.94 ist gemessen, nicht geschätzt. Im Browser über einem rein weißen
+ * Testfoto — dem ungünstigsten Fall — ergeben die drei Zeilen 4.86:1,
+ * 17.26:1 und 5.01:1, alle über der Untergrenze von 4.5:1 und über dem
+ * Seitenminimum von 4.80:1 aus design/UI-SPEC.md. Mit dem vorherigen
+ * Verlauf (0.85 über die volle Höhe) waren es an derselben Stelle 2.51:1,
+ * 2.27:1 und 1.24:1.
+ *
+ * Die Ausblendlänge hängt am Innenabstand statt an der Boxhöhe, damit ein
+ * zweizeiliger Titel den Verlauf nicht in den Text schiebt.
+ */
+.meta {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-2xl) var(--space-lg) var(--space-lg);
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.94) calc(100% - var(--space-2xl)),
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+.client {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--rec-text);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.title {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-heading);
+  color: var(--papier);
+}
+.details {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-buehne);
+}
+
+@media (max-width: 700px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+/* Hochkant statt 4:3. Einspaltig ist eine 4:3-Kachel nur rund 280px hoch —
+     ein zweizeiliger Titel plus Metazeile belegt davon fast die Hälfte und
+     würde mit echten Fotos das Motiv verdecken. 4:5 gibt dem Bild den Raum
+     zurück und nutzt das hohe Display besser.
+     Abweichung vom „4:3"-Eintrag in design/UI-SPEC.md, dort begründet. */
+  .tile {
+    aspect-ratio: 4 / 5;
+  }
+/* Seitlich und unten enger, damit die Metazeile auf der schmalen Kachel
+     nicht unnötig Platz frisst. Oben bleibt es bei `--space-2xl`: Das ist
+     die Ausblendstrecke des Verlaufs, und die darf nicht kürzer werden als
+     der Text darunter Kontrast braucht. */
+  .meta {
+    padding: var(--space-2xl) var(--space-md) var(--space-md);
+  }
+}

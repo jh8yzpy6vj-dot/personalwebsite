@@ -10,9 +10,20 @@
 
 /* ── Hero ───────────────────────────────────────────────────────── */
 
+/*
+ * Volle Fensterhöhe. Vorher 82vh — damit sah man am Laptop schon den Anfang
+ * des nächsten Blocks, und das Hero war eben kein Bild, sondern ein Ausschnitt.
+ *
+ * ⚠️ `100svh`, nicht `100vh`. Auf dem Telefon meint `100vh` die Höhe *ohne*
+ * die ein- und ausfahrende Browserleiste; das Hero ragte damit unten aus dem
+ * Bild und die Bildunterschrift lag teils hinter der Leiste. `svh` ist die
+ * kleinste Variante und passt in beiden Zuständen. Die `100vh`-Zeile darüber
+ * bleibt als Rückfall für Browser, die `svh` nicht kennen.
+ */
 .hero {
   position: relative;
-  height: 82vh;
+  height: 100vh;
+  height: 100svh;
   min-height: 420px;
   overflow: hidden;
   background: #000;
@@ -171,67 +182,32 @@
   color: var(--ton-papier);
 }
 
-/* ── zuletzt. ───────────────────────────────────────────────────── */
+/* ── Material: dasselbe randlose Raster wie im Archiv ───────────── */
 
-.recent {
+/*
+ * Kein `max-width` und kein seitlicher Innenabstand: Das Raster ist randlos
+ * und stößt an die Fensterkanten, genau wie unter `/arbeiten`. Ein zentrierter
+ * Block mit Rand wäre ein zweites Rastergesetz auf derselben Seite.
+ */
+.material {
+  background: var(--buehne);
+  padding-bottom: var(--space-2xl);
+  scroll-margin-top: calc(var(--topbar-h) + var(--space-md));
+}
+
+.materialTitel {
   margin: 0;
-  padding: 0;
-  list-style: none;
-  border-top: 1px solid var(--stein);
-}
-
-.recent li {
-  border-bottom: 1px solid var(--stein);
-}
-
-/* Zeile statt Kachel: Auf der Startseite geht es um Aktualität, nicht um
-   Bilder — die stehen im Archiv. */
-/* `minmax(0, …)` in beiden flexiblen Spalten: Ohne das weigert sich eine
-   Grid-Spalte, unter ihre Inhaltsbreite zu schrumpfen, und die lange
-   Metazeile drückt gegen den Titel. */
-.recentLink {
-  display: grid;
-  grid-template-columns: 13rem minmax(0, 1fr) minmax(0, auto);
-  align-items: baseline;
-  gap: var(--space-lg);
-  min-height: 44px;
-  padding: var(--space-md) 0;
-  text-decoration: none;
-  color: inherit;
-}
-
-.recentLink:hover .recentTitle {
-  text-decoration: underline;
-  text-decoration-color: var(--rec);
-  text-underline-offset: 4px;
-}
-
-.recentClient {
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: var(--text-label);
-  line-height: var(--leading-label);
-  color: var(--ton-papier);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.recentTitle {
+  padding: 0 var(--space-lg) var(--space-lg);
   font-family: var(--font-display), system-ui, sans-serif;
-  font-size: var(--text-body);
+  font-size: var(--text-heading);
   font-weight: var(--weight-bold);
   line-height: var(--leading-heading);
-}
-
-/* War versehentlich zweimal deklariert — die zweite Regel überschrieb die
-   `text-align`-Angabe der ersten. Beim Entdoppeln der CSS-Bausteine
-   aufgefallen und zusammengeführt. */
-.recentMeta {
-  composes: meta from "./components/shared.module.css";
-  text-align: right;
+  color: var(--papier);
 }
 
 .moreRow {
-  margin: var(--space-xl) 0 0;
+  margin: var(--space-lg) 0 0;
+  padding-left: var(--space-lg);
 }
 
 .more {
@@ -240,7 +216,8 @@
   min-height: 44px;
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: var(--text-label);
-  color: var(--buehne);
+  line-height: var(--leading-label);
+  color: var(--papier);
   text-decoration-color: var(--rec);
   text-underline-offset: 4px;
 }
@@ -268,10 +245,10 @@
   text-underline-offset: 4px;
 }
 
-/* ── Kontakt ────────────────────────────────────────────────────── */
+/* ── Abschluss von buchbar.: Hinweis und der einzige gefüllte Knopf ── */
 
 .contactNote {
-  margin: 0;
+  margin: var(--space-2xl) 0 0;
   max-width: 46ch;
   font-size: var(--text-body);
   line-height: var(--leading-body);
@@ -289,9 +266,8 @@
 /* ── Mobil ──────────────────────────────────────────────────────── */
 
 @media (max-width: 700px) {
-  .hero {
-    height: 72vh;
-  }
+  /* Auch mobil volle Höhe — `svh` rechnet die Browserleiste bereits ein,
+     der frühere Abschlag auf 72vh war dafür der Behelf. */
 
   .heroCaption {
     padding: var(--space-xl) var(--space-md) var(--space-lg);
@@ -312,14 +288,11 @@
     gap: var(--space-2xl);
   }
 
-  /* Die dreispaltige Zeile bricht mobil auf gestapelte Zeilen um. */
-  .recentLink {
-    grid-template-columns: 1fr;
-    gap: var(--space-xs);
-    padding: var(--space-md) 0;
+  .materialTitel {
+    padding: 0 var(--space-md) var(--space-md);
   }
 
-  .recentMeta {
-    text-align: left;
+  .moreRow {
+    padding-left: var(--space-md);
   }
 }

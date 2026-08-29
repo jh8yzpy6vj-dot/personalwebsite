@@ -1,0 +1,20 @@
+/*
+ * Porträt über dem Text auf `/ueber`.
+ *
+ * **Kein Zuschnitt**, aus demselben Grund wie im Anriss der Startseite
+ * (`UeberAnriss.module.css`): Das Bild bringt seine Form mit. Begrenzt ist
+ * nur die Breite, damit ein Querformat auf großen Bildschirmen nicht die
+ * ganze Spalte sprengt.
+ */
+.figur {
+  margin: 0 0 var(--space-2xl);
+  background: #000;
+}
+
+.bild {
+  width: 100%;
+  /* Pflicht: Die `width`/`height`-Attribute am `<img>` wirken sonst als
+     feste Höhe und das Bild wird verzerrt. Siehe Bild.tsx. */
+  height: auto;
+  display: block;
+}

@@ -236,6 +236,29 @@ export const ABOUT = {
   ],
   authorPageLabel: "SWR-Autorenseite",
   authorPageUrl: "https://www.swr.de/swraktuell/autor-jakob-sax-100.html",
+
+  /**
+   * Beschreibung des Porträts (`bilder/portrait.jpg`) für Screenreader und
+   * Suchmaschinen. Beschreibt die Szene, nicht das Medium — „Foto von Jakob"
+   * sagt nichts, was das `img` nicht ohnehin ist.
+   *
+   * ⚠️ Von der Aufnahme abgeleitet, **nicht von Jakob freigegeben** — wie
+   * alles hier gegenlesen lassen (siehe TODO.md).
+   */
+  portraitAlt:
+    "Jakob Sax im Gegenlicht der untergehenden Sonne, dahinter unscharf Bäume und Dächer",
+
+  /**
+   * Welche Absätze der Anriss auf der Startseite zeigt.
+   *
+   * Bewusst **Indizes statt eigener Kurztexte**: Zwei Fassungen desselben
+   * Inhalts laufen auseinander, sobald jemand nur eine ändert — genau das
+   * war vorher der Fall, als der Vertrauensblock denselben Absatz wie
+   * `/ueber` trug. Der erste Absatz sagt, wer er ist; der dritte, warum das
+   * für die Fotografie zählt. Zusammen sind das die zwei Sätze, die auf die
+   * Startseite gehören.
+   */
+  anriss: [0, 2],
 } as const;
 
 /**

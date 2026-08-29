@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import LightPage, { lightStyles as styles } from "../components/LightPage";
+import Bild from "../components/Bild";
+import { bild } from "@/lib/bilder";
 import { ABOUT, REFERENCES } from "@/lib/content";
+import portraitStyles from "./portrait.module.css";
 
 /**
  * Die Person. Hier lebt der Journalismus — auffindbar und prominent, aber
@@ -19,8 +22,35 @@ export const metadata: Metadata = {
 };
 
 export default function Ueber() {
+  const portrait = bild("portrait");
+
   return (
     <LightPage title="über." current="/ueber">
+      {/*
+        Das Porträt steht **vor** dem Text, nicht daneben: Wer wissen will,
+        wer da schreibt, schaut zuerst. Danebengestellt wäre es Dekoration
+        neben einer Textspalte; darüber ist es die Antwort auf die Frage,
+        mit der man diese Seite öffnet.
+
+        Fehlt die Datei, erscheint hier nichts — kein Platzhalter. Auf der
+        Startseite ist einer nötig, weil das Raster sonst ein Loch hätte;
+        hier folgt einfach der Text.
+      */}
+      {portrait && (
+        <figure className={portraitStyles.figur}>
+          <Bild
+            className={portraitStyles.bild}
+            quelle={portrait}
+            alt={ABOUT.portraitAlt}
+            sizes="(max-width: 800px) 100vw, 720px"
+            vorrang
+            /* Derselbe Name wie im Anriss auf der Startseite: Das Porträt
+               wandert beim Klick auf „mehr erfahren" mit. */
+            uebergang="portrait"
+          />
+        </figure>
+      )}
+
       <div className={styles.prose}>
         {ABOUT.paragraphs.map((paragraph) => (
           <p key={paragraph}>{paragraph}</p>

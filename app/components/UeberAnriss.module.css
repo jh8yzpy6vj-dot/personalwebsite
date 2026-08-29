@@ -1,0 +1,131 @@
+/*
+ * Porträt und zwei Sätze, in der dunklen Hälfte zwischen Hero und Material.
+ *
+ * Zweispaltig ab 800px, darunter untereinander. Der Umbruchpunkt liegt höher
+ * als die üblichen 700px der Seite: Zwei Spalten mit einem Porträt links und
+ * drei Textzeilen rechts werden schon vorher eng, und ein Porträt, das auf
+ * 200px schrumpft, zeigt kein Gesicht mehr.
+ */
+/*
+ * Randlos wie der Materialblock darunter, **nicht** zentriert wie die hellen
+ * Abschnitte: In der dunklen Hälfte haben Porträt und Kachelraster dieselbe
+ * linke Kante. Zentriert stand „jakob." eingerückt über einem randlosen
+ * „arbeiten." — zwei Rastergesetze auf zwölf Zentimetern.
+ */
+.anriss {
+  background: var(--buehne);
+  display: grid;
+  gap: var(--space-2xl);
+  align-items: center;
+  padding: var(--space-3xl) var(--space-lg);
+  scroll-margin-top: calc(var(--topbar-h) + var(--space-md));
+}
+
+@media (min-width: 800px) {
+  .anriss {
+    /* Das Porträt bleibt bei 420px; der Text nimmt den Rest, ist aber über
+       `max-width` an der Zeile begrenzt — sonst liefe er auf einem breiten
+       Bildschirm über 120 Zeichen. */
+    grid-template-columns: 420px minmax(0, 1fr);
+  }
+}
+
+.bildSpalte {
+  background: #000;
+}
+
+/*
+ * **Kein Zuschnitt.** Anders als eine Kachel im Raster muss ein Porträt sich
+ * nicht an einem Nachbarn ausrichten — es ist ein Bild, kein Rasterfeld. Ein
+ * festes Seitenverhältnis hier hieße, jede künftige Aufnahme in eine Form zu
+ * zwingen, die zu ihr vielleicht nicht passt: Das vorliegende Foto ist quer,
+ * mit dem Sonnenuntergang links neben dem Gesicht — ein Hochformat-Ausschnitt
+ * schnitte genau den weg.
+ *
+ * `height: auto` ist dabei Pflicht und nicht die Vorgabe: Das `<img>` trägt
+ * die Maße des Originals als Attribute, und die wirken sonst als feste Höhe
+ * (siehe Bild.tsx).
+ */
+.portrait {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Der Platzhalter hat kein Bild, das seine Form vorgibt — er braucht eine. */
+.platzhalter {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  background: linear-gradient(150deg, #17171b 0%, #0b0b0d 100%);
+  border: 1px solid rgba(244, 243, 239, 0.06);
+}
+
+.platzhalterPunkt {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--rec);
+  opacity: 0.5;
+}
+
+.platzhalterNotiz {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  color: var(--ton-buehne);
+}
+
+.textSpalte {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.titel {
+  margin: 0;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--text-heading);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-heading);
+  color: var(--papier);
+}
+
+/*
+ * Fließtext auf dunklem Grund. `--stein` statt `--papier`: reines Papierweiß
+ * auf `--buehne` ist für mehrere Zeilen zu hart, `--stein` misst gegen
+ * `--buehne` 13:1 und liegt damit weit über der Untergrenze.
+ */
+.satz {
+  margin: 0;
+  max-width: 58ch;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--stein);
+}
+
+.mehrZeile {
+  margin: var(--space-sm) 0 0;
+}
+
+.mehr {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--papier);
+  text-decoration-color: var(--rec);
+  text-underline-offset: 4px;
+  /* Der Weiterweg ist ein echtes Ziel und wird angetippt — 44px Höhe. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+@media (max-width: 700px) {
+  .anriss {
+    padding: var(--space-2xl) var(--space-md);
+  }
+}
