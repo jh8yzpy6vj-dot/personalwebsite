@@ -21,6 +21,14 @@ next-env.d.ts
 /.wrangler/
 .dev.vars
 
+# bildpipeline: erzeugte varianten und ihre buchhaltung.
+# quelle sind die originale in /bilder, ausgeliefert wird das erzeugte —
+# beides im repo zu halten hiesse, hundert dateien bei jeder qualitaets-
+# aenderung mitzuschleppen. wird bei jedem build neu erzeugt (prebuild).
+/public/b/
+/public/og/
+.bilder-cache.json
+
 # misc
 .DS_Store
 *.pem

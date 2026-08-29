@@ -114,29 +114,8 @@
 /* Auf /kontakt der Primary CTA und damit der einzige gefüllte Button —
    der mailto:-Weg steht daneben als schlichter Textlink. */
 .absenden {
+  composes: cta from "./shared.module.css";
   align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: var(--space-md) var(--space-lg);
-  border: 0;
-  background: var(--rec);
-  color: var(--auf-rec);
-  cursor: pointer;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: var(--text-label);
-  line-height: var(--leading-label);
-  letter-spacing: 0.03em;
-  transition: background-color 120ms ease;
-}
-
-.absenden:hover:not(:disabled) {
-  background: #c41616;
-}
-
-.absenden:disabled {
-  cursor: default;
-  opacity: 0.7;
 }
 
 .datenschutz {

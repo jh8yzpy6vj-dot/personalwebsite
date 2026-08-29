@@ -11,6 +11,106 @@
   transition: background-color 160ms ease, color 160ms ease;
 }
 
+/*
+ * ── Füllung beim Scrollen ────────────────────────────────────────────
+ *
+ * Die dunkle Leiste ist oben durchsichtig — über dem Hero soll das Bild
+ * durchlaufen. Sobald aber Inhalt unter ihr durchscrollt, ist das ein
+ * Fehler: Auf `/arbeiten` lief die Metazeile einer Kachel direkt durch die
+ * Wortmarke. **Ein Verlauf hätte das nicht behoben** — er dunkelt den
+ * Hintergrund ab, die fremde Schrift bleibt trotzdem darunter stehen.
+ * Es braucht Deckung.
+ *
+ * Deshalb: nach den ersten `--topbar-h` Scrollpixeln ist die Leiste
+ * deckend. Der Übergang hängt an der Scrollposition, nicht an einer Uhr —
+ * er läuft also auch rückwärts, wenn man wieder hochscrollt.
+ *
+ * ⚠️ Der **Grundzustand ist deckend, nicht durchsichtig.** Ohne
+ * Unterstützung für scrollgetriebene Animationen und bei
+ * `prefers-reduced-motion: reduce` bleibt die Leiste damit gefüllt: etwas
+ * weniger schön, aber lesbar. Lesbarkeit darf nicht davon abhängen, ob
+ * jemand Bewegung mag.
+ */
+@keyframes leiste-fuellen {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.topbar:not([data-on-light="true"])::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* Hinter die Inhalte der Leiste, aber innerhalb ihres Stapelkontexts —
+     also weiterhin über der Seite. */
+  z-index: -1;
+  background: var(--buehne);
+  pointer-events: none;
+}
+
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .topbar:not([data-on-light="true"])::before {
+      animation: leiste-fuellen linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 var(--topbar-h);
+    }
+  }
+}
+
+/*
+ * ── Aufnahmebalken ───────────────────────────────────────────────────
+ *
+ * Eine rote Linie an der Unterkante der Leiste, die mit dem Scrollen von
+ * links nach rechts wächst — der Fortschritt durch die Seite.
+ *
+ * Warum das hier passt und keine Zierde ist: Die Leiste trägt den
+ * ●REC-Chip. Ein mitlaufender Balken ist die Anzeige, die zu „Aufnahme
+ * läuft" gehört; er sagt dasselbe wie eine Bildlaufleiste, nur in der
+ * Sprache der Seite. **Auf dem Handy ist das keine Zierde, sondern die
+ * einzige Anzeige überhaupt** — dort gibt es keine dauerhaft sichtbare
+ * Bildlaufleiste.
+ *
+ * `scaleX` statt `width`: Breite ändern heißt Layout neu rechnen, bei
+ * jedem Scrollschritt. `transform` läuft auf dem Compositor.
+ *
+ * Auf einer Seite, die nicht scrollbar ist, bleibt die Zeitleiste inaktiv
+ * und der Balken damit auf `scaleX(0)` — also unsichtbar. Genau richtig:
+ * Ein voller Fortschrittsbalken auf einer Seite ohne Fortschritt wäre eine
+ * Falschaussage.
+ */
+@keyframes aufnahme {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.topbar::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 2px;
+  background: var(--rec);
+  transform: scaleX(0);
+  transform-origin: left center;
+  pointer-events: none;
+}
+
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .topbar::after {
+      animation: aufnahme linear both;
+      animation-timeline: scroll(root block);
+    }
+  }
+}
+
 /* Die Wortmarke ist auf allen Unterseiten der Weg zurück zur Startseite —
    also ein echtes Navigationsziel und keine Zierde. Deshalb die 44px-
    Untergrenze aus design/UI-SPEC.md: Die Schrift allein ergab nur 22px
@@ -50,6 +150,35 @@
   background: var(--auf-rec);
 }
 
+/* ── Menü-Knopf ─────────────────────────────────────────────────── */
+
+/* Ganz rechts, damit er auf jeder Seite an derselben Stelle sitzt. */
+.burger {
+  margin-left: auto;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.burgerLine {
+  display: block;
+  width: 24px;
+  height: 2px;
+  margin: 0 auto;
+  background: var(--papier);
+  /* Der Schatten hält die Striche auch über hellen Bildstellen sichtbar —
+     dieselbe Logik wie bei der Wortmarke. */
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+  transition: background-color 160ms ease;
+}
+
 /* Über der hellen Lese-Hälfte: Papier-Grund, dunkle Schrift. */
 .topbar[data-on-light="true"] {
   background: var(--papier);
@@ -59,6 +188,133 @@
 .topbar[data-on-light="true"] .brand {
   color: var(--buehne);
   text-shadow: none;
+}
+
+.topbar[data-on-light="true"] .burgerLine {
+  background: var(--buehne);
+  box-shadow: none;
+}
+
+/* ── Menü ───────────────────────────────────────────────────────── */
+
+/*
+ * Natives <dialog> mit `showModal()`: Fokusfalle, Escape-Taste und die
+ * Darstellung über allem anderen kommen vom Browser. Deshalb kein
+ * `position: fixed` und kein eigener z-index-Wettlauf nötig.
+ */
+.menu {
+  width: min(420px, 100vw);
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  /* Rechtsbündig, dort sitzt auch der Knopf. */
+  margin: 0 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: var(--buehne);
+  color: var(--papier);
+}
+
+.menu::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.menuInner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xl);
+  padding: var(--space-lg);
+}
+
+.close {
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--space-sm);
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: var(--ton-buehne);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  transition: color 120ms ease;
+}
+
+.close:hover {
+  color: var(--papier);
+}
+
+.menuNav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.menuList,
+.menuSubList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.menuList a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: var(--space-sm) 0;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--text-heading);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-heading);
+  color: var(--papier);
+  text-decoration: none;
+}
+
+.menuGroupLabel {
+  margin: 0 0 var(--space-sm);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-buehne);
+}
+
+.menuSubList a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-heading);
+  color: var(--papier);
+  text-decoration: none;
+}
+
+.menuList a:hover,
+.menuSubList a:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--rec);
+  text-underline-offset: 6px;
+}
+
+/*
+ * Die aktuelle Seite wird markiert, nicht ausgegraut: Ein roter Punkt
+ * davor. Nur die Farbe zu ändern wäre für Menschen mit Farbsehschwäche
+ * kein Signal — die Form ist es.
+ */
+.menuList a[aria-current="page"]::before,
+.menuSubList a[aria-current="page"]::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  margin-right: var(--space-sm);
+  border-radius: 50%;
+  background: var(--rec);
+  flex: none;
 }
 
 @media (max-width: 700px) {

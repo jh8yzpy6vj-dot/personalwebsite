@@ -1,0 +1,81 @@
+/*
+ * Kontaktbogen. Liegt in der **hellen** Hälfte, bei Titel und Metazeile:
+ * Er ist ein Beleg zum Lesen, nicht die große Fläche zum Sehen. Damit bleibt
+ * es bei genau einer Naht pro Seite (design/UI-SPEC.md).
+ */
+.bogen {
+  margin: 0 0 var(--space-2xl);
+}
+
+.titel {
+  margin: 0 0 var(--space-md);
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-heading);
+  color: var(--buehne);
+}
+
+.reihe {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+/*
+ * Die Frames sind klein — sie sollen als Reihe gelesen werden, nicht
+ * einzeln betrachtet. Wer einen groß sehen will, sieht das gewählte Bild
+ * oben in voller Breite; die anderen sind Beleg, nicht Ware.
+ */
+.frame {
+  flex: 0 0 auto;
+  width: min(40vw, 220px);
+}
+
+/*
+ * Der rote Rahmen liegt am **Bild**, nicht am Listenpunkt — sonst umschließt
+ * er auch die Uhrzeit darunter, und die sieht dann aus, als wäre sie das
+ * Markierte. Auf einem echten Kontaktbogen wird das Bild angestrichen.
+ *
+ * `outline` statt `border`: verschiebt nichts. Ein Rahmen bräuchte an allen
+ * anderen Frames einen durchsichtigen Platzhalter derselben Breite, sonst
+ * springt die Reihe, sobald einer markiert ist.
+ */
+.frameGewaehlt .bild {
+  outline: 3px solid var(--rec);
+}
+
+.bild {
+  width: 100%;
+  /*
+   * ⚠️ `height: auto` ist hier **nicht** überflüssig. Das `<img>` trägt die
+   * Maße des Originals als `width`/`height`-Attribute (gegen Layoutsprünge,
+   * siehe Bild.tsx). Die wirken als Präsentationshinweise und setzen `height`
+   * auf einen festen Pixelwert — und `aspect-ratio` greift nur, solange die
+   * Höhe `auto` ist. Ohne diese Zeile war der Rahmen 1200px hoch statt 147.
+   */
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  display: block;
+  background: #000;
+}
+
+.zeit {
+  margin: var(--space-xs) 0 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-papier);
+}
+
+.erklaerung {
+  margin: var(--space-md) 0 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-papier);
+}

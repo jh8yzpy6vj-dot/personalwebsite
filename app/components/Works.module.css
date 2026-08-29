@@ -127,14 +127,37 @@
   color: var(--ton-buehne);
 }
 
+/*
+ * Der Verlauf ist **deckend, wo Text steht, und blendet nur im oberen
+ * Innenabstand aus** — nicht über die ganze Höhe.
+ *
+ * Der Unterschied ist keine Kosmetik: Bei einem Verlauf über die volle Höhe
+ * liegt die oberste Textzeile dort, wo er fast durchsichtig ist. Solange
+ * jede Kachel schwarz war, fiel das nicht auf; über einem hellen Foto
+ * (Bühnenlicht, Himmel) ist der Auftraggeber-Name dann unlesbar.
+ *
+ * 0.94 ist gemessen, nicht geschätzt. Im Browser über einem rein weißen
+ * Testfoto — dem ungünstigsten Fall — ergeben die drei Zeilen 4.86:1,
+ * 17.26:1 und 5.01:1, alle über der Untergrenze von 4.5:1 und über dem
+ * Seitenminimum von 4.80:1 aus design/UI-SPEC.md. Mit dem vorherigen
+ * Verlauf (0.85 über die volle Höhe) waren es an derselben Stelle 2.51:1,
+ * 2.27:1 und 1.24:1.
+ *
+ * Die Ausblendlänge hängt am Innenabstand statt an der Boxhöhe, damit ein
+ * zweizeiliger Titel den Verlauf nicht in den Text schiebt.
+ */
 .meta {
   position: absolute;
   inset: auto 0 0 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
-  padding: var(--space-lg);
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
+  padding: var(--space-2xl) var(--space-lg) var(--space-lg);
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.94) calc(100% - var(--space-2xl)),
+    rgba(0, 0, 0, 0) 100%
+  );
 }
 
 .client {
@@ -175,10 +198,12 @@
     aspect-ratio: 4 / 5;
   }
 
-  /* Der Verlauf muss auf der höheren Kachel nicht weiter hochreichen —
-     die Metazeile bleibt unten, das Motiv darüber frei. */
+  /* Seitlich und unten enger, damit die Metazeile auf der schmalen Kachel
+     nicht unnötig Platz frisst. Oben bleibt es bei `--space-2xl`: Das ist
+     die Ausblendstrecke des Verlaufs, und die darf nicht kürzer werden als
+     der Text darunter Kontrast braucht. */
   .meta {
-    padding: var(--space-md);
+    padding: var(--space-2xl) var(--space-md) var(--space-md);
   }
 
   .filter {

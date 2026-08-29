@@ -20,6 +20,7 @@
   --ton-buehne: #7a857f; /* 5.04:1 auf --buehne */
   --rec-text: #ee3b3b; /* 5.32:1 auf Schwarz */
   --rec-papier: #d01414; /* rote Schrift auf --papier, siehe UI-SPEC */
+  --rec-hover: #c41616; /* gedrückter Zustand des gefüllten Knopfs */
   --auf-rec: #ffffff; /* 4.80:1 auf --rec */
 
   --space-xs: 4px;
@@ -64,6 +65,38 @@
   }
 }
 
+/*
+ * Verlauf unter der Topbar, überall dort, wo sie **über einem Foto oder
+ * Video** liegt (Hero der Startseite, Bild der Detailseite).
+ *
+ * Warum nicht in Topbar.module.css: Auf `/arbeiten` und den hellen Seiten
+ * steht die Leiste über einer ruhigen Fläche und braucht nichts; ein Verlauf
+ * dort wäre ein sichtbarer Streifen ohne Grund. Deshalb bringt ihn das
+ * Medium mit, nicht die Leiste.
+ *
+ * Warum überhaupt: Die Wortmarke ist `--papier` auf durchsichtigem Grund.
+ * Solange der Hero ein dunkler Farbverlauf war, ging das auf; über einem
+ * rein weißen Testbild misst sie ohne diesen Verlauf **1.66:1**, mit ihm
+ * **7.15:1** — nötig sind 3:1 (28px, fett). Der bestehende `text-shadow`
+ * hilft dem Auge, zählt für die Kontrastuntergrenze aber nicht.
+ *
+ * Deckend bis knapp unter die Wortmarke, ausblendend erst darunter — aus
+ * demselben Grund wie bei den Kacheln: Ein Verlauf über die ganze Höhe wäre
+ * genau dort am schwächsten, wo der Text steht.
+ */
+.medien-scrim::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: var(--topbar-h);
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.6) calc(100% - var(--space-lg)),
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
 * {
   box-sizing: border-box;
 }
@@ -74,6 +107,31 @@ body {
   margin: 0;
 }
 
+html {
+  /*
+   * iOS vergrößert Text in eigener Regie, sobald das Gerät ins Querformat
+   * kippt. Die Seite kennt genau vier Schriftgrößen — eine fünfte, die das
+   * Betriebssystem erfindet, bricht die Skala und schiebt die Metazeilen
+   * über die Kacheln. Betrifft nur iOS, deshalb der Präfix.
+   */
+  -webkit-text-size-adjust: 100%;
+}
+
+/*
+ * Der graue Kasten, den mobile Browser beim Antippen über den Link legen,
+ * sieht auf einem randlosen Bildraster nach Fehler aus. Ersetzt durch einen
+ * knappen roten Schimmer — dieselbe Farbe wie Fokus und Akzent.
+ *
+ * **Nicht** auf `transparent` gesetzt: Ohne jede Rückmeldung wirkt ein Tap
+ * auf einer Kachel wie ein toter Klick, gerade bei langsamer Verbindung,
+ * wenn die neue Seite noch nicht da ist.
+ */
+a,
+button,
+summary {
+  -webkit-tap-highlight-color: rgba(225, 27, 27, 0.18);
+}
+
 body {
   background: var(--buehne);
   color: var(--papier);
@@ -81,6 +139,20 @@ body {
   font-size: var(--text-body);
   line-height: var(--leading-body);
   -webkit-font-smoothing: antialiased;
+
+  /*
+   * Deutsche Komposita sind länger als das Fenster. „Straßentheaterfestival"
+   * bei 28px braucht 313px und ragte auf einem 320px-Gerät aus der Seite —
+   * die Detailseite ließ sich dort waagerecht schieben. Beim Mobiltest
+   * gefunden, erst mit echten Titeln aufgefallen.
+   *
+   * `hyphens: auto` trennt nach den Regeln der Sprache, die `lang="de"` am
+   * `<html>` angibt — ohne dieses Attribut passiert nichts. `overflow-wrap`
+   * ist das Netz darunter: Es greift nur, wenn selbst mit Trennung nichts
+   * mehr passt, etwa bei einer langen URL im Impressum.
+   */
+  hyphens: auto;
+  overflow-wrap: break-word;
 }
 
 a {
@@ -138,6 +210,102 @@ a {
  */
 @view-transition {
   navigation: auto;
+}
+
+/*
+ * ── Das Foto wandert mit ─────────────────────────────────────────────
+ *
+ * Kachel und Detailseitenbild tragen denselben `view-transition-name`
+ * (`bild-<slug>`, gesetzt in Bild.tsx). Der Browser erkennt beide als
+ * dasselbe Element und **bewegt das Foto von der Kachelposition in den
+ * großen Rahmen**, statt die Seiten zu überblenden — über einen echten
+ * Seitenwechsel hinweg, ohne eine Zeile JavaScript.
+ *
+ * `::view-transition-group(.foto)` greift über die Sammelklasse aus
+ * Bild.module.css alle Bilder auf einmal. Ohne sie bräuchte es eine Regel je
+ * Arbeit.
+ *
+ * ⚠️ **`object-fit: cover` an den Schnappschüssen ist nicht optional.**
+ * Kachel (4:3) und Detailbild (72vh, volle Breite) haben verschiedene
+ * Seitenverhältnisse. Ohne diese Zeile zieht der Browser die beiden
+ * Standbilder auf die jeweilige Gruppengröße — das Motiv quetscht sich
+ * sichtbar, bevor es sich wieder streckt. Mit ihr bleibt der Bildausschnitt
+ * über den ganzen Weg derselbe wie vorher und nachher.
+ *
+ * Reines Progressive Enhancement: Wo es fehlt (derzeit Firefox), wechselt
+ * die Seite wie eh und je.
+ */
+::view-transition-group(.foto) {
+  animation-duration: 380ms;
+  animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+::view-transition-old(.foto),
+::view-transition-new(.foto) {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+/*
+ * ── Scrollgetriebene Bewegung ────────────────────────────────────────
+ *
+ * Elemente steigen beim Eintreten in den Sichtbereich auf. Der Fortschritt
+ * hängt an der **Scrollposition**, nicht an einer Uhr: Wer langsam scrollt,
+ * sieht es langsam; wer zurückscrollt, sieht es rückwärts. Das ist der
+ * Unterschied zu einer Einblendanimation, die einmal abläuft und dann
+ * fertig ist — hier folgt die Bewegung der Hand.
+ *
+ * **Kein JavaScript, kein IntersectionObserver, keine Bibliothek.**
+ * `animation-timeline: view()` macht das im Browser selbst, auf dem
+ * Compositor. Genau deshalb ist es auf dem Handy tragbar: Es läuft nicht im
+ * Haupt-Thread mit und kann das Scrollen nicht ins Stocken bringen.
+ *
+ * Animiert werden **ausschließlich `opacity` und `transform`** — die beiden
+ * Eigenschaften, die ohne neues Layout und ohne Neuzeichnen auskommen.
+ *
+ * ⚠️ Der Startzustand (unsichtbar, nach unten versetzt) steht **innerhalb**
+ * des `@supports`-Blocks. Stünde er außerhalb, wäre in Browsern ohne
+ * Unterstützung die halbe Seite dauerhaft unsichtbar — der klassische
+ * Weg, wie „Progressive Enhancement" zur Falle wird.
+ *
+ * ⚠️ Abgeschaltet wird über `prefers-reduced-motion: no-preference`, also
+ * indem die Regel gar nicht erst greift. Die globale Abschaltung weiter
+ * unten (`animation-duration: 0.01ms`) reicht hier **nicht**:
+ * Scrollgetriebene Animationen haben keine Laufzeit — ihren Fortschritt
+ * bestimmt die Scrollposition, nicht eine Uhr. Derselbe Fallstrick wie
+ * beim Seitenübergang, der dort eine eigene Abschaltung braucht.
+ */
+@keyframes aufsteigen {
+  from {
+    opacity: 0;
+    transform: translateY(var(--aufsteigen-weg, 28px));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .aufsteigen {
+      animation: aufsteigen linear both;
+      animation-timeline: view();
+      /*
+       * Fertig, wenn das Element zu gut einem Drittel im Bild ist — nicht
+       * erst in der Mitte. Sonst liest man eine Zeile, die noch halb
+       * durchsichtig ist, und das ist kein Effekt, sondern ein Mangel.
+       */
+      animation-range: entry 10% entry 45%;
+    }
+
+    /* Für Textzeilen: kürzerer Weg. 28px sind bei einer einzelnen
+       Metazeile keine Bewegung mehr, sondern ein Sprung. */
+    .aufsteigen-kurz {
+      --aufsteigen-weg: 14px;
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

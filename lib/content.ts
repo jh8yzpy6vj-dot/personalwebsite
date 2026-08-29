@@ -9,8 +9,20 @@
 /** Pfad zum Hero-Video in /public. `null` = Platzhalter wird angezeigt. */
 export const HERO_VIDEO: string | null = null;
 
-/** Pfad zum Poster-/Fallback-Bild des Heros. `null` = reiner Farbverlauf. */
-export const HERO_POSTER: string | null = null;
+/**
+ * Bildbeschreibung für das Hero-Standbild (`bilder/hero/standbild.jpg`).
+ *
+ * `null` behandelt das Bild als reine Dekoration (`alt=""`) — vertretbar,
+ * weil direkt daneben die Positionierung als Überschrift steht. Sobald das
+ * Bild feststeht, gehört hier trotzdem eine echte Szenenbeschreibung hin;
+ * das Hero ist das erste, was ein Screenreader auf der Startseite trifft.
+ *
+ * Ein separater Pfad zum Posterbild ist nicht mehr nötig: Liegt eine Datei
+ * unter `bilder/hero/standbild.jpg`, wird sie zur Bauzeit verarbeitet und
+ * dient sowohl als Poster des Videos als auch als Hero, solange kein Video
+ * da ist. Siehe lib/bilder.ts.
+ */
+export const HERO_ALT: string | null = null;
 
 export const SITE = {
   name: "jakob sax",
@@ -38,8 +50,12 @@ export type Work = {
   year: string;
   /** Eigene Rolle. Pflichtangabe — Credit-Kultur, siehe Briefing. */
   role: string;
-  /** Bildpfad in /public. `null` = Platzhalter-Kachel. */
-  image: string | null;
+  /*
+   * Kein Bildfeld: Das Leitbild einer Arbeit ergibt sich aus ihrer `id` —
+   * `bilder/arbeiten/<id>.jpg` wird zur Bauzeit verarbeitet und über
+   * `bildZurArbeit(id)` gefunden. Liegt keine Datei da, zeigt die Oberfläche
+   * ihren Platzhalter. Siehe lib/bilder.ts und bilder/README.md.
+   */
   /** Beschreibt die Szene — Barrierefreiheit und SEO. */
   alt?: string;
 };
@@ -59,7 +75,6 @@ export const WORKS: Work[] = [
     place: "Rastatt",
     year: "2026",
     role: "Fotografie",
-    image: null,
     alt: "Höhenartistik über dem Ehrenhof des Rastatter Schlosses",
   },
   {
@@ -70,7 +85,6 @@ export const WORKS: Work[] = [
     place: "Pfunds, Tirol",
     year: "2025",
     role: "Kamera, Schnitt",
-    image: null,
   },
   {
     id: "wiwawo-51",
@@ -79,7 +93,6 @@ export const WORKS: Work[] = [
     title: "51. Jugend-Wildwasserwoche",
     year: "2024",
     role: "Kamera, Schnitt",
-    image: null,
   },
   {
     id: "wiwawo-50",
@@ -88,7 +101,6 @@ export const WORKS: Work[] = [
     title: "50. Jugend-Wildwasserwoche",
     year: "2023",
     role: "Kamera, Schnitt",
-    image: null,
   },
   {
     id: "bkv-filmworkshop",
@@ -97,7 +109,6 @@ export const WORKS: Work[] = [
     title: "Filmworkshop mit Jugendlichen",
     year: "2024",
     role: "Workshopleitung",
-    image: null,
   },
   {
     id: "swr-klima",
@@ -107,7 +118,6 @@ export const WORKS: Work[] = [
     place: "Stuttgart",
     year: "seit 2026",
     role: "Redaktion, Hörfunk und Online",
-    image: null,
   },
   {
     id: "ard-aktuell-ltw",
@@ -117,7 +127,6 @@ export const WORKS: Work[] = [
     place: "Stuttgart",
     year: "2026",
     role: "Redaktion",
-    image: null,
   },
   {
     id: "strg-f",
@@ -126,7 +135,6 @@ export const WORKS: Work[] = [
     title: "Reportage über einen Rechtsextremisten",
     year: "2025",
     role: "Recherche und Kamera",
-    image: null,
   },
   {
     id: "swr-heimat",
@@ -135,7 +143,6 @@ export const WORKS: Work[] = [
     title: "Porträt eines katholischen Pfarrers",
     year: "2025",
     role: "Beitrag im Team",
-    image: null,
   },
 ];
 

@@ -70,10 +70,31 @@ zeigt **Zeilen statt Kacheln**: Auf der Weiche geht es um Aktualität, nicht um 
 stehen im Archiv. Ein dunkler Bilderblock zwischen zwei hellen Textblöcken hätte die Naht
 verdoppelt.
 
-**Topbar:** trägt nur die Wortmarke und den ●REC-Chip, keine Navigation — über dem Hero soll sie
-nicht mit dem Bild konkurrieren. **Die Navigation liegt im Footer** (`arbeiten.` `über.`
-`kontakt.` + Rechtliches), auf jeder Seite gleich, der aktuelle Punkt mit `aria-current="page"`
-markiert statt verlinkt.
+**Topbar:** Wortmarke, ●REC-Chip und rechts der **Menü-Knopf** (drei Striche). Keine
+ausgeschriebene Navigation — die würde über dem Hero mit dem Bild konkurrieren, und genau das
+soll die Topbar nicht.
+
+**Das Menü ist bewusst auch am Desktop eingeklappt.** Mit acht Seiten reichte der Footer allein
+nicht mehr; wer sich orientieren will, soll nicht bis ans Seitenende scrollen müssen. Ein
+ausgeklapptes Menü über dem Hero war die Alternative — sie hätte das Bild verdeckt.
+
+**Umgesetzt als natives `<dialog>` mit `showModal()`.** Fokusfalle, Escape-Taste und die
+Darstellung über allem anderen bringt der Browser mit. Kein `z-index`-Wettlauf, keine selbst
+gebaute Tastaturlogik, keine Bibliothek. Zwei Dinge muss der Code dennoch selbst tun:
+`aria-expanded` beim nativen Escape-Schließen mitziehen, und den **Fokus auf den Knopf
+zurückgeben** — sonst landet man mit der Tastatur nach dem Schließen am Seitenanfang.
+
+**Die aktive Seite wird mit einem roten Punkt markiert, nicht nur eingefärbt.** Farbe allein wäre
+für Menschen mit Farbsehschwäche kein Signal; die Form ist es. Gilt auch für Unterseiten:
+Auf `/arbeiten/wiwawo-52` ist `arbeiten.` markiert, sonst wirkt das Menü dort orientierungslos.
+
+**Navigation an einer Stelle:** `lib/nav.ts` versorgt Topbar-Menü **und** Footer. Zwei getrennte
+Listen würden beim nächsten neuen Bereich auseinanderlaufen — so entstehen Menüs, in denen eine
+Seite fehlt. Die Leistungen erzeugt die Datei aus `SERVICES`, damit eine neue Leistung
+automatisch im Menü steht.
+
+**Der Footer behält seine Navigation.** Er ist der Weg für alle, die bis ans Ende gelesen haben;
+das Menü der für alle anderen. Rechtliches steht **nur** im Footer.
 
 **`variant="light"` ist Pflicht** auf durchgehend hellen Seiten (`LightPage`). Ohne das startet
 die Topbar im Dunkel-Modus und die weiße Wortmarke ist auf Papier unlesbar. Auf `/` bleibt der
@@ -89,13 +110,21 @@ randlosen Raster ist das Bild die Klickfläche, die Leute erwarten. Der Fokusrin
 verlinken, noch konnte eine Suche nach „Festivalfotograf Rastatt" auf einer Seite *über
 Festivalfotografie* landen. Verkauf und Suchmaschine wollen hier dasselbe.
 
+**Mit ← und → blättert man durch die Kategorie.** Wer Fotos anschaut, kommt
+aus Lightroom oder der Vorschau des Betriebssystems; dort blättern die
+Pfeiltasten. Die sichtbaren Links `vorherige / nächste` bleiben — die Tasten
+sind eine Abkürzung, kein Ersatz, und ohne JavaScript ändert sich nichts.
+Sie greifen **nicht** in Eingabefeldern, bei offenem Menü, mit Zusatztaste
+(`Alt+←` ist im Browser „zurück") und nicht in waagerecht scrollenden
+Bereichen wie der Bildstrecke — die markieren sich mit `data-blaettern="aus"`.
+
 **Detailseiten sind keine Sackgassen.** `vorherige / nächste` innerhalb derselben Kategorie —
 wer eine Festivalarbeit anschaut, will die nächste Festivalarbeit sehen, keinen Radiobeitrag.
 **Ohne Umlauf:** Am Ende ist Schluss; ein Ring würde vortäuschen, es ginge endlos weiter.
 
 ### Bewegung ohne Bibliothek
 
-Drei Browser-Techniken ersetzen, wofür sonst eine Animationsbibliothek nötig wäre. **Alle drei
+Vier Browser-Techniken ersetzen, wofür sonst eine Animationsbibliothek nötig wäre. **Alle vier
 sind Progressive Enhancement** — wo sie fehlen, verhält sich die Seite wie vorher.
 
 | Technik | Wirkung | Kosten |
@@ -103,6 +132,7 @@ sind Progressive Enhancement** — wo sie fehlen, verhält sich die Seite wie vo
 | `@view-transition` | Seitenwechsel blendet über statt hart umzuschalten | 3 Zeilen CSS, **kein JavaScript** |
 | Speculation Rules | Lädt die Zielseite bei erkennbarer Absicht vor — der Klick wirkt sofort | ein `<script type="speculationrules">` |
 | `content-visibility: auto` | Kacheln außerhalb des Bildschirms werden nicht gerendert | eine Zeile je Kachel |
+| `animation-timeline: view()` / `scroll()` | Scrollgetriebene Bewegung, siehe *Motion* | CSS, **kein JavaScript**, läuft nicht im Haupt-Thread |
 
 ⚠️ **`prefers-reduced-motion` schaltet auch den Seitenübergang ab** (`navigation: none`). Die
 globale `animation-duration`-Regel greift dort **nicht** — View Transitions brauchen eine eigene
@@ -114,6 +144,10 @@ für Seiten, die er nie öffnet.
 
 ⚠️ **`content-visibility` braucht `contain-intrinsic-size`**, sonst kennt der Browser die Höhe
 nicht gerenderter Kacheln nicht und die Bildlaufleiste springt.
+
+⚠️ **`content-visibility: auto` und `animation-timeline: view()` vertragen sich** — die
+übersprungene Kachel animiert beim Eintreten trotzdem. Im Browser nachgemessen, weil es die
+naheliegende Vermutung ist, dass ein nicht gerendertes Element auch nicht animiert.
 
 **Vorbild für Topbar, ●REC-Marke, Kategoriefilter und randloses Raster war**
 [bildmanufaktur.de](https://www.bildmanufaktur.de) — übernommen wurde die Struktur, nicht die
@@ -153,7 +187,13 @@ unlesbar (im Test bestätigt). Umgesetzt via `IntersectionObserver` auf `#lesen`
 |---------|-------|
 | Hero | Höhe `82vh` (mobil `72vh`), `min-height: 420px`. Randlos, `object-fit: cover`. Video: `loop`, `muted`, `playsinline` — ohne Ton, ohne Bedienelemente. |
 | Kachel | Seitenverhältnis **4:3** am Desktop, **4:5 mobil**, `object-fit: cover`. Randlos aneinanderstoßend (`gap: 0`). |
-| Metazeile | Liegt **über** dem Bild am unteren Rand, auf einem Verlauf nach Schwarz — nie unter dem Bild. |
+| Metazeile | Liegt **über** dem Bild am unteren Rand, auf einem Verlauf nach Schwarz — nie unter dem Bild. Form des Verlaufs: siehe „Text über Fotos" unter *Farbe*. |
+| Auslieferung | AVIF und WebP mit `srcset` in bis zu fünf Breiten (480–2400), ein JPEG als Rückfall, `width`/`height` am `img` gegen Layoutsprünge. Erzeugt zur Bauzeit aus `bilder/`; Regeln in `lib/bilder-regeln.mjs`, Bedienung in `bilder/README.md`. |
+| Ladezustand | Ein 16px breites Vorschaubildchen liegt als Datei-URI im HTML und füllt die Fläche, bis das Foto da ist. Kein Skript, keine zusätzliche Anfrage, kein Umschaltmoment. |
+| Bildstrecke | Waagerechter Filmstreifen in der **dunklen** Hälfte, direkt unter dem Hero — vor der Naht, damit es bei einem Wechsel pro Seite bleibt. `scroll-snap-type: x mandatory`, kein Karussell, keine Punkte, keine Pfeilknöpfe. Je Bild nur Uhrzeit und ISO. |
+| Kontaktbogen | In der **hellen** Hälfte bei Titel und Metazeile: kleine Frames derselben Serie, der gewählte mit rotem `outline`, darunter die Uhrzeit **auf die Sekunde**. Er ist ein Beleg zum Lesen, nicht die Fläche zum Sehen. |
+| Seitenübergang | Kachel und Detailbild tragen denselben `view-transition-name`; das Foto wandert beim Klick von der einen Position in die andere. Siehe *Motion*. |
+| Aufnahmezeile | Auf der Detailseite **unter dem Bild**, in der hellen Hälfte: `22:14 uhr · 1/500 · f/2.8 · iso 6400`. Nutzt die bestehende Rolle *Meta* — keine neue Größe, kein neues Gewicht. Erscheint nur, wenn die Datei Aufnahmedaten mitbringt; fehlende Einzelwerte fallen ersatzlos weg. |
 
 **Fokuspunkt:** Im Hero ist das **Bild** der primäre Anker, nicht die Schrift — der
 Positionierungssatz sitzt bewusst unten und tritt hinter das Motiv zurück. In der hellen Hälfte
@@ -215,6 +255,34 @@ Punkte, Linien und Fokus; **kleiner Text** nutzt diese Varianten:
 | `--auf-rec` | `#FFFFFF` | 4.80:1 auf `--rec` | Schrift und Punkt im ●REC-Chip |
 
 Gemessenes Minimum über die gesamte Seite: **4.80:1**.
+
+### Text über Fotos (Nachtrag 2026-08-28)
+
+Die Zahlen oben wurden gegen **schwarze Flächen** gemessen — denn solange kein Bildmaterial da
+war, war jede Kachel schwarz und der Hero ein dunkler Farbverlauf. Mit echten Fotos gilt das
+nicht mehr: Hinter derselben Schrift kann ein weißer Himmel oder ein Bühnenscheinwerfer liegen.
+
+Ein Verlauf, der über die **volle Höhe** des Textblocks ausblendet, hilft dabei nicht — er ist
+genau dort am schwächsten, wo die oberste Zeile steht. Gemessen über einem rein weißen Testfoto
+ergab der vorherige Kachelverlauf (`0.85`, volle Höhe) für die drei Zeilen **2.51:1, 2.27:1 und
+1.24:1**.
+
+**Regel:** Wo Schrift über einem Foto liegt, ist der Verlauf **deckend, solange Text darauf
+steht, und blendet ausschließlich im oberen Innenabstand aus** (`calc(100% - <Innenabstand
+oben>)`). Die Deckung richtet sich nach der hellsten denkbaren Bildstelle — reinem Weiß:
+
+| Stelle | Deckung | Gemessen über Weiß | Nötig |
+|--------|---------|--------------------|-------|
+| Kachel-Metazeile | `0.94` | 4.86:1 (`--rec-text`), 17.26:1 (Titel), 5.01:1 (`--ton-buehne`) | 4.5:1 |
+| Hero-Bildunterschrift | `0.80` | 11.38:1 (`--papier`, 56px), 8.63:1 (`--stein`) | 3:1 / 4.5:1 |
+| Streifen unter der Topbar (`.medien-scrim`, nur über Medien) | `0.60` | 7.15:1 — ohne den Streifen 1.66:1 | 3:1 |
+
+Warum drei verschiedene Werte: Die Kacheln tragen Rot und Grau und brauchen am meisten; Hero und
+Topbar tragen nahezu weiße Schrift und kämen mit weniger aus. Jeder dunklere Verlauf als nötig
+verschluckt Bild — und Bild ist hier das Produkt.
+
+⚠️ `text-shadow` (an der Wortmarke vorhanden) hilft dem Auge, **zählt für diese Untergrenze
+aber nicht** und ersetzt keinen Verlauf.
 
 ---
 
@@ -319,16 +387,19 @@ Credits sind belegt seine Arbeitsweise, und sie decken die Nutzungsrechtefrage m
 
 ## UI Considerations
 
-Applicable state considerations resolved: **4 covered, 3 backstop, 0 unresolved**
+Applicable state considerations resolved: **7 covered, 3 backstop, 0 unresolved**
 
 | Category | Element(s) | Status | Resolution / Reason |
 |----------|------------|--------|---------------------|
 | empty | Arbeiten-Raster (`list-collection`) | 🧪 backstop | Filter kann theoretisch 0 Treffer liefern. Aktuell hat jede Kategorie mindestens einen Eintrag, daher kein sichtbarer Leerzustand — sobald Kategorien dazukommen oder leer laufen können, Leerzustands-Copy ergänzen und visuell prüfen. |
 | empty | Bildkachel (`media`) | ✅ covered | Fehlt ein Bild, rendert die Kachel den Platzhalter mit ●-Punkt und „Bild folgt" statt eines kaputten `img` — im Browser bestätigt. Der Platzhalter trägt bewusst `aria-hidden="true"`: „Bild folgt" ist eine Notiz an uns, keine Information für Nutzende — die Metazeile darunter trägt Auftraggeber, Titel und Jahr und bleibt für Screenreader vollständig lesbar. |
-| loading | Hero-Video (`media`) | 🧪 backstop | Solange `HERO_VIDEO` `null` ist, greift ein Farbverlauf-Platzhalter. Mit echtem Video: Poster-Bild setzen (`HERO_POSTER`), damit vor dem Laden keine schwarze Fläche steht — zu verifizieren, sobald das Video vorliegt. |
+| loading | Hero-Video (`media`) | 🧪 backstop | Solange `HERO_VIDEO` `null` ist, greift ein Farbverlauf-Platzhalter. Liegt `bilder/hero/standbild.jpg` vor, dient es als Poster des Videos und — ohne Video — selbst als Hero. Mit echtem Video zu verifizieren, sobald es vorliegt. |
+| loading | Bildkachel (`media`) | ✅ covered | Bis das Foto da ist, füllt das Vorschaubildchen aus dem Manifest die Fläche — im Browser mit blockierten Bildanfragen bestätigt. Es ist Teil des HTML, also vor der ersten Bildanfrage sichtbar, und deckungsgleich mit dem späteren Ausschnitt (`cover` in beiden Fällen), sodass beim Umschalten nichts springt. |
+| error | Bildkachel (`media`) | ✅ covered | Kommt die Datei nicht an, zeichnet der Browser den Alt-Text in die Bildbox. Schriftart, Größe (`--text-label`) und Farbe (`--ton-buehne`) sind dafür gesetzt, sonst erschiene er in der Serifen-Vorgabe des Browsers — mitten in einer Seite mit genau vier Schriftgrößen. |
 | error | Kontaktbereich (`interactive-control`) | ✅ covered | Nur `mailto:`-Links, kein Formular, keine Netzwerkoperation — kein Fehlerzustand möglich. |
 | zero-one-many | Arbeiten-Raster (`list-collection`) | ✅ covered | Einspaltig auf Mobil, zweispaltig ab 700px; getestet mit 1, 4 und 9 Kacheln über den Filter — Layout trägt in allen drei Fällen. |
 | long-text | Kachel-Titel (`static-content`) | ✅ covered | Titel brechen im Blockfluss um; Metazeile setzt sich aus optionalen Feldern zusammen und lässt fehlende Werte weg statt leere Trenner zu zeigen. |
+| overflow | Topbar über scrollendem Inhalt (`navigation`) | ✅ covered | Die dunkle Leiste ist durchsichtig, damit über dem Hero das Bild durchläuft — auf `/arbeiten` lief dadurch die Metazeile einer Kachel durch die Wortmarke. Behoben durch eine Füllung, die sich über die ersten `--topbar-h` Scrollpixel aufbaut; **im Grundzustand deckend**, damit die Lesbarkeit nicht an der Animation hängt. Bei 390px und 1200px im Browser bestätigt. |
 | overflow | Filterzeile (`interactive-control`) | 🧪 backstop | `flex-wrap: wrap` gesetzt, bei 375px bestätigt (bricht auf zwei Zeilen um, kein horizontales Scrollen). Bei weiteren Kategorien erneut prüfen. |
 
 ---
@@ -337,24 +408,61 @@ Applicable state considerations resolved: **4 covered, 3 backstop, 0 unresolved*
 
 - Topbar wechselt Farbe mit 160ms Übergang beim Hälftenwechsel.
 - Filter-Zustände mit 120ms Farbübergang.
+- **Scrollgetriebene Bewegung** — drei Stück, abschließend aufgezählt (siehe unten).
 - `prefers-reduced-motion: reduce` schaltet alle Übergänge global ab (in `globals.css`).
 - **Sonst nichts.** Kein Parallax, kein Ken Burns über Standbildern, keine Filter über Fotos.
   Bei guten Fotos ist jeder Effekt ein Abzug.
 
-> 📌 Zu dieser Regel liegt **ein begründeter Änderungsvorschlag** vor (der „Burst") — siehe
-> „Geplante Erweiterungen" weiter unten. Bis der geprüft ist, gilt die Regel oben unverändert.
+### Scrollgetriebene Bewegung (Vertragsänderung 2026-08-28)
+
+**Vorher stand hier „sonst nichts".** Die Regel wurde auf Jans ausdrückliche Ansage geändert;
+sie ist nicht aufgehoben, sondern präzisiert: Sie richtet sich weiterhin gegen alles, was
+**über ein Foto gelegt** wird. Keine der drei Bewegungen unten tut das — sie bewegen Kacheln
+und Leiste, nie den Bildinhalt.
+
+| Wo | Was | Warum es kein Schmuck ist |
+|----|-----|---------------------------|
+| Kacheln, die drei Türen, die `zuletzt.`-Zeilen | Steigen beim Eintreten auf (28px bzw. 14px, `opacity` 0→1) | Der Fortschritt hängt an der **Scrollposition**, nicht an einer Uhr: rückwärts scrollen zeigt es rückwärts. Das führt den Blick beim Eintreten, statt eine Ankunft zu inszenieren |
+| Topbar, Unterkante | Roter Balken wächst mit dem Scrollfortschritt | Gehört zum ●REC-Chip: die Anzeige, die zu „Aufnahme läuft" passt. **Auf dem Handy die einzige Fortschrittsanzeige überhaupt** — dort gibt es keine dauerhafte Bildlaufleiste |
+| Topbar, Fläche | Füllt sich über die ersten `--topbar-h` Scrollpixel mit `--buehne` | **Behebt einen Fehler:** Auf `/arbeiten` lief die Metazeile einer Kachel durch die Wortmarke. Ein Verlauf reicht dafür nicht — er dunkelt den Grund ab, die fremde Schrift bleibt darunter stehen |
+| Kachel → Detailseite | Das Foto wandert von der Kachelposition in den großen Rahmen (`view-transition-name: bild-<slug>`) | Kein Effekt **über** dem Bild, sondern das Bild selbst, das seinen Platz wechselt. Zeigt, dass man dieselbe Sache weiter ansieht, statt eine neue Seite zu öffnen. ⚠️ `object-fit: cover` an den Schnappschüssen ist Pflicht — sonst quetscht sich das Motiv zwischen 4:3 und 72vh sichtbar |
+
+**Bedingungen, die Vertragsbestandteil sind:**
+
+| Regel | Grund |
+|-------|-------|
+| Nur `opacity` und `transform` | Die beiden Eigenschaften ohne neues Layout und ohne Neuzeichnen. Alles andere ruckelt auf dem Handy |
+| `animation-timeline`, kein `IntersectionObserver`, keine Bibliothek | Läuft im Browser selbst und nicht im Haupt-Thread — deshalb kann es das Scrollen nicht ins Stocken bringen. Gemessen: bei sechsfach gedrosselter CPU **kein einziges ausgelassenes Bild**, mit wie ohne Animation |
+| Startzustand ausschließlich **innerhalb** von `@supports` | Sonst wäre in Browsern ohne Unterstützung die halbe Seite dauerhaft unsichtbar |
+| Abschalten über `prefers-reduced-motion: no-preference`, nicht über `animation-duration` | Scrollgetriebene Animationen haben keine Laufzeit — die globale Abschaltung greift bei ihnen nicht |
+| **Lesbarkeit darf nie an der Animation hängen** | Die Topbar-Füllung ist im Grundzustand **deckend**. Ohne Unterstützung und bei `reduce` bleibt die Leiste gefüllt: weniger schön, aber lesbar |
+
+> 📌 Zum Motion-Vertrag liegt **ein weiterer begründeter Änderungsvorschlag** vor (der „Burst") —
+> siehe „Geplante Erweiterungen" weiter unten. Er ist von dieser Änderung nicht gedeckt.
 
 ---
 
 ## Qualitätsuntergrenze
 
-- [x] Voll responsiv, kein horizontales Scrollen (bei 375px und Desktop bestätigt)
 - [x] Sichtbarer Tastaturfokus (`:focus-visible`, 2px `--rec`)
 - [x] Semantische Struktur (`ul`/`li` für das Raster, `button` mit `aria-pressed` für Filter)
 - [x] Kontraste ≥ 4.5:1 (gemessenes Minimum 4.80:1)
-- [x] Klickflächen ≥ 44px
-- [ ] `srcset`, moderne Bildformate, Lazy Loading unterhalb des Falzes, Hero eager — **offen,
-      greift erst mit echtem Bildmaterial** (`loading="lazy"` ist bereits gesetzt)
+- [x] Klickflächen ≥ 44px — **mit der Ausnahme für Links im Fließtext**, die WCAG 2.5.8
+      ausdrücklich vorsieht (`SWR-Autorenseite` auf `/ueber`, die Mailadresse auf den
+      Leistungsseiten, `Datenschutzerklärung` im Einwilligungstext). Alle **freistehenden**
+      Ziele — Kacheln, Menüknopf, Filter, Formularfelder, Absendeknopf — sind bei 390px
+      nachgemessen ≥ 44px. Die Formularfelder stehen zusätzlich auf 18px Schriftgröße, sonst
+      zoomt iOS beim Hineintippen die Seite
+- [x] Kein waagerechtes Scrollen bei **320, 360, 390 und 414px** auf allen acht Seiten
+      nachgemessen. `hyphens: auto` (braucht `lang="de"`) plus `overflow-wrap` als Netz —
+      deutsche Komposita wie „Straßentheaterfestival" sprengten sonst 320px-Geräte
+- [x] Scrollen bleibt bei **sechsfach gedrosselter CPU** bei 60 Bildern/s, mit wie ohne
+      Animation; keine langen Aufgaben, CLS 0. ⚠️ Gemessen in headless Chromium — das ersetzt
+      keinen Test auf einem echten Telefon
+- [x] `srcset`, moderne Bildformate, Lazy Loading unterhalb des Falzes, Hero eager — Pipeline
+      steht und ist im Browser gegen Testbilder verifiziert (gewählte Datei je Fenstergröße
+      gemessen). **Mit den echten Fotos erneut prüfen**, insbesondere die Dateigrößen: Das
+      Budget warnt ab 200 kB bei 1200px und bricht ab 1,5 MB ab (`lib/bilder-regeln.mjs`)
 - [ ] Alt-Texte, die die Szene beschreiben — Feld `alt` existiert pro Arbeit, muss mit den
       Bildern befüllt werden
 
@@ -395,19 +503,30 @@ Tonalitätsregel *konkrete Nennungen statt Eigenschaftswörter*, nicht unter Dek
 
 **Voraussetzung:** fünf Frames je Arbeit. Ohne Bildmaterial nicht umsetzbar.
 
-### 2. EXIF-Zeile
+### 2. EXIF-Zeile — ✅ umgesetzt am 2026-08-28, steht jetzt oben im Vertrag
 
-**Was:** Unter dem Bild eine Zeile aus den echten Aufnahmedaten, z.B.
-`22:14 uhr · 1/500 · f/2.8 · iso 6400`.
+Der Vorschlag ist eingelöst und in *Bildbehandlung & Fokuspunkt* aufgenommen. Was davon
+unverändert gilt:
 
 **Typografie:** nutzt die **bestehende** Rolle *Meta* (Martian Mono, 14px, 400, 1.4) — **keine
 neue Größe, kein neues Gewicht**, die Skala 14 · 18 · 28 · 56 bleibt unangetastet.
-**Farbe:** `--ton-buehne` in der dunklen Hälfte, `--ton-papier` in der hellen.
+**Farbe:** `--ton-papier`, weil die Zeile in der hellen Hälfte steht.
 **Schreibweise:** klein, mit `·` als Trenner — konsistent zur bestehenden Metazeile.
 
-⚠️ Zwei Einschränkungen, die die Copy betreffen: **GPS-Tags müssen vor der Auslieferung raus**,
-und **Wetter oder Lichtsituation stehen nicht im EXIF** — wenn solcher Kontext gewünscht ist,
-braucht es ein optionales Handfeld in `lib/content.ts` und damit eine Copy-Freigabe.
+Was sich in der Umsetzung geändert hat:
+
+- **Die GPS-Frage ist strenger gelöst als geplant.** Statt Standortdaten zu entfernen, werden
+  sie **gar nicht erst gelesen**: Die Pipeline gibt `exifr` eine abschließende Feldliste mit
+  (`EXIF_FELDER`). Was nie eingelesen wird, kann auch nicht versehentlich im Manifest landen.
+- **Die Uhrzeit wird als Zeichenkette übernommen, nicht als Datum interpretiert.** Im EXIF steht
+  keine Zeitzone; ein `Date` daraus zu bauen hieße, die Zeitzone des Build-Rechners anzunehmen —
+  dann zeigte die Seite je nach Server eine andere Uhrzeit.
+- **Kamera und Brennweite bleiben draußen.** Beide wären lesbar, machen die Zeile aber länger,
+  ohne mehr zu sagen. Vier Werte sind die Zeile aus dem Vorschlag.
+
+⚠️ Offen bleibt: **Wetter oder Lichtsituation stehen nicht im EXIF** — wenn solcher Kontext
+gewünscht ist, braucht es ein optionales Handfeld in `lib/content.ts` und damit eine
+Copy-Freigabe.
 
 ### 3. Anfrageformular auf `/kontakt` — Zustände und Regeln
 

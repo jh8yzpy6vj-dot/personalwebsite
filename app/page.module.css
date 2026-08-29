@@ -37,11 +37,26 @@
     linear-gradient(160deg, #17171b 0%, #0b0b0d 100%);
 }
 
+/*
+ * Wie bei den Kacheln (Works.module.css): deckend, wo Text steht, und nur im
+ * oberen Innenabstand ausblendend. Über die volle Höhe verlaufend läge die
+ * Positionierung — 56px, das Erste, was jemand liest — bei fast
+ * durchsichtigem Verlauf und wäre über einem hellen Standbild weg.
+ *
+ * Hier genügen 0.8 statt der 0.94 der Kacheln, weil beide Textfarben nahezu
+ * weiß sind: Über reinem Weiß ergibt das `--papier` 11.38:1 und `--stein`
+ * 8.63:1. Die Kacheln tragen zusätzlich Rot und Grau und brauchen deshalb
+ * mehr. Ein dunklerer Verlauf würde hier nur das Bild verschlucken.
+ */
 .heroCaption {
   position: absolute;
   inset: auto 0 0 0;
   padding: var(--space-2xl) var(--space-lg) var(--space-xl);
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.8) calc(100% - var(--space-2xl)),
+    rgba(0, 0, 0, 0) 100%
+  );
 }
 
 .positioning {
@@ -75,8 +90,7 @@
 /* ── Heller Lesebereich ─────────────────────────────────────────── */
 
 .light {
-  background: var(--papier);
-  color: var(--buehne);
+  composes: light from "./components/shared.module.css";
 }
 
 .section {
@@ -186,10 +200,6 @@
   color: inherit;
 }
 
-.recentMeta {
-  text-align: right;
-}
-
 .recentLink:hover .recentTitle {
   text-decoration: underline;
   text-decoration-color: var(--rec);
@@ -212,11 +222,12 @@
   line-height: var(--leading-heading);
 }
 
+/* War versehentlich zweimal deklariert — die zweite Regel überschrieb die
+   `text-align`-Angabe der ersten. Beim Entdoppeln der CSS-Bausteine
+   aufgefallen und zusammengeführt. */
 .recentMeta {
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: var(--text-label);
-  line-height: var(--leading-label);
-  color: var(--ton-papier);
+  composes: meta from "./components/shared.module.css";
+  text-align: right;
 }
 
 .moreRow {
@@ -272,22 +283,7 @@
 }
 
 .cta {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: var(--space-md) var(--space-lg);
-  background: var(--rec);
-  color: var(--auf-rec);
-  text-decoration: none;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: var(--text-label);
-  line-height: var(--leading-label);
-  letter-spacing: 0.03em;
-  transition: background-color 120ms ease;
-}
-
-.cta:hover {
-  background: #c41616;
+  composes: cta from "./components/shared.module.css";
 }
 
 /* ── Mobil ──────────────────────────────────────────────────────── */

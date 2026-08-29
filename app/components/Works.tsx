@@ -2,8 +2,18 @@
 
 import { useState } from "react";
 import { CATEGORIES, type Category } from "@/lib/content";
+import { bildZurArbeit } from "@/lib/bilder";
 import { byCategory, byNewest, metaLine } from "@/lib/works";
+import Bild from "./Bild";
 import styles from "./Works.module.css";
+
+/**
+ * Das Raster ist randlos und zweispaltig, unter 700px einspaltig — eine
+ * Kachel ist also halb so breit wie das Fenster, auf dem Telefon so breit
+ * wie das Fenster. Ohne diese Angabe lädt der Browser überall die Datei für
+ * die volle Fensterbreite, also die doppelt zu große.
+ */
+const KACHEL_SIZES = "(max-width: 700px) 100vw, 50vw";
 
 type Filter = Category | "alle";
 
@@ -56,15 +66,18 @@ export default function Works({ headingId }: { headingId: string }) {
         </p>
       ) : (
         <ul className={styles.grid}>
-          {visible.map((work) => (
-            <li key={work.id} className={styles.tile}>
+          {visible.map((work) => {
+            const bild = bildZurArbeit(work.id);
+            return (
+            <li key={work.id} className={`${styles.tile} aufsteigen`}>
               <a className={styles.tileLink} href={`/arbeiten/${work.id}`}>
-                {work.image ? (
-                  <img
+                {bild ? (
+                  <Bild
                     className={styles.image}
-                    src={work.image}
+                    quelle={bild}
                     alt={work.alt ?? `${work.title}, ${work.client}, ${work.year}`}
-                    loading="lazy"
+                    sizes={KACHEL_SIZES}
+                    uebergang={`bild-${work.id}`}
                   />
                 ) : (
                   <div className={styles.placeholder} aria-hidden="true">
@@ -80,7 +93,8 @@ export default function Works({ headingId }: { headingId: string }) {
                 </div>
               </a>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </section>

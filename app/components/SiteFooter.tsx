@@ -1,18 +1,15 @@
 import { CONTACT } from "@/lib/content";
+import { NAV_LEGAL, NAV_MAIN } from "@/lib/nav";
 import styles from "./SiteFooter.module.css";
 
 /**
- * Footer für alle Seiten. Trägt gleichzeitig die Navigation — die neue
- * Struktur ist mehrseitig (siehe SITE-PLAN.md), und die Topbar hält bewusst
- * nur die Wortmarke, damit sie über dem Hero nicht mit dem Bild konkurriert.
+ * Footer für alle Seiten.
+ *
+ * Zeigt dieselben Hauptbereiche wie das Topbar-Menü — beide beziehen sie
+ * aus `lib/nav.ts`, damit sie nicht auseinanderlaufen. Der Footer ist der
+ * Weg für alle, die bis ans Ende gelesen haben; das Menü der für alle
+ * anderen.
  */
-
-const NAV = [
-  { href: "/arbeiten", label: "arbeiten." },
-  { href: "/ueber", label: "über." },
-  { href: "/kontakt", label: "kontakt." },
-] as const;
-
 export default function SiteFooter({
   /** Aktueller Pfad — wird nicht verlinkt, sondern markiert. */
   current,
@@ -22,7 +19,7 @@ export default function SiteFooter({
   return (
     <footer className={styles.footer}>
       <nav className={styles.nav} aria-label="Seiten">
-        {NAV.map((item) =>
+        {NAV_MAIN.map((item) =>
           item.href === current ? (
             <span key={item.href} className={styles.current} aria-current="page">
               {item.label}
@@ -36,8 +33,11 @@ export default function SiteFooter({
       </nav>
 
       <nav className={styles.nav} aria-label="Rechtliches und Profile">
-        <a href="/impressum">Impressum</a>
-        <a href="/datenschutz">Datenschutz</a>
+        {NAV_LEGAL.map((item) => (
+          <a key={item.href} href={item.href}>
+            {item.label}
+          </a>
+        ))}
         <a href={CONTACT.instagram.url} rel="noreferrer">
           {CONTACT.instagram.label}
         </a>

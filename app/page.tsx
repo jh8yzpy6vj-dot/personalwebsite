@@ -4,13 +4,15 @@ import styles from "./page.module.css";
 import {
   ABOUT,
   CONTACT,
-  HERO_POSTER,
+  HERO_ALT,
   HERO_VIDEO,
   REFERENCES,
   SERVICES,
   SITE,
 } from "@/lib/content";
 import { latest, metaLine } from "@/lib/works";
+import { bild } from "@/lib/bilder";
+import Bild from "./components/Bild";
 
 /**
  * Der Primary CTA. **Genau ein Label, zweimal verwendet** — am Ende von
@@ -35,6 +37,7 @@ const CTA_LABEL = "Anfrage stellen";
  */
 export default function Home() {
   const zuletzt = latest(4);
+  const heroBild = bild("hero/standbild");
 
   return (
     <div className={styles.page}>
@@ -42,16 +45,32 @@ export default function Home() {
 
       <main id="inhalt" tabIndex={-1}>
         {/* ── 1. Hero: ein Bild, ein Satz. Eine Behauptung. ───────────── */}
-        <section className={styles.hero} aria-label="Startbild">
+        {/* `medien-scrim` nur, wenn wirklich ein Bild oder Video dahinter
+            liegt — über dem Farbverlauf-Platzhalter wäre es ein dunkler
+            Streifen ohne Zweck. Erklärung in globals.css. */}
+        <section
+          className={`${styles.hero}${HERO_VIDEO || heroBild ? " medien-scrim" : ""}`}
+          aria-label="Startbild"
+        >
           {HERO_VIDEO ? (
             <video
               className={styles.heroMedia}
               src={HERO_VIDEO}
-              poster={HERO_POSTER ?? undefined}
+              poster={heroBild?.fallback}
               autoPlay
               loop
               muted
               playsInline
+            />
+          ) : heroBild ? (
+            /* Kein Video, aber ein Standbild: besser als der Farbverlauf.
+               Das Hero ist das größte sichtbare Element — deshalb Vorrang. */
+            <Bild
+              className={styles.heroMedia}
+              quelle={heroBild}
+              alt={HERO_ALT ?? ""}
+              sizes="100vw"
+              vorrang
             />
           ) : (
             <div className={styles.heroPlaceholder} aria-hidden="true" />
@@ -75,7 +94,7 @@ export default function Home() {
             <h2 className={styles.sectionTitle}>buchbar.</h2>
             <div className={styles.doors}>
               {SERVICES.map((service) => (
-                <article key={service.id} className={styles.door}>
+                <article key={service.id} className={`${styles.door} aufsteigen`}>
                   {/* Der Titel ist der Link — die Tür führt jetzt wirklich
                       irgendwohin. Vorher waren die drei Angebote nur Text
                       ohne eigene URL. */}
@@ -112,7 +131,7 @@ export default function Home() {
             <h2 className={styles.sectionTitle}>zuletzt.</h2>
             <ul className={styles.recent}>
               {zuletzt.map((work) => (
-                <li key={work.id}>
+                <li key={work.id} className="aufsteigen aufsteigen-kurz">
                   <a className={styles.recentLink} href={`/arbeiten/${work.id}`}>
                     <span className={styles.recentClient}>{work.client}</span>
                     <span className={styles.recentTitle}>{work.title}</span>

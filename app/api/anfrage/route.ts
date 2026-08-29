@@ -10,7 +10,10 @@ import { sendeMail } from "@/lib/mailer";
  * verschluckte Anfrage ist der schlimmste Ausgang — der Absender glaubt,
  * er habe geschrieben, und wartet auf eine Antwort, die nie kommt.
  */
-export const runtime = "edge";
+// Kein `runtime = "edge"`: Der OpenNext-Adapter fuehrt Routen in einer
+// Node-kompatiblen Umgebung im Worker aus. Mit der Edge-Deklaration bricht
+// die Route dort mit "Cannot read properties of undefined" ab — unter
+// `next start` faellt das nicht auf, weil das ein echter Node-Server ist.
 export const dynamic = "force-dynamic";
 
 /** Mindestzeit zwischen Seitenaufruf und Absenden. Bots sind schneller. */

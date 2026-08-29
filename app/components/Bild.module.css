@@ -1,0 +1,44 @@
+/*
+ * `display: contents` lässt die Box des <picture> verschwinden, sodass das
+ * <img> so im Layout liegt, als stünde es direkt im Elternelement. Ohne das
+ * müsste jede aufrufende Stelle den Wrapper zusätzlich auf 100 % Breite und
+ * Höhe setzen — <picture> ist sonst ein Inline-Element und passt nicht auf
+ * die Kachel. <picture> trägt keine eigene Bedeutung für Screenreader,
+ * deshalb ist das hier unbedenklich.
+ */
+.picture {
+  display: contents;
+}
+
+/*
+ * Das Vorschaubildchen füllt die Fläche genauso wie das spätere Foto
+ * (`object-fit: cover` an den aufrufenden Stellen), damit beim Umschalten
+ * nichts springt. Es ist 16 px breit — die Unschärfe entsteht durch die
+ * Skalierung, ein CSS-Filter wäre falsch, weil er das fertige Foto
+ * mitverwischen würde.
+ */
+.bild {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  /*
+   * Sammelname für den Seitenübergang. Den **eindeutigen** Namen setzt die
+   * Komponente je Bild (`uebergang`); diese Klasse fasst sie alle zusammen,
+   * damit globals.css sie mit einer einzigen Regel gestalten kann statt mit
+   * einer je Arbeit. Ohne eigenen Namen ist sie wirkungslos.
+   */
+  view-transition-class: foto;
+
+  /*
+   * Gilt nur im Fehlerfall: Kommt das Bild nicht an, zeichnet der Browser
+   * den Alt-Text in die Box. Ohne diese Zeilen erscheint er in der
+   * Serifen-Vorgabe des Browsers — mitten in einer Seite, die genau vier
+   * Schriftgrößen kennt. Größe und Farbe bleiben deshalb in der Skala aus
+   * design/UI-SPEC.md. Auf das geladene Bild hat das keine Wirkung.
+   */
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-buehne);
+}

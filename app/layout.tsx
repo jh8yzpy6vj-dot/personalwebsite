@@ -39,14 +39,20 @@ export const metadata: Metadata = {
     siteName: "jakob sax",
     title: TITLE,
     description: DESCRIPTION,
-    // ⚠️ Noch kein `images`-Eintrag: Es existiert kein Bildmaterial
-    // (siehe TODO.md). Eine OpenGraph-Karte ohne Bild ist schwach, eine mit
-    // Platzhalter wäre schlechter. Sobald Bilder da sind, hier ergänzen.
+    /*
+     * Die Vorschaukarte entsteht zur Bauzeit in `scripts/og.mjs` und liegt
+     * als fertige Datei unter `public/og/`. Sie trägt die Positionierung
+     * auch ohne Foto; sobald `bilder/hero/standbild.jpg` liegt, trägt sie es
+     * mit. Gilt für jede Seite ohne eigene Karte — die Arbeiten haben ihre
+     * eigene, siehe app/arbeiten/[slug]/page.tsx.
+     */
+    images: [{ url: "/og/start.jpg", width: 1200, height: 630, alt: TITLE }],
   },
   twitter: {
     card: "summary_large_image",
     title: TITLE,
     description: DESCRIPTION,
+    images: ["/og/start.jpg"],
   },
   // Siehe lib/site.ts: bleibt auf noindex, solange die Launch-Blocker offen
   // sind (erfundene E-Mail-Adresse, kein Impressum, ungeprüfte Inhalte).

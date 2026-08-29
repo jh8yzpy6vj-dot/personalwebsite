@@ -1,0 +1,102 @@
+/*
+ * Filmstreifen. Liegt in der dunklen Hälfte direkt unter dem Hero-Bild —
+ * bewusst **vor** der Naht, denn die Seite hat laut design/UI-SPEC.md genau
+ * einen Wechsel dunkel → hell. Ein Bilderblock unter dem Text hätte ihn
+ * verdoppelt.
+ */
+.strecke {
+  background: var(--buehne);
+  padding-bottom: var(--space-lg);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  /* Explizit, damit die Browser-Vorgabe keine undeklarierte Schriftgröße
+     in die Skala einschleppt. */
+  font-size: var(--text-heading);
+  margin: 0;
+}
+
+.streifen {
+  display: flex;
+  gap: var(--space-xs);
+  overflow-x: auto;
+  /*
+   * `mandatory` und nicht `proximity`: Ein Streifen, der zwischen zwei
+   * Bildern stehen bleibt, zeigt zwei halbe Motive. Bei ganzseitigen Bildern
+   * ist das der schlechtere Zustand.
+   */
+  scroll-snap-type: x mandatory;
+  /* Verhindert, dass die Wischgeste am Ende des Streifens die ganze Seite
+     nach hinten schiebt (auf iOS die „Zurück"-Geste). */
+  overscroll-behavior-x: contain;
+  padding: 0 var(--space-lg) var(--space-md);
+  /*
+   * ⚠️ Ohne das rastet das erste Bild **bündig am Fensterrand** ein statt am
+   * Innenabstand: `scroll-snap-align: start` zielt auf den Anfang des
+   * Scrollbereichs, und der liegt hinter dem Padding. Am Handy sah der
+   * Streifen dadurch aus, als sei der Rand vergessen worden.
+   */
+  scroll-padding-inline: var(--space-lg);
+}
+
+.streifen:focus-visible {
+  outline: 2px solid var(--rec);
+  outline-offset: -2px;
+}
+
+.rahmen {
+  flex: 0 0 auto;
+  width: min(86vw, 720px);
+  margin: 0;
+  scroll-snap-align: start;
+}
+
+.bild {
+  width: 100%;
+  /*
+   * ⚠️ `height: auto` ist hier **nicht** überflüssig. Das `<img>` trägt die
+   * Maße des Originals als `width`/`height`-Attribute (gegen Layoutsprünge,
+   * siehe Bild.tsx). Die wirken als Präsentationshinweise und setzen `height`
+   * auf einen festen Pixelwert — und `aspect-ratio` greift nur, solange die
+   * Höhe `auto` ist. Ohne diese Zeile war der Rahmen 1200px hoch statt 147.
+   */
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  display: block;
+  background: #000;
+}
+
+.zeile {
+  margin: var(--space-sm) 0 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-buehne);
+}
+
+.zaehler {
+  margin: 0;
+  padding: 0 var(--space-lg);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-buehne);
+}
+
+@media (max-width: 700px) {
+  .streifen {
+    padding: 0 var(--space-md) var(--space-md);
+    scroll-padding-inline: var(--space-md);
+  }
+
+  .zaehler {
+    padding: 0 var(--space-md);
+  }
+}

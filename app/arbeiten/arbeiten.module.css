@@ -28,8 +28,7 @@
 /* Der Footer bleibt hell wie überall — der Wechsel markiert das Ende der
    Galerie, statt sie ausfransen zu lassen. */
 .light {
-  background: var(--papier);
-  color: var(--buehne);
+  composes: light from "../components/shared.module.css";
 }
 
 @media (max-width: 700px) {

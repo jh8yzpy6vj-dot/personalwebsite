@@ -1,0 +1,78 @@
+/*
+ * Bausteine, die mehrere Seiten teilen.
+ *
+ * **Warum diese Datei existiert:** Der gefüllte Knopf stand dreimal als
+ * eigene Kopie im Projekt (Startseite, Leistungsseite, Formular), die
+ * helle Fläche dreimal, und die Metazeilen-Optik in elf Dateien. Wer den
+ * CTA geändert hätte, hätte ihn an einem Drittel der Stellen geändert.
+ * Beim Review vom 2026-08-27 an Zahlen belegt.
+ *
+ * **Eingebunden wird über `composes`, nicht über globale Klassen.** Damit
+ * bleibt die Kapselung der CSS-Modules erhalten: Jede Seite benennt
+ * ausdrücklich, was sie übernimmt, statt sich auf einen globalen Namen zu
+ * verlassen, den niemand zurückverfolgen kann.
+ *
+ *     .cta { composes: cta from "../components/shared.module.css"; }
+ */
+
+/*
+ * Primary CTA — die einzige gefüllte Fläche einer Seite.
+ * Regel und Ausnahmen: design/UI-SPEC.md, Abschnitt „Farbe".
+ */
+.cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: var(--space-md) var(--space-lg);
+  border: 0;
+  background: var(--rec);
+  color: var(--auf-rec);
+  text-decoration: none;
+  cursor: pointer;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  letter-spacing: 0.03em;
+  transition: background-color 120ms ease;
+}
+
+.cta:hover:not(:disabled) {
+  background: var(--rec-hover);
+}
+
+.cta:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+/* Die helle „lesen"-Fläche. */
+.light {
+  background: var(--papier);
+  color: var(--buehne);
+}
+
+/*
+ * Metazeile: Credits, Eckdaten, Hilfstexte. Die häufigste Wiederholung im
+ * Projekt — Rolle *Meta* aus dem Typografie-Vertrag.
+ */
+.meta {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-papier);
+}
+
+/* Dieselbe Rolle auf dunklem Grund. */
+.metaDunkel {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-buehne);
+}
+
+/* Textlink im Lesebereich: rote Unterstreichung, dunkle Schrift. */
+.link {
+  color: var(--buehne);
+  text-decoration-color: var(--rec);
+  text-underline-offset: 4px;
+}

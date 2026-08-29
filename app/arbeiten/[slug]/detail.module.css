@@ -51,8 +51,7 @@
 }
 
 .light {
-  background: var(--papier);
-  color: var(--buehne);
+  composes: light from "../../components/shared.module.css";
 }
 
 .inner {
@@ -86,6 +85,30 @@
   font-size: var(--text-label);
   line-height: var(--leading-label);
   color: var(--ton-papier);
+}
+
+/*
+ * Aufnahmedaten: `22:14 uhr · 1/500 · f/2.8 · iso 6400`.
+ *
+ * Dieselbe Rolle *Meta* wie die Zeile darüber — dieselbe Schrift, Größe und
+ * Farbe. Sie ist kein neuer Textrang, sondern die Fortsetzung derselben
+ * Angabe; deshalb keine neue Größe und kein neues Gewicht (die Skala kennt
+ * genau vier bzw. zwei, siehe design/UI-SPEC.md).
+ */
+.aufnahme {
+  composes: meta;
+  margin: 0 0 var(--space-xl);
+}
+
+/*
+ * Steht die Aufnahmezeile darunter, rücken beide zu einem Block zusammen.
+ * Sonst stünden zwei Metazeilen mit dem vollen Abstand einer Absatzgrenze
+ * untereinander und läsen sich wie zwei getrennte Angaben.
+ *
+ * Ohne `:has()` bleibt der größere Abstand — nur weniger dicht, nichts kaputt.
+ */
+.meta:has(+ .aufnahme) {
+  margin-bottom: var(--space-xs);
 }
 
 /* Ehrlicher Hinweis, solange Text und Bildstrecke fehlen. */

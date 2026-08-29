@@ -100,22 +100,7 @@
 
 /* Der einzige gefüllte Button dieser Seite. */
 .cta {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: var(--space-md) var(--space-lg);
-  background: var(--rec);
-  color: var(--auf-rec);
-  text-decoration: none;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: var(--text-label);
-  line-height: var(--leading-label);
-  letter-spacing: 0.03em;
-  transition: background-color 120ms ease;
-}
-
-.cta:hover {
-  background: #c41616;
+  composes: cta from "../../components/shared.module.css";
 }
 
 .direkt {
