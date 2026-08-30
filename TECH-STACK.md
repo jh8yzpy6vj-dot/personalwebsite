@@ -168,6 +168,35 @@ Wer die Warnung sieht, sollte das Original ersetzen, nicht ignorieren.
 **Einmal auf 2400–3000 px exportieren, das ist der ganze Aufwand.** Nicht nötig — und bitte auch
 nicht machen: mehrere Größen selbst anlegen, in WebP oder AVIF umwandeln, Wasserzeichen einbauen.
 
+#### `npm run verkleinern` nimmt einem genau das ab
+
+Wer einen Ordner voller Kameradateien hat, muss weder verkleinern noch umbenennen:
+
+```
+npm run verkleinern -- <ordner> --arbeit wiwawo-53 --leitbild JPG7043.JPG
+npm run verkleinern -- <ordner> --serie tete-a-tete-2026
+npm run verkleinern -- <datei>  --einzel portrait
+```
+
+Das Skript legt einen fertigen `original/`-Baum unter `.medien-vorbereitet/` an: auf 3000 px
+verkleinert, als JPEG, **richtig benannt** (`<id>.jpg` fürs Leitbild, `<id>/01.jpg`, `02.jpg`, …
+für die Strecke). Der Ordner lässt sich als Ganzes ins R2-Dashboard ziehen; mit `--hochladen`
+schiebt das Skript ihn selbst in den Bucket.
+
+Ohne `--leitbild` wird die **erste Datei** zum Leitbild — eine Notlösung, keine Auswahl. Welches
+Bild die Kachel trägt, ist eine fotografische Entscheidung.
+
+⚠️ **Das Skript entfernt die Standortdaten, behält aber die Aufnahmedaten.** Das ist an dieser
+Stelle wichtiger als bei den Ableitungen: Die Originale liegen unter `original/` in einem
+**öffentlichen** Bucket (die Videos werden von dort ausgeliefert) und sind über ihre Adresse
+abrufbar. `sharp` kennt nur ganz oder gar nicht — ohne Angabe verschwindet jedes Metadatum,
+mit `withMetadata()` bleibt auch GPS. Deshalb liest das Skript die fünf Felder aus `EXIF_FELDER`
+aus und schreibt genau die zurück. Kameramarke, Modell und Urheberzeile fallen dabei mit weg.
+
+⚠️ Die `id` wird **vor** dem Rechnen gegen `lib/content.ts` geprüft. Gibt es die Arbeit dort
+nicht, bricht das Skript ab und nennt die bekannten ids — statt zwölf Dateien zu verarbeiten,
+die nirgends erscheinen. Genau das ist beim ersten Upload passiert.
+
 **Beim Export: Kameradaten drin lassen.** Unter dem Bild erscheint automatisch eine Zeile
 `22:14 uhr · 1/500 · f/2.8 · iso 6400`. Sie kommt aus dem EXIF — nichts einzutragen, nichts zu
 pflegen —, aber nur, wenn die Angaben beim Export erhalten bleiben. In Lightroom heißt die

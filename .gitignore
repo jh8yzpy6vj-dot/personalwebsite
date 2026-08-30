@@ -29,6 +29,10 @@ next-env.d.ts
 # gebracht, die nur mit einem umschreiben der historie wieder herauskamen.
 .medien-cache/
 
+# ergebnis von `npm run verkleinern` — bucket-fertige originale, die von hier
+# aus hochgeladen werden. danach ueberfluessig, darf jederzeit weg.
+.medien-vorbereitet/
+
 # ⚠️ /public/og/ ist ABSICHTLICH nicht ignoriert. die vorschaukarten sind
 # rund zehn dateien à 50 kb, sie entstehen bei `npm run medien` und gehoeren
 # mit committet — sonst haette die seite nach dem deploy keine.

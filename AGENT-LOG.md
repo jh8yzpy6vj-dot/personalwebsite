@@ -6,6 +6,23 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-08-30 — Erster echter Bucket, `wiwawo-53` angelegt, `npm run verkleinern` gebaut
+- **Der R2-Umbau ist im Repo.** Nach etlichen Anläufen (Bundle/Patch scheiterten an einem Pfad, den der Browser beim Speichern umbenannt hatte — `r2umbau.bundle` statt `r2-umbau.bundle`) hat Jan `aa781bd` gepusht. ⚠️ **Wichtiger Nebenbefund dabei:** Sein `main` war nicht der Stand, von dem meine 13 Commits abzweigten — er hatte am 29.8. eine ältere ZIP-Lieferung in drei eigenen Commits von Hand eingespielt („die bank ist leer", „neue struktur", „bilder"). Zwei parallele Linien derselben Arbeit; deshalb liess sich kein Patch anwenden. Gelöst, indem ich die Arbeit als **ein** Commit direkt auf `a685f8a` neu aufgesetzt habe.
+  - Dabei kam heraus, dass die zwölf Kameradateien **wieder auf `origin/main` liegen** (128 MB, seit `a685f8a`) und dass ihm die letzte Lieferung ganz gefehlt hatte — also auch die AVIF-Grenze und die Pipeline-Warnungen.
+- **`wiwawo-53` in `content.ts` angelegt.** Die hochgeladenen Fotos heißen `WiWaWo26`, im Code endete es bei der 52. von 2025. Jan hat bestätigt: es ist die 53. ⚠️ **`role` und `category` sind aus den Geschwistereinträgen übernommen und nicht belegt** — geliefert wurden Fotos, nicht Bewegtbild; beides steht als Kommentar im Code und muss gegengelesen werden. `place` fehlt bewusst.
+- **Der erste echte Upload ging schief, und zwar lehrreich:** Alles lag flach im Bucket statt unter `original/`, mit Kameranamen statt `id`, mit 11–12 MB statt unter 3, und `portrait..jpg` hatte zwei Punkte. Die Pipeline hätte **null Dateien** gefunden. Das ist kein Anwenderfehler, sondern eine Zumutung der Bedienung: dreimal dieselbe fehleranfällige Fleißarbeit, zwölfmal hintereinander.
+
+### `npm run verkleinern` (neu: `scripts/verkleinern.mjs`)
+Nimmt einen Ordner Kameradateien und legt einen fertigen `original/`-Baum an — verkleinert, benannt, optional gleich hochgeladen (`--hochladen`).
+- **Die `id` wird gegen `content.ts` geprüft, bevor gerechnet wird.** Falscher Name → Abbruch mit der Liste der bekannten ids, statt zwölf Dateien zu verarbeiten, die nirgends erscheinen.
+- **⚠️ Standortdaten raus, Aufnahmedaten rein — und hier zählt es mehr als bei den Ableitungen:** Die Originale liegen in einem **öffentlichen** Bucket und sind über ihre Adresse abrufbar. `sharp` kennt nur alles oder nichts (`withMetadata()` behält auch GPS, ohne Angabe verschwindet jedes Metadatum). Deshalb: die fünf Felder aus `EXIF_FELDER` auslesen und genau die zurückschreiben. Marke, Modell und Urheberzeile fallen mit weg.
+  - **Gemessen, nicht vermutet:** `withExif` braucht **`IFD2`**, nicht `ExifIFD` — unter `ExifIFD` geschriebene Felder verschwanden spurlos. Und **`ISOSpeedRatings`**, nicht `ISO`: `ISO` wurde stillschweigend verworfen, während die drei anderen Werte ankamen. Beide Varianten gegeneinander laufen lassen.
+- **Ganze Kette geprüft** mit vier nachgestellten Kameradateien (23 MB, mit GPS, eine hochkant): verkleinern → S3-Attrappe → `medien.mjs` → Manifest → Aufnahmezeile. Ergebnis auf der Seite: `22:12 uhr · 1/500 · f/2.8 · iso 6400`, in der Strecke `22:10 uhr · iso 6400`. GPS in keiner Ausgabedatei, Hochformat bleibt 2000×3000, 23,2 MB → 2,3 MB.
+- **Ohne `--leitbild` wird die erste Datei genommen** — als Notlösung so benannt, nicht als Auswahl. Welches Bild die Kachel trägt, ist Jakobs Entscheidung.
+- **Geändert:** `package.json` (`verkleinern`), `.gitignore` (`.medien-vorbereitet/`), `lib/content.ts`, `TECH-STACK.md`.
+
+---
+
 ## 2026-08-29 — Medien nach R2: kein Foto und kein Video mehr im Repo, kein Bild mehr im Build
 - **Anlass:** Jans Ansage nach der Auswertung der Optionen — „bau alles um, so dass ich bei R2 meine Dateien lagere und du sie im Code aufgreifst." Damit ist der langfristige TODO-Punkt „Bilder nach R2 auslagern" vorgezogen; geplant war er für „sobald die Bildstrecken kommen".
 - **Wie es jetzt läuft:** Dateien nach `original/…` in den Bucket (auch per Cloudflare-Dashboard — **dafür braucht Jakob kein Git**), dann lokal `npm run medien`, dann die Manifeste committen. **Der Cloudflare-Build fasst kein Bild mehr an**, er liest nur `lib/bilder-manifest.json` und `lib/video-manifest.json`. Damit ist die Ursache der 134 MB und der sechs Minuten Bauzeit strukturell weg, nicht bloß gemildert.

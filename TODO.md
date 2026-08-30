@@ -99,14 +99,13 @@ Stelle anfängt:
 
 - [ ] **Schreibzugriff für Claude einrichten.** Aktuell kann Claude nicht selbst pushen: Der Git-Proxy der Session hat keine GitHub-Autorisierung für das Repo (`403`), der GitHub-MCP-Zugang nur Leserechte. Änderungen müssen deshalb als ZIP/Bundle exportiert und von Hand eingespielt werden. Zu tun: Claude GitHub App unter https://github.com/apps/claude/installations/select_target für `jh8yzpy6vj-dot/personalwebsite` freigeben (Contents: Read **and write**), und die GitHub-Verbindung unter claude.ai → Einstellungen → Connectors neu verbinden.
   - ⚠️ **Wenn das steht: Claude weiterhin auf einem Arbeitsbranch pushen lassen, nicht auf `main`.** Laut `CLAUDE.md` geht jeder Push auf `main` sofort live, ohne Preview — die Regel „Änderungen vor dem Pushen kurz selbst gegenlesen" existiert genau deswegen. Der Merge nach `main` bleibt eine menschliche Entscheidung.
-- [ ] **⚠️ R2-Bucket anlegen und den ersten echten Lauf machen — blockiert alles Bildmaterial.** Seit dem 2026-08-29 liegen Fotos und Videos nicht mehr im Repo, sondern im R2-Bucket. Der Code dafür ist fertig und gegen eine S3-Attrappe geprüft (44 Prüfungen), **aber nie gegen einen echten Bucket gelaufen** — in der Sitzung lagen keine Zugangsdaten vor. Zu tun, einmalig:
-  1. In Cloudflare unter **R2** einen Bucket anlegen (Vorschlag: `jakobsax-medien`).
-  2. Unter **R2 → Settings → Public access** eine **Custom Domain** verbinden, z. B. `medien.jakobsax.de`. ⚠️ Nicht die `…r2.dev`-Adresse verwenden — die ist von Cloudflare ausdrücklich nicht für den Dauerbetrieb gedacht.
-  3. Unter **R2 → Manage API Tokens** ein Token mit **Object Read & Write** für genau diesen Bucket erzeugen.
-  4. Die fünf Werte in **`.dev.vars`** im Projektordner eintragen (die Datei ist von Git ausgenommen — **nichts davon committen**): `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_PUBLIC_URL`. Das Skript liest sie von dort selbst.
-  5. **`npm run medien -- --probe`** — zeigt, was passieren würde, ohne etwas zu ändern. Erst wenn das sauber durchläuft: `npm run medien`.
-  - Anleitung mit allen Details: `TECH-STACK.md`, Abschnitt „Medien".
-  - ⚠️ **Die Manifeste danach committen** (`lib/bilder-manifest.json`, `lib/video-manifest.json`, `public/og/`). Ohne diesen Commit sieht die Seite die Bilder nicht.
+- [ ] **⚠️ Ersten echten Medien-Lauf abschließen.** Bucket `websitebucket` steht (Stand 2026-08-30), Bilder sind hochgeladen — **aber flach im Wurzelverzeichnis, mit Kameranamen und 11–12 MB**. So findet die Pipeline nichts. Zu tun:
+  1. **Public access → Custom Domain** setzen, z. B. `medien.jakobsax.de`. ⚠️ Nicht die `…r2.dev`-Adresse.
+  2. **Token** mit **Object Read & Write** für diesen Bucket, dann `.dev.vars` füllen (`R2_BUCKET=websitebucket`). Die Datei ist von Git ausgenommen — **nichts davon committen**.
+  3. Das falsch Abgelegte im Bucket löschen und mit **`npm run verkleinern`** neu erzeugen — das benennt, verkleinert und entfernt die Standortdaten in einem Zug.
+  4. **`npm run medien -- --probe`**, erst danach `npm run medien` und die Manifeste committen.
+  - Anleitung: `TECH-STACK.md`, Abschnitt „Medien".
+- [ ] **⚠️ `wiwawo-53` gegenlesen.** Am 2026-08-30 angelegt, weil die Fotos „WiWaWo26" zu keiner bestehenden Arbeit passten. **`role` („Kamera, Schnitt") und `category` („bewegtbild") sind von den Geschwistereinträgen übernommen und nicht belegt** — geliefert wurden Fotos, nicht Bewegtbild. `place` fehlt. Jakob fragen, dann in `lib/content.ts` korrigieren.
 - [ ] Prüfen, ob `jakobsax.de` und `www.jakobsax.de` inzwischen für alle stabil ohne Fehler erreichbar sind (DNS-Propagation nach dem 525-Fix abschließend testen).
 - [ ] **Bildmaterial beschaffen.** Die Seite lebt von Fotos, aktuell zeigt jede Kachel „Bild folgt". Laut Briefing schlagen 12–20 wirklich starke Bilder 60 gute. Klären, wer auswählt.
   - ✅ **Die Technik dahinter steht seit 2026-08-28** (`srcset`, AVIF/WebP, Vorschaubildchen, Größenbudget, GPS-Entfernung). Zu tun ist nur noch: **Datei als `original/arbeiten/<id>.jpg` in den Bucket legen** — `<id>` ist die `id` der Arbeit aus `lib/content.ts` — und einmal `npm run medien` laufen lassen. Anleitung in `TECH-STACK.md`, Abschnitt „Medien".
