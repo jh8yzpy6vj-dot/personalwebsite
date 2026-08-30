@@ -1,16 +1,20 @@
 import manifest from "./bilder-manifest.json";
 
 /**
- * Zugriff auf die zur Bauzeit erzeugten Bilder.
+ * Zugriff auf die Bilder im R2-Bucket.
  *
- * `lib/bilder-manifest.json` wird von `scripts/bilder.mjs` geschrieben und
- * ist **nicht von Hand zu bearbeiten**. Es ist eingecheckt, damit Typprüfung
- * und Tests laufen, ohne vorher die Pipeline anzuwerfen; beim Build wird es
- * ohnehin neu geschrieben.
+ * `lib/bilder-manifest.json` wird von `scripts/medien.mjs` geschrieben und
+ * ist **nicht von Hand zu bearbeiten**. Es ist eingecheckt und die einzige
+ * Verbindung zwischen Bucket und Seite: Der Build liest nur dieses Manifest
+ * und fasst kein Bild an — er braucht dafür weder Zugangsdaten noch Netz.
  *
- * Solange in `bilder/` nichts liegt, ist es `{}` — jede Suche liefert `null`,
- * und die Oberfläche zeigt ihren Platzhalter. Genau das ist der aktuelle
- * Zustand: Die Mechanik steht, die Fotos fehlen (siehe TODO.md).
+ * ⚠️ Die Adressen darin sind **vollständig** (`https://medien.…/b/…`), nicht
+ * relativ. Wer die Bucket-Domain wechselt, muss einmal `npm run medien`
+ * laufen lassen; Begründung in scripts/medien.mjs.
+ *
+ * Solange im Bucket nichts liegt, ist das Manifest `{}` — jede Suche liefert
+ * `null`, und die Oberfläche zeigt ihren Platzhalter. Genau das ist der
+ * aktuelle Zustand: Die Mechanik steht, die Fotos fehlen (siehe TODO.md).
  */
 
 /**
@@ -171,8 +175,8 @@ export const BILDER: Record<string, Bildquelle> = manifest as Record<
 /**
  * Bild zu einem Schlüssel, oder `null`.
  *
- * Der Schlüssel ist der Pfad unter `bilder/` ohne Endung, also
- * `arbeiten/tete-a-tete-2026` für `bilder/arbeiten/tete-a-tete-2026.jpg`.
+ * Der Schlüssel ist der Pfad unter `original/` im Bucket ohne Endung, also
+ * `arbeiten/tete-a-tete-2026` für `original/arbeiten/tete-a-tete-2026.jpg`.
  */
 export function bild(schluessel: string | null | undefined): Bildquelle | null {
   if (!schluessel) return null;
@@ -184,9 +188,9 @@ export function bild(schluessel: string | null | undefined): Bildquelle | null {
  * `content.ts`**.
  *
  * Bewusst Konvention statt Konfiguration: Jakob und Jan legen die Datei nach
- * `bilder/arbeiten/<id>.jpg` und sind fertig. Ein zusätzliches `image`-Feld
- * wäre eine zweite Stelle, an der derselbe Name steht — und damit eine
- * Stelle, an der er falsch stehen kann.
+ * `original/arbeiten/<id>.jpg` in den Bucket und sind fertig. Ein zusätzliches
+ * `image`-Feld wäre eine zweite Stelle, an der derselbe Name steht — und
+ * damit eine Stelle, an der er falsch stehen kann.
  */
 export function bildZurArbeit(id: string): Bildquelle | null {
   return bild(`arbeiten/${id}`);
@@ -199,7 +203,7 @@ export type Streckenbild = { schluessel: string; quelle: Bildquelle };
  * Alle Schlüssel eines Ordners, **ohne** Unterordner, alphabetisch.
  *
  * Die Sortierung ist der Grund für die Namensvorgabe `01.jpg`, `02.jpg` in
- * `bilder/README.md`: Ohne führende Null stünde `10` vor `2`.
+ * TECH-STACK.md, Abschnitt „Medien": Ohne führende Null stünde `10` vor `2`.
  */
 function ordnerInhalt(praefix: string): Streckenbild[] {
   return Object.keys(BILDER)
@@ -209,7 +213,7 @@ function ordnerInhalt(praefix: string): Streckenbild[] {
 }
 
 /**
- * Die Bildstrecke einer Arbeit: `bilder/arbeiten/<id>/*.jpg`.
+ * Die Bildstrecke einer Arbeit: `original/arbeiten/<id>/*.jpg` im Bucket.
  *
  * Bewusst ein **Ordner** statt einer Liste in `content.ts` — dieselbe
  * Konvention wie beim Leitbild. Wer eine Strecke ergänzen will, legt Dateien
@@ -227,7 +231,7 @@ export type Serienbild = Streckenbild & {
 };
 
 /**
- * Der Kontaktbogen einer Arbeit: `bilder/arbeiten/<id>/serie/*.jpg`.
+ * Der Kontaktbogen einer Arbeit: `original/arbeiten/<id>/serie/*.jpg`.
  *
  * Alle Frames derselben Aufnahmeserie, der gewählte darunter. Er erkennt sich
  * am Dateinamen (`…-gewaehlt.jpg`) — **nicht** am EXIF-Zeitstempel, denn den

@@ -40,10 +40,11 @@ export const metadata: Metadata = {
     title: TITLE,
     description: DESCRIPTION,
     /*
-     * Die Vorschaukarte entsteht zur Bauzeit in `scripts/og.mjs` und liegt
-     * als fertige Datei unter `public/og/`. Sie trägt die Positionierung
-     * auch ohne Foto; sobald `bilder/hero/standbild.jpg` liegt, trägt sie es
-     * mit. Gilt für jede Seite ohne eigene Karte — die Arbeiten haben ihre
+     * Die Vorschaukarte entsteht bei `npm run medien` (scripts/og.mjs) und
+     * liegt als fertige Datei unter `public/og/`. Sie trägt die
+     * Positionierung auch ohne Foto; sobald `original/hero/standbild.jpg` im
+     * Bucket liegt, trägt sie es mit. Gilt für jede Seite ohne eigene Karte
+     * — die Arbeiten haben ihre
      * eigene, siehe app/arbeiten/[slug]/page.tsx.
      */
     images: [{ url: "/og/start.jpg", width: 1200, height: 630, alt: TITLE }],

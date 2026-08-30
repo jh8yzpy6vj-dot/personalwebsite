@@ -95,8 +95,8 @@ describe("Schlüsselauflösung", () => {
     const { bild, bildZurArbeit } = await import("./bilder");
 
     expect(bildZurArbeit("tete-a-tete-2026")).toEqual(eintrag);
-    // Der Präfix ist der Vertrag mit bilder/README.md: Wer die Datei nach
-    // bilder/arbeiten/<id>.jpg legt, muss sie hier wiederfinden.
+    // Der Präfix ist der Vertrag mit TECH-STACK.md, Abschnitt „Medien": Wer
+    // die Datei nach original/arbeiten/<id>.jpg legt, muss sie hier wiederfinden.
     expect(bild("arbeiten/tete-a-tete-2026")).toEqual(eintrag);
     expect(bild("tete-a-tete-2026")).toBeNull();
     expect(bildZurArbeit("gibt-es-nicht")).toBeNull();

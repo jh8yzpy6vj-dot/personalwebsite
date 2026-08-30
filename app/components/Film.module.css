@@ -1,0 +1,49 @@
+/*
+ * Der Film einer Arbeit. Steht in der dunklen Hälfte zwischen Leitbild und
+ * Bildstrecke — bewusst **vor** der Naht, denn die Seite hat laut
+ * design/UI-SPEC.md genau einen Wechsel dunkel → hell.
+ */
+.rahmen {
+  margin: 0;
+  padding: var(--space-lg) var(--space-lg) var(--space-md);
+  background: var(--buehne);
+}
+
+.video {
+  display: block;
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  /*
+   * `aspect-ratio` statt fester Höhe: Bis die Metadaten da sind, kennt der
+   * Browser die Maße des Films nicht und gäbe dem Element sonst die
+   * Standardhöhe 150px — das Layout spränge, sobald er sie kennt. 16/9 ist
+   * die Vorgabe für den Export (TECH-STACK.md, Abschnitt „Medien").
+   *
+   * ⚠️ Der Rahmen richtet sich damit nach dem **Film**, nicht nach dem
+   * Poster. Das Leitbild ist 3:2 und bekommt darin schmale schwarze Streifen
+   * links und rechts — sichtbar für die Sekunde vor dem Antippen. Andersherum
+   * — Rahmen nach dem Poster — liefe der Film selbst dauerhaft mit Streifen,
+   * und das ist der schlechtere Tausch. Zuschneiden (`object-fit: cover`)
+   * wäre der dritte Weg und scheidet aus: Er beschnitte einen Film, der
+   * nicht 16:9 ist, ohne dass jemand es merkt.
+   */
+  aspect-ratio: 16 / 9;
+  height: auto;
+  background: #000;
+}
+
+.bildunterschrift {
+  max-width: 1040px;
+  margin: var(--space-sm) auto 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-buehne);
+}
+
+@media (max-width: 700px) {
+  .rahmen {
+    padding: var(--space-md) var(--space-md) var(--space-sm);
+  }
+}

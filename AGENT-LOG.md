@@ -6,6 +6,61 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-08-29 — Medien nach R2: kein Foto und kein Video mehr im Repo, kein Bild mehr im Build
+- **Anlass:** Jans Ansage nach der Auswertung der Optionen — „bau alles um, so dass ich bei R2 meine Dateien lagere und du sie im Code aufgreifst." Damit ist der langfristige TODO-Punkt „Bilder nach R2 auslagern" vorgezogen; geplant war er für „sobald die Bildstrecken kommen".
+- **Wie es jetzt läuft:** Dateien nach `original/…` in den Bucket (auch per Cloudflare-Dashboard — **dafür braucht Jakob kein Git**), dann lokal `npm run medien`, dann die Manifeste committen. **Der Cloudflare-Build fasst kein Bild mehr an**, er liest nur `lib/bilder-manifest.json` und `lib/video-manifest.json`. Damit ist die Ursache der 134 MB und der sechs Minuten Bauzeit strukturell weg, nicht bloß gemildert.
+- **Neu:** `scripts/r2.mjs` (S3-Zugriff, signiert mit `aws4fetch` — 88 kB, keine Abhängigkeiten, statt des AWS-SDK), `scripts/medien.mjs` (die Pipeline), `lib/video.ts` + `lib/video-manifest.json`, `app/components/Film.tsx` + `.module.css`.
+- **Entfallen:** `scripts/bilder.mjs`, der ganze Ordner `bilder/` samt `README.md`, `public/hero/`, `.bilder-cache.json`, der `prebuild`-Schritt. Die Bedienanleitung aus `bilder/README.md` steht jetzt vollständig in `TECH-STACK.md`, Abschnitt „Medien" — sie war Kerninhalt und gehört nicht in eine Datei, die mit ihrem Ordner verschwindet.
+- **`public/og/` ist jetzt eingecheckt** statt ignoriert. Es sind zehn Dateien à ~35 kB; da der Build keine Bilder mehr rechnet, müssten sie sonst zur Laufzeit entstehen — und genau das gab im Worker schon einmal 500 zurück. So ist die Seite auch ohne den Bucket vollständig.
+
+### Drei Fehler, die erst das Prüfen gefunden hat
+Alle drei waren stumme Fehler — die Pipeline meldete jedes Mal Erfolg.
+1. **🔴 Ein ausgetauschtes Foto wäre nicht angekommen.** Die Pipeline sprang beim Herunterladen über Dateien, die schon im Zwischenspeicher lagen. Bei einem *geänderten* Original liegt dort aber die **alte** Fassung: Jakob tauscht ein Bild aus, der Lauf meldet „erzeugt", auf der Seite steht weiter das alte. Behoben — beim Verarbeiten wird das Original immer frisch geholt. Der Fall steht jetzt als Prüfung im Testlauf, und die Prüfung schlägt fehl, wenn man die Korrektur zurücknimmt (nachgestellt).
+2. **🔴 Ein Dateiname mit Leerzeichen oder Komma hätte das ganze `srcset` zerstört.** `srcset` ist kommagetrennt und leerzeichenempfindlich; eine vom Handy hochgeladene „mein bild, quer.jpg" hätte nicht nur dieses Bild, sondern die komplette Liste unbrauchbar gemacht. Adressen werden jetzt kodiert (der Bucket-Schlüssel bleibt roh). Auch das ist geprüft und mutationsgetestet.
+3. **Aufräumen im Dashboard hätte die Seite lautlos zerlegt.** Wer unter `b/` löscht, während `.medien-cache/stand.json` liegen bleibt, bekam „11 unverändert" gemeldet und eine Seite voller 404. Die Pipeline liest jetzt beim Start auch `b/` und erzeugt neu, was dort fehlt. Genau so beim Prüfen passiert.
+
+### Ein vierter Fehler, den erst ein echtes Bild sichtbar machte
+- **Das Porträt auf `/ueber` war 1500px hoch** und schob jeden Satz unter die Falz — auf einem Laptop war nach dem Aufschlagen kein Wort zu lesen. Der Fehler lag seit dem Bau der Seite dort, war aber unsichtbar, solange kein Bild existierte. Begrenzt wird jetzt die **Höhe** (`max-height: 70svh`), nicht die Breite; ohne Zuschnitt, wie es der Vertrag verlangt. `design/UI-SPEC.md` nachgezogen.
+
+### Wie geprüft wurde
+- **44 Prüfungen gegen eine S3-Attrappe**, mit `scripts/medien.mjs` als echtem Unterprozess: Probelauf ohne Nebenwirkung, Blättern über 1000 Objekte, Zuordnungswarnung, Budgetwarnung, Breiten je Format, absolute Adressen, Kodierung, Cache-Header, Content-Type, verwaiste Ableitungen, zweiter Lauf ohne Arbeit, geändertes Original, fehlende Zugangsdaten. Zwei der Prüfungen wurden mutationsgetestet — Korrektur zurückgenommen, Prüfung schlägt fehl.
+- **Gegen `wrangler dev`, nicht nur `next build`** (die Regel aus TECH-STACK.md): mit einem echten Loop-Video im Hero, einem Film auf der Detailseite, Leitbild, Bildstrecke, Kontaktbogen und Porträt aus einem nachgestellten Bucket. Keine Konsolenfehler, keine fehlgeschlagene Anfrage, kein waagerechter Überlauf bei 320/390/1440px. Screenshots angesehen, nicht nur Statuscodes gezählt.
+- ⚠️ **Nicht geprüft: der echte R2-Bucket.** In dieser Sitzung lagen keine Zugangsdaten vor, und ich habe keine angelegt — der erste echte Lauf ist Jans. Als eigener, ausführlicher Punkt in `TODO.md` (Bucket, Custom Domain statt `r2.dev`, Token, `.dev.vars`, erst `--probe`).
+- `npm test` (63), `npm run lint` und `tsc --noEmit` grün.
+
+### Nebenbei entstanden
+- **Filme zu Arbeiten** (`original/video/<id>.mp4`) erscheinen auf der Detailseite über der Bildstrecke: mit Bedienelementen, **ohne** Autoplay, `preload="metadata"`, Poster ist das Leitbild. Das löst das schon in `SITE-PLAN.md` stehende „Video gehört auf die Detailseite" ein — für die vier Aftermovies des Bayerischen Kanu-Verbands. **Ohne Untertitel**, bewusst: Eine leere `<track>`-Spur täuscht Barrierefreiheit vor. Als Punkt in `TODO.md`.
+- **Das Hero-Video kommt jetzt aus dem Bucket** (`original/hero/film.mp4`). `HERO_VIDEO` in `content.ts` bleibt als Ausnahmeweg für ein extern gehostetes Video und hat Vorrang.
+- **Warnung ab 8 MB fürs Hero-Video** — es startet von selbst und lädt vor allem anderen mit.
+- **Zugangsdaten:** gehören in `.dev.vars` (ist ignoriert), **nie ins Repo**. Das Skript liest die Datei selbst — sonst müsste man die Werte vor jedem Aufruf von Hand exportieren, und genau daran scheitert so ein Ablauf im Alltag; was in der Shell steht, gewinnt. `scripts/r2.mjs` wird von keinem Worker- und keinem Build-Code importiert. Die GPS-Grenze bleibt unangetastet: `EXIF_FELDER` liest fünf Felder, Standortdaten werden gar nicht erst eingelesen.
+- **Geändert:** `.gitignore`, `package.json` (`medien`-Skript, `prebuild` raus), `scripts/og.mjs` (liest die Fotos aus `.medien-cache/`), `lib/bilder.ts`, `lib/bilder-regeln.mjs`, `lib/content.ts`, `app/page.tsx`, `app/layout.tsx`, `app/arbeiten/[slug]/page.tsx`, `app/ueber/portrait.module.css`; Dokumente: `TECH-STACK.md` (Abschnitt „Medien" neu geschrieben), `design/UI-SPEC.md`, `SITE-PLAN.md`, `TODO.md`, `HISTORIE-BEREINIGEN.md`.
+
+---
+
+## 2026-08-29 — Cloudflare-Build hing: AVIF begrenzt, Pipeline wird laut
+- **Anlass:** Jan hat zwölf Bilder nach `bilder/arbeiten/` gepusht, der Build lief in die Länge. Dabei die Frage, ob R2 bedacht sei. **Ehrliche Antwort: nein.** Ich hatte die Pipeline auf eingecheckte Originale plus Bauzeit-Ableitungen ausgelegt, das begründet dokumentiert — aber R2 nie als Option auf den Tisch gelegt und auch nicht gefragt.
+- **Gemessen statt vermutet, und die erste Vermutung war falsch.** Ich hielt die mehrfache Dekodierung des Originals für den Kostentreiber (die Pipeline dekodiert je Breite neu). Gemessen an einer 6000×4000-Kameradatei: **4 %.** Der Treiber ist **AVIF** — 30,4 s je Bild mit, 1,2 s ohne.
+- **Aufgeschlüsselt nach Breite** (je Bild, dieselbe Quelle):
+
+  | Breite | AVIF | WebP | AVIF-Größe | WebP-Größe |
+  |--------|------|------|------------|------------|
+  | 480 | 0.2s | 0.04s | 1 kB | 1 kB |
+  | 800 | 0.9s | 0.06s | 5 kB | 9 kB |
+  | 1200 | 2.3s | 0.15s | 17 kB | 65 kB |
+  | 1600 | 5.4s | 0.29s | 46 kB | 199 kB |
+  | 2400 | **17.5s** | 0.68s | 389 kB | 771 kB |
+
+- **AVIF jetzt nur bis 1600px.** Die 2400er-Variante allein kostete zwei Drittel der Bauzeit. Ein Retina-Gerät bekommt jetzt die 1600er AVIF mit **46 kB** statt der 2400er WebP mit 771 kB — kleiner *und* schneller. Der Browser wählt das selbst, weil im AVIF-`srcset` schlicht die große Stufe fehlt. Ergebnis: 30 s → 13 s je Bild, zwölf Bilder von ~6 min auf ~2,6 min.
+- **🔴 Der wichtigere Befund war aber ein anderer: Keines der zwölf Bilder hätte je erschienen.** Die Dateien heißen `©JakobSax_WiWaWo26_JPG6785.JPG`; die Pipeline sucht `bilder/arbeiten/<id>.jpg` mit einer `id` aus `content.ts`. Sie hat sechs Minuten lang klaglos das Falsche gerechnet.
+  - **Das ist der eigentliche Fehler, und er ist meiner.** Ein Werkzeug, das stumm das Falsche tut, ist schlimmer als eines, das abbricht. Die Pipeline prüft jetzt jede Quelle gegen die bekannten `id`s und benennt jede Datei, die zu nichts gehört — mit Beispielen aus `content.ts` dazu.
+  - Zweite Warnung: Originale über 4000px Kante oder 6 MB werden benannt. Nicht der Rechenzeit wegen, sondern weil sie für immer im Git-Verlauf bleiben.
+  - Beide Warnungen gegen Jans genauen Fall nachgestellt und ausgelöst gesehen.
+- **Zur R2-Frage, mit Empfehlung an Jan:** R2 hilft nur in der Variante „fertige Varianten in R2, Verarbeitung lokal" — als reine Ablage für Originale würde der Build genauso lange rechnen und zusätzlich 134 MB laden. Empfohlen habe ich, **jetzt** bei der Bauzeit-Verarbeitung zu bleiben (kein Konto, kein manueller Schritt, „Datei hinlegen, fertig" bleibt) und **umzuschwenken, sobald die Bildstrecken kommen** — 8–12 Bilder je Arbeit sprengen den Build. Als eigener Punkt in `TODO.md`, samt Begründung, warum der Wechsel billig bleibt: Alle Bild-URLs stehen im Manifest an einer Stelle.
+- **Gemessen und verworfen:** Einmal dekodieren statt je Variante bringt jetzt 18 % (vorher 4 %). Nicht umgesetzt — es fügt einen zweiten Skalierschritt hinzu und ändert an der Schlussfolgerung nichts. Für den Maßstab ist R2 die Antwort, nicht Mikrooptimierung.
+- **Git-Historie:** Die 134 MB bleiben trotz Löschen im Verlauf. Jan hat entschieden, sie zu bereinigen; die Anleitung steht in `HISTORIE-BEREINIGEN.md` (Wegwerf-Datei, nach dem Vorgang löschen). Ausführen muss er sie selbst — es braucht einen Force-Push, und alle lokalen Kopien werden danach unbrauchbar.
+- **Geändert:** `lib/bilder-regeln.mjs` (`AVIF_MAX_BREITE`, `QUELLE_WARNUNG`, PIPELINE_VERSION 4), `scripts/bilder.mjs` (AVIF-Grenze, beide Warnungen); neu `HISTORIE-BEREINIGEN.md`; erweitert `bilder/README.md`, `TODO.md`.
+- Von: Jan (mit Claude)
+
 ## 2026-08-29 — Startseite neu sortiert, Hero auf volle Höhe, Porträt eingebaut
 - **Auf Jans Ansage.** Drei Dinge: Das Hero war zu klein (am Laptop lugte schon `buchbar.` hervor), die Reihenfolge sollte **Hero → kurzes Über Jakob → Material → buchbar** lauten, und ein Porträtfoto soll auf `/ueber`.
 - **Hero füllt jetzt das Fenster.** Vorher 82vh, mobil 72vh — genau deshalb war unten der nächste Block zu sehen. Nachgemessen: 820 von 820px am Laptop, 844 von 844 auf dem Telefon, nichts lugt hervor.

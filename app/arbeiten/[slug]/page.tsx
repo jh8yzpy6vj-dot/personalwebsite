@@ -5,6 +5,7 @@ import SiteFooter from "../../components/SiteFooter";
 import Bild from "../../components/Bild";
 import Blaettertasten from "../../components/Blaettertasten";
 import Bildstrecke from "../../components/Bildstrecke";
+import Film from "../../components/Film";
 import Kontaktbogen from "../../components/Kontaktbogen";
 import {
   aufnahmeZeile,
@@ -12,6 +13,7 @@ import {
   bildstreckeZurArbeit,
   serieZurArbeit,
 } from "@/lib/bilder";
+import { videoZurArbeit } from "@/lib/video";
 import { CATEGORIES } from "@/lib/content";
 import { allSlugs, bySlug, metaLine, neighbours, yearOf } from "@/lib/works";
 import { SITE_URL } from "@/lib/site";
@@ -81,6 +83,7 @@ export default async function WorkDetail({
   const aufnahme = aufnahmeZeile(bild?.exif);
   const strecke = bildstreckeZurArbeit(work.id);
   const serie = serieZurArbeit(work.id);
+  const film = videoZurArbeit(work.id);
 
   /*
    * Strukturierte Daten je Arbeit. Verknüpft über `@id` mit der Person aus
@@ -146,8 +149,15 @@ export default async function WorkDetail({
           )}
         </div>
 
-        {/* Noch dunkel: die Strecke gehört zum Sehen, nicht zum Lesen — und
-            hinter dem Text stünde sie hinter einer zweiten Naht. */}
+        {/* Noch dunkel: Film und Strecke gehören zum Sehen, nicht zum Lesen —
+            hinter dem Text stünden sie hinter einer zweiten Naht.
+
+            Der Film steht **über** der Strecke: Wo es einen Aftermovie gibt,
+            ist er das stärkere Argument, und niemand scrollt an einer
+            Bildstrecke vorbei, um ihn zu suchen. */}
+        {film && (
+          <Film quelle={film} titel={work.title} standbild={bild} />
+        )}
         <Bildstrecke bilder={strecke} titel={work.title} />
 
         {/* Hell: der Kontext. */}

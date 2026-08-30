@@ -6,21 +6,32 @@
  * (siehe TODO.md). Nichts hier erfinden — nur belegte Angaben eintragen.
  */
 
-/** Pfad zum Hero-Video in /public. `null` = Platzhalter wird angezeigt. */
+/**
+ * **Ausnahmeweg** für das Hero-Video: eine vollständige, externe Adresse.
+ *
+ * Der Normalfall ist `null`. Dann kommt das Video aus dem R2-Bucket
+ * (`original/hero/film.mp4` → `heroVideo()` in lib/video.ts), und niemand
+ * muss dafür Code anfassen — Datei in den Bucket legen, `npm run medien`,
+ * fertig.
+ *
+ * Hier steht etwas nur, wenn das Video **woanders** liegt, etwa bei einem
+ * Streamingdienst mit eigener Auslieferung. Ein Eintrag hier hat Vorrang vor
+ * dem Bucket.
+ */
 export const HERO_VIDEO: string | null = null;
 
 /**
- * Bildbeschreibung für das Hero-Standbild (`bilder/hero/standbild.jpg`).
+ * Bildbeschreibung für das Hero-Standbild (`original/hero/standbild.jpg` im
+ * Bucket).
  *
  * `null` behandelt das Bild als reine Dekoration (`alt=""`) — vertretbar,
  * weil direkt daneben die Positionierung als Überschrift steht. Sobald das
  * Bild feststeht, gehört hier trotzdem eine echte Szenenbeschreibung hin;
  * das Hero ist das erste, was ein Screenreader auf der Startseite trifft.
  *
- * Ein separater Pfad zum Posterbild ist nicht mehr nötig: Liegt eine Datei
- * unter `bilder/hero/standbild.jpg`, wird sie zur Bauzeit verarbeitet und
- * dient sowohl als Poster des Videos als auch als Hero, solange kein Video
- * da ist. Siehe lib/bilder.ts.
+ * Ein separater Pfad zum Posterbild ist nicht nötig: Das Standbild dient
+ * sowohl als Poster des Videos als auch als Hero, solange kein Video da ist.
+ * Siehe lib/bilder.ts.
  */
 export const HERO_ALT: string | null = null;
 
@@ -52,9 +63,10 @@ export type Work = {
   role: string;
   /*
    * Kein Bildfeld: Das Leitbild einer Arbeit ergibt sich aus ihrer `id` —
-   * `bilder/arbeiten/<id>.jpg` wird zur Bauzeit verarbeitet und über
-   * `bildZurArbeit(id)` gefunden. Liegt keine Datei da, zeigt die Oberfläche
-   * ihren Platzhalter. Siehe lib/bilder.ts und bilder/README.md.
+   * `original/arbeiten/<id>.jpg` im Bucket wird von `npm run medien`
+   * verarbeitet und über `bildZurArbeit(id)` gefunden. Liegt keine Datei da,
+   * zeigt die Oberfläche
+   * ihren Platzhalter. Siehe lib/bilder.ts und TECH-STACK.md, „Medien".
    */
   /** Beschreibt die Szene — Barrierefreiheit und SEO. */
   alt?: string;
@@ -238,8 +250,9 @@ export const ABOUT = {
   authorPageUrl: "https://www.swr.de/swraktuell/autor-jakob-sax-100.html",
 
   /**
-   * Beschreibung des Porträts (`bilder/portrait.jpg`) für Screenreader und
-   * Suchmaschinen. Beschreibt die Szene, nicht das Medium — „Foto von Jakob"
+   * Beschreibung des Porträts (`original/portrait.jpg` im Bucket) für
+   * Screenreader und Suchmaschinen. Beschreibt die Szene, nicht das
+   * Medium — „Foto von Jakob"
    * sagt nichts, was das `img` nicht ohnehin ist.
    *
    * ⚠️ Von der Aufnahme abgeleitet, **nicht von Jakob freigegeben** — wie

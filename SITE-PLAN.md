@@ -144,6 +144,11 @@ wie viele Arbeiten je Kategorie tatsächlich zeigbar sind.
 Acht bis zwölf Bilder, kurzer Vorspann, saubere Credits, Link zur Originalquelle. Gleichzeitig
 der wichtigste SEO-Hebel der Seite — nur eine eigene URL kann für einen Festivalnamen ranken.
 
+**Hier — und nur hier — steht auch der Film**, wenn es zu einer Arbeit einen gibt (die vier
+Aftermovies für den Bayerischen Kanu-Verband). Seit dem 2026-08-29 gebaut: über der Bildstrecke,
+mit Bedienelementen, ohne Autoplay. Das ist die Einlösung von „Video gehört auf die Detailseite"
+weiter unten unter *Bewusst nicht Teil der Struktur*.
+
 ⚠️ **Redaktionelle Arbeiten: verlinken statt einbetten.** SWR- und NDR-Material auf einer
 gewerblichen Privatseite einzubetten ist rechtlich sehr wahrscheinlich nicht gedeckt, und die
 Nebentätigkeitsfrage ist offen (siehe Launch-Blocker). Ein Link auf die Mediathek ist zudem das

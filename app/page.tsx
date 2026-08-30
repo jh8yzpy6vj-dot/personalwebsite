@@ -11,6 +11,7 @@ import {
 } from "@/lib/content";
 import { latest } from "@/lib/works";
 import { bild } from "@/lib/bilder";
+import { heroVideo } from "@/lib/video";
 import Bild from "./components/Bild";
 import Kachelraster from "./components/Kachelraster";
 import UeberAnriss from "./components/UeberAnriss";
@@ -46,6 +47,11 @@ const MATERIAL_ANZAHL = 6;
 export default function Home() {
   const material = latest(MATERIAL_ANZAHL);
   const heroBild = bild("hero/standbild");
+  /*
+   * Normalfall ist der Bucket; `HERO_VIDEO` in content.ts ist der
+   * Ausnahmeweg für ein extern gehostetes Video und hat deshalb Vorrang.
+   */
+  const heroFilm = HERO_VIDEO ?? heroVideo()?.url ?? null;
 
   return (
     <div className={styles.page}>
@@ -57,13 +63,13 @@ export default function Home() {
             liegt — über dem Farbverlauf-Platzhalter wäre es ein dunkler
             Streifen ohne Zweck. Erklärung in globals.css. */}
         <section
-          className={`${styles.hero}${HERO_VIDEO || heroBild ? " medien-scrim" : ""}`}
+          className={`${styles.hero}${heroFilm || heroBild ? " medien-scrim" : ""}`}
           aria-label="Startbild"
         >
-          {HERO_VIDEO ? (
+          {heroFilm ? (
             <video
               className={styles.heroMedia}
-              src={HERO_VIDEO}
+              src={heroFilm}
               poster={heroBild?.fallback}
               autoPlay
               loop
