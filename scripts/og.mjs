@@ -1,8 +1,12 @@
 /**
- * Vorschaukarten (OpenGraph) — läuft vor jedem Build, nach der Bildpipeline.
+ * Vorschaukarten (OpenGraph) — **läuft lokal**, im Anschluss an
+ * `scripts/medien.mjs` (`npm run medien` ruft beides nacheinander auf).
  *
- * Erzeugt je Arbeit und einmal für die Seite selbst ein PNG unter
- * `public/og/`. Das ist das Bild, das WhatsApp, Slack, Mastodon und LinkedIn
+ * Erzeugt je Arbeit und einmal für die Seite selbst ein JPEG unter
+ * `public/og/`. Anders als die Bildvarianten liegen die Karten **im Repo**:
+ * Es sind rund zehn Dateien à 50 kB, sie ändern sich nur mit den Titeln, und
+ * so ist die Seite ohne den Bucket vollständig. Nach einem Lauf gehören die
+ * geänderten Karten mit committet. Das ist das Bild, das WhatsApp, Slack, Mastodon und LinkedIn
  * zeigen, wenn jemand einen Link teilt. Wirft ein Festival den Link in die
  * Gruppe, entscheidet diese Karte, ob jemand tippt; ohne sie steht dort eine
  * graue Fläche mit der Domain darunter.
@@ -42,6 +46,8 @@ import { OG_GROESSE, ogKarte } from "./og-karte.mjs";
 const WURZEL = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const ZIEL = path.join(WURZEL, "public", "og");
 const MANIFEST = path.join(WURZEL, "lib", "bilder-manifest.json");
+/** Zwischenspeicher der Medienpipeline — siehe `foto()`. */
+const CACHE = path.join(WURZEL, ".medien-cache");
 
 /**
  * Schriften als TrueType. `next/font` lädt nur WOFF2, damit kann Satori
@@ -60,13 +66,36 @@ async function schriften() {
   ];
 }
 
-/** Das Foto als Datei-URI — Satori kann keine Datei vom Dateisystem laden. */
+/** Wird am Ende einmal gesammelt gemeldet, nicht je Karte. */
+const fehlendeFotos = [];
+
+/**
+ * Das Foto als Datei-URI — Satori kann keine Datei vom Dateisystem laden.
+ *
+ * ⚠️ Die Quelle ist der **lokale Zwischenspeicher** der Medienpipeline, nicht
+ * der Bucket. `eintrag.fallback` ist eine vollständige Adresse
+ * (`https://medien.…/b/arbeiten/x-1200.jpg`); dieselbe Datei liegt nach
+ * `npm run medien` unter `.medien-cache/b/arbeiten/x-1200.jpg`. Über den
+ * Pfadanteil der Adresse ist das unabhängig davon, unter welcher Domain der
+ * Bucket gerade erreichbar ist.
+ *
+ * Fehlt der Zwischenspeicher (frischer Klon), entsteht die Karte **ohne**
+ * Foto statt gar nicht. Das ist die richtige Reihenfolge: Ein fehlendes Foto
+ * ist ein schwächeres Vorschaubild, ein Abbruch wäre gar keins.
+ */
 async function foto(eintrag) {
   if (!eintrag?.fallback) return null;
+  let pfad;
   try {
-    const datei = await readFile(path.join(WURZEL, "public", eintrag.fallback));
+    pfad = new URL(eintrag.fallback).pathname;
+  } catch {
+    return null; // Kein absoluter Link — Manifest aus einer älteren Version.
+  }
+  try {
+    const datei = await readFile(path.join(CACHE, pfad));
     return `data:image/jpeg;base64,${datei.toString("base64")}`;
   } catch {
+    fehlendeFotos.push(pfad);
     return null;
   }
 }
@@ -167,6 +196,14 @@ async function main() {
 
   for (const g of gross) {
     console.warn(`  ! Vorschaukarte über Budget: ${g} (Grenze ${OG_BUDGET / 1024} kB)`);
+  }
+  if (fehlendeFotos.length > 0) {
+    console.warn(
+      `  ! ${fehlendeFotos.length} Karte(n) ohne Foto — die Dateien fehlen im\n` +
+        `    Zwischenspeicher (${path.relative(WURZEL, CACHE)}). Einmal ` +
+        `\`npm run medien\` laufen lassen,\n    dann sind sie da. Beispiel: ` +
+        `${fehlendeFotos[0]}`,
+    );
   }
   console.log(
     `Vorschaukarten: ${behalten.size} erzeugt` +

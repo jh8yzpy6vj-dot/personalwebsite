@@ -21,13 +21,17 @@ next-env.d.ts
 /.wrangler/
 .dev.vars
 
-# bildpipeline: erzeugte varianten und ihre buchhaltung.
-# quelle sind die originale in /bilder, ausgeliefert wird das erzeugte —
-# beides im repo zu halten hiesse, hundert dateien bei jeder qualitaets-
-# aenderung mitzuschleppen. wird bei jedem build neu erzeugt (prebuild).
-/public/b/
-/public/og/
-.bilder-cache.json
+# medienpipeline: heruntergeladene originale und erzeugte varianten.
+# quelle und ergebnis liegen im r2-bucket, hier liegt nur ein lokaler
+# zwischenspeicher, damit ein zweiter lauf nicht alles neu holt und rechnet.
+# darf jederzeit fehlen — dann holt `npm run medien` es wieder.
+# ⚠️ NICHT eingecheckt: genau das hat einmal 134 mb in den git-verlauf
+# gebracht, die nur mit einem umschreiben der historie wieder herauskamen.
+.medien-cache/
+
+# ⚠️ /public/og/ ist ABSICHTLICH nicht ignoriert. die vorschaukarten sind
+# rund zehn dateien à 50 kb, sie entstehen bei `npm run medien` und gehoeren
+# mit committet — sonst haette die seite nach dem deploy keine.
 
 # misc
 .DS_Store

@@ -2,19 +2,37 @@
  * Porträt über dem Text auf `/ueber`.
  *
  * **Kein Zuschnitt**, aus demselben Grund wie im Anriss der Startseite
- * (`UeberAnriss.module.css`): Das Bild bringt seine Form mit. Begrenzt ist
- * nur die Breite, damit ein Querformat auf großen Bildschirmen nicht die
- * ganze Spalte sprengt.
+ * (`UeberAnriss.module.css`): Das Bild bringt seine Form mit.
+ *
+ * ⚠️ Begrenzt wird deshalb die **Höhe**, nicht die Breite. Die Spalte ist hier
+ * rund 1150px breit; ein Hochformat darin füllte über die volle Breite gut
+ * 1500px Höhe und schob den gesamten Text unter die Falz — auf einem Laptop
+ * war nach dem Aufschlagen kein einziger Satz zu sehen. Beim Prüfen mit einem
+ * echten Bild aufgefallen; solange keins vorlag, war der Fehler unsichtbar.
+ *
+ * `width: fit-content` an der Figur, damit ein hohes Bild keinen schwarzen
+ * Rahmen neben sich stehen lässt — und **nicht** zentriert, damit die linke
+ * Kante dieselbe bleibt wie beim Text darunter.
  */
 .figur {
   margin: 0 0 var(--space-2xl);
+  width: fit-content;
+  max-width: 100%;
   background: #000;
 }
 
 .bild {
-  width: 100%;
+  /* Höhe führt, Breite folgt — deshalb hier `auto` an der Breite und nicht,
+     wie sonst auf der Seite, `width: 100%`. */
+  width: auto;
+  max-width: 100%;
   /* Pflicht: Die `width`/`height`-Attribute am `<img>` wirken sonst als
      feste Höhe und das Bild wird verzerrt. Siehe Bild.tsx. */
   height: auto;
+  /*
+   * `svh`, nicht `vh`: Auf dem Telefon ist `vh` die Höhe *ohne* die
+   * Adressleiste, das Bild wäre dort größer als der sichtbare Bereich.
+   */
+  max-height: 70svh;
   display: block;
 }
