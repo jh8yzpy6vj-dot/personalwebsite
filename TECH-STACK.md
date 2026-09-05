@@ -111,6 +111,21 @@ R2_PUBLIC_URL=https://medien.jakobsax.de
 | `R2_SECRET_ACCESS_KEY` | dito, wird **nur einmal** angezeigt |
 | `R2_BUCKET` | Name des Buckets |
 | `R2_PUBLIC_URL` | die öffentliche Adresse, z. B. `https://medien.jakobsax.de` |
+| `R2_S3_ENDPOINT` | **nur bei einem Bucket mit Jurisdiction** — siehe unten |
+
+⚠️ **Buckets mit Jurisdiction haben einen anderen S3-Endpunkt.** Wer beim Anlegen „European
+Union (EU)" wählt (hinterher nicht mehr änderbar), bekommt
+`<konto>.eu.r2.cloudflarestorage.com` statt `<konto>.r2.cloudflarestorage.com`. Ohne das `.eu.`
+greift jede Anfrage ins Leere. Der sichere Weg ist, die Zeile **„S3 API"** aus R2 → Bucket →
+Settings zu kopieren und als `R2_S3_ENDPOINT` einzutragen — der Bucketname darf dranhängen, er
+wird abgeschnitten:
+
+```
+R2_S3_ENDPOINT=https://<konto>.eu.r2.cloudflarestorage.com/<bucket>
+```
+
+Alternativ reicht `R2_JURISDICTION=eu`. Ohne beides bleibt es beim Standard, und der stimmt für
+Buckets ohne Jurisdiction.
 
 ⚠️ **`R2_PUBLIC_URL` sollte eine eigene Custom Domain sein** (R2 → Settings → Public access →
 Custom Domain), nicht die `…r2.dev`-Adresse: Die ist von Cloudflare ausdrücklich nicht für den
