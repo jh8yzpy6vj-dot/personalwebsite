@@ -31,6 +31,18 @@
   --space-2xl: 48px;
   --space-3xl: 64px;
 
+  /*
+   * Eckenradius — **genau einer**, wie es bei den Schriftgrößen auch genau
+   * vier gibt. Gilt für Fotos, die *präsentiert* werden: Leitbild,
+   * Bildstrecke, Film. **Nicht** für das Kachelraster auf `/arbeiten`: Das
+   * ist ein Index und stößt absichtlich randlos aneinander, wie ein
+   * Kontaktbogen. Begründung in design/UI-SPEC.md.
+   *
+   * 12px ist bewusst zurückhaltend. Stärker gerundet fängt ein Foto an, wie
+   * eine App-Kachel auszusehen; ungerundet sah es laut Jan „kastenmäßig" aus.
+   */
+  --radius-bild: 12px;
+
   /* Genau 4 Größen. Kein Wert unter 14px — auch Credits bleiben lesbar. */
   --text-label: 14px;
   --text-body: 18px;

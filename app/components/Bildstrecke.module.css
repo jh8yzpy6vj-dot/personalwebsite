@@ -24,7 +24,13 @@
 
 .streifen {
   display: flex;
-  gap: var(--space-xs);
+  /*
+   * ⚠️ Stand auf `--space-xs` (4px). Zusammen mit dem erzwungenen 3:2 ergab
+   * das gleich große Kästen fast ohne Fuge — Jan: „nicht so kastenmäßig
+   * aneinander klatschen". Eine Fuge, die man sieht, macht aus einer Fläche
+   * einzelne Bilder.
+   */
+  gap: var(--space-md);
   overflow-x: auto;
   /*
    * `mandatory` und nicht `proximity`: Ein Streifen, der zwischen zwei
@@ -35,14 +41,25 @@
   /* Verhindert, dass die Wischgeste am Ende des Streifens die ganze Seite
      nach hinten schiebt (auf iOS die „Zurück"-Geste). */
   overscroll-behavior-x: contain;
-  padding: 0 var(--space-lg) var(--space-md);
+  /*
+   * Der Streifen beginnt an derselben Kante wie der Text darunter (Spalte
+   * 1040px, siehe `.inner` in detail.module.css) und läuft nach rechts aus
+   * dem Bild — das zeigt, dass es weitergeht, ohne Pfeile oder Punkte.
+   *
+   * ⚠️ Vorher begann er bei `--space-lg` am Fensterrand. Auf einem breiten
+   * Schirm standen damit drei verschiedene Kanten untereinander: zentriertes
+   * Leitbild, Streifen am Fensterrand, Text in der Spalte. Das war der
+   * unruhige Eindruck, den Jan „kastenmäßig" genannt hat — nicht nur die
+   * fehlenden Fugen.
+   */
+  padding: 0 0 var(--space-md) max(var(--space-lg), (100vw - 1040px) / 2);
   /*
    * ⚠️ Ohne das rastet das erste Bild **bündig am Fensterrand** ein statt am
    * Innenabstand: `scroll-snap-align: start` zielt auf den Anfang des
    * Scrollbereichs, und der liegt hinter dem Padding. Am Handy sah der
    * Streifen dadurch aus, als sei der Rand vergessen worden.
    */
-  scroll-padding-inline: var(--space-lg);
+  scroll-padding-inline-start: max(var(--space-lg), (100vw - 1040px) / 2);
 }
 
 .streifen:focus-visible {
@@ -50,27 +67,38 @@
   outline-offset: -2px;
 }
 
+/*
+ * Einheitliche **Höhe**, Breite nach Seitenverhältnis.
+ *
+ * ⚠️ Hier stand `width: min(86vw, 720px)` am Rahmen und `aspect-ratio: 3/2`
+ * mit `object-fit: cover` am Bild: Jedes Motiv wurde in denselben Kasten
+ * gepresst, ein Hochformat verlor dabei den größten Teil. Was einen Streifen
+ * zum Streifen macht, ist aber die gemeinsame **Kante oben und unten** — nicht
+ * ein gemeinsames Seitenverhältnis. Mit fester Höhe behält jedes Bild seine
+ * Form: Hochformat schmal und hoch, Querformat breit.
+ *
+ * Die Höhe ist gedeckelt, damit ein Querformat auch auf einem schmalen
+ * Telefon noch vollständig ins Bild passt: Bei 3:2 ist die Breite das
+ * Anderthalbfache der Höhe.
+ */
 .rahmen {
   flex: 0 0 auto;
-  width: min(86vw, 720px);
   margin: 0;
   scroll-snap-align: start;
 }
 
 .bild {
-  width: 100%;
-  /*
-   * ⚠️ `height: auto` ist hier **nicht** überflüssig. Das `<img>` trägt die
-   * Maße des Originals als `width`/`height`-Attribute (gegen Layoutsprünge,
-   * siehe Bild.tsx). Die wirken als Präsentationshinweise und setzen `height`
-   * auf einen festen Pixelwert — und `aspect-ratio` greift nur, solange die
-   * Höhe `auto` ist. Ohne diese Zeile war der Rahmen 1200px hoch statt 147.
-   */
-  height: auto;
-  aspect-ratio: 3 / 2;
-  object-fit: cover;
   display: block;
-  background: #000;
+  height: min(48svh, 460px);
+  width: auto;
+  max-width: 86vw;
+  /*
+   * ⚠️ `object-fit: contain` und nicht `cover`: Nur bei einem extrem breiten
+   * Motiv greift `max-width` überhaupt, und dann soll es schmaler werden
+   * statt beschnitten. Dieselbe Haltung wie beim Leitbild.
+   */
+  object-fit: contain;
+  border-radius: var(--radius-bild);
 }
 
 .zeile {
@@ -83,7 +111,7 @@
 
 .zaehler {
   margin: 0;
-  padding: 0 var(--space-lg);
+  padding: 0 max(var(--space-lg), (100vw - 1040px) / 2);
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: var(--text-label);
   line-height: var(--leading-label);
@@ -92,8 +120,13 @@
 
 @media (max-width: 700px) {
   .streifen {
-    padding: 0 var(--space-md) var(--space-md);
-    scroll-padding-inline: var(--space-md);
+    gap: var(--space-sm);
+    padding: 0 0 var(--space-md) var(--space-md);
+    scroll-padding-inline-start: var(--space-md);
+  }
+
+  .bild {
+    height: min(34svh, 300px);
   }
 
   .zaehler {

@@ -149,7 +149,7 @@ async function aufnahmedaten(datei) {
  * Baum, nur unter anderem Präfix. Das ist beim Nachsehen im Dashboard der
  * entscheidende Vorteil gegenüber gehashten Namen.
  */
-async function verarbeite(r2, name, quelldatei, basisUrl, warnungen) {
+async function verarbeite(r2, name, quelldatei, basisUrl, warnungen, schluessel) {
   const meta = await sharp(quelldatei).metadata();
   /*
    * Ab EXIF-Orientierung 5 ist das Bild um 90° gedreht abgelegt: `sharp`
@@ -166,7 +166,8 @@ async function verarbeite(r2, name, quelldatei, basisUrl, warnungen) {
   if (Math.max(breite, hoehe) > QUELLE_WARNUNG.kante || rohGroesse > QUELLE_WARNUNG.bytes) {
     warnungen.push(
       `${name}: Original ist ${breite}×${hoehe} und ${menschlich(rohGroesse)} — ` +
-        `deutlich mehr als nötig. Vorgabe: lange Kante 2400–3000px, unter 3 MB.`,
+        `auch für ein Archiv-Original viel. Ein Panorama oder ein Scan, das hier ` +
+        `nicht hingehört? Sonst ignorieren: Originale dürfen groß sein.`,
     );
   }
 
@@ -184,6 +185,29 @@ async function verarbeite(r2, name, quelldatei, basisUrl, warnungen) {
   const urlName = name.split("/").map(encodeURIComponent).join("/");
 
   /**
+   * Fingerabdruck für die Adresse — die ersten acht Stellen des
+   * Cache-Schlüssels, der aus ETag des Originals, Pipelineversion und
+   * Bucket-Adresse entsteht.
+   *
+   * ⚠️ **Ohne ihn zeigte die Seite nach einem Bildwechsel das alte Foto.**
+   * Die Varianten liegen unter sprechenden, *stabilen* Namen
+   * (`01-1200.avif`) und werden mit `max-age=31536000, immutable`
+   * ausgeliefert. Ändert sich das Bild, ändert sich der Name eben **nicht** —
+   * Browser und Cloudflare-Edge halten die alte Datei ein Jahr lang für
+   * gültig und fragen wegen `immutable` nicht einmal nach.
+   *
+   * Aufgefallen ist es an einem Nebeneffekt: Die Aufnahmezeile unter den
+   * Bildern stimmte plötzlich nicht mehr zum Bild. Sie steht im HTML, das
+   * frisch gerendert wird — neue Zeit, altes Foto.
+   *
+   * Der Fingerabdruck steht als Abfrage **hinter** dem Pfad, nicht im
+   * Dateinamen: Im R2-Dashboard bleiben die Namen damit lesbar, und genau
+   * das war der Grund, überhaupt sprechende statt gehashter Namen zu nehmen.
+   * Für Browser und Edge ist es trotzdem eine andere Adresse.
+   */
+  const fingerabdruck = schluessel.slice(0, 8);
+
+  /**
    * Eine Variante in den Cache legen und hochladen; gibt ihre Adresse zurück.
    * `endung` wird an `urlName` bzw. `name` angehängt — Adresse kodiert,
    * Schlüssel roh.
@@ -195,7 +219,7 @@ async function verarbeite(r2, name, quelldatei, basisUrl, warnungen) {
     await writeFile(lokal, daten);
     await lege(r2, key, daten, typ);
     erzeugt.push(key);
-    return `${ableitungsBasis}/${urlName}${anhang}`;
+    return `${ableitungsBasis}/${urlName}${anhang}?v=${fingerabdruck}`;
   }
 
   // AVIF nur bis `AVIF_MAX_BREITE` — Begründung samt Messwerten dort.
@@ -396,7 +420,25 @@ async function main() {
       .digest("hex");
     const alt = stand[name];
 
-    if (alt?.schluessel === schluessel && alt.dateien.every((d) => imBucket.has(d))) {
+    /*
+     * ⚠️ **Auch die Adresse muss stimmen, nicht nur der Schlüssel.**
+     *
+     * Am 2026-09-12 bekamen die Adressen einen Fingerabdruck gegen einen
+     * Cache-Fehler — und die Änderung wäre wirkungslos geblieben: Der
+     * Schlüssel wäre unverändert gewesen, also käme der Eintrag samt
+     * **alter** Adresse aus `stand.json` zurück, der Lauf meldete
+     * „unverändert", und im Manifest stünde weiter die Adresse ohne
+     * Fingerabdruck.
+     *
+     * `PIPELINE_VERSION` zu erhöhen behebt den Einzelfall. Diese Prüfung
+     * behebt die **Klasse**: Ein zwischengespeicherter Eintrag gilt nur,
+     * wenn seine Adresse die ist, die dieser Lauf erzeugen würde. Wer die
+     * Form der Adressen künftig ändert und die Version vergisst, bekommt
+     * eine Neuberechnung statt eines stillen Fehlers.
+     */
+    const adresseAktuell = alt?.eintrag?.fallback?.includes(`?v=${schluessel.slice(0, 8)}`);
+
+    if (alt?.schluessel === schluessel && adresseAktuell && alt.dateien.every((d) => imBucket.has(d))) {
       bilder[name] = alt.eintrag;
       neuerStand[name] = alt;
       alt.dateien.forEach((d) => behalten.add(d));
@@ -444,7 +486,7 @@ async function main() {
     await mkdir(path.dirname(lokal), { recursive: true });
     await writeFile(lokal, await hole(r2, objekt.key));
 
-    const { eintrag, dateien } = await verarbeite(r2, name, lokal, basisUrl, warnungen);
+    const { eintrag, dateien } = await verarbeite(r2, name, lokal, basisUrl, warnungen, schluessel);
     bilder[name] = eintrag;
     neuerStand[name] = { schluessel, eintrag, dateien };
     dateien.forEach((d) => behalten.add(d));
