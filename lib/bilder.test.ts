@@ -140,17 +140,6 @@ describe("sparsamesSrcset", () => {
 });
 
 /**
- * ⚠️ Diese Zahlen sind **gegen Chromium gemessen**, nicht ausgedacht
- * (Playwright, 2026-09-12). Bei einem 2000×3000-Hochformat auf 1920×1080
- * rendert der Browser 518×778 CSS-px und wählt bei doppelter Pixeldichte die
- * 1200er-Stufe; bei einem 3000×2000-Querformat 1166×778 und die 2400er.
- * Beides deckt sich mit `Höhe × Seitenverhältnis`.
- *
- * Getestet wird hier die Angabe, nicht der Browser — aber wenn die Angabe
- * von `detail.module.css` abweicht, lädt er still die falsche Stufe. Genau
- * solche Fehler tauchen nirgends als Fehler auf.
- */
-/**
  * ⚠️ Die harte Grenze **bricht den Lauf ab**. Ein zu enges Budget ist damit
  * kein Schönheitsfehler, sondern eine Sperre — und genau das drohte: Feste
  * Zahlen waren stillschweigend für Querformate gerechnet.
@@ -182,76 +171,45 @@ describe("budgetFuer", () => {
   });
 });
 
-describe("leitbildSizes", () => {
-  it("rechnet die Breite aus dem Seitenverhältnis", async () => {
-    const { leitbildSizes } = await import("./bilder");
-    expect(leitbildSizes(2000, 3000)).toBe(
-      "(max-width: 700px) calc(min(100vw, 56svh * 0.6667)), calc(min(100vw, 72svh * 0.6667))",
-    );
-    expect(leitbildSizes(3000, 2000)).toBe(
-      "(max-width: 700px) calc(min(100vw, 56svh * 1.5)), calc(min(100vw, 72svh * 1.5))",
-    );
-  });
-
-  it("deckelt auf die Fensterbreite — sonst fordert ein Querformat auf dem Telefon zu viel an", async () => {
-    const { leitbildSizes } = await import("./bilder");
-    // Ohne `min(100vw, …)` käme auf einem 390px-Telefon 56svh × 1.5 = 710px
-    // heraus, bei dreifacher Pixeldichte also 2130 — die größte Stufe für
-    // einen Platz von 390px.
-    expect(leitbildSizes(3000, 2000)).toContain("min(100vw,");
-  });
-
-  it("nennt dieselben Höhen wie detail.module.css", async () => {
-    const { leitbildSizes } = await import("./bilder");
+/**
+ * ⚠️ Die Zahl steht an **zwei** Stellen: als Spaltenbreite im Raster
+ * (`detail.module.css`) und in der `sizes`-Angabe. Laufen sie auseinander,
+ * lädt der Browser stillschweigend die falsche Stufe — niemand bekommt einen
+ * Fehler, es kostet nur Bytes oder Schärfe. Genau diese Sorte Abweichung hat
+ * in diesem Projekt schon zweimal Zeit gekostet.
+ */
+describe("Flankenbreite", () => {
+  it("steht in sizes und im CSS auf derselben Zahl", async () => {
+    const { FLANKE_BREITE, FLANKEN_SIZES } = await import("./bilder");
     const css = await import("node:fs/promises").then((fs) =>
       fs.readFile(new URL("../app/arbeiten/[slug]/detail.module.css", import.meta.url), "utf8"),
     );
-    // Laufen die beiden auseinander, wählt der Browser die falsche Stufe.
-    for (const hoehe of ["72svh", "56svh"]) {
-      expect(css).toContain(`max-height: ${hoehe}`);
-      expect(leitbildSizes(2, 3)).toContain(hoehe);
-    }
+    expect(FLANKEN_SIZES).toContain(`${FLANKE_BREITE}px`);
+    expect(css).toContain(`minmax(0, ${FLANKE_BREITE}px)`);
   });
 
-  it("fällt bei unbrauchbaren Maßen auf 100vw zurück statt NaN ins HTML zu schreiben", async () => {
-    const { leitbildSizes } = await import("./bilder");
-    for (const [b, h] of [[0, 3000], [2000, 0], [NaN, 3000], [-1, 3000]]) {
-      expect(leitbildSizes(b, h)).toBe("100vw");
-    }
+  it("deckelt mobil auf die Fensterbreite", async () => {
+    const { FLANKEN_SIZES } = await import("./bilder");
+    // Ohne den ersten Zweig fordert der Browser auf dem Telefon 340px an,
+    // obwohl das Bild dort fast die volle Breite einnimmt.
+    expect(FLANKEN_SIZES).toContain("(max-width: 700px) 92vw");
   });
 
-  it("schreibt keine überflüssigen Nullen", async () => {
-    const { leitbildSizes } = await import("./bilder");
-    // 1:1 muss `1` ergeben, nicht `1.0000` — das steht so im HTML jeder Seite.
-    expect(leitbildSizes(2000, 2000)).toContain("72svh * 1)");
-  });
-});
-
-describe("streckeSizes", () => {
-  it("nennt alle drei Grenzen des Streifens", async () => {
-    const { streckeSizes } = await import("./bilder");
-    const s = streckeSizes(2000, 3000);
-    // Fehlt eine davon, fordert der Browser für ein breites Querformat die
-    // zu große Stufe an — sichtbar wird das nirgends, es kostet nur Bytes.
-    for (const grenze of ["86vw", "48svh", "460px", "34svh", "300px"]) {
-      expect(s).toContain(grenze);
-    }
+  it("das Hero fordert die volle Fensterbreite an", async () => {
+    const { HERO_SIZES } = await import("./bilder");
+    // Randlos mit `cover` — hier ist `100vw` die richtige Angabe und kein
+    // vergessener Standardwert.
+    expect(HERO_SIZES).toBe("100vw");
   });
 
-  it("nennt dieselben Höhen wie Bildstrecke.module.css", async () => {
-    const { streckeSizes } = await import("./bilder");
+  it("die Höhengrenze der Flanken steht im CSS der Komponente", async () => {
     const css = await import("node:fs/promises").then((fs) =>
-      fs.readFile(new URL("../app/components/Bildstrecke.module.css", import.meta.url), "utf8"),
+      fs.readFile(new URL("../app/components/Flanken.module.css", import.meta.url), "utf8"),
     );
-    expect(css).toContain("min(48svh, 460px)");
-    expect(css).toContain("min(34svh, 300px)");
-    const s = streckeSizes(3, 2);
-    for (const wert of ["48svh", "460px", "34svh", "300px"]) expect(s).toContain(wert);
-  });
-
-  it("fällt bei unbrauchbaren Maßen auf die alte Angabe zurück", async () => {
-    const { streckeSizes } = await import("./bilder");
-    expect(streckeSizes(0, 3000)).toBe("(max-width: 700px) 86vw, 720px");
+    // Ohne sie füllt ein einzelnes Hochformat auf dem Telefon den Bildschirm.
+    expect(css).toContain("max-height: 66svh");
+    // Der Schwebe-Effekt darf es nur mit echtem Zeigegerät geben.
+    expect(css).toContain("@media (hover: hover) and (pointer: fine)");
   });
 });
 

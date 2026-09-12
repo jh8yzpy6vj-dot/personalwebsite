@@ -4,15 +4,15 @@ import Topbar from "../../components/Topbar";
 import SiteFooter from "../../components/SiteFooter";
 import Bild from "../../components/Bild";
 import Blaettertasten from "../../components/Blaettertasten";
-import Bildstrecke from "../../components/Bildstrecke";
+import Flanken from "../../components/Flanken";
 import Film from "../../components/Film";
 import Kontaktbogen from "../../components/Kontaktbogen";
 import {
   aufnahmeZeile,
   bildZurArbeit,
   bildstreckeZurArbeit,
-  leitbildSizes,
   serieZurArbeit,
+  HERO_SIZES,
 } from "@/lib/bilder";
 import { videoZurArbeit } from "@/lib/video";
 import { CATEGORIES } from "@/lib/content";
@@ -128,72 +128,81 @@ export default async function WorkDetail({
       />
 
       <main id="inhalt" tabIndex={-1}>
-        {/* Dunkel: das Bild. Solange keins vorliegt, ein ehrlicher Platzhalter
-            statt eines kaputten img. */}
-        {/* Kein `medien-scrim`: Der Verlauf unter der Topbar gehört auf ein
-            Foto, das bis an den oberen Rand läuft. Seit das Leitbild auf der
-            Bühne freisteht, säße er auf dem Grund selbst und wäre als dunkler
-            Streifen sichtbar. Die Topbar bringt ihre eigene Füllung mit. */}
-        <div className={styles.media}>
+        {/*
+          Dunkel: das Hero über die volle Fensterhöhe, Titel und Metazeile
+          darauf. `medien-scrim` ist zurück — hier läuft das Foto wieder bis
+          an den oberen Rand, und darunter sitzt die durchsichtige Topbar.
+        */}
+        <section className={`${styles.hero} medien-scrim`}>
           {bild ? (
-            /* Nicht zugeschnitten, sondern über die Höhe begrenzt — die
-               Breite bringt das Bild selbst mit, deshalb rechnet
-               `leitbildSizes` sie aus seinem Seitenverhältnis. Beim
-               Aufschlagen sichtbar, deshalb Vorrang statt verzögertem
-               Laden. */
-            <Bild
-              className={styles.image}
-              quelle={bild}
-              alt={work.alt ?? `${work.title}, ${work.client}, ${work.year}`}
-              sizes={leitbildSizes(bild.breite, bild.hoehe)}
-              vorrang
-              uebergang={`bild-${work.id}`}
-            />
+            <div className={styles.heroBild}>
+              <Bild
+                className={styles.image}
+                quelle={bild}
+                alt={work.alt ?? `${work.title}, ${work.client}, ${work.year}`}
+                sizes={HERO_SIZES}
+                vorrang
+                uebergang={`bild-${work.id}`}
+              />
+            </div>
           ) : (
             <div className={styles.placeholder} aria-hidden="true">
               <span className={styles.placeholderDot} />
               <span className={styles.placeholderNote}>Bild folgt</span>
             </div>
           )}
-        </div>
 
-        {/* Noch dunkel: Film und Strecke gehören zum Sehen, nicht zum Lesen —
-            hinter dem Text stünden sie hinter einer zweiten Naht.
+          {/* Titel und Auftraggeber stehen **hier** und sonst nirgends auf
+              der Seite — siehe „Titel genau einmal" in design/UI-SPEC.md. */}
+          <div className={styles.heroFuss}>
+            <div className={styles.heroInner}>
+              <p className={styles.client}>{work.client}</p>
+              <h1 className={styles.title}>{work.title}</h1>
+              <p className={styles.meta}>{metaLine(work)}</p>
+            </div>
+          </div>
+        </section>
 
-            Der Film steht **über** der Strecke: Wo es einen Aftermovie gibt,
-            ist er das stärkere Argument, und niemand scrollt an einer
-            Bildstrecke vorbei, um ihn zu suchen. */}
-        {film && (
-          <Film quelle={film} titel={work.title} standbild={bild} />
-        )}
-        <Bildstrecke bilder={strecke} titel={work.title} />
-
-        {/* Hell: der Kontext. */}
+        {/* Hell: der Kontext. Die einzige Naht der Seite liegt hier. */}
         <div className={styles.light}>
+          {/*
+            Text in der Mitte, die Bilder der Strecke links und rechts davon.
+            Ohne Bilder fällt das Raster auf eine Spalte zurück, statt zwei
+            leere Flanken offen zu halten.
+          */}
+          <div
+            className={`${styles.satz}${strecke.length === 0 ? ` ${styles.satzOhneBilder}` : ""}`}
+          >
+            <Flanken bilder={strecke} titel={work.title} />
+
+            <article className={styles.text}>
+              {/* Aufnahmedaten aus dem EXIF des Originals — automatisch, kein
+                  Pflegeaufwand. Erscheint nur, wenn die Datei welche
+                  mitbringt; viele Exportwege werfen das EXIF weg, und das ist
+                  kein Fehler. */}
+              {aufnahme && <p className={styles.aufnahme}>{aufnahme}</p>}
+
+              {/* Bewusst kein Fließtext: Die zwei Sätze Projektkontext je
+                  Arbeit sind noch nicht geschrieben und werden nicht
+                  erfunden. Sobald sie vorliegen, kommt in content.ts ein Feld
+                  dazu und wird hier ausgegeben. Siehe TODO.md.
+
+                  ⚠️ Solange hier nur ein Satz steht, laufen die Flanken unter
+                  den Text hinaus — das ist die bekannte Grenze des Layouts
+                  und steht so im UI-SPEC. */}
+              <p className={styles.pending}>Beschreibung folgt.</p>
+
+              {/* Der Beleg für das, was die Copy behauptet: vier Frames
+                  daneben, einer sitzt. Siehe Kontaktbogen.tsx. */}
+              <Kontaktbogen bilder={serie} titel={work.title} />
+            </article>
+          </div>
+
+          {/* Der Film steht **unter** dem Textblock über die volle Breite:
+              Ein Aftermovie ist ein eigener Auftritt, keine Flanke. */}
+          {film && <Film quelle={film} titel={work.title} standbild={bild} />}
+
           <article className={styles.inner}>
-            <p className={styles.client}>{work.client}</p>
-            <h1 className={styles.title}>{work.title}</h1>
-            <p className={styles.meta}>{metaLine(work)}</p>
-
-            {/* Aufnahmedaten aus dem EXIF des Originals — automatisch, kein
-                Pflegeaufwand. Erscheint nur, wenn die Datei welche mitbringt;
-                viele Exportwege werfen das EXIF weg, und das ist kein Fehler.
-                Nutzt die bestehende Rolle *Meta* (14px, Martian Mono) — keine
-                neue Schriftgröße, die Skala bleibt bei vier. */}
-            {aufnahme && <p className={styles.aufnahme}>{aufnahme}</p>}
-
-            {/* Der Beleg für das, was die Copy behauptet: vier Frames
-                daneben, einer sitzt. Siehe Kontaktbogen.tsx. */}
-            <Kontaktbogen bilder={serie} titel={work.title} />
-
-            {/* Bewusst kein Fließtext: Die zwei Sätze Projektkontext je Arbeit
-                sind noch nicht geschrieben und werden nicht erfunden. Sobald
-                sie vorliegen, kommt in content.ts ein Feld `context` dazu und
-                wird hier ausgegeben. Siehe TODO.md. */}
-            <p className={styles.pending}>
-              Beschreibung und Bildstrecke folgen.
-            </p>
-
             {/* Ohne vor/zurück ist jede Detailseite eine Sackgasse — man
                 kann nur zurück. Innerhalb derselben Kategorie, weil wer eine
                 Festivalarbeit anschaut, die nächste Festivalarbeit sehen

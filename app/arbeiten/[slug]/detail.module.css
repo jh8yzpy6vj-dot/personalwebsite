@@ -11,60 +11,92 @@
 }
 
 /*
- * ⚠️ **Kein Zuschnitt.** Hier stand bis zum 2026-09-12 `height: 72vh` am
- * Rahmen und `object-fit: cover` am Bild. Beim ersten echten Hochformat
- * (2000×3000) zeigte sich, was das kostet: Auf 1920×1080 ist der Rahmen
- * 1920×778, das Bild wird auf 1920×2880 skaliert und auf 778 px beschnitten —
- * sichtbar sind **27 % des Fotos**. Und der Browser fordert 1920 CSS-px an
- * (Retina 3840), bekommt aber höchstens 1600.
+ * ── Das Hero ────────────────────────────────────────────────────────
  *
- * Jetzt begrenzt die **Höhe**, das Bild bringt seine Form mit. Dasselbe
- * Hochformat ist damit ~519 CSS-px breit; die 1200er-Stufe deckt das auf
- * Retina mit Reserve ab. Ganzes Bild, schärfer, weniger Bytes.
+ * ⚠️ **Der Zuschnitt ist am 2026-09-13 zurückgeholt worden — bewusst.**
+ * Vom 2026-09-12 bis dahin war das Leitbild höhenbegrenzt und ohne
+ * Zuschnitt. Das war richtig, **solange es die einzige Fläche für ein ganzes
+ * Foto war**. Seit die Strecke als Flanken neben dem Text steht, ist die
+ * Aufgabe verteilt: Das Hero liefert die Wucht, die Flanken zeigen die
+ * Bilder vollständig. Jan: „lass das Leitbild als full size hero element."
  *
- * Siehe design/UI-SPEC.md, „Leitbild (Detailseite)".
+ * `svh` und nicht `vh`: `vh` meint auf dem Telefon die Höhe ohne die ein-
+ * und ausfahrende Browserleiste — damit ragte das Hero unten heraus.
  */
-.media {
+.hero {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /*
-   * ⚠️ **Kein eigener Grund und kein `overflow: hidden`.** Hier stand `#000`
-   * über die volle Fensterbreite. Bei einem Querformat ergab das links und
-   * rechts breite schwarze Balken — ein Videoplayer im Briefmodus, nicht ein
-   * Foto. Jan: „der schwarze Kasten um das Leitbild geht gar nicht."
-   *
-   * Die Antwort ist nicht, wieder zuzuschneiden, sondern den Kasten
-   * wegzunehmen: `.page` trägt bereits `--buehne`, das Foto liegt also auf
-   * derselben Fläche wie der Rest der dunklen Hälfte. Was übrig bleibt, ist
-   * kein Rahmen mehr, sondern Raum.
-   */
-  padding: var(--space-2xl) var(--space-lg);
+  height: 100svh;
+  min-height: 420px;
+  overflow: hidden;
+  background: #000;
+}
+
+.heroBild {
+  position: absolute;
+  inset: 0;
 }
 
 .image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   display: block;
-  width: auto;
-  height: auto;
-  max-width: 100%;
-  /*
-   * `svh` und nicht `vh` — dieselbe Begründung wie beim Hero: `vh` meint auf
-   * dem Telefon die Höhe ohne die ein- und ausfahrende Browserleiste.
-   */
-  max-height: 72svh;
-  border-radius: var(--radius-bild);
 }
 
 /*
- * Ohne Bild gibt es keine Form, die der Rahmen übernehmen könnte — deshalb
- * trägt der Platzhalter die Höhe selbst. Ohne diese Zeile fiele der Rahmen
- * auf `min-height: 360px` zusammen, seit `.media` keine feste Höhe mehr hat.
+ * Titel und Metazeile liegen **im** Bild, auf einem Verlauf nach Schwarz.
+ * Der Verlauf ist deckend, solange Text darauf steht — siehe „Text über
+ * Fotos" in design/UI-SPEC.md.
+ */
+.heroFuss {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: var(--space-3xl) var(--space-lg) var(--space-xl);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0));
+}
+
+.heroInner {
+  max-width: 1320px;
+  margin: 0 auto;
+}
+
+.client {
+  margin: 0 0 var(--space-sm);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: #d8dbd8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.title {
+  margin: 0;
+  max-width: 20ch;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: var(--text-display);
+  font-weight: var(--weight-bold);
+  line-height: 1.06;
+  letter-spacing: -0.015em;
+  color: #fff;
+  text-wrap: balance;
+}
+
+.meta {
+  margin: var(--space-md) 0 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: #d8dbd8;
+}
+
+/*
+ * Ohne Bild gibt es keine Form, die das Hero übernehmen könnte — der
+ * Platzhalter trägt die Höhe dann selbst.
  */
 .placeholder {
-  width: 100%;
-  min-height: 72svh;
-  border-radius: var(--radius-bild);
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -87,6 +119,38 @@
   color: var(--ton-buehne);
 }
 
+/*
+ * ── Der Satz: Text zwischen zwei Bilderflanken ──────────────────────
+ *
+ * ⚠️ `FLANKE_BREITE` in `lib/bilder.ts` trägt dieselbe Zahl wie die beiden
+ * äußeren Spalten hier. Laufen sie auseinander, lädt der Browser
+ * stillschweigend die falsche Bildstufe. Ein Test hält sie zusammen.
+ */
+.satz {
+  display: grid;
+  grid-template-columns: minmax(0, 340px) minmax(0, 54ch) minmax(0, 340px);
+  justify-content: center;
+  gap: 0 var(--space-2xl);
+  align-items: start;
+  padding: var(--space-3xl) var(--space-lg) var(--space-2xl);
+}
+
+/* Ohne Bilder bleibt nur die Textspalte — dann kein leeres Dreispaltenraster. */
+.satzOhneBilder {
+  grid-template-columns: minmax(0, 54ch);
+}
+
+.satzOhneBilder .text {
+  grid-column: 1;
+}
+
+/* Mitte, erste Zeile — siehe die Begründung in Flanken.module.css. */
+.text {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+}
+
 .light {
   composes: light from "../../components/shared.module.css";
 }
@@ -97,55 +161,26 @@
   padding: var(--space-3xl) var(--space-lg);
 }
 
-.client {
-  margin: 0 0 var(--space-sm);
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: var(--text-label);
-  line-height: var(--leading-label);
-  color: var(--ton-papier);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.title {
-  margin: 0 0 var(--space-md);
-  max-width: 24ch;
-  font-family: var(--font-display), system-ui, sans-serif;
-  font-size: var(--text-heading);
-  font-weight: var(--weight-bold);
-  line-height: var(--leading-heading);
-}
-
-.meta {
-  margin: 0 0 var(--space-xl);
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: var(--text-label);
-  line-height: var(--leading-label);
-  color: var(--ton-papier);
-}
-
 /*
- * Aufnahmedaten: `22:14 uhr · 1/500 · f/2.8 · iso 6400`.
+ * Aufnahmedaten eröffnen den Textblock: `22:14 uhr · 1/500 · f/2.8 · iso 6400`.
  *
- * Dieselbe Rolle *Meta* wie die Zeile darüber — dieselbe Schrift, Größe und
- * Farbe. Sie ist kein neuer Textrang, sondern die Fortsetzung derselben
- * Angabe; deshalb keine neue Größe und kein neues Gewicht (die Skala kennt
- * genau vier bzw. zwei, siehe design/UI-SPEC.md).
+ * ⚠️ **Hier stand vorher Auftraggeber, Titel und Metazeile ein zweites Mal.**
+ * Seit der Titel am Hero steht, wäre das eine Wiederholung — auf dem Desktop
+ * durch einen Bildschirm getrennt, auf dem Telefon direkt untereinander.
+ * Siehe „Titel genau einmal" in design/UI-SPEC.md.
+ *
+ * Die Linie darunter trennt Angabe von Fließtext, ohne eine zweite
+ * Überschrift zu behaupten. Rolle *Meta* wie gehabt — keine neue Schriftgröße,
+ * die Skala kennt genau vier.
  */
 .aufnahme {
-  composes: meta;
-  margin: 0 0 var(--space-xl);
-}
-
-/*
- * Steht die Aufnahmezeile darunter, rücken beide zu einem Block zusammen.
- * Sonst stünden zwei Metazeilen mit dem vollen Abstand einer Absatzgrenze
- * untereinander und läsen sich wie zwei getrennte Angaben.
- *
- * Ohne `:has()` bleibt der größere Abstand — nur weniger dicht, nichts kaputt.
- */
-.meta:has(+ .aufnahme) {
-  margin-bottom: var(--space-xs);
+  margin: 0 0 var(--space-lg);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--stein);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-papier);
 }
 
 /* Ehrlicher Hinweis, solange Text und Bildstrecke fehlen. */
@@ -227,17 +262,65 @@
   color: var(--ton-papier);
 }
 
+/*
+ * ── Telefon ─────────────────────────────────────────────────────────
+ */
 @media (max-width: 700px) {
-  .media {
-    padding: var(--space-lg) var(--space-md);
+  /*
+   * ⚠️ **Das Hero ist hier nicht bildschirmfüllend, sondern breit.** Ein
+   * Querformat in eine hohe, schmale Box mit `cover` zu zwingen schnitt den
+   * halben Bildinhalt weg — Jans Befund am echten Gerät. Mit 4:3 bleibt fast
+   * alles stehen, und darunter passt der Titel noch über die Falz.
+   */
+  .hero {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    background: transparent;
+  }
+
+  .heroBild {
+    position: static;
   }
 
   .image {
-    max-height: 56svh;
+    aspect-ratio: 4 / 3;
+    height: auto;
+  }
+
+  /*
+   * Der Titel steht **unter** dem Bild statt darauf: In einer nur noch 4:3
+   * hohen Box müsste er gegen das Motiv ankämpfen. Kein Verlauf nötig, der
+   * Grund ist ohnehin die Bühne.
+   */
+  .heroFuss {
+    position: static;
+    background: none;
+    padding: var(--space-lg) var(--space-md) var(--space-xl);
+  }
+
+  .title {
+    font-size: var(--text-heading);
+    max-width: none;
   }
 
   .placeholder {
-    min-height: 56svh;
+    position: static;
+    aspect-ratio: 4 / 3;
+  }
+
+  .satz,
+  .satzOhneBilder {
+    grid-template-columns: 1fr;
+    padding: var(--space-2xl) var(--space-md);
+  }
+
+  /* Erst lesen, dann die Bilder — so von Jan festgelegt. Die Karten
+     tragen ihre echte Reihenfolge als `order`, siehe Flanken.tsx. */
+  .text {
+    grid-column: 1;
+    grid-row: auto;
+    order: -1;
   }
 
   .inner {
