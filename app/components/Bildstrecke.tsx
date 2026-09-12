@@ -1,4 +1,4 @@
-import { streckenZeile, type Streckenbild } from "@/lib/bilder";
+import { streckeSizes, streckenZeile, type Streckenbild } from "@/lib/bilder";
 import Bild from "./Bild";
 import styles from "./Bildstrecke.module.css";
 
@@ -56,7 +56,7 @@ export default function Bildstrecke({ bilder, titel }: Props) {
                 className={styles.bild}
                 quelle={quelle}
                 alt={`${titel}, Bild ${i + 1} von ${bilder.length}`}
-                sizes="(max-width: 700px) 86vw, 720px"
+                sizes={streckeSizes(quelle.breite, quelle.hoehe)}
                 /* Das erste Bild steht direkt unter dem Hero und ist auf
                    großen Bildschirmen sichtbar, bevor jemand scrollt. */
                 vorrang={i === 0}

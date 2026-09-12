@@ -104,14 +104,39 @@ export function sparsamesSrcset(
  * Telefon die Höhe ohne die ein- und ausfahrende Browserleiste.
  */
 export function leitbildSizes(breite: number, hoehe: number): string {
+  const v = seitenverhaeltnis(breite, hoehe);
   // Ein kaputtes Manifest darf nicht zu `NaN` im HTML führen; dann lieber die
   // alte, verschwenderische, aber funktionierende Angabe.
-  if (!(breite > 0) || !(hoehe > 0)) return "100vw";
-  const verhaeltnis = (breite / hoehe).toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
+  if (v === null) return "100vw";
   return (
-    `(max-width: 700px) calc(min(100vw, 56svh * ${verhaeltnis})), ` +
-    `calc(min(100vw, 72svh * ${verhaeltnis}))`
+    `(max-width: 700px) calc(min(100vw, 56svh * ${v})), ` + `calc(min(100vw, 72svh * ${v}))`
   );
+}
+
+/**
+ * `sizes` für ein Bild der Bildstrecke.
+ *
+ * Dieselbe Rechnung wie beim Leitbild, nur mit den Grenzwerten des Streifens:
+ * feste Höhe, gedeckelt in Pixeln **und** auf 86 % der Fensterbreite. Alle
+ * drei Grenzen müssen hier stehen, sonst fordert der Browser für ein breites
+ * Querformat die zu große Stufe an.
+ *
+ * ⚠️ Die Werte spiegeln `Bildstrecke.module.css`. Laufen sie auseinander,
+ * lädt der Browser stillschweigend die falsche Auflösung.
+ */
+export function streckeSizes(breite: number, hoehe: number): string {
+  const v = seitenverhaeltnis(breite, hoehe);
+  if (v === null) return "(max-width: 700px) 86vw, 720px";
+  return (
+    `(max-width: 700px) min(86vw, 34svh * ${v}, 300px * ${v}), ` +
+    `min(86vw, 48svh * ${v}, 460px * ${v})`
+  );
+}
+
+/** Seitenverhältnis als kurze Dezimalzahl, oder `null` bei unbrauchbaren Maßen. */
+function seitenverhaeltnis(breite: number, hoehe: number): string | null {
+  if (!(breite > 0) || !(hoehe > 0)) return null;
+  return (breite / hoehe).toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
 }
 
 /**

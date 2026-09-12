@@ -130,7 +130,11 @@ export default async function WorkDetail({
       <main id="inhalt" tabIndex={-1}>
         {/* Dunkel: das Bild. Solange keins vorliegt, ein ehrlicher Platzhalter
             statt eines kaputten img. */}
-        <div className={`${styles.media}${bild ? " medien-scrim" : ""}`}>
+        {/* Kein `medien-scrim`: Der Verlauf unter der Topbar gehört auf ein
+            Foto, das bis an den oberen Rand läuft. Seit das Leitbild auf der
+            Bühne freisteht, säße er auf dem Grund selbst und wäre als dunkler
+            Streifen sichtbar. Die Topbar bringt ihre eigene Füllung mit. */}
+        <div className={styles.media}>
           {bild ? (
             /* Nicht zugeschnitten, sondern über die Höhe begrenzt — die
                Breite bringt das Bild selbst mit, deshalb rechnet

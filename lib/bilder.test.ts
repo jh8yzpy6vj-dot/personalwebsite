@@ -227,6 +227,34 @@ describe("leitbildSizes", () => {
   });
 });
 
+describe("streckeSizes", () => {
+  it("nennt alle drei Grenzen des Streifens", async () => {
+    const { streckeSizes } = await import("./bilder");
+    const s = streckeSizes(2000, 3000);
+    // Fehlt eine davon, fordert der Browser für ein breites Querformat die
+    // zu große Stufe an — sichtbar wird das nirgends, es kostet nur Bytes.
+    for (const grenze of ["86vw", "48svh", "460px", "34svh", "300px"]) {
+      expect(s).toContain(grenze);
+    }
+  });
+
+  it("nennt dieselben Höhen wie Bildstrecke.module.css", async () => {
+    const { streckeSizes } = await import("./bilder");
+    const css = await import("node:fs/promises").then((fs) =>
+      fs.readFile(new URL("../app/components/Bildstrecke.module.css", import.meta.url), "utf8"),
+    );
+    expect(css).toContain("min(48svh, 460px)");
+    expect(css).toContain("min(34svh, 300px)");
+    const s = streckeSizes(3, 2);
+    for (const wert of ["48svh", "460px", "34svh", "300px"]) expect(s).toContain(wert);
+  });
+
+  it("fällt bei unbrauchbaren Maßen auf die alte Angabe zurück", async () => {
+    const { streckeSizes } = await import("./bilder");
+    expect(streckeSizes(0, 3000)).toBe("(max-width: 700px) 86vw, 720px");
+  });
+});
+
 describe("Aufnahmezeile", () => {
   it("schreibt die Belichtungszeit als Bruch, wie auf jeder Kamera", async () => {
     const { belichtungAlsText } = await import("./bilder");

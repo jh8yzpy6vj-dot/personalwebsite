@@ -244,12 +244,18 @@ export async function lege(r2, key, daten, typ) {
     headers: {
       "content-type": typ,
       /*
-       * Ein Jahr, unveränderlich. Das ist gefahrlos, weil jede Variante die
-       * Breite im Dateinamen trägt: Ändert sich das Bild, ändert sich der
-       * Name nicht — deshalb schreibt die Pipeline bei geändertem Original
-       * alle Varianten neu und der Browser holt sie über die neue Prüfsumme
-       * im Manifest. Bei gleichbleibendem Bild soll er sie gerade **nicht**
-       * neu holen.
+       * Ein Jahr, unveränderlich — **nur zusammen mit dem Fingerabdruck in
+       * der Adresse** (`?v=…`, siehe `verarbeite()` in `medien.mjs`).
+       *
+       * ⚠️ Hier stand die Begründung, das sei gefahrlos, „weil der Browser
+       * sie über die neue Prüfsumme im Manifest holt". **Diese Prüfsumme gab
+       * es nicht.** Im Manifest stand die blanke Adresse, und die ändert sich
+       * beim Bildwechsel nicht. Ergebnis: Jan tauschte die Fotos aus, die
+       * Pipeline lud sie brav hoch — und Browser wie Cloudflare-Edge zeigten
+       * ein Jahr lang weiter die alten, wegen `immutable` ohne nachzufragen.
+       *
+       * Der Fingerabdruck macht die Zusage jetzt wahr: gleiche Adresse heißt
+       * wirklich gleiches Bild.
        */
       "cache-control": "public, max-age=31536000, immutable",
     },
