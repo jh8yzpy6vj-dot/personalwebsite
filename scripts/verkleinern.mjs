@@ -19,6 +19,15 @@
  *   npm run verkleinern -- <ordner> --serie tete-a-tete-2026
  *   npm run verkleinern -- <datei>  --einzel portrait
  *   … zusätzlich --hochladen, um das Ergebnis gleich in den Bucket zu legen
+ *
+ * ⚠️ **`--original` verkleinert gar nicht.** Dann bleiben Maße und Qualität
+ * exakt, wie sie sind, und es werden ausschließlich die Metadaten neu
+ * geschrieben — die Bilddaten werden byteweise kopiert. Das ist der Weg für
+ * „Originalqualität behalten, nur die Standortdaten raus" (Jan, 2026-09-12).
+ * Funktioniert nur für JPEG; wie es funktioniert, steht in `scripts/exif.mjs`.
+ *
+ * Gegen die Namensvorgabe macht das keinen Unterschied: Beide Betriebsarten
+ * legen denselben Baum an, sie füllen ihn nur anders.
  */
 
 import { existsSync } from "node:fs";
@@ -29,6 +38,7 @@ import exifr from "exifr";
 import sharp from "sharp";
 
 import { EXIF_FELDER } from "../lib/bilder-regeln.mjs";
+import { baueExifSegment, saeubereJpeg } from "./exif.mjs";
 import { lege, zugang } from "./r2.mjs";
 
 const WURZEL = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
@@ -99,6 +109,72 @@ async function aufnahmedaten(quelle) {
   return Object.keys(feld).length > 0 ? { IFD2: feld } : null;
 }
 
+/**
+ * Welche Bearbeitung greift — von `main()` gesetzt, je nach `--original`.
+ * Alle Ablagestellen rufen `bearbeite()`, damit die Namensregeln an genau
+ * einer Stelle stehen und nicht je Betriebsart doppelt.
+ */
+let bearbeite = verkleinere;
+
+/**
+ * Eine Datei **unverändert** übernehmen — nur die Metadaten neu schreiben.
+ *
+ * ⚠️ Für `--original`: Größe und Qualität bleiben exakt, weil die Bilddaten
+ * ab `SOS` byteweise kopiert werden. Was verschwindet, sind GPS,
+ * MakerNotes, eingebettete Vorschaubilder, XMP und IPTC — siehe
+ * `scripts/exif.mjs`, dort steht auch, warum das eine Positivliste ist.
+ *
+ * Die **Orientierung** wird ausdrücklich mitgenommen: Ohne sie läge jedes
+ * gedreht aufgenommene Hochformat quer, denn die Pixel bleiben ja so liegen,
+ * wie die Kamera sie geschrieben hat.
+ */
+async function uebernimm(quelle, zielName, meldungen) {
+  const roh = await readFile(quelle);
+  const meta = await sharp(roh).metadata();
+
+  if (meta.format !== "jpeg") {
+    abbruch(
+      `${path.basename(quelle)} ist ${meta.format?.toUpperCase() ?? "unbekannt"}, nicht JPEG.\n` +
+        `--original kann nur JPEG unangetastet lassen. Ohne --original wird die Datei\n` +
+        `umgerechnet, dann geht jedes Format.`,
+    );
+  }
+
+  const roheWerte = await exifr
+    .parse(roh, { pick: EXIF_FELDER, reviveValues: false })
+    .catch(() => null);
+  const felder = { Orientation: meta.orientation ?? 1 };
+  if (roheWerte?.DateTimeOriginal) felder.DateTimeOriginal = String(roheWerte.DateTimeOriginal);
+  if (typeof roheWerte?.ExposureTime === "number" && roheWerte.ExposureTime > 0) {
+    felder.ExposureTime =
+      roheWerte.ExposureTime >= 1
+        ? [Math.round(roheWerte.ExposureTime * 100), 100]
+        : [1, Math.round(1 / roheWerte.ExposureTime)];
+  }
+  if (typeof roheWerte?.FNumber === "number" && roheWerte.FNumber > 0) {
+    felder.FNumber = [Math.round(roheWerte.FNumber * 10), 10];
+  }
+  const iso = roheWerte?.ISO ?? roheWerte?.ISOSpeedRatings;
+  if (typeof iso === "number" && iso > 0) felder.ISOSpeedRatings = iso;
+
+  const { datei, verworfen } = saeubereJpeg(roh, baueExifSegment(felder));
+  const ziel = path.join(ZIEL, zielName);
+  await mkdir(path.dirname(ziel), { recursive: true });
+  await writeFile(ziel, datei);
+
+  const gedreht = (meta.orientation ?? 1) >= 5;
+  meldungen.push({
+    zielName,
+    von: path.basename(quelle),
+    text:
+      `${gedreht ? meta.height : meta.width}×${gedreht ? meta.width : meta.height}, ` +
+      `${menschlich(roh.length)} unverändert` +
+      (verworfen.length > 0 ? `, ${verworfen.length} Metadatenblock/-blöcke entfernt` : ", nichts zu entfernen"),
+    zuGross: false, // Bei --original ist die Größe gewollt.
+  });
+  return datei;
+}
+
 /** Eine Datei verkleinern und unter `zielName` im Zielbaum ablegen. */
 async function verkleinere(quelle, zielName, meldungen) {
   const exif = await aufnahmedaten(quelle);
@@ -148,6 +224,7 @@ async function main() {
   const wert = {};
   let quelle;
   let hochladen = false;
+  let original = false;
 
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
@@ -156,6 +233,8 @@ async function main() {
       wert[a] = args[i];
     } else if (a === "--hochladen") {
       hochladen = true;
+    } else if (a === "--original") {
+      original = true;
     } else if (a.startsWith("--")) {
       abbruch(`Unbekannte Angabe: ${a}`);
     } else if (quelle === undefined) {
@@ -173,8 +252,12 @@ async function main() {
         "  npm run verkleinern -- <ordner> --arbeit <id>        Leitbild + Bildstrecke\n" +
         "  npm run verkleinern -- <ordner> --serie <id>         Kontaktbogen\n" +
         "  npm run verkleinern -- <datei>  --einzel <schluessel>  z. B. portrait\n" +
-        "\nZusätzlich --leitbild <dateiname>, um das Leitbild selbst zu wählen,\n" +
-        "und --hochladen, um das Ergebnis gleich in den Bucket zu legen.",
+        "\nZusätzlich:\n" +
+        "  --original    Größe und Qualität unangetastet lassen, nur die Standort-\n" +
+        "                daten entfernen (nur JPEG). Ohne das wird auf 3000px\n" +
+        "                verkleinert und neu kodiert.\n" +
+        "  --leitbild <dateiname>   das Leitbild selbst wählen\n" +
+        "  --hochladen              das Ergebnis gleich in den Bucket legen",
     );
   }
   if (!existsSync(quelle)) abbruch(`Gibt es nicht: ${quelle}`);
@@ -200,11 +283,13 @@ async function main() {
     }
   }
 
+  bearbeite = original ? uebernimm : verkleinere;
+
   await rm(ZIEL, { recursive: true, force: true });
   const meldungen = [];
 
   if (einzel) {
-    await verkleinere(quelle, `original/${einzel}.jpg`, meldungen);
+    await bearbeite(quelle, `original/${einzel}.jpg`, meldungen);
   } else {
     const dateien = await bilderIn(quelle);
     if (dateien.length === 0) abbruch(`Keine Bilder in ${quelle}.`);
@@ -213,7 +298,7 @@ async function main() {
       // Kontaktbogen: durchnummeriert, Reihenfolge = Dateiname.
       for (const [i, name] of dateien.entries()) {
         const nr = String(i + 1).padStart(2, "0");
-        await verkleinere(path.join(quelle, name), `original/arbeiten/${serie}/serie/${nr}.jpg`, meldungen);
+        await bearbeite(path.join(quelle, name), `original/arbeiten/${serie}/serie/${nr}.jpg`, meldungen);
       }
       console.log(
         `\n⚠️ Im Kontaktbogen markiert \`-gewaehlt\` am Dateinamen das Bild, das es\n` +
@@ -234,12 +319,12 @@ async function main() {
         console.log(`  Mit --leitbild <dateiname> bestimmst du es selbst.`);
       }
 
-      await verkleinere(path.join(quelle, leit), `original/arbeiten/${arbeit}.jpg`, meldungen);
+      await bearbeite(path.join(quelle, leit), `original/arbeiten/${arbeit}.jpg`, meldungen);
       let nr = 0;
       for (const name of dateien) {
         if (name === leit) continue;
         nr += 1;
-        await verkleinere(
+        await bearbeite(
           path.join(quelle, name),
           `original/arbeiten/${arbeit}/${String(nr).padStart(2, "0")}.jpg`,
           meldungen,

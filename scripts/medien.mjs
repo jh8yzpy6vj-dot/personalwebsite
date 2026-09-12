@@ -32,13 +32,13 @@ import sharp from "sharp";
 
 import {
   AVIF_MAX_BREITE,
-  BUDGET,
   EXIF_FELDER,
   LQIP_BREITE,
   PIPELINE_VERSION,
   QUALITAET,
   QUELLE_WARNUNG,
   breitenFuer,
+  budgetFuer,
   fallbackBreite,
   srcset,
   variantenName,
@@ -212,20 +212,28 @@ async function verarbeite(r2, name, quelldatei, basisUrl, warnungen) {
     const formate = [["webp", { quality: QUALITAET.webp }]];
     if (avifBreiten.includes(b)) formate.unshift(["avif", { quality: QUALITAET.avif }]);
 
+    /*
+     * ⚠️ Das Budget hängt an der **Pixelzahl**, nicht an der Breite. Bei
+     * gleicher Breite hat ein Hochformat die 1,5-fache Fläche eines
+     * Querformats; feste Zahlen waren stillschweigend für Querformate
+     * gerechnet und hätten einen Lauf mit Hochformaten abgebrochen.
+     */
+    const budget = budgetFuer(b, Math.round((b * hoehe) / breite));
+
     for (const [endung, optionen] of formate) {
       const daten = await basis.clone().toFormat(endung, optionen).toBuffer();
 
-      if (daten.length > BUDGET.fehler) {
+      if (daten.length > budget.fehler) {
         throw new Error(
           `${name}: die ${b}px-${endung.toUpperCase()}-Variante ist ` +
             `${menschlich(daten.length)} — über der harten Grenze von ` +
-            `${menschlich(BUDGET.fehler)}. Unkomprimiertes Original?`,
+            `${menschlich(budget.fehler)}. Unkomprimiertes Original?`,
         );
       }
-      if (endung === "avif" && b === 1200 && daten.length > BUDGET.warnung) {
+      if (endung === "avif" && b === 1200 && daten.length > budget.warnung) {
         warnungen.push(
           `${name}: ${menschlich(daten.length)} bei 1200px ` +
-            `(Budget ${menschlich(BUDGET.warnung)}).`,
+            `(Budget ${menschlich(budget.warnung)}).`,
         );
       }
 
