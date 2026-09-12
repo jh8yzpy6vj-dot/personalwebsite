@@ -90,6 +90,27 @@ export const WORKS: Work[] = [
     alt: "Höhenartistik über dem Ehrenhof des Rastatter Schlosses",
   },
   {
+    /*
+     * ⚠️ **Zwei Angaben hier sind aus den Geschwistereinträgen übernommen und
+     * NICHT belegt** — Jan hat am 2026-08-30 nur „es ist die 53." bestätigt:
+     *
+     * - `role`: bei 50–52 stand „Kamera, Schnitt". Geliefert wurden für 2026
+     *   aber Fotos, nicht Bewegtbild — gut möglich, dass „Fotografie" richtig
+     *   ist oder beides.
+     * - `category`: aus demselben Grund fraglich. Sind es überwiegend Fotos,
+     *   gehört die Arbeit nicht unter `bewegtbild`.
+     *
+     * `place` fehlt bewusst — bei 51 und 50 steht auch keiner, und geraten
+     * wird hier nichts (siehe Kopf dieser Datei).
+     */
+    id: "wiwawo-53",
+    category: "bewegtbild",
+    client: "Bayerischer Kanu-Verband",
+    title: "53. Jugend-Wildwasserwoche",
+    year: "2026",
+    role: "Kamera, Schnitt",
+  },
+  {
     id: "wiwawo-52",
     category: "bewegtbild",
     client: "Bayerischer Kanu-Verband",
@@ -214,7 +235,7 @@ export const SERVICES: Service[] = [
       "Lieferzeit: noch festzulegen",
       "Nutzungsrechte: noch festzulegen",
     ],
-    works: ["wiwawo-52", "wiwawo-51", "wiwawo-50"],
+    works: ["wiwawo-53", "wiwawo-52", "wiwawo-51", "wiwawo-50"],
     priceAnchor: null,
   },
   {

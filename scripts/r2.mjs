@@ -67,8 +67,14 @@ export function zugang() {
     );
   }
 
-  const { R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET } =
-    process.env;
+  const {
+    R2_ACCOUNT_ID,
+    R2_ACCESS_KEY_ID,
+    R2_SECRET_ACCESS_KEY,
+    R2_BUCKET,
+    R2_S3_ENDPOINT,
+    R2_JURISDICTION,
+  } = process.env;
 
   return {
     client: new AwsClient({
@@ -78,8 +84,49 @@ export function zugang() {
       region: "auto",
     }),
     /** Der S3-Endpunkt des Buckets. Nicht die öffentliche Adresse. */
-    basis: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${R2_BUCKET}`,
+    basis: `${endpunkt(R2_ACCOUNT_ID, R2_S3_ENDPOINT, R2_JURISDICTION)}/${R2_BUCKET}`,
   };
+}
+
+/**
+ * Die S3-Adresse des Kontos — ohne den Bucket.
+ *
+ * ⚠️ **Ein Bucket mit Jurisdiction hat einen anderen Endpunkt.** Wer ihn in
+ * der EU anlegt (in Cloudflare beim Anlegen wählbar, hinterher nicht mehr
+ * änderbar), bekommt `<konto>.eu.r2.cloudflarestorage.com` statt
+ * `<konto>.r2.cloudflarestorage.com`. Ohne das `.eu.` greift jede Anfrage ins
+ * Leere — beim ersten echten Bucket genau so passiert, weil ich die
+ * Jurisdiction schlicht nicht bedacht hatte.
+ *
+ * Zwei Wege, beide optional:
+ *
+ * - **`R2_S3_ENDPOINT`** — die Adresse aus dem Dashboard (R2 → Bucket →
+ *   Settings → „S3 API"), zum Kopieren gedacht. Der Bucketname darf dranhängen
+ *   und wird abgeschnitten. Das ist der sichere Weg: keine Tipparbeit, keine
+ *   Annahme über die Jurisdiction.
+ * - **`R2_JURISDICTION`** — nur das Kürzel, z. B. `eu`.
+ *
+ * Ohne beides bleibt es beim Standard, und der stimmt für Buckets ohne
+ * Jurisdiction.
+ */
+function endpunkt(konto, ausDashboard, jurisdiktion) {
+  if (ausDashboard) {
+    let url;
+    try {
+      url = new URL(ausDashboard.trim());
+    } catch {
+      throw new Error(
+        `R2_S3_ENDPOINT ist keine gültige Adresse: „${ausDashboard}".\n` +
+          `    Erwartet wird die Zeile „S3 API" aus R2 → Bucket → Settings,\n` +
+          `    also etwa https://<konto>.eu.r2.cloudflarestorage.com/<bucket>`,
+      );
+    }
+    // Der Pfad ist der Bucketname und steht ohnehin in R2_BUCKET.
+    return `${url.protocol}//${url.host}`;
+  }
+
+  const teil = jurisdiktion ? `.${jurisdiktion.trim().toLowerCase()}` : "";
+  return `https://${konto}${teil}.r2.cloudflarestorage.com`;
 }
 
 /**
