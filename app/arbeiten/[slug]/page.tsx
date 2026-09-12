@@ -11,6 +11,7 @@ import {
   aufnahmeZeile,
   bildZurArbeit,
   bildstreckeZurArbeit,
+  leitbildSizes,
   serieZurArbeit,
 } from "@/lib/bilder";
 import { videoZurArbeit } from "@/lib/video";
@@ -131,13 +132,16 @@ export default async function WorkDetail({
             statt eines kaputten img. */}
         <div className={`${styles.media}${bild ? " medien-scrim" : ""}`}>
           {bild ? (
-            /* Über die volle Fensterbreite und beim Aufschlagen sichtbar —
-               deshalb `100vw` und Vorrang statt verzögertem Laden. */
+            /* Nicht zugeschnitten, sondern über die Höhe begrenzt — die
+               Breite bringt das Bild selbst mit, deshalb rechnet
+               `leitbildSizes` sie aus seinem Seitenverhältnis. Beim
+               Aufschlagen sichtbar, deshalb Vorrang statt verzögertem
+               Laden. */
             <Bild
               className={styles.image}
               quelle={bild}
               alt={work.alt ?? `${work.title}, ${work.client}, ${work.year}`}
-              sizes="100vw"
+              sizes={leitbildSizes(bild.breite, bild.hoehe)}
               vorrang
               uebergang={`bild-${work.id}`}
             />

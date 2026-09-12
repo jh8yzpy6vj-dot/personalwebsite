@@ -10,24 +10,53 @@
   background: var(--buehne);
 }
 
+/*
+ * ⚠️ **Kein Zuschnitt.** Hier stand bis zum 2026-09-12 `height: 72vh` am
+ * Rahmen und `object-fit: cover` am Bild. Beim ersten echten Hochformat
+ * (2000×3000) zeigte sich, was das kostet: Auf 1920×1080 ist der Rahmen
+ * 1920×778, das Bild wird auf 1920×2880 skaliert und auf 778 px beschnitten —
+ * sichtbar sind **27 % des Fotos**. Und der Browser fordert 1920 CSS-px an
+ * (Retina 3840), bekommt aber höchstens 1600.
+ *
+ * Jetzt begrenzt die **Höhe**, das Bild bringt seine Form mit. Dasselbe
+ * Hochformat ist damit ~519 CSS-px breit; die 1200er-Stufe deckt das auf
+ * Retina mit Reserve ab. Ganzes Bild, schärfer, weniger Bytes.
+ *
+ * Der Rahmen bleibt über die volle Breite schwarz: Er trägt `medien-scrim`,
+ * den Verlauf unter der durchsichtigen Topbar, und der muss über die ganze
+ * Breite laufen, nicht nur über das Bild. Siehe design/UI-SPEC.md,
+ * „Leitbild (Detailseite)".
+ */
 .media {
   position: relative;
-  height: 72vh;
   min-height: 360px;
   overflow: hidden;
   background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
   display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  /*
+   * `svh` und nicht `vh` — dieselbe Begründung wie beim Hero: `vh` meint auf
+   * dem Telefon die Höhe ohne die ein- und ausfahrende Browserleiste.
+   */
+  max-height: 72svh;
 }
 
+/*
+ * Ohne Bild gibt es keine Form, die der Rahmen übernehmen könnte — deshalb
+ * trägt der Platzhalter die Höhe selbst. Ohne diese Zeile fiele der Rahmen
+ * auf `min-height: 360px` zusammen, seit `.media` keine feste Höhe mehr hat.
+ */
 .placeholder {
   width: 100%;
-  height: 100%;
+  min-height: 72svh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -191,8 +220,12 @@
 }
 
 @media (max-width: 700px) {
-  .media {
-    height: 56vh;
+  .image {
+    max-height: 56svh;
+  }
+
+  .placeholder {
+    min-height: 56svh;
   }
 
   .inner {

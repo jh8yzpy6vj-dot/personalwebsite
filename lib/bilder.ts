@@ -85,6 +85,36 @@ export function sparsamesSrcset(
 }
 
 /**
+ * `sizes` für ein Bild, das **nicht zugeschnitten** wird, sondern über seine
+ * Höhe begrenzt ist — das Leitbild der Detailseite.
+ *
+ * ⚠️ **Ohne das ist die halbe Layoutänderung wirkungslos.** `sizes` sagt dem
+ * Browser, wie breit das Bild im Layout wird; er wählt danach die Stufe aus
+ * dem `srcset`. Bliebe hier `100vw` stehen, lüde er auf einem 1920er-Schirm
+ * weiterhin die größte Stufe für einen Platz von rund 519 px — also genau die
+ * Bytes, die die Änderung einsparen soll.
+ *
+ * Die Breite ergibt sich aus der Höhenbegrenzung: `Höhe × Seitenverhältnis`,
+ * gedeckelt auf die Fensterbreite (ein Querformat stößt auf dem Telefon
+ * zuerst an die Breite, nicht an die Höhe). Die Grenzwerte spiegeln
+ * `detail.module.css`; laufen die beiden auseinander, lädt der Browser die
+ * falsche Stufe — ohne dass irgendwo ein Fehler auftaucht.
+ *
+ * `svh` und nicht `vh`, aus demselben Grund wie im CSS: `vh` meint auf dem
+ * Telefon die Höhe ohne die ein- und ausfahrende Browserleiste.
+ */
+export function leitbildSizes(breite: number, hoehe: number): string {
+  // Ein kaputtes Manifest darf nicht zu `NaN` im HTML führen; dann lieber die
+  // alte, verschwenderische, aber funktionierende Angabe.
+  if (!(breite > 0) || !(hoehe > 0)) return "100vw";
+  const verhaeltnis = (breite / hoehe).toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
+  return (
+    `(max-width: 700px) calc(min(100vw, 56svh * ${verhaeltnis})), ` +
+    `calc(min(100vw, 72svh * ${verhaeltnis}))`
+  );
+}
+
+/**
  * Belichtungszeit, wie Fotografen sie schreiben: kürzer als eine Sekunde
  * als Bruch (`1/500`), ab einer Sekunde mit Einheit (`2s`).
  *

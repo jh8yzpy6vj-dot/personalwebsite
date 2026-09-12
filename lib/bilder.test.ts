@@ -139,6 +139,62 @@ describe("sparsamesSrcset", () => {
   });
 });
 
+/**
+ * ⚠️ Diese Zahlen sind **gegen Chromium gemessen**, nicht ausgedacht
+ * (Playwright, 2026-09-12). Bei einem 2000×3000-Hochformat auf 1920×1080
+ * rendert der Browser 518×778 CSS-px und wählt bei doppelter Pixeldichte die
+ * 1200er-Stufe; bei einem 3000×2000-Querformat 1166×778 und die 2400er.
+ * Beides deckt sich mit `Höhe × Seitenverhältnis`.
+ *
+ * Getestet wird hier die Angabe, nicht der Browser — aber wenn die Angabe
+ * von `detail.module.css` abweicht, lädt er still die falsche Stufe. Genau
+ * solche Fehler tauchen nirgends als Fehler auf.
+ */
+describe("leitbildSizes", () => {
+  it("rechnet die Breite aus dem Seitenverhältnis", async () => {
+    const { leitbildSizes } = await import("./bilder");
+    expect(leitbildSizes(2000, 3000)).toBe(
+      "(max-width: 700px) calc(min(100vw, 56svh * 0.6667)), calc(min(100vw, 72svh * 0.6667))",
+    );
+    expect(leitbildSizes(3000, 2000)).toBe(
+      "(max-width: 700px) calc(min(100vw, 56svh * 1.5)), calc(min(100vw, 72svh * 1.5))",
+    );
+  });
+
+  it("deckelt auf die Fensterbreite — sonst fordert ein Querformat auf dem Telefon zu viel an", async () => {
+    const { leitbildSizes } = await import("./bilder");
+    // Ohne `min(100vw, …)` käme auf einem 390px-Telefon 56svh × 1.5 = 710px
+    // heraus, bei dreifacher Pixeldichte also 2130 — die größte Stufe für
+    // einen Platz von 390px.
+    expect(leitbildSizes(3000, 2000)).toContain("min(100vw,");
+  });
+
+  it("nennt dieselben Höhen wie detail.module.css", async () => {
+    const { leitbildSizes } = await import("./bilder");
+    const css = await import("node:fs/promises").then((fs) =>
+      fs.readFile(new URL("../app/arbeiten/[slug]/detail.module.css", import.meta.url), "utf8"),
+    );
+    // Laufen die beiden auseinander, wählt der Browser die falsche Stufe.
+    for (const hoehe of ["72svh", "56svh"]) {
+      expect(css).toContain(`max-height: ${hoehe}`);
+      expect(leitbildSizes(2, 3)).toContain(hoehe);
+    }
+  });
+
+  it("fällt bei unbrauchbaren Maßen auf 100vw zurück statt NaN ins HTML zu schreiben", async () => {
+    const { leitbildSizes } = await import("./bilder");
+    for (const [b, h] of [[0, 3000], [2000, 0], [NaN, 3000], [-1, 3000]]) {
+      expect(leitbildSizes(b, h)).toBe("100vw");
+    }
+  });
+
+  it("schreibt keine überflüssigen Nullen", async () => {
+    const { leitbildSizes } = await import("./bilder");
+    // 1:1 muss `1` ergeben, nicht `1.0000` — das steht so im HTML jeder Seite.
+    expect(leitbildSizes(2000, 2000)).toContain("72svh * 1)");
+  });
+});
+
 describe("Aufnahmezeile", () => {
   it("schreibt die Belichtungszeit als Bruch, wie auf jeder Kamera", async () => {
     const { belichtungAlsText } = await import("./bilder");
