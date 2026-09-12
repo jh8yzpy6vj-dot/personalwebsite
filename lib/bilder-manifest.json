@@ -1,17 +1,17 @@
 {
   "arbeiten/wiwawo-53": {
-    "breite": 2000,
-    "hoehe": 3000,
+    "breite": 7008,
+    "hoehe": 4672,
     "exif": {
-      "zeit": "14:41:27",
-      "belichtung": 0.0005,
+      "zeit": "10:12:50",
+      "belichtung": 0.002,
       "blende": 2.8,
-      "iso": 400
+      "iso": 125
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-1600.avif 1600w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-1600.webp 1600w",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-2400.avif 2400w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-2400.webp 2400w",
     "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53-1200.jpg",
-    "lqip": "data:image/webp;base64,UklGRrgAAABXRUJQVlA4IKwAAACQBACdASoQABgAPu1iqU2ppaOiMAgBMB2JaAC7AYyyyqXkJo4mhdSZeN0HKdAA/tKG3zldU5g7Lfa5/i57QBVDhrJXWJno4KwHxmkQ7I/SHxMlaesMxnu5bXGzqEwUC7/Jx3fOfLKfRGky6hQu62pNX5pkbHTfSm06XQFE52rSaAJDcL436eU4kVEtkGl9Y79qagcr/+MI238F+cdRgm3Lb/K2+dZlLJ0aBQAA"
+    "lqip": "data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAABQAgCdASoQAAsAA4BaJZgCdAYw72wz9y/c6IAA/u5mZZVS+e//F+5nG9ru4wLp6pk8cvwuuQU2vvr430m9CE7I8RHYLaFs9hWVS0BTOW5AuJLW5vL5DdHEKr4AAA=="
   },
   "arbeiten/wiwawo-53/01": {
     "breite": 2000,

@@ -150,6 +150,38 @@ describe("sparsamesSrcset", () => {
  * von `detail.module.css` abweicht, lädt er still die falsche Stufe. Genau
  * solche Fehler tauchen nirgends als Fehler auf.
  */
+/**
+ * ⚠️ Die harte Grenze **bricht den Lauf ab**. Ein zu enges Budget ist damit
+ * kein Schönheitsfehler, sondern eine Sperre — und genau das drohte: Feste
+ * Zahlen waren stillschweigend für Querformate gerechnet.
+ */
+describe("budgetFuer", () => {
+  it("bricht bei echten Hochformat-Varianten nicht ab", async () => {
+    const { budgetFuer } = await import("./bilder-regeln.mjs");
+    // Gemessener Worst Case (Rauschbild) aus AVIF_MAX_BREITE: 2400×3652 = 2405 kB.
+    // Mit den alten festen 1,5 MB wäre hier Schluss gewesen.
+    expect(budgetFuer(2400, 3652).fehler).toBeGreaterThan(2405 * 1024);
+    // Und die 1200er-Warnung darf bei 322 kB (ebenfalls gemessen) nicht anschlagen.
+    expect(budgetFuer(1200, 1826).warnung).toBeGreaterThan(322 * 1024);
+  });
+
+  it("fängt weiterhin ab, was der Fehler meint: eine Datei ohne echte Kompression", async () => {
+    const { budgetFuer } = await import("./bilder-regeln.mjs");
+    // Rohes RGB sind rund 3000 kB je Megapixel — das muss sicher darüber liegen.
+    const rohesRgb = (b: number, h: number) => b * h * 3;
+    expect(budgetFuer(2400, 3652).fehler).toBeLessThan(rohesRgb(2400, 3652));
+    expect(budgetFuer(1200, 800).fehler).toBeLessThan(rohesRgb(1200, 800));
+  });
+
+  it("skaliert mit der Fläche, nicht mit der Breite", async () => {
+    const { budgetFuer } = await import("./bilder-regeln.mjs");
+    // Gleiche Breite, anderthalbfache Höhe → anderthalbfaches Budget.
+    const quer = budgetFuer(2400, 1600).fehler;
+    const hoch = budgetFuer(2400, 2400).fehler;
+    expect(hoch / quer).toBeCloseTo(1.5, 5);
+  });
+});
+
 describe("leitbildSizes", () => {
   it("rechnet die Breite aus dem Seitenverhältnis", async () => {
     const { leitbildSizes } = await import("./bilder");
