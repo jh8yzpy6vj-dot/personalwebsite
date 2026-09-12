@@ -6,6 +6,14 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-09-12 — Cloudflare-Build stand: Lockfile passte nicht zu `package.json`
+- **Der Deploy scheiterte vor dem ersten Kompilieren** — `npm ci` bricht ab, wenn `package-lock.json` und `package.json` auseinanderlaufen: `Missing: @emnapi/runtime@1.11.3 from lock file` und zwei weitere.
+- **Ursache:** Jans Commit `c466b88` („Update package-lock.json") hatte drei `@emnapi/*`-Einträge entfernt — Zubehör von `sharp` für Systeme ohne fertige Binärdatei. Lokal fiel das nicht auf, weil `npm install` Fehlendes still nachzieht; `npm ci` tut das ausdrücklich nicht.
+- **Die eigentliche Ursache liegt tiefer:** Jan arbeitet mit **npm 11**, Cloudflare baut mit **npm 10**. Die beiden räumen optionale, plattformabhängige Pakete unterschiedlich auf. Das wird wiederkommen, sobald wieder jemand unter npm 11 ein Lockfile erzeugt und committet.
+- **Behoben:** Lockfile in dieser Sitzung neu erzeugt (Linux, npm 10 — dieselbe Familie wie der Build). Die drei Einträge sind zurück, insgesamt 121 Zeilen ergänzt.
+- **Geprüft, nicht vermutet:** `npm ci` in einem leeren Verzeichnis nur mit `package.json` und `package-lock.json` — also genau der Zustand eines frischen Cloudflare-Klons. 689 Pakete, Rückgabewert 0. Ein `--dry-run` allein hätte mir nicht gereicht; halbe Prüfungen haben in diesem Projekt schon zweimal getäuscht.
+- **Regel dokumentiert** (`TECH-STACK.md`, neuer Abschnitt): Lockfile nie von Hand bearbeiten, und vor dem Push `npm ci --dry-run` — dieselbe Prüfung, die der Deploy macht.
+
 ## 2026-09-12 — Arbeitsbranch abgeschafft, Claude pusht auf `main`
 - **Jan hat PR #2 gemerged und `main-n0i93f` gelöscht** („der nervt mich"). Der Branch kam aus dem Sitzungs-Harness, nicht aus dem Projekt — `CLAUDE.md` sieht ohnehin nur `main` vor und erlaubt beiden direkte Pushes.
 - **Auf Nachfrage entschieden: Claude pusht ab jetzt direkt auf `main`.** Der Preis ist bekannt und bewusst getragen: Jeder Push geht ohne Preview live. Vertretbar, solange die Seite noch nicht beworben wird; **vor dem Launch neu entscheiden**.

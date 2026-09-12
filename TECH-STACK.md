@@ -310,6 +310,37 @@ lesbar gewesen, inklusive der Hinweise auf ungeklärte Bildrechte. Beim Code-Rev
 **Nicht nach `public/` gehören:** Rohdateien, interne Notizen und Bilder mit ungeklärten Rechten.
 Fotos gehören generell nicht mehr dorthin, sondern in den Bucket.
 
+## ⚠️ `package-lock.json` — nicht von Hand anfassen
+
+Cloudflare baut mit **`npm ci`**, und das ist streng: Passt das Lockfile nicht exakt zu
+`package.json`, bricht der Build ab, bevor überhaupt etwas kompiliert wird. `npm install`
+auf dem eigenen Rechner ist dagegen nachsichtig und zieht Fehlendes still nach — der
+Unterschied fällt deshalb erst im Deploy auf.
+
+Am 2026-09-12 genau so passiert: Ein Commit „Update package-lock.json" entfernte drei
+`@emnapi/*`-Einträge (Zubehör von `sharp` für Systeme ohne fertige Binärdatei). Lokal
+lief alles weiter, der Cloudflare-Build scheiterte mit `Missing: @emnapi/runtime from
+lock file`.
+
+**Die Ursache ist ein Versionsunterschied:** Jan arbeitet mit **npm 11**, Cloudflare baut
+mit **npm 10**. Die beiden räumen optionale, plattformabhängige Pakete unterschiedlich
+auf. Ein unter npm 11 erzeugtes Lockfile kann unter npm 10 unvollständig sein.
+
+**Daraus folgt:**
+
+- `package-lock.json` **nie von Hand bearbeiten** — auch nicht im GitHub-Weboberflächen-Editor.
+- Ändert sich eine Abhängigkeit: `npm install` laufen lassen und das Ergebnis committen.
+- **Vor dem Push prüfen, ob der Build es akzeptiert** — dieselbe Prüfung, die Cloudflare macht:
+
+  ```
+  npm ci --dry-run
+  ```
+
+  Meldet das `EUSAGE` oder `Missing: … from lock file`, wäre der Deploy gescheitert.
+- Kommt es trotzdem vor, ist die Reparatur ein `npm install` in einer Umgebung mit npm 10
+  (oder von Claude aus dieser Sitzung, die auf Linux mit npm 10 läuft) und ein Commit des
+  Ergebnisses.
+
 ## Tests und Werkzeuge
 
 **Testläufer: Vitest** (`npm test`, `npm run test:watch`). Konfiguration in `vitest.config.mts`,
