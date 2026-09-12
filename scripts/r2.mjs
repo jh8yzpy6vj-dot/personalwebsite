@@ -32,14 +32,67 @@ function ausDevVars() {
   const datei = path.join(WURZEL, ".dev.vars");
   if (!existsSync(datei)) return;
 
-  for (const zeile of readFileSync(datei, "utf8").split("\n")) {
+  const roh = readFileSync(datei);
+  const werte = leseDevVars(entziffere(roh));
+
+  /*
+   * ⚠️ **Eine Datei mit Inhalt, aus der nichts herauskommt, ist ein Fehler
+   * und keine leere Umgebung.** Sonst folgt die Meldung „Zugangsdaten
+   * fehlen" — und man sucht an der falschen Stelle, nämlich beim Token statt
+   * bei der Datei. Genau das ist am 2026-09-12 zweimal passiert.
+   *
+   * Übrig bleibt vor allem UTF-16 ohne BOM: Das lässt sich nicht zuverlässig
+   * erkennen, deshalb wird hier nicht geraten, sondern gesagt, was zu tun ist.
+   */
+  if (roh.length > 0 && Object.keys(werte).length === 0) {
+    throw new Error(
+      `.dev.vars hat ${roh.length} Bytes, aber keine einzige lesbare Zeile.\n` +
+        `    Erwartet wird je Zeile NAME=wert, als UTF-8 gespeichert.\n` +
+        `    Häufigste Ursache: die Datei liegt in UTF-16 vor. In VS Code unten\n` +
+        `    rechts auf die Kodierung klicken → „Save with Encoding" → UTF-8.`,
+    );
+  }
+
+  for (const [name, wert] of Object.entries(werte)) {
+    // Was schon in der Umgebung steht, gewinnt.
+    if (process.env[name] === undefined) process.env[name] = wert;
+  }
+}
+
+/**
+ * Bytes zu Text — mit Rücksicht auf das, was Windows so erzeugt.
+ *
+ * ⚠️ PowerShell schreibt je nach Version und Befehl **UTF-16**, und Editoren
+ * setzen gern ein BOM davor. Wird so etwas als UTF-8 gelesen, steht in jedem
+ * zweiten Byte eine Null und keine einzige Zeile passt mehr.
+ */
+function entziffere(roh) {
+  if (roh[0] === 0xff && roh[1] === 0xfe) return roh.subarray(2).toString("utf16le");
+  if (roh[0] === 0xfe && roh[1] === 0xff) return roh.subarray(2).swap16().toString("utf16le");
+  return roh.toString("utf8").replace(/^﻿/, "");
+}
+
+/**
+ * `NAME=wert`-Zeilen zu einem Objekt. Rein, damit es prüfbar bleibt —
+ * `scripts/r2.test.mjs`.
+ *
+ * ⚠️ **Getrennt wird an `\r?\n`, nicht an `\n`.** Das war ein echter Fehler,
+ * und ein überraschender: In JavaScript zählt `\r` als Zeilenende, und `.`
+ * matcht Zeilenenden **nicht**. Ein an `\n` zerlegtes CRLF-Dokument behält
+ * also ein `\r` am Zeilenende, und `(.*)$` scheitert daran — an *jeder* Zeile.
+ * Da CRLF auf Windows der Normalfall ist, las die Datei sich dort nie ein,
+ * während sie hier zum Test brav funktionierte.
+ */
+export function leseDevVars(text) {
+  const werte = {};
+  for (const zeile of text.split(/\r?\n/)) {
     const treffer = zeile.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
     if (!treffer) continue; // Kommentar, Leerzeile, Unfug
     const [, name, roh] = treffer;
-    if (process.env[name] !== undefined) continue;
     // Anführungszeichen sind hier Schreibweise, nicht Inhalt.
-    process.env[name] = roh.trim().replace(/^(['"])(.*)\1$/, "$2");
+    werte[name] = roh.trim().replace(/^(['"])(.*)\1$/, "$2");
   }
+  return werte;
 }
 
 /**

@@ -6,6 +6,15 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-09-12 — `.dev.vars` wurde auf Windows nie gelesen
+- **Zwei Runden lang habe ich Jan an der falschen Stelle suchen lassen** — Token neu anlegen, Datei prüfen, Dateiname kontrollieren. Die Datei war die ganze Zeit korrekt: 350 Bytes, sechs richtige Zeilen. Mein Leser war kaputt.
+- **Die Ursache ist eine Eigenheit von JavaScript, die ich nicht auf dem Schirm hatte:** `\r` zählt dort als **Zeilenende**, und `.` matcht Zeilenenden nicht. Der Leser zerlegte den Text an `\n`; bei Windows-Zeilenenden bleibt damit ein `\r` am Zeilenende stehen, und `(.*)$` scheitert daran — an **jeder** Zeile, nicht nur an einer. Auf Linux lief dieselbe Datei anstandslos, also auch in jedem meiner Tests.
+- **Behoben:** getrennt wird an `/\r?\n/`. Dazu erkennt der Leser jetzt UTF-16 (mit BOM, beide Byte-Reihenfolgen) und entfernt ein UTF-8-BOM — beides erzeugt Windows je nach Werkzeug.
+- **Und eine Sicherung gegen die Wiederholung:** Eine Datei mit Inhalt, aus der **keine einzige** Zeile herausfällt, wirft jetzt einen eigenen Fehler samt Hinweis auf die Kodierung — statt „Zugangsdaten fehlen" zu melden und damit auf den Token zu zeigen. Genau diese irreführende Meldung hat die zwei Runden gekostet.
+  - UTF-16 **ohne** BOM bleibt unerkennbar; dort wird bewusst nicht geraten, sondern gesagt, was zu tun ist.
+- **Geprüft an echten Dateien in sechs Schreibweisen** (UTF-8/UTF-16 × BOM × LF/CRLF): fünf werden gelesen, die sechste meldet sich verständlich. Vorher waren es zwei von sechs.
+- **`scripts/` steht jetzt unter Test** (`vitest.config.mts` erweitert, `scripts/r2.test.mjs`, 8 Fälle). Der Leser ist dafür als reine Funktion `leseDevVars(text)` herausgezogen. Begründung im Test: Eine Stelle, die sich je nach Plattform anders verhält, gehört unter Test und nicht unter Vermutung — meine Testumgebung ist Linux, die Zielumgebung nicht.
+
 ## 2026-09-12 — Cloudflare-Build stand: Lockfile passte nicht zu `package.json`
 - **Der Deploy scheiterte vor dem ersten Kompilieren** — `npm ci` bricht ab, wenn `package-lock.json` und `package.json` auseinanderlaufen: `Missing: @emnapi/runtime@1.11.3 from lock file` und zwei weitere.
 - **Ursache:** Jans Commit `c466b88` („Update package-lock.json") hatte drei `@emnapi/*`-Einträge entfernt — Zubehör von `sharp` für Systeme ohne fertige Binärdatei. Lokal fiel das nicht auf, weil `npm install` Fehlendes still nachzieht; `npm ci` tut das ausdrücklich nicht.
