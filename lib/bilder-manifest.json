@@ -1,1 +1,100 @@
-{}
+{
+  "arbeiten/wiwawo-53": {
+    "breite": 7008,
+    "hoehe": 4672,
+    "exif": {
+      "zeit": "10:12:50",
+      "belichtung": 0.002,
+      "blende": 2.8,
+      "iso": 125
+    },
+    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-2400.avif 2400w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-2400.webp 2400w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53-1200.jpg?v=6e513bae",
+    "lqip": "data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAABQAgCdASoQAAsAA4BaJZgCdAYw72wz9y/c6IAA/u5mZZVS+e//F+5nG9ru4wLp6pk8cvwuuQU2vvr430m9CE7I8RHYLaFs9hWVS0BTOW5AuJLW5vL5DdHEKr4AAA=="
+  },
+  "arbeiten/wiwawo-53/01": {
+    "breite": 4672,
+    "hoehe": 7008,
+    "exif": {
+      "zeit": "15:36:08",
+      "belichtung": 0.0005,
+      "blende": 2.8,
+      "iso": 400
+    },
+    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-2400.avif 2400w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-2400.webp 2400w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-1200.jpg?v=6c8cebe0",
+    "lqip": "data:image/webp;base64,UklGRogAAABXRUJQVlA4IHwAAABwBACdASoQABgAPu1iqU2ppaOiMAgBMB2JZQDCgB7A9rFeJ4UmsplKBwrDAAD+8N9QSwnz5PVy6yBGZE1TSqMD+Rel9NYCOc3y0l1DbJuypJCkUN8qObnyHKQhFU0LmECkJrF6JCWTLfXq9NMu9vCDe9UY6J7DC7+v/2AA"
+  },
+  "arbeiten/wiwawo-53/02": {
+    "breite": 4672,
+    "hoehe": 7008,
+    "exif": {
+      "zeit": "21:23:52",
+      "belichtung": 0.005,
+      "blende": 2.8,
+      "iso": 12800
+    },
+    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-2400.avif 2400w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-2400.webp 2400w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-1200.jpg?v=7ad894f7",
+    "lqip": "data:image/webp;base64,UklGRo4AAABXRUJQVlA4IIIAAADwAwCdASoQABgAPu1kqU2ppaQiMAgBMB2JbAAD4bZl9NjPPDKfwomAAP7+bV9/ZkE7eJgiaXTEfhMLTrXZ33FbLbIEiuU1xubC73USPUOZ19IZqRTc8PXPNPuuwLn/3sJlfbi5GD//5LH/ct/eINnyKi0OiwGC9Ib554xGYJg+BAAA"
+  },
+  "arbeiten/wiwawo-53/03": {
+    "breite": 4672,
+    "hoehe": 7008,
+    "exif": {
+      "zeit": "12:44:18",
+      "belichtung": 0.0003125,
+      "blende": 2.8,
+      "iso": 100
+    },
+    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-2400.avif 2400w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-2400.webp 2400w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-1200.jpg?v=cf4f147d",
+    "lqip": "data:image/webp;base64,UklGRoYAAABXRUJQVlA4IHoAAADwAwCdASoQABgAPu1oqk6ppiQiMAgBMB2JZQC/OCHDOKLGx72P082gAP6jfPzefIhk860yNhwgbikMfC3jQWnozmxEKJUSnba8LGBvGr0Gepuivu2Dh+LZxuEsCurGdBolUCDc5mASz2RQsq1QP+ZOoWRGVjUhofSAAA=="
+  },
+  "arbeiten/wiwawo-53/04": {
+    "breite": 4672,
+    "hoehe": 7008,
+    "exif": {
+      "zeit": "17:49:45",
+      "belichtung": 0.0005,
+      "blende": 1.4,
+      "iso": 500
+    },
+    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-2400.avif 2400w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-2400.webp 2400w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-1200.jpg?v=1eb271ff",
+    "lqip": "data:image/webp;base64,UklGRowAAABXRUJQVlA4IIAAAABQBACdASoQABgAPu1kqU2ppaOiMAgBMB2JQBdmUABp2jAq1uG5xgbgcSy4AP4cxqsJIoZ8FavXGr4p8lXj9tfpjxRQoUDWhH51yPNd6s9YygfL4vLwzV+5BiEIW/mgbMGpgkushj3GHxKW/Wx60zh5Kc9JOE/KjdaAqiiu2gAAAA=="
+  },
+  "arbeiten/wiwawo-53/05": {
+    "breite": 4672,
+    "hoehe": 7008,
+    "exif": {
+      "zeit": "12:51:54",
+      "belichtung": 0.0003125,
+      "blende": 2.8,
+      "iso": 400
+    },
+    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-2400.avif 2400w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-2400.webp 2400w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-1200.jpg?v=f627abeb",
+    "lqip": "data:image/webp;base64,UklGRoYAAABXRUJQVlA4IHoAAACwAwCdASoQABgAPu1iqU2ppaOiMAgBMB2JaAC06CHQ7bmiC/xG6AD+2krr+3k0z7+Pgo1p/o/j9UsE67TTtVbEt+/TOQCzhnfFtBfpFVD364uaPxz1LPW/as3K/kaThCp51YoMQ2fipk1koaNdL8DQSPNfB1EiOAAAAA=="
+  },
+  "arbeiten/wiwawo-53/06": {
+    "breite": 7008,
+    "hoehe": 4672,
+    "exif": {
+      "zeit": "19:53:07",
+      "belichtung": 0.005,
+      "blende": 1.4,
+      "iso": 160
+    },
+    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-2400.avif 2400w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-2400.webp 2400w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-1200.jpg?v=7665274a",
+    "lqip": "data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAADwAQCdASoQAAsAA4BaJZwAAu06mx2+PSwA/th7a0yXYGArh711g851t65JFh5PpxI5URAIbuJkDEPCDkJ9C8n0hnojjZ2FoySgrksmwwxTpHAA"
+  }
+}
