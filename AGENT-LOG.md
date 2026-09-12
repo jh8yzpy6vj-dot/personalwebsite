@@ -6,6 +6,11 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-09-12 — Arbeitsbranch abgeschafft, Claude pusht auf `main`
+- **Jan hat PR #2 gemerged und `main-n0i93f` gelöscht** („der nervt mich"). Der Branch kam aus dem Sitzungs-Harness, nicht aus dem Projekt — `CLAUDE.md` sieht ohnehin nur `main` vor und erlaubt beiden direkte Pushes.
+- **Auf Nachfrage entschieden: Claude pusht ab jetzt direkt auf `main`.** Der Preis ist bekannt und bewusst getragen: Jeder Push geht ohne Preview live. Vertretbar, solange die Seite noch nicht beworben wird; **vor dem Launch neu entscheiden**.
+- ⚠️ **Das löst das eigentliche Problem nicht.** Der `403` liegt am Repo, nicht am Branch — die Claude GitHub App hat weiterhin kein Schreibrecht. Jede Lieferung geht also weiter über ein Bundle. Weggefallen ist nur Jans Merge-Schritt, nicht das Einspielen.
+
 ## 2026-08-30 — Erster echter Bucket, `wiwawo-53` angelegt, `npm run verkleinern` gebaut
 - **Der R2-Umbau ist im Repo.** Nach etlichen Anläufen (Bundle/Patch scheiterten an einem Pfad, den der Browser beim Speichern umbenannt hatte — `r2umbau.bundle` statt `r2-umbau.bundle`) hat Jan `aa781bd` gepusht. ⚠️ **Wichtiger Nebenbefund dabei:** Sein `main` war nicht der Stand, von dem meine 13 Commits abzweigten — er hatte am 29.8. eine ältere ZIP-Lieferung in drei eigenen Commits von Hand eingespielt („die bank ist leer", „neue struktur", „bilder"). Zwei parallele Linien derselben Arbeit; deshalb liess sich kein Patch anwenden. Gelöst, indem ich die Arbeit als **ein** Commit direkt auf `a685f8a` neu aufgesetzt habe.
   - Dabei kam heraus, dass die zwölf Kameradateien **wieder auf `origin/main` liegen** (128 MB, seit `a685f8a`) und dass ihm die letzte Lieferung ganz gefehlt hatte — also auch die AVIF-Grenze und die Pipeline-Warnungen.
