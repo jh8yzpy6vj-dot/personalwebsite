@@ -42,24 +42,38 @@
      nach hinten schiebt (auf iOS die „Zurück"-Geste). */
   overscroll-behavior-x: contain;
   /*
-   * Der Streifen beginnt an derselben Kante wie der Text darunter (Spalte
-   * 1040px, siehe `.inner` in detail.module.css) und läuft nach rechts aus
-   * dem Bild — das zeigt, dass es weitergeht, ohne Pfeile oder Punkte.
+   * **Randlos**, mit schmalem Gutter — der Streifen nutzt die volle Breite
+   * und läuft nach rechts aus dem Bild. Das zeigt ohne Pfeile oder Punkte,
+   * dass es weitergeht.
    *
-   * ⚠️ Vorher begann er bei `--space-lg` am Fensterrand. Auf einem breiten
-   * Schirm standen damit drei verschiedene Kanten untereinander: zentriertes
-   * Leitbild, Streifen am Fensterrand, Text in der Spalte. Das war der
-   * unruhige Eindruck, den Jan „kastenmäßig" genannt hat — nicht nur die
-   * fehlenden Fugen.
+   * ⚠️ **Hier stand kurzzeitig `max(--space-lg, (100vw - 1040px) / 2)`**, um
+   * den Streifen an der Textspalte auszurichten. Gemessen wurde das bei 1440
+   * und 1920 — und genau dort funktioniert es. Darüber kippt es:
+   *
+   * | Breite | Leitbild ab | Streifen ab |
+   * |--------|-------------|-------------|
+   * | 1440   |     234     |     200     |
+   * | 1920   |     377     |     440     |
+   * | 2560   |     502     |     760     |
+   * | 3440   |     942     |    1200     |
+   *
+   * Ab 1920 begann der Streifen **rechts** vom Leitbild, bei 3440 lagen
+   * 1200 px links brach und die Bilder klebten in der rechten Hälfte.
+   *
+   * Die Lehre steckt in der Tabelle: Eine Angabe, die mit `100vw` wächst,
+   * muss über die **ganze** Spanne geprüft werden, nicht an zwei bequemen
+   * Breiten. Ein randloser Scroller neben einer zentrierten Textspalte ist
+   * ohnehin das übliche und ruhigere Paar — die gemeinsame Kante war eine
+   * Idee zu viel.
    */
-  padding: 0 0 var(--space-md) max(var(--space-lg), (100vw - 1040px) / 2);
+  padding: 0 0 var(--space-md) var(--space-lg);
   /*
    * ⚠️ Ohne das rastet das erste Bild **bündig am Fensterrand** ein statt am
    * Innenabstand: `scroll-snap-align: start` zielt auf den Anfang des
    * Scrollbereichs, und der liegt hinter dem Padding. Am Handy sah der
    * Streifen dadurch aus, als sei der Rand vergessen worden.
    */
-  scroll-padding-inline-start: max(var(--space-lg), (100vw - 1040px) / 2);
+  scroll-padding-inline-start: var(--space-lg);
 }
 
 .streifen:focus-visible {
@@ -111,7 +125,8 @@
 
 .zaehler {
   margin: 0;
-  padding: 0 max(var(--space-lg), (100vw - 1040px) / 2);
+  /* Auf derselben Kante wie der Streifen darüber. */
+  padding: 0 var(--space-lg);
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: var(--text-label);
   line-height: var(--leading-label);
