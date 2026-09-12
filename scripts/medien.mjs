@@ -474,7 +474,44 @@ async function main() {
       `${Object.keys(videos).length} Videos verzeichnet` +
       (geloescht > 0 ? `, ${geloescht} verwaiste entfernt` : ""),
   );
+  /*
+   * ⚠️ Die Vorschaukarten laufen **von hier aus**, nicht als zweiter Befehl
+   * in `package.json`. Dort stand `medien.mjs && og.mjs` — und npm hängt die
+   * Argumente hinter die ganze Kette, `npm run medien -- --probe` reichte
+   * `--probe` also an `og.mjs` weiter statt hierher. Der Probelauf lief damit
+   * als echter Lauf. Beim ersten Versuch an einem echten Bucket passiert.
+   */
+  const kartenCode = await karten();
+
   console.log("⚠️ Die geänderten Manifeste in lib/ committen, sonst sieht die Seite nichts.");
+
+  /*
+   * ⚠️ Die Bilder sind an dieser Stelle **fertig und die Manifeste
+   * geschrieben** — nur die Vorschaukarten fehlen. Deshalb kein `throw`: Ein
+   * Abbruch hier hätte „Medienpipeline abgebrochen" gemeldet und den Eindruck
+   * erweckt, die ganze Arbeit sei verloren. Der Rückgabewert bleibt trotzdem
+   * ungleich null, damit niemand versehentlich einen halben Lauf weiterreicht.
+   */
+  if (kartenCode !== 0) {
+    console.error(
+      `\n  ! Die Vorschaukarten sind fehlgeschlagen (Code ${kartenCode}).\n` +
+        `    Bilder und Manifeste sind davon unberührt und fertig.\n` +
+        `    Erneut versuchen mit: npm run og`,
+    );
+    process.exitCode = 1;
+  }
+}
+
+/**
+ * `scripts/og.mjs` als eigener Prozess — es bringt sein eigenes `main` mit,
+ * und ein Import würde es beim Laden ausführen.
+ */
+async function karten() {
+  const { spawn } = await import("node:child_process");
+  const skript = path.join(WURZEL, "scripts", "og.mjs");
+  return new Promise((fertig) => {
+    spawn(process.execPath, [skript], { stdio: "inherit" }).on("close", fertig);
+  });
 }
 
 main().catch((fehler) => {

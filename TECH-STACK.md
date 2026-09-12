@@ -141,7 +141,7 @@ Build-Schritt importiert. Wenn das jemals nötig scheint, ist etwas anderes fals
 
 | | |
 |---|---|
-| Skripte | `scripts/medien.mjs` (Bilder und Videos) und `scripts/og.mjs` (Vorschaukarten). `npm run medien` ruft beide nacheinander auf |
+| Skripte | `scripts/medien.mjs` (Bilder und Videos); es startet am Ende selbst `scripts/og.mjs` (Vorschaukarten). ⚠️ **Nicht** als `medien.mjs && og.mjs` in `package.json` verketten — npm hängt die Argumente hinter die ganze Kette, `npm run medien -- --probe` liefe damit als echter Lauf |
 | Zugriff auf R2 | `scripts/r2.mjs`, signiert mit `aws4fetch` (88 kB, keine Abhängigkeiten) statt mit dem AWS-SDK |
 | Regeln | `lib/bilder-regeln.mjs` (Breiten, Qualitäten, Budget). ⚠️ Nach Änderungen dort `PIPELINE_VERSION` erhöhen, sonst hält der Zwischenspeicher alte Dateien für aktuell |
 | Ergebnis | `b/…` im Bucket, `lib/bilder-manifest.json`, `lib/video-manifest.json`, `public/og/*.jpg` |
