@@ -1,0 +1,151 @@
+/*
+ * Die Bilderflanken neben dem Text der Detailseite.
+ *
+ * Das Raster selbst steht in `arbeiten/[slug]/detail.module.css` — hier
+ * stehen nur die Spalten und die Karten darin.
+ */
+
+/*
+ * ⚠️ `grid-column` ausdrücklich, nicht über die Reihenfolge im Markup: Die
+ * Komponente liefert beide Spalten **vor** dem Text, weil sie aus einem
+ * Stück kommen. Ohne diese zwei Zeilen landete der Text in der rechten
+ * Spalte und die rechte Flanke in der Mitte — beim Messen gegen den echten
+ * Server aufgefallen (551px statt 340).
+ *
+ * ⚠️ `grid-row: 1` gehört dazu. Mit fester Spalte, aber freier Zeile schiebt
+ * die Auto-Platzierung jedes weitere Element in eine **neue** Zeile — der
+ * Text landete dadurch unter den Flanken statt neben ihnen, am unteren Ende
+ * einer riesigen leeren Mitte. Ebenfalls erst im Screenshot zu sehen.
+ */
+.spalte {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xl);
+  min-width: 0;
+}
+
+/*
+ * Die rechte Flanke setzt tiefer an. Ohne den Versatz stehen zwei saubere
+ * Reihen nebeneinander und es sieht gerastert aus; mit ihm wirkt es
+ * kuratiert. Das ist der ganze Trick an diesem Layout.
+ */
+.rechts {
+  grid-column: 3;
+  padding-top: 96px;
+}
+
+.karte {
+  margin: 0;
+  min-width: 0;
+}
+
+/*
+ * ⚠️ Der Rahmen trägt `overflow: hidden` **und** den Radius, damit das Bild
+ * beim Zoomen innen bleibt. `display: block` ist nötig, weil es ein `span`
+ * ist — gewählt, weil eine `figure` kein zweites Blockelement um ihr Bild
+ * braucht, das Screenreader mitlesen.
+ */
+.rahmen {
+  display: block;
+  overflow: hidden;
+  border-radius: var(--radius-bild);
+  background: #e6e3dc;
+  transition:
+    transform 320ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 320ms ease;
+}
+
+.bild {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: transform 520ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/*
+ * ⚠️ **Nur mit echtem Zeigegerät.** Ein Finger kann nicht „überfahren"; auf
+ * Touch bliebe der Effekt entweder am ersten Antippen kleben oder müsste
+ * antäuschen, eine Funktion zu sein. Deshalb existiert er dort gar nicht.
+ * `:focus-within` ist mit drin, damit Tastaturbedienung dasselbe sieht.
+ */
+@media (hover: hover) and (pointer: fine) {
+  .karte:hover .rahmen,
+  .karte:focus-within .rahmen {
+    transform: translateY(-8px) scale(1.025);
+    box-shadow: 0 22px 44px -18px rgba(20, 22, 20, 0.42);
+  }
+
+  .karte:hover .bild,
+  .karte:focus-within .bild {
+    transform: scale(1.07);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rahmen,
+  .bild {
+    transition: none;
+  }
+  .karte:hover .rahmen,
+  .karte:focus-within .rahmen,
+  .karte:hover .bild,
+  .karte:focus-within .bild {
+    transform: none;
+  }
+}
+
+.zeile {
+  margin: var(--space-sm) 0 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-papier);
+}
+
+/*
+ * ── Telefon ─────────────────────────────────────────────────────────
+ *
+ * Die Flanken fallen unter den Text (`display: contents` löst die beiden
+ * Spalten auf, die Karten werden direkte Kinder des Rasters). Alle Bilder
+ * **mittig** — so von Jan am 2026-09-13 gewünscht.
+ *
+ * ⚠️ Die Höhenbegrenzung ist kein Beiwerk: Ein Hochformat über die volle
+ * Breite eines 390px-Displays wird 585px hoch und füllt den Bildschirm
+ * allein. Mit `66svh` bleibt immer erkennbar, dass darunter noch etwas
+ * kommt. Querformate laufen weiter über die volle Spaltenbreite.
+ */
+@media (max-width: 700px) {
+  .spalte,
+  .rechts {
+    display: contents;
+  }
+
+  /* Die Karten werden hier selbst zu Rasterzellen und fließen untereinander;
+     ihre Reihenfolge steuert `order` aus Flanken.tsx. */
+  .karte {
+    grid-column: 1;
+  }
+
+  .karte {
+    margin: var(--space-2xl) auto 0;
+    text-align: center;
+  }
+
+  .rahmen {
+    width: fit-content;
+    max-width: 100%;
+    margin-inline: auto;
+  }
+
+  .bild {
+    width: auto;
+    max-width: 100%;
+    max-height: 66svh;
+  }
+
+  .zeile {
+    text-align: center;
+  }
+}

@@ -85,59 +85,44 @@ export function sparsamesSrcset(
 }
 
 /**
- * `sizes` für ein Bild, das **nicht zugeschnitten** wird, sondern über seine
- * Höhe begrenzt ist — das Leitbild der Detailseite.
+ * Breite einer Flanke auf dem Desktop, in Pixeln.
  *
- * ⚠️ **Ohne das ist die halbe Layoutänderung wirkungslos.** `sizes` sagt dem
- * Browser, wie breit das Bild im Layout wird; er wählt danach die Stufe aus
- * dem `srcset`. Bliebe hier `100vw` stehen, lüde er auf einem 1920er-Schirm
- * weiterhin die größte Stufe für einen Platz von rund 519 px — also genau die
- * Bytes, die die Änderung einsparen soll.
- *
- * Die Breite ergibt sich aus der Höhenbegrenzung: `Höhe × Seitenverhältnis`,
- * gedeckelt auf die Fensterbreite (ein Querformat stößt auf dem Telefon
- * zuerst an die Breite, nicht an die Höhe). Die Grenzwerte spiegeln
- * `detail.module.css`; laufen die beiden auseinander, lädt der Browser die
- * falsche Stufe — ohne dass irgendwo ein Fehler auftaucht.
- *
- * `svh` und nicht `vh`, aus demselben Grund wie im CSS: `vh` meint auf dem
- * Telefon die Höhe ohne die ein- und ausfahrende Browserleiste.
+ * ⚠️ **Muss mit `detail.module.css` übereinstimmen.** Dort steht sie als
+ * Spaltenbreite im Raster, hier in der `sizes`-Angabe. Laufen die beiden
+ * auseinander, lädt der Browser stillschweigend die falsche Stufe — kein
+ * Fehler, den irgendwo etwas meldet, nur ein paar hundert Kilobyte zu viel
+ * oder ein weiches Bild. Ein Test hält die Zahl mit dem CSS zusammen.
  */
-export function leitbildSizes(breite: number, hoehe: number): string {
-  const v = seitenverhaeltnis(breite, hoehe);
-  // Ein kaputtes Manifest darf nicht zu `NaN` im HTML führen; dann lieber die
-  // alte, verschwenderische, aber funktionierende Angabe.
-  if (v === null) return "100vw";
-  return (
-    `(max-width: 700px) calc(min(100vw, 56svh * ${v})), ` + `calc(min(100vw, 72svh * ${v}))`
-  );
-}
+export const FLANKE_BREITE = 340;
 
 /**
- * `sizes` für ein Bild der Bildstrecke.
+ * `sizes` für ein Flankenbild.
  *
- * Dieselbe Rechnung wie beim Leitbild, nur mit den Grenzwerten des Streifens:
- * feste Höhe, gedeckelt in Pixeln **und** auf 86 % der Fensterbreite. Alle
- * drei Grenzen müssen hier stehen, sonst fordert der Browser für ein breites
- * Querformat die zu große Stufe an.
+ * Absichtlich zwei feste Angaben statt einer Rechnung aus dem
+ * Seitenverhältnis: Die Flanke ist im Raster auf `FLANKE_BREITE` gedeckelt,
+ * also ist die Breite **unabhängig** von der Form des Bildes. Die
+ * Vorgängerfassung rechnete `Höhe × Seitenverhältnis` — nötig, solange die
+ * Höhe das Maß war, und eine Fehlerquelle mehr, sobald sie es nicht mehr ist.
  *
- * ⚠️ Die Werte spiegeln `Bildstrecke.module.css`. Laufen sie auseinander,
- * lädt der Browser stillschweigend die falsche Auflösung.
+ * Mobil `92vw`: Dort läuft ein Querformat über die Spaltenbreite, ein
+ * Hochformat ist über `66svh` begrenzt und damit schmaler. `92vw` ist für
+ * beide die sichere Obergrenze.
  */
-export function streckeSizes(breite: number, hoehe: number): string {
-  const v = seitenverhaeltnis(breite, hoehe);
-  if (v === null) return "(max-width: 700px) 86vw, 720px";
-  return (
-    `(max-width: 700px) min(86vw, 34svh * ${v}, 300px * ${v}), ` +
-    `min(86vw, 48svh * ${v}, 460px * ${v})`
-  );
-}
+export const FLANKEN_SIZES = `(max-width: 700px) 92vw, ${FLANKE_BREITE}px`;
 
-/** Seitenverhältnis als kurze Dezimalzahl, oder `null` bei unbrauchbaren Maßen. */
-function seitenverhaeltnis(breite: number, hoehe: number): string | null {
-  if (!(breite > 0) || !(hoehe > 0)) return null;
-  return (breite / hoehe).toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
-}
+/**
+ * `sizes` für das Hero der Detailseite.
+ *
+ * Randlos über die volle Fensterbreite, mit `object-fit: cover` — am Desktop
+ * über `100svh`, mobil in einer 4:3-Box. In beiden Fällen ist die gerenderte
+ * Breite die Fensterbreite, deshalb reicht hier tatsächlich `100vw`.
+ *
+ * ⚠️ Das ist kein Rückfall auf den Standardwert, sondern die richtige Angabe
+ * für ein randloses Bild. Auf einem Retina-Schirm fordert der Browser damit
+ * über 2400px an — die Quelle muss also breit genug sein, siehe die Zeile
+ * „Breite der Quelle" in design/UI-SPEC.md.
+ */
+export const HERO_SIZES = "100vw";
 
 /**
  * Belichtungszeit, wie Fotografen sie schreiben: kürzer als eine Sekunde
