@@ -6,6 +6,15 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-09-12 — Erste Bilder live, und sie sahen schlecht aus
+- **Jans Urteil: „die Qualität ist viiiiel zu schlecht".** Er hatte recht, und es waren zwei Fehler von mir.
+- **Der eigentliche: AVIF war bei 1600px gekappt, WebP ging bis 2400.** Das Detailbild läuft mit `sizes="100vw"`; ein 1920er-Bildschirm fordert 1920px an, ein Retina-Laptop deutlich mehr. Im AVIF-`srcset` stand als größtes 1600 — der Browser nahm es und rechnete hoch. Sichtbar weich, und zwar genau auf der Seite, auf der die Fotografie ihr Versprechen einlösen soll.
+  - ⚠️ **Die Kappung war nie eine Qualitätsentscheidung**, sondern eine Bauzeit-Entscheidung: Der Cloudflare-Build rechnete damals jedes Bild bei jedem Deploy neu, und die 2400er-AVIF-Stufe kostete 17,5 s je Bild. **Mit dem R2-Umbau vom 2026-08-29 ist diese Begründung weggefallen** — und ich habe die Einstellung nicht mitgezogen. Sie stand sogar mit dem Hinweis „das ist eine Bauzeit-Entscheidung, keine Qualitätsentscheidung" im Code; ich habe meinen eigenen Vermerk übersehen.
+- **Der zweite: die Qualitätsstufen waren zu niedrig** (AVIF 50, WebP 72, JPEG 78) — ebenfalls aus der Zeit, als jede Variante Bauzeit kostete. Jetzt 62 / 82 / 86. Für ein Fotografen-Portfolio ist das Bild das Produkt; gespart wurde am falschen Ende.
+- **Gemessen statt geschätzt**, an einem 3000×2000-Testbild: 2400er-AVIF bei q62 kostet 498 kB und 24,7 s. Die Rechenzeit trägt jetzt Jans Rechner, einmal je geändertem Bild — nicht mehr jeder Deploy.
+- `PIPELINE_VERSION` auf 5, sonst hielte der Zwischenspeicher die alten Ableitungen für aktuell.
+- **Der End-to-End-Test hat die Änderung sofort gemeldet** — er prüfte noch „AVIF endet bei 1600". Umgeschrieben auf die Absicht, die wirklich zählt: **AVIF muss dieselben Breiten abdecken wie WebP.** Hinkt ein Format hinterher, greift der Browser stillschweigend zur schlechteren Auflösung, und nichts davon taucht irgendwo als Fehler auf. Genau diese Prüfung hätte den Fehler gefunden.
+
 ## 2026-09-12 — `.dev.vars` wurde auf Windows nie gelesen
 - **Zwei Runden lang habe ich Jan an der falschen Stelle suchen lassen** — Token neu anlegen, Datei prüfen, Dateiname kontrollieren. Die Datei war die ganze Zeit korrekt: 350 Bytes, sechs richtige Zeilen. Mein Leser war kaputt.
 - **Die Ursache ist eine Eigenheit von JavaScript, die ich nicht auf dem Schirm hatte:** `\r` zählt dort als **Zeilenende**, und `.` matcht Zeilenenden nicht. Der Leser zerlegte den Text an `\n`; bei Windows-Zeilenenden bleibt damit ein `\r` am Zeilenende stehen, und `(.*)$` scheitert daran — an **jeder** Zeile, nicht nur an einer. Auf Linux lief dieselbe Datei anstandslos, also auch in jedem meiner Tests.

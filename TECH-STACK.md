@@ -148,12 +148,18 @@ Build-Schritt importiert. Wenn das jemals nötig scheint, ist etwas anderes fals
 | Im Git | **die Manifeste und die Vorschaukarten** — sonst nichts. `.medien-cache/` ist ignoriert |
 | Zugriff im Code | `bildZurArbeit(id)` / `bild(schluessel)` aus `lib/bilder.ts`, `videoZurArbeit(id)` / `heroVideo()` aus `lib/video.ts` |
 
-Erzeugt werden **WebP in bis zu fünf Breiten (480–2400), AVIF bis 1600**, dazu ein JPEG als
-Rückfall und ein 16 px breites Vorschaubildchen, das als Datei-URI im Manifest und damit im HTML
-landet. **Nie hochskaliert.** Warum AVIF nur bis 1600: Die 2400er-Variante kostete allein 17,5
-Sekunden pro Bild, zwei Drittel der gesamten Rechenzeit. Ein Retina-Gerät bekommt jetzt die
-1600er AVIF mit 46 kB statt einer 2400er WebP mit 771 kB — kleiner **und** schneller. Messwerte
-stehen in `lib/bilder-regeln.mjs`.
+Erzeugt werden **AVIF und WebP in bis zu fünf Breiten (480–2400)**, dazu ein JPEG als Rückfall
+und ein 16 px breites Vorschaubildchen, das als Datei-URI im Manifest und damit im HTML landet.
+**Nie hochskaliert.**
+
+⚠️ **AVIF war bis zum 2026-09-12 bei 1600 gekappt** — eine reine Bauzeit-Entscheidung aus der
+Zeit, als der Cloudflare-Build jedes Bild bei jedem Deploy neu rechnete. Mit dem R2-Umbau ist
+sie hinfällig geworden, blieb aber stehen, und das kostete sichtbar Qualität: Das Detailbild
+läuft mit `sizes="100vw"`, ein Retina-Bildschirm fordert über 2000px an, fand im AVIF-Satz aber
+nur 1600 und rechnete hoch. Messwerte und die ganze Begründung stehen in `lib/bilder-regeln.mjs`.
+
+**Ein Format darf dem anderen nie hinterherhinken** — sonst greift der Browser stillschweigend
+zur schlechteren Auflösung, ohne dass es irgendwo als Fehler auftaucht.
 
 Die Ableitungen liegen unter `b/` im **selben Baum** wie die Originale unter `original/`, mit der
 Breite im Dateinamen: `b/arbeiten/tete-a-tete-2026-1200.avif`. Gehashte Namen wären
