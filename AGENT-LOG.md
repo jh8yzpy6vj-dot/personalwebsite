@@ -6,6 +6,19 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-09-12 — Streifen an der Textspalte: bei 1440 geprüft, ab 1920 kaputt
+- **Jan, mit Screenshot: „das ist komplett cooked."** Der Streifen klebte in der rechten Fensterhälfte, links lag eine große tote Fläche.
+- **Ursache war meine Ausrichtung von vorhin:** `padding-left: max(--space-lg, (100vw − 1040px) / 2)`, damit Streifen und Textspalte auf derselben Kante beginnen. Gemessen hatte ich bei 1440 und 1920 — und genau dort trägt es.
+  | Breite | Leitbild ab | Streifen ab |
+  |--------|-------------|-------------|
+  | 1440   |     234     |     200     |
+  | 1920   |     377     |     440     |
+  | 2560   |     502     |     760     |
+  | 3440   |     942     |    1200     |
+- **Ab 1920 kippt es:** Der Streifen beginnt **rechts** vom Leitbild, bei 3440 liegen **1200 px links brach**. Die Ausrichtung wächst mit `100vw`, die Bildbreite nicht.
+- **Behoben:** Der Streifen ist wieder randlos mit schmalem Gutter (`--space-lg`) und läuft nach rechts aus dem Bild. Ein randloser Scroller neben einer zentrierten Textspalte ist das übliche und ruhigere Paar — die gemeinsame Kante war eine Idee zu viel, und sie war es, die den unruhigen Eindruck erzeugte, den sie beheben sollte.
+- ⚠️ **Die Lehre, und sie ist nicht neu:** Eine Angabe, die mit `100vw` wächst, muss über die **ganze** Spanne geprüft werden, nicht an zwei bequemen Breiten. Ich hatte bei 1920, 1440 und 390 gemessen und daraus „stimmt" geschlossen — die beiden Breiten, bei denen der Fehler unsichtbar ist. Dieselbe Form wie beim `.dev.vars`-Fehler (nur auf Linux geprüft, kaputt auf Windows) und beim EU-Endpunkt (nur gegen einen Mock geprüft, der keine Jurisdiction kennt): **die Prüfung deckte den Bereich nicht ab, in dem das Verhalten sich ändert.** Bei allem, was von der Fensterbreite abhängt, gehören 2560 und 3440 in die Messung.
+
 ## 2026-09-12 — `PIPELINE_VERSION` vergessen: der Fingerabdruck hätte nicht gewirkt
 - **Gefunden beim Nachgehen eines Symptoms, das eine andere Ursache hatte.** Jans Lauf meldete „0 Bilder erzeugt, 7 unverändert", und ich schloss daraus, der Fingerabdruck-Fix greife nicht. ⚠️ **Die Zuordnung war falsch:** Sein `git log` zeigte danach, dass der Commit mit dem Fingerabdruck gar nicht in seinem Baum war — sein PowerShell-Einzeiler hatte das ältere Bundle gegriffen, beide hießen `bildqualitaet.bundle`. Sein Lauf war ein ehrlicher No-Op.
 - **Der Fehler, den ich dabei fand, ist trotzdem echt** und hätte beim nächsten Lauf zugeschlagen: Der Cache-Schlüssel ist `sha1(ETag + PIPELINE_VERSION + Bucket-Adresse)`, und der Fingerabdruck sind die ersten acht Stellen **desselben** Schlüssels. Ändert sich das Bild nicht, bleibt der Schlüssel gleich → Eintrag gilt als unverändert → er käme samt **alter, fingerabdrucksloser Adresse** aus `stand.json` zurück. Der Fingerabdruck hätte nur Bilder erreicht, die ohnehin neu gerechnet werden.
