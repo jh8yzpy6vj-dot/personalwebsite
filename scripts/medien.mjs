@@ -420,7 +420,25 @@ async function main() {
       .digest("hex");
     const alt = stand[name];
 
-    if (alt?.schluessel === schluessel && alt.dateien.every((d) => imBucket.has(d))) {
+    /*
+     * ⚠️ **Auch die Adresse muss stimmen, nicht nur der Schlüssel.**
+     *
+     * Am 2026-09-12 bekamen die Adressen einen Fingerabdruck gegen einen
+     * Cache-Fehler — und die Änderung wäre wirkungslos geblieben: Der
+     * Schlüssel wäre unverändert gewesen, also käme der Eintrag samt
+     * **alter** Adresse aus `stand.json` zurück, der Lauf meldete
+     * „unverändert", und im Manifest stünde weiter die Adresse ohne
+     * Fingerabdruck.
+     *
+     * `PIPELINE_VERSION` zu erhöhen behebt den Einzelfall. Diese Prüfung
+     * behebt die **Klasse**: Ein zwischengespeicherter Eintrag gilt nur,
+     * wenn seine Adresse die ist, die dieser Lauf erzeugen würde. Wer die
+     * Form der Adressen künftig ändert und die Version vergisst, bekommt
+     * eine Neuberechnung statt eines stillen Fehlers.
+     */
+    const adresseAktuell = alt?.eintrag?.fallback?.includes(`?v=${schluessel.slice(0, 8)}`);
+
+    if (alt?.schluessel === schluessel && adresseAktuell && alt.dateien.every((d) => imBucket.has(d))) {
       bilder[name] = alt.eintrag;
       neuerStand[name] = alt;
       alt.dateien.forEach((d) => behalten.add(d));
