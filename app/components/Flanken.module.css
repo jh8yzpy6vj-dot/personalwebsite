@@ -126,9 +126,6 @@
      ihre Reihenfolge steuert `order` aus Flanken.tsx. */
   .karte {
     grid-column: 1;
-  }
-
-  .karte {
     margin: var(--space-2xl) auto 0;
     text-align: center;
   }
