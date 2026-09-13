@@ -64,18 +64,42 @@ Tastaturfokus, Ziel `#inhalt` auf dem `<main>`. Ohne sie muss man sich auf *jede
 durch die fixe Topbar tabben. Bewusst mit `transform` aus dem Bild geschoben statt mit
 `display: none` — ein so verstecktes Element ist gar nicht fokussierbar und die Marke wirkungslos.
 
-**Genau eine Naht pro Seite.** Der Wechsel dunkel → hell ist das Strukturelement und passiert je
-Seite höchstens einmal.
+**Genau eine Naht pro Seite** — mit **einer** bewusst gesetzten Ausnahme. Der Wechsel dunkel → hell
+ist das Strukturelement und passiert je Seite höchstens einmal.
+
+⚠️ **Die Startseite hat seit dem 2026-09-13 drei Wechsel:** Hero dunkel → `jakob.` **hell** →
+`arbeiten.` dunkel → Rest hell. Von Jan ausdrücklich so entschieden, nachdem ihm die Konsequenz
+genannt wurde: „so wie ichs gesagt hab, hero dunkel, jakob hell, arbeiten dunkel, footer hell."
+
+Der Grund, der dafür spricht: Das Porträt ist dunkel und im Gegenlicht aufgenommen. Auf
+`--buehne` verlor es seine Ränder und ging in den Grund über — der Block, der zeigen soll, wer
+hinter der Seite steht, war der unauffälligste der Seite. Auf Papier steht er.
+
+Der Preis, der dagegen spricht und bleibt: Die Naht ist kein Strukturelement mehr, sondern ein
+Farbwechsel unter mehreren. Wer die Regel später wieder herstellen will, hat zwei Wege ohne
+diesen Preis — Naht hinter das Hero (dann wird `arbeiten.` mit hell, und der Kachelblock steht
+anders als `/arbeiten`), oder `jakob.` unter `arbeiten.` schieben (dann kommt „was" vor „wer",
+was Jan am 2026-08-30 bewusst andersherum entschieden hatte). Beide standen zur Wahl.
+
+**Folge für die Topbar:** Sie wechselt weiterhin erst bei `#lesen` auf Papier-Grund. Über dem
+hellen `jakob.` steht sie also als deckender dunkler Balken. Das ist lesbar und beabsichtigt —
+die Alternative wäre, den Beobachtungspunkt auf den Anriss zu legen, und dann stünde über dem
+**dunklen** `arbeiten.` dunkle Schrift auf dunklem Grund. Von zwei Unstimmigkeiten die harmlose.
 
 **Reihenfolge der Startseite, geändert am 2026-08-29 auf Jans Ansage: Hero → wer → was →
 Angebot.** Vorher stand `buchbar.` direkt hinter dem Hero — die Antwort auf eine Frage, die zu
 dem Zeitpunkt noch niemand gestellt hat. Wer auf einer Fotografenseite landet, will erst sehen,
 dann wissen, wer das ist, und zuletzt, was es kostet.
 
-Daraus folgt zwingend, **wo die Naht liegt**: Hero, Porträt und Material sind zusammen das
-„Sehen"; darunter beginnt einmalig das „Lesen". Deshalb steht der Kurzanriss über Jakob auf
-dunklem Grund, obwohl er Text ist — zwei Sätze und ein Porträt sind Bildseite, ein Textblock
-wäre es nicht. Die Alternative (Anriss hell) hätte die Naht auf drei Wechsel verdreifacht.
+⚠️ **Dieser Absatz galt bis zum 2026-09-13 und ist von der Ausnahme oben überholt.** Er lautete:
+„Hero, Porträt und Material sind zusammen das ‚Sehen'; darunter beginnt einmalig das ‚Lesen'.
+Deshalb steht der Kurzanriss über Jakob auf dunklem Grund, obwohl er Text ist — zwei Sätze und
+ein Porträt sind Bildseite, ein Textblock wäre es nicht. Die Alternative (Anriss hell) hätte die
+Naht auf drei Wechsel verdreifacht."
+
+Die Abwägung war richtig beschrieben, nur die Gewichtung ist heute eine andere: Mit einem echten
+Foto im Block zeigte sich, dass ein dunkles Gegenlichtporträt auf `--buehne` verschwindet. Die
+verdreifachte Naht ist der bekannte und in Kauf genommene Preis, nicht ein übersehener Fehler.
 
 **`zuletzt.` als Zeilenliste ist entfallen.** An seiner Stelle steht `arbeiten.` mit demselben
 randlosen Kachelraster wie das Archiv — die Startseite soll Material zeigen, nicht Titel
