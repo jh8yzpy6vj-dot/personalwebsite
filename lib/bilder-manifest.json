@@ -96,5 +96,13 @@
     "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-2400.webp 2400w",
     "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-1200.jpg?v=7665274a",
     "lqip": "data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAADwAQCdASoQAAsAA4BaJZwAAu06mx2+PSwA/th7a0yXYGArh711g851t65JFh5PpxI5URAIbuJkDEPCDkJ9C8n0hnojjZ2FoySgrksmwwxTpHAA"
+  },
+  "portrait": {
+    "breite": 1440,
+    "hoehe": 810,
+    "avif": "https://medien.jakobsax.de/b/portrait-480.avif 480w, https://medien.jakobsax.de/b/portrait-800.avif 800w, https://medien.jakobsax.de/b/portrait-1200.avif 1200w",
+    "webp": "https://medien.jakobsax.de/b/portrait-480.webp 480w, https://medien.jakobsax.de/b/portrait-800.webp 800w, https://medien.jakobsax.de/b/portrait-1200.webp 1200w",
+    "fallback": "https://medien.jakobsax.de/b/portrait-1200.jpg?v=5b95e3a5",
+    "lqip": "data:image/webp;base64,UklGRloAAABXRUJQVlA4IE4AAADQAQCdASoQAAkAA4BaJQBOgB4bJlZu8AD+Zt9ZZ9goFwSt+PX3Lye2fjl3mYlTRznN4ePACzlxy3fAXE1/9jWLXhGxLwfFBBFjWkoAAAA="
   }
 }
