@@ -31,18 +31,6 @@
   background: #000;
 }
 
-.heroBild {
-  position: absolute;
-  inset: 0;
-}
-
-.image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
 /*
  * Titel und Metazeile liegen **im** Bild, auf einem Verlauf nach Schwarz.
  * Der Verlauf ist deckend, solange Text darauf steht — siehe „Text über
@@ -120,35 +108,29 @@
 }
 
 /*
- * ── Der Satz: Text zwischen zwei Bilderflanken ──────────────────────
+ * ── Kontext: erst lesen, dann sehen ─────────────────────────────────
  *
- * ⚠️ `FLANKE_BREITE` in `lib/bilder.ts` trägt dieselbe Zahl wie die beiden
- * äußeren Spalten hier. Laufen sie auseinander, lädt der Browser
- * stillschweigend die falsche Bildstufe. Ein Test hält sie zusammen.
+ * Der Text steht als einzelne Spalte mittig, das Mosaik darunter über die
+ * volle Breite. ⚠️ **Bis zum 2026-09-13 war das ein Dreispaltenraster mit
+ * Bilderflanken links und rechts.** Es hing an der Textlänge — bei kurzem
+ * Text liefen die Flanken unten heraus und die Mitte wurde zur leeren
+ * Rinne. Das Mosaik hat diese Kopplung nicht.
  */
-.satz {
-  display: grid;
-  grid-template-columns: minmax(0, 340px) minmax(0, 54ch) minmax(0, 340px);
-  justify-content: center;
-  gap: 0 var(--space-2xl);
-  align-items: start;
+.text {
+  max-width: 54ch;
+  margin: 0 auto;
   padding: var(--space-3xl) var(--space-lg) var(--space-2xl);
 }
 
-/* Ohne Bilder bleibt nur die Textspalte — dann kein leeres Dreispaltenraster. */
-.satzOhneBilder {
-  grid-template-columns: minmax(0, 54ch);
-}
-
-.satzOhneBilder .text {
-  grid-column: 1;
-}
-
-/* Mitte, erste Zeile — siehe die Begründung in Flanken.module.css. */
-.text {
-  grid-column: 2;
-  grid-row: 1;
-  min-width: 0;
+/*
+ * Breiter als die Textspalte und breiter als `.inner`: Eine Bildfläche
+ * darf mehr Raum nehmen als eine Zeile Text — 54ch ist ein Maß für
+ * Lesbarkeit, nicht für Fotos.
+ */
+.mosaik {
+  max-width: 1560px;
+  margin: 0 auto;
+  padding: 0 var(--space-lg) var(--space-3xl);
 }
 
 .light {
@@ -279,15 +261,6 @@
     background: transparent;
   }
 
-  .heroBild {
-    position: static;
-  }
-
-  .image {
-    aspect-ratio: 4 / 3;
-    height: auto;
-  }
-
   /*
    * Der Titel steht **unter** dem Bild statt darauf: In einer nur noch 4:3
    * hohen Box müsste er gegen das Motiv ankämpfen. Kein Verlauf nötig, der
@@ -309,18 +282,15 @@
     aspect-ratio: 4 / 3;
   }
 
-  .satz,
-  .satzOhneBilder {
-    grid-template-columns: 1fr;
+  /* Erst lesen, dann die Bilder — so von Jan festgelegt. Am Desktop steht
+     es ohnehin schon in dieser Reihenfolge, hier ändert sich nur der
+     Innenabstand. */
+  .text {
     padding: var(--space-2xl) var(--space-md);
   }
 
-  /* Erst lesen, dann die Bilder — so von Jan festgelegt. Die Karten
-     tragen ihre echte Reihenfolge als `order`, siehe Flanken.tsx. */
-  .text {
-    grid-column: 1;
-    grid-row: auto;
-    order: -1;
+  .mosaik {
+    padding: 0 var(--space-md) var(--space-2xl);
   }
 
   .inner {

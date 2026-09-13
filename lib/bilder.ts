@@ -85,30 +85,29 @@ export function sparsamesSrcset(
 }
 
 /**
- * Breite einer Flanke auf dem Desktop, in Pixeln.
+ * Angestrebte Zeilenhöhe im Mosaik, in Pixeln.
  *
- * ⚠️ **Muss mit `detail.module.css` übereinstimmen.** Dort steht sie als
- * Spaltenbreite im Raster, hier in der `sizes`-Angabe. Laufen die beiden
- * auseinander, lädt der Browser stillschweigend die falsche Stufe — kein
- * Fehler, den irgendwo etwas meldet, nur ein paar hundert Kilobyte zu viel
- * oder ein weiches Bild. Ein Test hält die Zahl mit dem CSS zusammen.
+ * Es ist die **Untergrenze**, nicht die feste Höhe: Der Zeilensatz verteilt
+ * den restlichen Platz einer Zeile, jede Zeile wird also mindestens so hoch.
+ * Zugleich ist es der Wert, aus dem `Mosaik.tsx` die `flex-basis` je Kachel
+ * rechnet (`Seitenverhältnis × Zeilenhöhe`) — und damit das, was darüber
+ * entscheidet, wie viele Bilder in eine Zeile passen.
  */
-export const FLANKE_BREITE = 340;
+export const MOSAIK_ZEILENHOEHE = 320;
 
 /**
- * `sizes` für ein Flankenbild.
+ * `sizes` für eine Mosaikkachel.
  *
- * Absichtlich zwei feste Angaben statt einer Rechnung aus dem
- * Seitenverhältnis: Die Flanke ist im Raster auf `FLANKE_BREITE` gedeckelt,
- * also ist die Breite **unabhängig** von der Form des Bildes. Die
- * Vorgängerfassung rechnete `Höhe × Seitenverhältnis` — nötig, solange die
- * Höhe das Maß war, und eine Fehlerquelle mehr, sobald sie es nicht mehr ist.
+ * ⚠️ Eine Schätzung, und das ist hier unvermeidbar: Wie breit eine Kachel
+ * wird, steht erst fest, wenn der Browser die Zeile umgebrochen hat — eine
+ * `sizes`-Angabe muss aber vorher im HTML stehen. Gewählt ist deshalb die
+ * **obere** Kante des üblichen Falls: Ein Querformat (3:2) in einer Zeile
+ * von 320–540px Höhe wird 480–810px breit. `50vw` deckt das bis 1620px
+ * Fensterbreite ab und liegt darüber auf der sicheren Seite.
  *
- * Mobil `92vw`: Dort läuft ein Querformat über die Spaltenbreite, ein
- * Hochformat ist über `66svh` begrenzt und damit schmaler. `92vw` ist für
- * beide die sichere Obergrenze.
+ * Mobil ein Bild je Zeile über die volle Spaltenbreite, daher `92vw`.
  */
-export const FLANKEN_SIZES = `(max-width: 700px) 92vw, ${FLANKE_BREITE}px`;
+export const MOSAIK_SIZES = "(max-width: 700px) 92vw, 50vw";
 
 /**
  * `sizes` für das Hero der Detailseite.

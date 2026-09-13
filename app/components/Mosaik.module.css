@@ -1,0 +1,232 @@
+/*
+ * Das Mosaik der Bildstrecke: Zeilen gleicher Höhe, nichts beschnitten.
+ *
+ * Die Rechnung, warum das ohne eine einzige Messung aufgeht, steht im
+ * Kopf von Mosaik.tsx. Kurz: `flex-grow` und `flex-basis` hängen beide am
+ * Seitenverhältnis, deshalb bleibt die Breite dazu proportional und die
+ * Höhe für alle Bilder einer Zeile gleich.
+ */
+
+.mosaik {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kachel {
+  /* `flex-grow` und `flex-basis` setzt Mosaik.tsx je Bild. */
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+/*
+ * Höhe 0, Zuwachs riesig: Diese Elemente schlucken den freien Platz der
+ * letzten, unvollständigen Zeile. In vollen Zeilen ist kein freier Platz
+ * zu verteilen, dort ändern sie nichts.
+ */
+.fueller {
+  flex-grow: 999;
+  flex-basis: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.figur {
+  margin: 0;
+}
+
+.griff {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-bild);
+  background: var(--stein);
+  /* `aspect-ratio` setzt Mosaik.tsx aus den Maßen des Originals: So steht
+     die Fläche schon, bevor das Foto da ist, und die Zeile springt nicht. */
+  cursor: zoom-in;
+  transition:
+    transform 300ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 300ms ease;
+}
+
+.bild {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /*
+   * `cover` schneidet hier **nichts** weg: Die Fläche trägt das
+   * Seitenverhältnis des Originals, Bild und Rahmen haben also dieselbe
+   * Form. Es fängt nur Rundungsreste von Bruchteilen eines Pixels ab.
+   */
+  object-fit: cover;
+  transition: transform 520ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/*
+ * ⚠️ Nur mit echtem Zeigegerät: Ein Finger kann nicht überfahren. Auf
+ * Touch bliebe der Effekt am ersten Antippen kleben und täuschte eine
+ * Funktion vor, die es nicht gibt.
+ */
+@media (hover: hover) and (pointer: fine) {
+  .griff:hover,
+  .griff:focus-visible {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 38px -18px rgba(20, 22, 20, 0.45);
+  }
+
+  .griff:hover .bild {
+    transform: scale(1.05);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .griff,
+  .bild {
+    transition: none;
+  }
+  .griff:hover,
+  .griff:focus-visible,
+  .griff:hover .bild {
+    transform: none;
+  }
+}
+
+.zeile {
+  margin: var(--space-sm) 0 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--ton-papier);
+}
+
+/* ── Lichtkasten ──────────────────────────────────────────────────────
+ *
+ * ⚠️ `position: fixed`, nicht `absolute`. Im Entwurf lag er absolut im
+ * scrollenden Element — also am Anfang des Inhalts statt im Sichtfeld.
+ * Der Browser scrollte beim Fokussieren dorthin, und nach dem Schließen
+ * stand man wieder ganz oben. Jans Befund am 2026-09-13.
+ */
+.kasten {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: var(--space-md);
+  padding: var(--space-3xl) var(--space-lg) var(--space-lg);
+  background: rgba(6, 6, 8, 0.96);
+}
+
+.kastenBild {
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kastenBild img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  display: block;
+}
+
+.kastenZeile {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: #d8dbd8;
+}
+
+.kastenZahl {
+  color: var(--ton-buehne);
+}
+
+.zu,
+.pfeil {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(20, 20, 24, 0.72);
+  color: var(--papier);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-body);
+  cursor: pointer;
+}
+
+.zu:hover,
+.pfeil:hover:not(:disabled) {
+  background: rgba(40, 40, 48, 0.9);
+}
+
+.zu {
+  top: var(--space-md);
+  right: var(--space-lg);
+}
+
+.pfeil {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.zurueck { left: var(--space-sm); }
+.vor { right: var(--space-sm); }
+
+.pfeil:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* Text, der nur vorgelesen wird — die Knöpfe tragen sichtbar nur ein
+   Zeichen, brauchen aber einen echten Namen. */
+.nurVorlesen {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/*
+ * ── Telefon ──────────────────────────────────────────────────────────
+ *
+ * Ein Bild je Zeile. Der Zeilensatz hätte auf 390px sonst zwei
+ * Hochformate nebeneinander, jedes 180px breit — dann sieht man auf
+ * keinem mehr, was darauf passiert.
+ */
+@media (max-width: 700px) {
+  .kachel {
+    flex: 1 1 100%;
+  }
+
+  .fueller {
+    display: none;
+  }
+
+  .kasten {
+    padding: var(--space-3xl) var(--space-md) var(--space-md);
+  }
+
+  .zu {
+    right: var(--space-md);
+  }
+}

@@ -171,28 +171,61 @@ describe("budgetFuer", () => {
   });
 });
 
+const lies = (pfad: string) =>
+  import("node:fs/promises").then((fs) =>
+    fs.readFile(new URL(pfad, import.meta.url), "utf8"),
+  );
+
 /**
- * ⚠️ Die Zahl steht an **zwei** Stellen: als Spaltenbreite im Raster
- * (`detail.module.css`) und in der `sizes`-Angabe. Laufen sie auseinander,
- * lädt der Browser stillschweigend die falsche Stufe — niemand bekommt einen
- * Fehler, es kostet nur Bytes oder Schärfe. Genau diese Sorte Abweichung hat
- * in diesem Projekt schon zweimal Zeit gekostet.
+ * ⚠️ Der Zeilensatz des Mosaiks geht **nur** auf, solange `flex-grow` und
+ * `flex-basis` beide am Seitenverhältnis hängen. Setzt jemand einen festen
+ * `flex-grow: 1`, bleibt die Zeile bündig, aber die Bilder darin bekommen
+ * ungleiche Höhen — und weil sie trotzdem unbeschnitten bleiben, sieht es
+ * nach Absicht aus statt nach Fehler. Genau diese Sorte stiller Abweichung
+ * hat in diesem Projekt schon mehrfach Zeit gekostet, deshalb ein Test.
  */
-describe("Flankenbreite", () => {
-  it("steht in sizes und im CSS auf derselben Zahl", async () => {
-    const { FLANKE_BREITE, FLANKEN_SIZES } = await import("./bilder");
-    const css = await import("node:fs/promises").then((fs) =>
-      fs.readFile(new URL("../app/arbeiten/[slug]/detail.module.css", import.meta.url), "utf8"),
-    );
-    expect(FLANKEN_SIZES).toContain(`${FLANKE_BREITE}px`);
-    expect(css).toContain(`minmax(0, ${FLANKE_BREITE}px)`);
+describe("Mosaik", () => {
+  it("rechnet flex-grow und flex-basis beide aus dem Seitenverhältnis", async () => {
+    const tsx = await lies("../app/components/Mosaik.tsx");
+    expect(tsx).toContain("flexGrow: ar");
+    expect(tsx).toContain("flexBasis: `${ar * MOSAIK_ZEILENHOEHE}px`");
+  });
+
+  it("hält die letzte Zeile mit Füllern auf Zeilenhöhe", async () => {
+    const css = await lies("../app/components/Mosaik.module.css");
+    // Ohne sie wächst die letzte, unvollständige Zeile auf die volle Breite.
+    expect(css).toMatch(/\.fueller\s*\{[^}]*flex-grow:\s*999/);
+    expect(css).toMatch(/\.fueller\s*\{[^}]*height:\s*0/);
+  });
+
+  it("der Lichtkasten liegt fest im Fenster, nicht im Inhalt", async () => {
+    const css = await lies("../app/components/Mosaik.module.css");
+    // `absolute` hiesse: am Anfang des Inhalts statt im Sichtfeld — beim
+    // Schliessen landete man wieder ganz oben auf der Seite.
+    expect(css).toMatch(/\.kasten\s*\{[^}]*position:\s*fixed/);
+  });
+
+  it("gibt den Fokus an die Kachel zurück, die ihn geöffnet hat", async () => {
+    const tsx = await lies("../app/components/Mosaik.tsx");
+    // Hält zugleich die Scrollposition. Ohne `preventScroll` springt der
+    // Browser die Kachel an und verschiebt die Seite dabei doch wieder.
+    expect(tsx).toContain("ausloeser.current?.focus({ preventScroll: true })");
+  });
+
+  it("überlässt dem Lichtkasten die Pfeiltasten", async () => {
+    const kasten = await lies("../app/components/Mosaik.tsx");
+    const tasten = await lies("../app/components/Blaettertasten.tsx");
+    // Ohne beides sprang der erste Druck auf → zur nächsten Arbeit, statt
+    // im Lichtkasten weiterzublättern. Gegen den echten Server gemessen.
+    expect(kasten).toContain('data-blaettern="aus"');
+    expect(tasten).toContain('dialog[open], [role="dialog"]');
   });
 
   it("deckelt mobil auf die Fensterbreite", async () => {
-    const { FLANKEN_SIZES } = await import("./bilder");
-    // Ohne den ersten Zweig fordert der Browser auf dem Telefon 340px an,
-    // obwohl das Bild dort fast die volle Breite einnimmt.
-    expect(FLANKEN_SIZES).toContain("(max-width: 700px) 92vw");
+    const { MOSAIK_SIZES } = await import("./bilder");
+    // Ohne den ersten Zweig fordert der Browser auf dem Telefon 50vw an,
+    // obwohl dort ein Bild je Zeile über die volle Breite läuft.
+    expect(MOSAIK_SIZES).toContain("(max-width: 700px) 92vw");
   });
 
   it("das Hero fordert die volle Fensterbreite an", async () => {
@@ -201,15 +234,36 @@ describe("Flankenbreite", () => {
     // vergessener Standardwert.
     expect(HERO_SIZES).toBe("100vw");
   });
+});
 
-  it("die Höhengrenze der Flanken steht im CSS der Komponente", async () => {
-    const css = await import("node:fs/promises").then((fs) =>
-      fs.readFile(new URL("../app/components/Flanken.module.css", import.meta.url), "utf8"),
-    );
-    // Ohne sie füllt ein einzelnes Hochformat auf dem Telefon den Bildschirm.
-    expect(css).toContain("max-height: 66svh");
-    // Der Schwebe-Effekt darf es nur mit echtem Zeigegerät geben.
-    expect(css).toContain("@media (hover: hover) and (pointer: fine)");
+/**
+ * Die drei Pflichten aus „Blende im Hero" in design/UI-SPEC.md. Alle drei
+ * sind unsichtbar, wenn sie fehlen: Die Seite sieht richtig aus und lädt
+ * nur sieben Bilder statt einem, läuft im Hintergrund weiter, oder bewegt
+ * sich bei jemandem, der ausdrücklich um Ruhe gebeten hat.
+ */
+describe("Blende im Hero", () => {
+  it("lädt nur das erste Bild mit Vorrang", async () => {
+    const tsx = await lies("../app/components/Blende.tsx");
+    expect(tsx).toContain("vorrang={index === 0}");
+  });
+
+  it("steht still, solange das Hero nicht im Bild ist", async () => {
+    const tsx = await lies("../app/components/Blende.tsx");
+    expect(tsx).toContain("IntersectionObserver");
+  });
+
+  it("läuft ohne Bewegungswunsch gar nicht erst an", async () => {
+    const tsx = await lies("../app/components/Blende.tsx");
+    expect(tsx).toContain('matchMedia("(prefers-reduced-motion: reduce)")');
+  });
+
+  it("trennt Standzeit und Dauer in zwei Werte", async () => {
+    const tsx = await lies("../app/components/Blende.tsx");
+    // Hingen sie aneinander, sah man die Bilder nicht — der Fehler, der
+    // den ganzen Umbau ausgelöst hat.
+    expect(tsx).toMatch(/const STANDZEIT_MS = \d+/);
+    expect(tsx).toMatch(/const DAUER_MS = \d+/);
   });
 });
 
@@ -351,9 +405,20 @@ describe("das eingecheckte Manifest", () => {
     for (const [schluessel, e] of Object.entries(BILDER)) {
       expect(e.breite, schluessel).toBeGreaterThan(0);
       expect(e.hoehe, schluessel).toBeGreaterThan(0);
-      expect(e.avif, schluessel).toMatch(/\.avif \d+w/);
-      expect(e.webp, schluessel).toMatch(/\.webp \d+w/);
-      expect(e.fallback, schluessel).toMatch(/\.jpg$/);
+      expect(e.avif, schluessel).toMatch(/\.avif(\?v=[0-9a-f]{8})? \d+w/);
+      expect(e.webp, schluessel).toMatch(/\.webp(\?v=[0-9a-f]{8})? \d+w/);
+      /*
+       * ⚠️ Der Fingerabdruck `?v=…` gehört dazu und darf hier nicht
+       * wegassertiert werden: Die Adressen werden mit
+       * `max-age=31536000, immutable` ausgeliefert, also **nie** neu
+       * geholt. Ohne den Anhang zeigte die Seite nach einem neuen Bundle
+       * weiter die alten Bilder unter den neuen Uhrzeiten — genau der
+       * Fehler vom 2026-09-13.
+       *
+       * Der Test hing bisher an Manifesten ohne Anhang und fiel deshalb
+       * erst auf, als ein frisch erzeugtes Manifest dazukam.
+       */
+      expect(e.fallback, schluessel).toMatch(/\.jpg(\?v=[0-9a-f]{8})?$/);
       expect(e.lqip, schluessel).toMatch(/^data:image\/webp;base64,/);
       // AVIF und WebP müssen dieselben Stufen anbieten, sonst lädt ein
       // Browser je nach Format unterschiedlich große Bilder.

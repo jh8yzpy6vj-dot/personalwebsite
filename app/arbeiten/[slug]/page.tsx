@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Topbar from "../../components/Topbar";
 import SiteFooter from "../../components/SiteFooter";
-import Bild from "../../components/Bild";
 import Blaettertasten from "../../components/Blaettertasten";
-import Flanken from "../../components/Flanken";
+import Blende from "../../components/Blende";
+import Mosaik from "../../components/Mosaik";
 import Film from "../../components/Film";
 import Kontaktbogen from "../../components/Kontaktbogen";
 import {
@@ -12,7 +12,6 @@ import {
   bildZurArbeit,
   bildstreckeZurArbeit,
   serieZurArbeit,
-  HERO_SIZES,
 } from "@/lib/bilder";
 import { videoZurArbeit } from "@/lib/video";
 import { CATEGORIES } from "@/lib/content";
@@ -135,16 +134,18 @@ export default async function WorkDetail({
         */}
         <section className={`${styles.hero} medien-scrim`}>
           {bild ? (
-            <div className={styles.heroBild}>
-              <Bild
-                className={styles.image}
-                quelle={bild}
-                alt={work.alt ?? `${work.title}, ${work.client}, ${work.year}`}
-                sizes={HERO_SIZES}
-                vorrang
-                uebergang={`bild-${work.id}`}
-              />
-            </div>
+            /*
+              Keine stehende Aufnahme mehr, sondern eine Folge aus Leitbild
+              und Strecke mit Blockblende dazwischen — siehe „Blende im
+              Hero" in design/UI-SPEC.md. Ohne Skript, ohne
+              Bewegungswunsch und bei nur einem Bild ist es genau das, was
+              vorher hier stand: das Leitbild.
+            */
+            <Blende
+              bilder={[bild, ...strecke.map((b) => b.quelle)]}
+              alt={work.alt ?? `${work.title}, ${work.client}, ${work.year}`}
+              uebergang={`bild-${work.id}`}
+            />
           ) : (
             <div className={styles.placeholder} aria-hidden="true">
               <span className={styles.placeholderDot} />
@@ -166,37 +167,39 @@ export default async function WorkDetail({
         {/* Hell: der Kontext. Die einzige Naht der Seite liegt hier. */}
         <div className={styles.light}>
           {/*
-            Text in der Mitte, die Bilder der Strecke links und rechts davon.
-            Ohne Bilder fällt das Raster auf eine Spalte zurück, statt zwei
-            leere Flanken offen zu halten.
+            Erst der Text, darunter die Bilder.
+
+            ⚠️ **Bis zum 2026-09-13 standen die Bilder als Flanken links und
+            rechts vom Text.** Zusammen mit dem Hero und dem Kontaktbogen
+            erschien dieselbe Strecke damit dreimal auf einer Seite — Jan:
+            „das ist zu viel des guten". Die Flanken kosteten sechs volle
+            Bildschirme; das Mosaik zeigt dasselbe auf einem und lässt jedes
+            Bild groß öffnen. Nebenbei fällt die alte Grenze weg, dass das
+            Layout an der Textlänge hing.
           */}
-          <div
-            className={`${styles.satz}${strecke.length === 0 ? ` ${styles.satzOhneBilder}` : ""}`}
-          >
-            <Flanken bilder={strecke} titel={work.title} />
+          <article className={styles.text}>
+            {/* Aufnahmedaten aus dem EXIF des Originals — automatisch, kein
+                Pflegeaufwand. Erscheint nur, wenn die Datei welche
+                mitbringt; viele Exportwege werfen das EXIF weg, und das ist
+                kein Fehler. */}
+            {aufnahme && <p className={styles.aufnahme}>{aufnahme}</p>}
 
-            <article className={styles.text}>
-              {/* Aufnahmedaten aus dem EXIF des Originals — automatisch, kein
-                  Pflegeaufwand. Erscheint nur, wenn die Datei welche
-                  mitbringt; viele Exportwege werfen das EXIF weg, und das ist
-                  kein Fehler. */}
-              {aufnahme && <p className={styles.aufnahme}>{aufnahme}</p>}
+            {/* Bewusst kein Fließtext: Die zwei Sätze Projektkontext je
+                Arbeit sind noch nicht geschrieben und werden nicht
+                erfunden. Sobald sie vorliegen, kommt in content.ts ein Feld
+                dazu und wird hier ausgegeben. Siehe TODO.md. */}
+            <p className={styles.pending}>Beschreibung folgt.</p>
 
-              {/* Bewusst kein Fließtext: Die zwei Sätze Projektkontext je
-                  Arbeit sind noch nicht geschrieben und werden nicht
-                  erfunden. Sobald sie vorliegen, kommt in content.ts ein Feld
-                  dazu und wird hier ausgegeben. Siehe TODO.md.
+            {/* Der Beleg für das, was die Copy behauptet: vier Frames
+                daneben, einer sitzt. Siehe Kontaktbogen.tsx. */}
+            <Kontaktbogen bilder={serie} titel={work.title} />
+          </article>
 
-                  ⚠️ Solange hier nur ein Satz steht, laufen die Flanken unter
-                  den Text hinaus — das ist die bekannte Grenze des Layouts
-                  und steht so im UI-SPEC. */}
-              <p className={styles.pending}>Beschreibung folgt.</p>
-
-              {/* Der Beleg für das, was die Copy behauptet: vier Frames
-                  daneben, einer sitzt. Siehe Kontaktbogen.tsx. */}
-              <Kontaktbogen bilder={serie} titel={work.title} />
-            </article>
-          </div>
+          {strecke.length > 0 && (
+            <div className={styles.mosaik}>
+              <Mosaik bilder={strecke} titel={work.title} />
+            </div>
+          )}
 
           {/* Der Film steht **unter** dem Textblock über die volle Breite:
               Ein Aftermovie ist ein eigener Auftritt, keine Flanke. */}

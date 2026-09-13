@@ -25,8 +25,13 @@ type Props = {
  *
  * 1. **Nicht in Eingabefeldern.** Wer in einem Textfeld den Cursor bewegt,
  *    will nicht die Seite wechseln. Gilt auch für `contenteditable`.
- * 2. **Nicht bei offenem Menü.** Das `<dialog>` fängt den Fokus; ein
- *    Seitenwechsel im Hintergrund wäre Unfug.
+ * 2. **Nicht bei offenem Menü oder Lichtkasten.** Was den Fokus fängt, fängt
+ *    auch die Pfeiltasten; ein Seitenwechsel im Hintergrund wäre Unfug.
+ *    ⚠️ Geprüft wird `dialog[open]` **und** `[role="dialog"]`: Der
+ *    Lichtkasten des Mosaiks ist kein `<dialog>`-Element, blättert aber
+ *    selbst mit ← und →. Ohne die zweite Abfrage sprang er beim ersten
+ *    Druck auf die nächste Arbeit — beim Messen gegen den echten Server
+ *    aufgefallen, im Code sieht man es nicht.
  * 3. **Nicht mit Zusatztaste.** `Alt+←` ist im Browser „zurück", `Cmd+←`
  *    auf dem Mac ebenfalls. Diese Bedeutung darf die Seite nicht überschreiben.
  * 4. **Nicht in etwas, das selbst waagerecht scrollt.** Die Bildstrecke ist
@@ -43,7 +48,7 @@ export default function Blaettertasten({ prev, next }: Props) {
       const ziel = e.target as HTMLElement | null;
       if (ziel?.closest("input, textarea, select, [contenteditable]")) return;
       if (ziel?.closest('[data-blaettern="aus"]')) return;
-      if (document.querySelector("dialog[open]")) return;
+      if (document.querySelector('dialog[open], [role="dialog"]')) return;
 
       const wohin = e.key === "ArrowLeft" ? prev : next;
       if (!wohin) return;

@@ -1,0 +1,177 @@
+/*
+ * Die Blockblende im Hero der Detailseite.
+ *
+ * Der Aufbau je Schritt:
+ *   .lage        — das laufende Bild
+ *   .bloecke     — drei Flächen mit Ausschnitten des nächsten Bildes
+ *   .lage.oben   — das nächste Bild, ganz
+ *
+ * Die Zahlen (Standzeit 4s, Dauer 1,2s) stehen in Blende.tsx und in
+ * design/UI-SPEC.md — hier steht nur, wie sie wirken.
+ */
+
+.buehne {
+  position: absolute;
+  inset: 0;
+}
+
+.lage {
+  position: absolute;
+  inset: 0;
+}
+
+.bild {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /*
+   * ⚠️ Nicht mittig, sondern auf 38 % Höhe. Fünf von sechs Bildern der
+   * Wiwawo-Strecke sind Hochformat; in einem breiten Hero zeigt `cover`
+   * davon einen Querstreifen, und der sitzt bei mittigem Zuschnitt auf
+   * Höhe der Hüften. Oben ist in Sport- und Bühnenbildern das Geschehen.
+   */
+  object-position: center 38%;
+  display: block;
+}
+
+/*
+ * Die Fahrt während der Standzeit. Abwechselnd hinein und hinaus, damit
+ * nicht jedes Bild dieselbe Richtung hat — sonst wird aus der Fahrt ein
+ * Muster, und Muster bemerkt man.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .lebt .lage .bild,
+  .lebt .block img {
+    animation: fahrt 5200ms linear both;
+  }
+
+  .lebt .rueck .bild,
+  .lebt .rueck .block img {
+    animation-name: fahrtRueck;
+  }
+
+  @keyframes fahrt {
+    from { scale: 1; }
+    to { scale: 1.07; }
+  }
+
+  @keyframes fahrtRueck {
+    from { scale: 1.07; }
+    to { scale: 1; }
+  }
+}
+
+/* ── Die Blöcke ──────────────────────────────────────────────────── */
+
+.bloecke {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.block {
+  position: absolute;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 360ms linear; /* 0,3 × Dauer */
+}
+
+.block img {
+  position: absolute;
+  display: block;
+  max-width: none;
+  object-fit: cover;
+  object-position: center 38%;
+}
+
+.laeuft .block,
+.fertig .block {
+  opacity: 1;
+}
+
+/* ── Das nächste Bild, ganz ──────────────────────────────────────── */
+
+.oben {
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 300ms linear; /* 0,25 × Dauer */
+}
+
+.fertig .oben {
+  opacity: 1;
+}
+
+/*
+ * ⚠️ Ohne Bewegungswunsch schaltet Blende.tsx die Folge gar nicht erst
+ * ein — hier wird nur sichergestellt, dass nichts überblendet, falls die
+ * Abfrage sich zwischen Takt und Zeichnung ändert.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .block,
+  .oben {
+    transition: none;
+  }
+  .oben {
+    opacity: 1;
+  }
+}
+
+/* ── Wo man in der Folge steht ───────────────────────────────────── */
+
+.zaehler {
+  position: absolute;
+  right: var(--space-lg);
+  top: calc(var(--topbar-h) + var(--space-md));
+  z-index: 3;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-sm);
+}
+
+.zaehlerText {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: #fff;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.9);
+}
+
+.striche {
+  display: flex;
+  gap: 5px;
+}
+
+.striche span {
+  display: block;
+  width: 17px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.striche .an {
+  background: var(--rec);
+}
+
+/*
+ * ── Telefon ──────────────────────────────────────────────────────────
+ *
+ * Das Hero ist hier eine 4:3-Box im Fluss, nicht bildschirmfüllend (siehe
+ * detail.module.css). Die Bühne muss dann mitwandern, statt absolut über
+ * einem Elternteil zu liegen, das seine Höhe vom Bild bekommt.
+ */
+@media (max-width: 700px) {
+  .buehne {
+    position: relative;
+    inset: auto;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: 0;
+  }
+
+  .zaehler {
+    right: var(--space-md);
+    top: calc(var(--topbar-h) + var(--space-sm));
+  }
+}

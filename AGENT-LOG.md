@@ -6,6 +6,96 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-09-13 — Mosaik statt Flanken, Blende im Hero, Lichtkasten
+
+**Der groesse Umbau der Detailseite.** Jan, nachdem er den Entwurf gesehen hatte: „stand jetzt
+sind die bilder ja dann einmal im hero, einmal einzeln nach dem text und nochmal klein unten
+drunter. das ist zu viel des guten."
+
+Er hatte recht, und der Befund ist wichtiger als die Loesung: Die **Flanken waren erst einen Tag
+alt**. Sie loesten ein echtes Problem (der Filmstreifen sperrte jedes Foto in 460px Hoehe), haben
+dabei aber ein neues gebaut — dieselben sechs Bilder erschienen dreimal auf einer Seite, und die
+Flanken kosteten dafuer sechs volle Bildschirme.
+
+### Was jetzt steht
+
+- **Hero = Blende** (`app/components/Blende.tsx`). Statt eines Standbilds laeuft eine Folge aus
+  Leitbild und Strecke; dazwischen eine Blockblende aus drei ungleichen, versetzten Flaechen.
+  **Standzeit 4 s, Dauer 1,2 s** — an acht Varianten ausgesucht. Dass beides **getrennte Werte**
+  sind, ist der Kern: Vorher hing die Pause fest an der Blendendauer, und genau deshalb sah man
+  die Bilder nicht (Jan: „man sieht das bild nicht so recht und die transition ist auch zu
+  schnell").
+- **Flanken → Mosaik** (`app/components/Mosaik.tsx`). Zeilensatz unter dem Text: Zeilen gleicher
+  Hoehe, Breite je Bild nach Seitenverhaeltnis, beide Raender buendig, **nichts beschnitten**.
+  Bei `wiwawo-53` sind fuenf von sechs Bildern Hochformat — jedes Raster mit festen Zellen
+  haette dort Koepfe abgeschnitten.
+- **Lichtkasten.** Klick, `Enter`, `←`/`→`, `Esc`. Volle Aufnahmezeile darunter.
+- **Kameradaten jetzt vollstaendig** unter jeder Kachel (`10:12 uhr · 1/500 · f/2.8 · iso 125`)
+  statt nur Uhrzeit und ISO. Jan: „mach die kameradaten mal mit blende und zeit rein, vollstaendig
+  halt." Die alte Begruendung („Blende wiederholt sich") ist damit aufgehoben; `streckenZeile()`
+  bleibt fuer den Kontaktbogen.
+
+### Die Rechnung hinter dem Mosaik — warum ohne JavaScript
+
+Der naheliegende Weg waere gewesen, die Zeilen aus der gemessenen Containerbreite zu rechnen
+(`ResizeObserver`). Im Prototyp war es genau so. Fuer die echte Seite ist es **CSS**: jede Kachel
+bekommt `flex-grow: ar` und `flex-basis: ar × Zeilenhoehe`. Weil Zuwachs **und** Grundbreite am
+Seitenverhaeltnis haengen, bleibt jede Breite proportional zu `ar`:
+
+    breite = ar·C + (ar/Σar)·rest = ar · (C + rest/Σar)
+    hoehe  = breite / ar          = C + rest/Σar     ← fuer alle gleich
+
+Das traegt ohne Skript, rendert serverseitig und springt beim ersten Bild nicht. Gemessen gegen
+den echten Server: Abweichung der Zeilenbreite **0 px** bei 1440 und 2560, Formabweichung der
+Kacheln **0,0 %** — es wird tatsaechlich nichts zugeschnitten.
+
+### Zwei Fehler, die erst das Messen gefunden hat
+
+1. **`→` sprang auf die naechste Arbeit, statt im Lichtkasten zu blaettern.** `Blaettertasten.tsx`
+   hoert global auf die Pfeiltasten und prueft auf `dialog[open]` — der Lichtkasten ist aber kein
+   `<dialog>`-Element. Behoben an **beiden** Enden: Der Kasten traegt `data-blaettern="aus"`, und
+   die Abfrage deckt jetzt auch `[role="dialog"]` ab. Im Code war das nicht zu sehen; im Browser
+   war das Bild nach einem Tastendruck weg.
+2. **Ein vorhandener Test schlug fehl, sobald ein frisches Manifest dazukam.** `bilder.test.ts`
+   verlangte `fallback` mit `.jpg` am Ende — seit dem Fingerabdruck (`?v=…`, 2026-09-13) endet
+   die Adresse anders. Der Test hing an alten Manifesten und faellt erst jetzt auf, weil Jans
+   Lauf mit sechs Bildern eingemergt wurde. Regel erweitert, Begruendung im Test.
+
+### Jans Fehlerbild, und warum es zweimal dieselbe Ursache hatte
+
+„beim schliessen von einem bild in grosser ansicht landet man wieder ganz oben auf der seite."
+Ursache im Prototyp: Der Kasten lag mit `position: absolute` im scrollenden Element, also am
+**Anfang des Inhalts** statt im Sichtfeld; der Browser scrollte beim Fokussieren dorthin. Auf der
+echten Seite ist er `fixed`, der Fokus geht auf die ausloesende Kachel zurueck
+(`focus({ preventScroll: true })`), und die Scrollposition wird beim Entsperren ausdruecklich
+wiederhergestellt. Gemessen: **1149 px vorher, 1149 px nachher.**
+
+Die Wiederherstellung ist in Chromium wirkungslos — dort bleibt die Position ohnehin stehen. Sie
+steht da fuer Safari und iOS, die `overflow: hidden` am Body anders behandeln und die ich hier
+**nicht pruefen kann**. Das ist keine Vermutung ueber den Code, sondern eine ueber die Browser:
+falls sie sich wie Chromium verhalten, kostet es nichts.
+
+### Was dabei verloren geht — bewusst
+
+Die Flanken waren die einzige Stelle, an der ein Bild **gross und unausweichlich** war. Im Mosaik
+sieht man zuerst nur Kacheln; gross wird, was der Besucher anklickt. Das ist ein echter Tausch und
+keine reine Verbesserung — dafuer ist die Seite rund ein Viertel so lang, und wer alle sechs
+Bilder sehen will, muss sich nicht mehr durch sechs Bildschirme scrollen.
+
+### Geprueft
+
+100 Tests, Lint, Typecheck, Build. Gegen den echten Server bei 390 / 1440 / 2560: kein
+waagerechter Ueberlauf, Zeilen buendig, nichts verzerrt, mobil ein Bild je Zeile. Ohne JavaScript:
+sechs Kacheln als gewoehnliche Links auf die Bilddatei, Hero mit dem Leitbild. Vertrag
+(`design/UI-SPEC.md`) **vor** dem Code angepasst, wie CLAUDE.md es verlangt.
+
+⚠️ **Die Fotos selbst konnten hier nicht geladen werden** — `medien.jakobsax.de` ist aus dieser
+Umgebung gesperrt. Geprueft wurde deshalb die Geometrie (aus den Manifest-Massen) und die
+Vorschaubildchen, nicht das fertige Bild. Wie die Blende auf echten Hochformaten wirkt, sieht
+zuerst Jan.
+
+---
+
 ## 2026-09-12 — Streifen an der Textspalte: bei 1440 geprüft, ab 1920 kaputt
 - **Jan, mit Screenshot: „das ist komplett cooked."** Der Streifen klebte in der rechten Fensterhälfte, links lag eine große tote Fläche.
 - **Ursache war meine Ausrichtung von vorhin:** `padding-left: max(--space-lg, (100vw − 1040px) / 2)`, damit Streifen und Textspalte auf derselben Kante beginnen. Gemessen hatte ich bei 1440 und 1920 — und genau dort trägt es.
