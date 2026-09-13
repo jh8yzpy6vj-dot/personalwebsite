@@ -2,12 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Bild from "./Bild";
-import {
-  MOSAIK_SIZES,
-  MOSAIK_ZEILENHOEHE,
-  aufnahmeZeile,
-  type Streckenbild,
-} from "@/lib/bilder";
+import { MOSAIK_SIZES, aufnahmeZeile, type Streckenbild } from "@/lib/bilder";
 import styles from "./Mosaik.module.css";
 
 type Props = {
@@ -16,28 +11,29 @@ type Props = {
 };
 
 /**
- * Die Bildstrecke als Zeilensatz: Zeilen gleicher Höhe, jedes Bild in
- * seiner eigenen Breite, **nichts beschnitten**.
+ * Die Bildstrecke als Spaltenmosaik: jedes Bild in seiner eigenen Form,
+ * **nichts beschnitten**.
  *
  * Das ist der Punkt der ganzen Komponente. Eine Strecke mischt Hoch- und
- * Querformat — bei `wiwawo-53` fünf zu zwei —, und jedes Raster mit festen
+ * Querformat — bei `wiwawo-53` fünf zu eins —, und jedes Raster mit festen
  * Zellen schneidet dabei irgendwo einen Kopf ab.
  *
- * ⚠️ **Gerechnet wird in CSS, nicht hier.** Jede Kachel bekommt
- * `flex-grow: ar` und `flex-basis: ar × Zeilenhöhe`. Weil Zuwachs *und*
- * Grundbreite am Seitenverhältnis hängen, bleibt nach dem Verteilen des
- * freien Platzes jede Breite proportional zu `ar`:
+ * ⚠️ **Der erste Anlauf war ein Zeilensatz und ist am 2026-09-13
+ * gescheitert.** Er rechnete Zeilen gleicher Höhe, bündig an beiden
+ * Rändern — sauber, aber das falsche Werkzeug: Ein Zeilensatz reiht die
+ * Bilder in Dateireihenfolge aneinander und kann Formate nicht mischen.
+ * Bei fünf Hochformaten gefolgt von einem Querformat kam genau das heraus:
+ * ein Streifen aus fünf schmalen Bildern, darunter ein einzelnes breites.
+ * Jan: „das mosaik ist geordnet … das ist kein mosaik."
  *
- *     breite = ar·C + (ar/Σar)·rest = ar · (C + rest/Σar)
- *     höhe   = breite / ar          = C + rest/Σar     ← für alle gleich
+ * Spalten mischen von selbst, weil jede unabhängig gefüllt wird. Die
+ * Begründung und der Preis (senkrechte Reihenfolge) stehen im Kopf von
+ * `Mosaik.module.css`.
  *
- * Der naheliegende Weg wäre gewesen, die Zeilen in JavaScript aus der
- * gemessenen Containerbreite zu rechnen (`ResizeObserver`). Das tut
- * dasselbe, ist aber ohne Skript leer, rendert serverseitig nicht und
- * springt beim ersten Bild sichtbar. Deshalb CSS.
- *
- * Der Lichtkasten obendrauf ist eine **Aufwertung**: Ohne JavaScript ist
- * jede Kachel ein gewöhnlicher Link auf die Bilddatei.
+ * Weiterhin: **kein JavaScript im Layout.** Der Spaltensatz ist reines CSS
+ * und trägt auch ohne Skript; der Lichtkasten obendrauf ist eine
+ * Aufwertung, und ohne ihn ist jede Kachel ein gewöhnlicher Link auf die
+ * Bilddatei.
  */
 export default function Mosaik({ bilder, titel }: Props) {
   const [offen, setOffen] = useState<number | null>(null);
@@ -111,22 +107,39 @@ export default function Mosaik({ bilder, titel }: Props) {
 
   const bildImKasten = offen === null ? null : bilder[offen];
 
+  /*
+   * Reihum verteilt, nicht spaltenweise: Bild 1 in Spalte 1, Bild 2 in
+   * Spalte 2, Bild 3 in Spalte 3, Bild 4 wieder in Spalte 1. Damit liest
+   * sich die obere Reihe 1-2-3 statt 1-3-5.
+   *
+   * Genau das kann der Mehrspaltensatz des Browsers (`column-count`)
+   * nicht — er füllt Spalte für Spalte — und war der Grund, die Spalten
+   * hier selbst zu bilden.
+   */
+  const spalten: { bild: Streckenbild; i: number }[][] = [[], [], []];
+  bilder.forEach((bild, i) => spalten[i % spalten.length].push({ bild, i }));
+
   return (
     <>
-      <ul className={styles.mosaik}>
-        {bilder.map((bild, i) => {
-          const ar = bild.quelle.breite / bild.quelle.hoehe;
-          const zeile = aufnahmeZeile(bild.quelle.exif);
-          return (
-            <li
-              key={bild.schluessel}
-              className={styles.kachel}
-              style={{
-                flexGrow: ar,
-                flexBasis: `${ar * MOSAIK_ZEILENHOEHE}px`,
-              }}
-            >
-              <figure className={styles.figur}>
+      <div className={styles.mosaik}>
+        {spalten.map((spalte, s) => (
+          <div key={s} className={styles.spalte}>
+            {spalte.map(({ bild, i }) => {
+              const zeile = aufnahmeZeile(bild.quelle.exif);
+              return (
+                <figure
+                  key={bild.schluessel}
+                  className={styles.figur}
+                  /*
+                   * ⚠️ **Nur auf dem Telefon wirksam, dort aber
+                   * entscheidend.** Die Spalten sind schmal `display:
+                   * contents`; die Bilder werden damit direkte Kinder des
+                   * Mosaiks und lägen sonst in der Reihenfolge
+                   * 1, 4, 2, 5, 3, 6 untereinander. Genau dieser Fehler
+                   * ist schon einmal in den Flanken aufgetreten.
+                   */
+                  style={{ order: i }}
+                >
                 {/*
                   Ein echter Link, kein `button`: Ohne JavaScript öffnet er
                   die Bilddatei, und im Kontextmenü steht „Link in neuem Tab
@@ -157,24 +170,13 @@ export default function Mosaik({ bilder, titel }: Props) {
                 {/* Die **volle** Zeile, nicht die kurze — so von Jan am
                     2026-09-13 festgelegt, siehe „Aufnahmezeile" im
                     UI-SPEC. */}
-                {zeile && <figcaption className={styles.zeile}>{zeile}</figcaption>}
-              </figure>
-            </li>
-          );
-        })}
-
-        {/*
-          ⚠️ Ohne diese Füller wächst die **letzte** Zeile auf die volle
-          Breite auf: Zwei übriggebliebene Bilder würden riesig, und die
-          Seite endete mit einem Knall, den niemand gemeint hat. Die Füller
-          haben Höhe 0 und einen sehr hohen Zuwachs, schlucken also den
-          freien Platz der letzten Zeile — in allen vollen Zeilen davor gibt
-          es keinen, sie ändern dort also nichts.
-        */}
-        {[0, 1, 2].map((i) => (
-          <li key={`fueller-${i}`} className={styles.fueller} aria-hidden="true" />
+                  {zeile && <figcaption className={styles.zeile}>{zeile}</figcaption>}
+                </figure>
+              );
+            })}
+          </div>
         ))}
-      </ul>
+      </div>
 
       {bildImKasten && (
         <div

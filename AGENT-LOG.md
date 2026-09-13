@@ -6,6 +6,102 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-09-13 — Beides live durchgefallen: die Blende hing, das Mosaik war ein Raster
+
+Jan hat den Umbau eingespielt und angesehen. Zwei Befunde, beide berechtigt:
+
+> „die hero animation ist krass am haengen, das sieht aus wie Pixelfehler nicht wie eine gewollte
+> animation. das mosaik ist geordnet, zuerst alle hochformat bilder nebeneinander und dann ein
+> querformat bild, das ist kein mosaik."
+
+⚠️ **Beides war mit den Mitteln dieser Umgebung nicht zu finden.** `medien.jakobsax.de` ist aus
+dem Container gesperrt, und `jakobsax.de` ebenfalls — ich kann die Seite also nicht live ansehen.
+Geprueft hatte ich gegen Vorschaubildchen und Manifest-Masse; beide Fehler zeigen sich erst mit
+echten Fotos. **Die Lehre steht unten.**
+
+### Fehler 1: Die Blende lief gegen sich selbst — drei Ursachen
+
+1. **Der Versatz.** Die Fahrt wechselte je Bild die Richtung — aber die Klasse dafür sass auf der
+   Bildlage, und die Bloecke sind deren *Geschwister*. Der Selektor `.lebt .rueck .block img`
+   griff also **nie**. Bei jedem zweiten Schritt zeigten die Blockausschnitte eine andere
+   Skalierung als das Bild, das danach aufdeckte. Das Motiv sprang im Moment des Umschlags —
+   genau Jans „Pixelfehler".
+   **Behoben:** Waehrend der Blende bewegt sich **nur das laufende Bild**. Bloecke und
+   eintreffendes Bild stehen still und decken sich damit zwangslaeufig. Die Fahrt hat nur noch
+   **eine** Richtung; bei wechselnder muesste das eintreffende Bild bei 1.07 beginnen, die
+   Bloecke aber bei 1 — derselbe Fehler von der anderen Seite. Die Wiederholung ist der Preis.
+2. **Zu spaet geladen.** Bloecke und Endbild haengen im Markup am Zustand „Blende laeuft" — ihr
+   `srcset` startete also **im Moment der Blende**. Mit echten Fotos blendete die Seite in etwas,
+   das noch nicht da war.
+   **Behoben:** Jedes Bild haengt eine Standzeit frueher unsichtbar im Dokument, und geblendet
+   wird **nur in ein fertig geladenes Bild**. Ist es nicht bereit, steht das aktuelle eine
+   Standzeit laenger — sichtbar ruhiger als ein Sprung ins Leere.
+3. **Adresstausch statt Lagenwechsel.** Beim Weiterschalten bekam dasselbe `img` eine neue
+   Quelle; dazwischen liegt mindestens ein Bildaufbau mit dem alten Inhalt.
+   **Behoben:** Je Bild eine eigene Lage mit stabilem `key`, gewechselt werden nur Deckkraft und
+   Ebene.
+
+**Gemessen**, mit untergeschobenen Gitterbildern (Playwright `route`, damit die Blende ueberhaupt
+laeuft): Alle drei Blockausschnitte und das Endbild liegen auf **[0, 0, 1440, 900]** — pixelgleich.
+Skalierung Block und Endbild beide `none`, das laufende Bild faehrt 1 → 1.07 und beginnt je Bild
+neu. Zaehler 1/7 → 2/7 → 3/7, Lagen wachsen 3 → 4 → 5, nie mehr.
+
+### Fehler 2: Ein Zeilensatz kann Formate nicht mischen
+
+Der Zeilensatz war rechnerisch sauber — Zeilen gleicher Hoehe, bündige Raender, null Verzerrung.
+Er ist trotzdem das falsche Werkzeug: **Er reiht die Bilder in Dateireihenfolge aneinander.** Bei
+`wiwawo-53` sind das fuenf Hochformate und dann ein Querformat, also ein Streifen aus fuenf
+schmalen Bildern und darunter ein einzelnes breites. Das ist kein Mosaik, das ist eine sortierte
+Liste mit Blocksatz.
+
+**Erster Versuch der Korrektur: `column-count: 3`.** Gemessen sah es gut aus (drei Spalten,
+Formate gemischt, nichts beschnitten) — **im Screenshot war es ein 3×2-Raster.** Fuenf gleich
+grosse Hochformate in gleich breiten Spalten stehen wieder gleich hoch nebeneinander. Die
+Verteilung zu aendern haette daran **nichts** geaendert; das Aussehen haengt am Material, nicht an
+der Reihenfolge.
+
+**Was wirklich hilft: ungleich breite Spalten.** Gewichte 1.18 / 0.9 / 1.12 — dieselben Bilder
+bekommen verschiedene Breiten und damit verschiedene Hoehen, die Unterkanten stehen versetzt, und
+kein einziges Bild wird beschnitten. Dicht beieinander gehalten (rund ±15 %): weiter auseinander
+wirkt es nicht komponiert, sondern kaputt.
+
+Dazu eigene Spalten statt `column-count`, weil der Browser-Mehrspaltensatz **spaltenweise** fuellt
+— die obere Reihe laese sich 1-3-5. Reihum verteilt liest sie sich 1-2-3. Unter 860px eine Spalte
+via `display: contents`, und die Bilder tragen `order`; ohne das laegen sie als 1-4-2-5-3-6
+untereinander — **derselbe Fehler, der schon in den Flanken steckte**, diesmal vorher bedacht und
+mit einem Test festgenagelt.
+
+### Die Lehre, und sie ist unangenehm
+
+Beide Fehler sind **Fehlerklassen, die dieses Protokoll schon kennt**, nur in neuer Gestalt:
+
+- **„Geprueft, aber nicht im Bereich, wo sich das Verhalten aendert."** Ich habe Geometrie gegen
+  Manifest-Masse gemessen und Vorschaubildchen angesehen. Die Blende bricht aber erst, wenn
+  **echte Dateien** geladen werden muessen, und das Mosaik sieht erst mit **echten Seiten-
+  verhaeltnissen in echter Groesse** nach Raster aus.
+  **Konsequenz, ab sofort:** Wo die echten Medien gesperrt sind, werden sie **untergeschoben** —
+  Playwright `route` mit Bildern in den Massen aus dem Manifest. Das hat beide Fehler in einem
+  Durchlauf sichtbar gemacht. Es kostet zwanzig Zeilen und haette Jan diese Runde erspart.
+- **„Die Zahlen stimmten, das Bild nicht."** `verzerrtMax: 0`, `abwBreite: 0` — alles gruen, und
+  trotzdem war es ein Raster. **Ein Screenshot ist kein Beiwerk, er ist die Pruefung.** Beim
+  Zeilensatz habe ich ihn angesehen und nicht als Raster erkannt, weil ich auf die Zahlen geschaut
+  habe, die ich selbst zum Kriterium gemacht hatte.
+
+### Geprueft
+
+105 Tests (neun neue: drei gegen die Blenden-Ursachen, vier gegen den Mosaik-Aufbau), Lint,
+Typecheck, Build. Gegen den echten Server bei 1440 / 980 / 390 mit untergeschobenen Bildern:
+Verzerrung 0,0 %, kein waagerechter Ueberlauf, Spaltenbreiten ungleich, sichtbare Reihenfolge auf
+dem Telefon 1-2-3-4-5-6. `design/UI-SPEC.md` traegt beide Regelwerke samt der Gruende, warum die
+Vorstufen gescheitert sind.
+
+⚠️ **Weiterhin ungeprueft, weil aus dieser Umgebung nicht erreichbar:** wie die Blende auf echten
+Hochformaten wirkt (das Hero muss `cover` sein, sonst decken sich die Ausschnitte nicht — bei
+fuenf Hochformaten sieht man dort einen Querstreifen), und ob die Scroll-Wiederherstellung des
+Lichtkastens in Safari/iOS greift.
+
+---
+
 ## 2026-09-13 — Mosaik statt Flanken, Blende im Hero, Lichtkasten
 
 **Der groesse Umbau der Detailseite.** Jan, nachdem er den Entwurf gesehen hatte: „stand jetzt

@@ -85,29 +85,20 @@ export function sparsamesSrcset(
 }
 
 /**
- * Angestrebte Zeilenhöhe im Mosaik, in Pixeln.
- *
- * Es ist die **Untergrenze**, nicht die feste Höhe: Der Zeilensatz verteilt
- * den restlichen Platz einer Zeile, jede Zeile wird also mindestens so hoch.
- * Zugleich ist es der Wert, aus dem `Mosaik.tsx` die `flex-basis` je Kachel
- * rechnet (`Seitenverhältnis × Zeilenhöhe`) — und damit das, was darüber
- * entscheidet, wie viele Bilder in eine Zeile passen.
- */
-export const MOSAIK_ZEILENHOEHE = 320;
-
-/**
  * `sizes` für eine Mosaikkachel.
  *
- * ⚠️ Eine Schätzung, und das ist hier unvermeidbar: Wie breit eine Kachel
- * wird, steht erst fest, wenn der Browser die Zeile umgebrochen hat — eine
- * `sizes`-Angabe muss aber vorher im HTML stehen. Gewählt ist deshalb die
- * **obere** Kante des üblichen Falls: Ein Querformat (3:2) in einer Zeile
- * von 320–540px Höhe wird 480–810px breit. `50vw` deckt das bis 1620px
- * Fensterbreite ab und liegt darüber auf der sicheren Seite.
+ * Anders als beim gescheiterten Zeilensatz ist die Breite hier **bekannt**:
+ * Das Mosaik läuft in drei Spalten, eine Kachel füllt genau eine davon.
+ * Die Spalten sind absichtlich ungleich breit (Gewichte 1.18 / 0.9 / 1.12
+ * in `Mosaik.module.css`); `38vw` ist die **breiteste** davon, großzügig
+ * aufgerundet. Unter 860px steht eine Spalte über die volle Breite.
  *
- * Mobil ein Bild je Zeile über die volle Spaltenbreite, daher `92vw`.
+ * ⚠️ **Muss mit dem Umbruch dort übereinstimmen.** Laufen sie
+ * auseinander, lädt der Browser stillschweigend die falsche Stufe — kein
+ * Fehler, den irgendwo etwas meldet, nur zu viele Bytes oder ein weiches
+ * Bild. Ein Test hält die Zahlen zusammen.
  */
-export const MOSAIK_SIZES = "(max-width: 700px) 92vw, 50vw";
+export const MOSAIK_SIZES = "(max-width: 860px) 92vw, 38vw";
 
 /**
  * `sizes` für das Hero der Detailseite.

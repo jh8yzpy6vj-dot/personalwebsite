@@ -1,10 +1,17 @@
 /*
  * Die Blockblende im Hero der Detailseite.
  *
- * Der Aufbau je Schritt:
- *   .lage        — das laufende Bild
- *   .bloecke     — drei Flächen mit Ausschnitten des nächsten Bildes
- *   .lage.oben   — das nächste Bild, ganz
+ * Aufbau: Je Bild eine eigene `.lage`, die es behält. Gewechselt werden
+ * nur Deckkraft und Ebene — nie die Adresse eines `img`. Darüber liegen
+ * während der Blende die drei Blockausschnitte.
+ *
+ * ⚠️ **Die wichtigste Regel dieser Datei: Während der Blende bewegt sich
+ * nur das *laufende* Bild.** Die Blöcke zeigen Ausschnitte des
+ * eintreffenden Bildes; sie decken sich nur dann mit ihm, wenn beide
+ * dieselbe Transformation tragen. Am einfachsten ist das zu garantieren,
+ * indem beide **keine** tragen. Die erste Fassung bewegte beide und ließ
+ * sie auseinanderlaufen — das Motiv sprang im Moment des Umschlags, und
+ * genau das sah Jan als „Pixelfehler".
  *
  * Die Zahlen (Standzeit 4s, Dauer 1,2s) stehen in Blende.tsx und in
  * design/UI-SPEC.md — hier steht nur, wie sie wirken.
@@ -34,30 +41,57 @@
   display: block;
 }
 
+/* ── Die drei Rollen einer Lage ──────────────────────────────────── */
+
+/* Das laufende Bild. Nur hier gibt es Bewegung. */
+.aktiv {
+  z-index: 1;
+  opacity: 1;
+}
+
 /*
- * Die Fahrt während der Standzeit. Abwechselnd hinein und hinaus, damit
- * nicht jedes Bild dieselbe Richtung hat — sonst wird aus der Fahrt ein
- * Muster, und Muster bemerkt man.
+ * Das nächste Bild. Hängt schon eine Standzeit früher im Dokument, damit
+ * es geladen ist, wenn es gebraucht wird — sichtbar wird es erst, wenn
+ * die Blöcke durch sind.
+ */
+.kommt {
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 300ms linear; /* 0,25 × Dauer */
+}
+
+.fertig .kommt {
+  opacity: 1;
+}
+
+/* Schon gesehen, liegt unsichtbar darunter. */
+.ruht {
+  z-index: 0;
+  opacity: 0;
+}
+
+/*
+ * Die Fahrt während der Standzeit. Ein stehendes Foto wirkt nach zwei
+ * Sekunden tot; die Fahrt bemerkt man nicht als Effekt, sondern nur
+ * daran, dass das Bild lebt.
+ *
+ * ⚠️ **Nur eine Richtung.** Abwechselnd hinein und hinaus wäre
+ * abwechslungsreicher, hieße aber: Jedes zweite Bild müsste bei 1.07
+ * beginnen — während die Blöcke, die es aufdecken, bei 1 stehen. Das ist
+ * derselbe Versatz, der die erste Fassung zerlegt hat, nur von der
+ * anderen Seite. Die Wiederholung ist der Preis dafür, dass es sitzt.
+ *
+ * Läuft über Standzeit **plus** Dauer, damit das Bild auch während der
+ * Blende, in der es noch darunter liegt, nicht plötzlich stehenbleibt.
  */
 @media (prefers-reduced-motion: no-preference) {
-  .lebt .lage .bild,
-  .lebt .block img {
+  .aktiv .bild {
     animation: fahrt 5200ms linear both;
-  }
-
-  .lebt .rueck .bild,
-  .lebt .rueck .block img {
-    animation-name: fahrtRueck;
   }
 
   @keyframes fahrt {
     from { scale: 1; }
     to { scale: 1.07; }
-  }
-
-  @keyframes fahrtRueck {
-    from { scale: 1.07; }
-    to { scale: 1; }
   }
 }
 
@@ -66,6 +100,7 @@
 .bloecke {
   position: absolute;
   inset: 0;
+  /* Zwischen laufendem und eintreffendem Bild. */
   z-index: 1;
 }
 
@@ -82,6 +117,7 @@
   max-width: none;
   object-fit: cover;
   object-position: center 38%;
+  /* Keine Animation. Siehe Kopf dieser Datei. */
 }
 
 .laeuft .block,
@@ -89,30 +125,15 @@
   opacity: 1;
 }
 
-/* ── Das nächste Bild, ganz ──────────────────────────────────────── */
-
-.oben {
-  z-index: 2;
-  opacity: 0;
-  transition: opacity 300ms linear; /* 0,25 × Dauer */
-}
-
-.fertig .oben {
-  opacity: 1;
-}
-
 /*
- * ⚠️ Ohne Bewegungswunsch schaltet Blende.tsx die Folge gar nicht erst
- * ein — hier wird nur sichergestellt, dass nichts überblendet, falls die
- * Abfrage sich zwischen Takt und Zeichnung ändert.
+ * Ohne Bewegungswunsch schaltet Blende.tsx die Folge gar nicht erst ein.
+ * Falls sich die Abfrage zwischen Takt und Zeichnung ändert, wird hier
+ * nur sichergestellt, dass nichts überblendet.
  */
 @media (prefers-reduced-motion: reduce) {
   .block,
-  .oben {
+  .kommt {
     transition: none;
-  }
-  .oben {
-    opacity: 1;
   }
 }
 
@@ -167,7 +188,6 @@
     inset: auto;
     aspect-ratio: 4 / 3;
     overflow: hidden;
-    border-radius: 0;
   }
 
   .zaehler {

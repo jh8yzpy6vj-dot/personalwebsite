@@ -176,26 +176,49 @@ const lies = (pfad: string) =>
     fs.readFile(new URL(pfad, import.meta.url), "utf8"),
   );
 
-/**
- * ⚠️ Der Zeilensatz des Mosaiks geht **nur** auf, solange `flex-grow` und
- * `flex-basis` beide am Seitenverhältnis hängen. Setzt jemand einen festen
- * `flex-grow: 1`, bleibt die Zeile bündig, aber die Bilder darin bekommen
- * ungleiche Höhen — und weil sie trotzdem unbeschnitten bleiben, sieht es
- * nach Absicht aus statt nach Fehler. Genau diese Sorte stiller Abweichung
- * hat in diesem Projekt schon mehrfach Zeit gekostet, deshalb ein Test.
- */
 describe("Mosaik", () => {
-  it("rechnet flex-grow und flex-basis beide aus dem Seitenverhältnis", async () => {
+  /*
+   * ⚠️ Der Zeilensatz (bis 2026-09-13) konnte Formate nicht mischen — er
+   * reihte sie in Dateireihenfolge aneinander, bei fünf Hochformaten und
+   * einem Querformat also zu einem Streifen plus Einzelbild. Spalten
+   * mischen von selbst. Wer hier auf `flex` zurückbaut, baut den Fehler
+   * zurück.
+   */
+  it("verteilt reihum, nicht spaltenweise", async () => {
     const tsx = await lies("../app/components/Mosaik.tsx");
-    expect(tsx).toContain("flexGrow: ar");
-    expect(tsx).toContain("flexBasis: `${ar * MOSAIK_ZEILENHOEHE}px`");
+    // Spaltenweise gefüllt läse sich die obere Reihe 1-3-5 statt 1-2-3.
+    expect(tsx).toContain("spalten[i % spalten.length].push");
   });
 
-  it("hält die letzte Zeile mit Füllern auf Zeilenhöhe", async () => {
+  it("gibt den Spalten ungleiche Breiten", async () => {
     const css = await lies("../app/components/Mosaik.module.css");
-    // Ohne sie wächst die letzte, unvollständige Zeile auf die volle Breite.
-    expect(css).toMatch(/\.fueller\s*\{[^}]*flex-grow:\s*999/);
-    expect(css).toMatch(/\.fueller\s*\{[^}]*height:\s*0/);
+    /*
+     * ⚠️ Der eigentliche Hebel. Bei gleich breiten Spalten stehen fünf
+     * Hochformate wieder gleich hoch nebeneinander — ein Raster, nur
+     * anders sortiert. Jan zur ersten Fassung: „das ist kein mosaik."
+     */
+    const gewichte = [...css.matchAll(/\.spalte:nth-child\(\d\)\s*\{\s*flex:\s*([\d.]+)/g)]
+      .map((t) => Number(t[1]));
+    expect(gewichte).toHaveLength(3);
+    expect(new Set(gewichte).size, "alle drei Gewichte verschieden").toBe(3);
+  });
+
+  it("stellt die Dateireihenfolge her, wenn die Spalten fallen", async () => {
+    const tsx = await lies("../app/components/Mosaik.tsx");
+    const css = await lies("../app/components/Mosaik.module.css");
+    // Ohne `order` laegen die Bilder auf dem Telefon als 1,4,2,5,3,6
+    // untereinander — derselbe Fehler wie damals in den Flanken.
+    expect(css).toMatch(/\.spalte\s*\{\s*display:\s*contents/);
+    expect(tsx).toContain("style={{ order: i }}");
+  });
+
+  it("hält sizes und den Spaltenumbruch auf derselben Breite", async () => {
+    const { MOSAIK_SIZES } = await import("./bilder");
+    const css = await lies("../app/components/Mosaik.module.css");
+    // Laufen sie auseinander, lädt der Browser stillschweigend die falsche
+    // Stufe — niemand bekommt einen Fehler, es kostet nur Bytes oder Schärfe.
+    expect(MOSAIK_SIZES).toContain("(max-width: 860px)");
+    expect(css).toContain("@media (max-width: 860px)");
   });
 
   it("der Lichtkasten liegt fest im Fenster, nicht im Inhalt", async () => {
@@ -221,13 +244,6 @@ describe("Mosaik", () => {
     expect(tasten).toContain('dialog[open], [role="dialog"]');
   });
 
-  it("deckelt mobil auf die Fensterbreite", async () => {
-    const { MOSAIK_SIZES } = await import("./bilder");
-    // Ohne den ersten Zweig fordert der Browser auf dem Telefon 50vw an,
-    // obwohl dort ein Bild je Zeile über die volle Breite läuft.
-    expect(MOSAIK_SIZES).toContain("(max-width: 700px) 92vw");
-  });
-
   it("das Hero fordert die volle Fensterbreite an", async () => {
     const { HERO_SIZES } = await import("./bilder");
     // Randlos mit `cover` — hier ist `100vw` die richtige Angabe und kein
@@ -245,7 +261,7 @@ describe("Mosaik", () => {
 describe("Blende im Hero", () => {
   it("lädt nur das erste Bild mit Vorrang", async () => {
     const tsx = await lies("../app/components/Blende.tsx");
-    expect(tsx).toContain("vorrang={index === 0}");
+    expect(tsx).toContain("vorrang={i === 0}");
   });
 
   it("steht still, solange das Hero nicht im Bild ist", async () => {
@@ -264,6 +280,45 @@ describe("Blende im Hero", () => {
     // den ganzen Umbau ausgelöst hat.
     expect(tsx).toMatch(/const STANDZEIT_MS = \d+/);
     expect(tsx).toMatch(/const DAUER_MS = \d+/);
+  });
+
+  /*
+   * ⚠️ Die drei Regeln, an denen die erste Fassung live zerbrochen ist.
+   * Jan: „die hero animation ist krass am hängen, das sieht aus wie
+   * Pixelfehler nicht wie eine gewollte animation." Alle drei sind in
+   * einem Screenshot nicht zu sehen und mit Platzhalterbildern nicht zu
+   * reproduzieren — deshalb stehen sie hier.
+   */
+  it("bewegt nur das laufende Bild", async () => {
+    const css = await lies("../app/components/Blende.module.css");
+    // Blockausschnitte und eintreffendes Bild müssen dieselbe
+    // Transformation tragen, sonst springt das Motiv beim Umschlag. Am
+    // sichersten ist: beide tragen keine.
+    expect(css).toMatch(/\.aktiv \.bild\s*\{\s*animation:/);
+    expect(css).not.toMatch(/\.block img\s*\{[^}]*animation:/);
+  });
+
+  it("fährt nur in eine Richtung", async () => {
+    const css = await lies("../app/components/Blende.module.css");
+    // Abwechselnd hinein und hinaus hieße: jedes zweite Bild beginnt bei
+    // 1.07, während die Blöcke, die es aufdecken, bei 1 stehen.
+    expect(css).not.toContain("fahrtRueck");
+  });
+
+  it("blendet nur in ein fertig geladenes Bild", async () => {
+    const tsx = await lies("../app/components/Blende.tsx");
+    // Sonst zeigen die Blockausschnitte schlicht noch nichts — das war
+    // der sichtbare Teil von „Pixelfehler".
+    expect(tsx).toContain("stand.current.geladen.includes(kommt)");
+  });
+
+  it("tauscht nie die Adresse einer Bildlage", async () => {
+    const tsx = await lies("../app/components/Blende.tsx");
+    // Je Bild eine eigene Lage mit stabilem `key`; gewechselt werden nur
+    // Deckkraft und Ebene. Beim Adresstausch liegt mindestens ein
+    // Bildaufbau mit dem alten Inhalt dazwischen.
+    expect(tsx).toContain("gemountet.map((i)");
+    expect(tsx).toContain("key={i}");
   });
 });
 
