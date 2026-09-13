@@ -1,4 +1,5 @@
 import manifest from "./bilder-manifest.json";
+import { BILDAUSSCHNITTE } from "./bildausschnitte";
 
 /**
  * Zugriff auf die Bilder im R2-Bucket.
@@ -227,46 +228,29 @@ export function bildZurArbeit(id: string): Bildquelle | null {
 }
 
 /**
- * Wo der Zuschnitt eines Bildes sitzt, wenn es beschnitten werden **muss**
- * — also im Hero, nie im Mosaik.
+ * Mittig — der Standard, wenn für ein Bild nichts gewählt wurde.
  *
- * ⚠️ **Warum das je Bild einstellbar sein muss und nicht global geht:**
- * Ein Hochformat (4672×7008) zeigt in einem 1920×1080-Hero nur **37,5 %
- * seiner Höhe**, bei jeder Einstellung. Welche 37,5 % die richtigen sind,
- * hängt allein vom Motiv ab: Beim Lagerfeuer sitzt es unten, beim Porträt
- * in der Mitte, beim Sprung über eine Kante oben. Eine feste Zahl ist
- * deshalb bei jedem zweiten Bild falsch — hier stand bis zum 2026-09-13
- * pauschal 38 %, mit der Begründung „in Wildwasserbildern ist oben das
- * Geschehen". Jan an drei Beispielen: stimmt nicht.
+ * ⚠️ **Warum der Ausschnitt je Bild gewählt werden muss und keine Regel
+ * ihn ersetzen kann:** Ein Hochformat (4672×7008) zeigt in einem
+ * 1920×1080-Hero nur **37,5 % seiner Höhe**, bei jeder Einstellung. Welche
+ * 37,5 % die richtigen sind, hängt allein vom Motiv ab — beim Lagerfeuer
+ * unten, beim Porträt mittig, beim Sprung oben. Hier stand bis zum
+ * 2026-09-13 pauschal 38 %; Jan hat an drei Bildern gezeigt, dass das
+ * nicht trägt.
  *
- * Gesteuert wird über den **Dateinamen** — dieselbe Konvention wie beim
- * Kontaktbogen, wo `-gewaehlt` den ausgewählten Frame markiert: Eine
- * Regel, die man im Ordner sehen kann, wird seltener falsch angewendet
- * als eine, die in einer Datei steht.
- *
- *     01.jpg        → mittig (Standard)
- *     02-unten.jpg  → unteres Drittel, für Motive am Boden
- *     05-oben.jpg   → oberes Drittel
+ * Mittig ist der einzig vertretbare Standard: bei keinem Motiv grob
+ * falsch, anders als ein Drittel, das bei der Hälfte danebenliegt.
  */
-export const AUSSCHNITTE = {
-  oben: "center 25%",
-  mitte: "center 50%",
-  unten: "center 75%",
-} as const;
-
-export type Ausschnitt = keyof typeof AUSSCHNITTE;
+export const AUSSCHNITT_MITTIG = "50% 50%";
 
 /**
- * Liest den Ausschnitt aus dem Dateinamen. Ohne Endung: mittig.
+ * Der gewählte Ausschnitt eines Bildes, als `object-position`.
  *
- * Mittig ist der einzig vertretbare Standard: Es ist der Zuschnitt, den
- * jede Kamera-App und jedes Vorschaubild verwendet, und er ist bei keinem
- * Motiv grob falsch — anders als ein Drittel, das bei der Hälfte der
- * Bilder danebenliegt.
+ * Die Werte stehen in `lib/bildausschnitte.ts` — dort steht auch, warum
+ * sie eine eigene Datei bekommen und nicht im Dateinamen stecken.
  */
 export function ausschnittAus(schluessel: string): string {
-  const treffer = /-(oben|mitte|unten)$/.exec(schluessel);
-  return treffer ? AUSSCHNITTE[treffer[1] as Ausschnitt] : AUSSCHNITTE.mitte;
+  return BILDAUSSCHNITTE[schluessel] ?? AUSSCHNITT_MITTIG;
 }
 
 /** Ein Bild samt seinem Schlüssel — für Listen, in denen die Reihenfolge zählt. */

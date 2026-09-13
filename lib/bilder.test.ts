@@ -176,32 +176,48 @@ const lies = (pfad: string) =>
     fs.readFile(new URL(pfad, import.meta.url), "utf8"),
   );
 
-describe("Ausschnitt aus dem Dateinamen", () => {
-  it("ist ohne Endung mittig", async () => {
-    const { ausschnittAus, AUSSCHNITTE } = await import("./bilder");
-    expect(ausschnittAus("arbeiten/wiwawo-53/01")).toBe(AUSSCHNITTE.mitte);
+describe("Bildausschnitte", () => {
+  it("ist ohne Eintrag mittig", async () => {
+    const { ausschnittAus, AUSSCHNITT_MITTIG } = await import("./bilder");
+    expect(ausschnittAus("arbeiten/gibtesnicht/99")).toBe(AUSSCHNITT_MITTIG);
   });
 
-  it("liest oben, mitte und unten", async () => {
-    const { ausschnittAus, AUSSCHNITTE } = await import("./bilder");
-    expect(ausschnittAus("arbeiten/x/02-unten")).toBe(AUSSCHNITTE.unten);
-    expect(ausschnittAus("arbeiten/x/05-oben")).toBe(AUSSCHNITTE.oben);
-    expect(ausschnittAus("arbeiten/x/07-mitte")).toBe(AUSSCHNITTE.mitte);
+  it("nimmt den gewählten Wert, wenn einer eingetragen ist", async () => {
+    const { ausschnittAus } = await import("./bilder");
+    const { BILDAUSSCHNITTE } = await import("./bildausschnitte");
+    for (const [schluessel, wert] of Object.entries(BILDAUSSCHNITTE)) {
+      expect(ausschnittAus(schluessel), schluessel).toBe(wert);
+    }
   });
 
-  it("greift nur am Ende des Schlüssels", async () => {
-    const { ausschnittAus, AUSSCHNITTE } = await import("./bilder");
-    // Ein Ordner namens „oben" oder eine Arbeit mit „-unten" im Slug darf
-    // den Zuschnitt der Bilder darin nicht bestimmen.
-    expect(ausschnittAus("arbeiten/oben/03")).toBe(AUSSCHNITTE.mitte);
-    expect(ausschnittAus("arbeiten/tal-unten/03")).toBe(AUSSCHNITTE.mitte);
+  /*
+   * ⚠️ Der wichtigste Test an dieser Stelle. Ein Eintrag zu einem Bild,
+   * das es nicht (mehr) gibt, fällt sonst **niemandem** auf: Die Seite
+   * sieht richtig aus, der Ausschnitt greift nur eben nicht mehr. Genau
+   * diese Sorte stiller Abweichung hat in diesem Projekt schon mehrfach
+   * Zeit gekostet.
+   */
+  it("kennt kein Bild, das es nicht gibt", async () => {
+    const { BILDER } = await import("./bilder");
+    const { BILDAUSSCHNITTE } = await import("./bildausschnitte");
+    for (const schluessel of Object.keys(BILDAUSSCHNITTE)) {
+      expect(BILDER[schluessel], `kein Bild zu "${schluessel}"`).toBeDefined();
+    }
+  });
+
+  it("trägt nur gültige object-position-Werte", async () => {
+    const { BILDAUSSCHNITTE } = await import("./bildausschnitte");
+    for (const [schluessel, wert] of Object.entries(BILDAUSSCHNITTE)) {
+      // Waagerecht und senkrecht in Prozent — so gibt es das Werkzeug aus.
+      expect(wert, schluessel).toMatch(/^\d{1,3}% \d{1,3}%$/);
+    }
   });
 
   it("hängt an jedem Bild der Strecke", async () => {
     const { bildstreckeZurArbeit } = await import("./bilder");
     const strecke = bildstreckeZurArbeit("wiwawo-53");
     expect(strecke.length).toBeGreaterThan(0);
-    for (const b of strecke) expect(b.ausschnitt, b.schluessel).toMatch(/^center \d+%$/);
+    for (const b of strecke) expect(b.ausschnitt, b.schluessel).toMatch(/^\d+% \d+%$/);
   });
 });
 

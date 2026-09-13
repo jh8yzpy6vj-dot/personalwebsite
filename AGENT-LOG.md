@@ -6,6 +6,74 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-09-13 — Ausschnitt je Bild: eigene Datei statt Dateinamen, plus ein Werkzeug
+
+Jan zur Endung am Dateinamen, die ich eine Stunde vorher eingebaut hatte: „da werden wir glaub ich
+nicht gluecklich mit. ich brauche die moeglichkeit, den ausschnitt fuer jedes bild selbst zu
+waehlen."
+
+Berechtigt, und zwar aus zwei Gruenden, die ich haette vorhersehen koennen:
+
+1. **Drei Stufen sind keine Wahl.** `-oben` / `-mitte` / `-unten` deckt 25/50/75 % ab. Ein Motiv
+   bei 82 % Hoehe trifft keine davon.
+2. **Der Weg dahin war viel zu lang.** Wert aendern hiess: Datei im Bucket umbenennen,
+   `npm run medien` laufen lassen, Manifest committen. Fuer eine Zahl, die man beim Ansehen des
+   Fotos in zwei Sekunden findet.
+
+### Jetzt: `lib/bildausschnitte.ts`
+
+    "arbeiten/wiwawo-53/02": "50% 78%",   // Lagerfeuer sitzt unten
+
+Jeder Wert, sofort wirksam, eine Zeile. **Kein Bucket-Zugriff, kein Medien-Lauf** — Datei
+bearbeiten, pushen, fertig.
+
+⚠️ **Widerspricht das „Konvention statt Konfiguration"?** Nein, und das ist wichtig, weil die
+Regel sonst zu Recht dagegenstuende. Ihre Begruendung in `TECH-STACK.md` lautet: ein zusaetzliches
+Feld waere „eine zweite Stelle mit demselben Namen". Der Einwand gilt **Namen** — welches Bild zu
+welcher Arbeit gehoert, steht im Pfad und darf nirgends doppelt stehen. Ein Bildausschnitt ist
+kein Name: Er steht **nirgendwo sonst**, ist keine Wiederholung, und kann nur von einem Menschen
+kommen, der das Foto ansieht.
+
+Was bleibt, ist der Schluessel als Verweis — und der kann nach einer Umbenennung ins Leere zeigen,
+ohne dass es auffaellt. **Deshalb ein Test, der jeden Eintrag gegen das Manifest haelt.** Aus einer
+stillen Abweichung wird damit ein roter Test; genau diese Sorte Fehler hat in diesem Projekt schon
+mehrfach Zeit gekostet.
+
+### Und ein Werkzeug, weil Schaetzen der eigentliche Fehler war
+
+Ein Artefakt: Bilder laden, auf dem **ganzen** Foto den Punkt ziehen, ein roter Rahmen zeigt, was
+im Hero uebrig bleibt und was weggeschnitten wird. Daneben die Vorschau als Hero und als Telefon,
+darunter faellt die fertige Datei heraus.
+
+<https://claude.ai/code/artifact/ca3af403-f535-4e52-97e6-633cd9414c34>
+
+Der Punkt ist auch mit den Pfeiltasten erreichbar (Shift = zehn Schritte) — ein Bedienelement, das
+man nur ziehen kann, ist fuer Tastaturbedienung keines.
+
+**Ein Fehler darin, den erst der Browser gezeigt hat:** Ich hatte „erste Datei = Leitbild, Rest der
+Reihe nach" angenommen. Sortiert wird aber nach Namen, und `01.jpg` steht vor `wiwawo-53.jpg` —
+das Leitbild bekam den Schluessel `/01`, das erste Streckenbild fiel weg. Der Dateiname traegt die
+Antwort ohnehin: eine reine Zahl ist ein Streckenbild, alles andere das Leitbild. Der erzeugte
+Schluessel steht jetzt zusaetzlich ueber dem Foto, damit eine falsche Arbeits-ID oder eine anders
+benannte Datei sofort auffaellt und nicht erst, wenn der Ausschnitt still nicht greift.
+
+### Was damit **nicht** geloest ist
+
+Ein bildschirmfuellendes 16:9-Hero bleibt der falsche Rahmen fuer ein Hochformat — zwei Drittel
+des Fotos sind weg, egal wie gut der Punkt sitzt. Das Werkzeug macht das nur **sichtbar**: Es
+zeigt neben dem Ausschnitt, wieviel Prozent uebrig bleiben. Wenn das fuer ein Bild zu wenig ist,
+gehoert es nicht ins Hero, sondern nur ins Mosaik. Diese Entscheidung steht weiter offen.
+
+### Geprueft
+
+116 Tests (vier neue: Standard mittig, eingetragener Wert greift, **jeder Schluessel existiert im
+Manifest**, nur gueltige `object-position`-Werte). Lint, Typecheck. Das Werkzeug im Browser mit
+untergeschobenem Quer- und Hochformat: Fenster und Vorschau rechnen richtig (Hochformat 800×1200
+im 16:9-Rahmen → 37 % sichtbar, Fenster bei mittigem Punkt auf 31,25 % — die erwarteten Werte),
+Ziehen, Tastatur und der erzeugte Code stimmen.
+
+---
+
 ## 2026-09-13 — Der Bildausschnitt im Hero gehoert ans Bild, nicht ins Stylesheet
 
 Jan, mit drei Bildschirmfotos der laufenden Seite: „viel besser! aber jetzt muessen wir ueber die

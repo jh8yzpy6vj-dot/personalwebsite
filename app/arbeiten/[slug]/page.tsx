@@ -8,7 +8,7 @@ import Mosaik from "../../components/Mosaik";
 import Film from "../../components/Film";
 import Kontaktbogen from "../../components/Kontaktbogen";
 import {
-  AUSSCHNITTE,
+  ausschnittAus,
   aufnahmeZeile,
   bildZurArbeit,
   bildstreckeZurArbeit,
@@ -144,11 +144,11 @@ export default async function WorkDetail({
             */
             <Blende
               bilder={[
-                /* Das Leitbild bekommt den mittigen Standard: Es ist bei
-                   allen Arbeiten Querformat und wird im Hero deshalb kaum
-                   beschnitten. Die Strecke bringt ihren Zuschnitt aus dem
-                   Dateinamen mit — siehe `ausschnittAus`. */
-                { quelle: bild, ausschnitt: AUSSCHNITTE.mitte },
+                /* Jedes Bild bringt seinen gewählten Ausschnitt mit —
+                   auch das Leitbild, das im Hero zwar kaum beschnitten
+                   wird, auf dem Telefon aber schon. Siehe
+                   lib/bildausschnitte.ts. */
+                { quelle: bild, ausschnitt: ausschnittAus(`arbeiten/${work.id}`) },
                 ...strecke.map((b) => ({ quelle: b.quelle, ausschnitt: b.ausschnitt })),
               ]}
               alt={work.alt ?? `${work.title}, ${work.client}, ${work.year}`}

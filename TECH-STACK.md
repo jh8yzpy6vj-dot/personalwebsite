@@ -45,7 +45,7 @@ Alles unter dem Präfix `original/` im Bucket:
 | Was | Schlüssel im Bucket | Dateiname |
 |---|---|---|
 | Leitbild einer Arbeit | `original/arbeiten/` | genau die `id` der Arbeit aus `lib/content.ts`, z. B. `tete-a-tete-2026.jpg` |
-| **Bildstrecke** — die Folge, die im Hero läuft und darunter als Mosaik steht | `original/arbeiten/<id>/` | `01.jpg`, `02.jpg`, … , bei Bedarf `02-unten.jpg` |
+| **Bildstrecke** — die Folge, die im Hero läuft und darunter als Mosaik steht | `original/arbeiten/<id>/` | `01.jpg`, `02.jpg`, … |
 | **Kontaktbogen** — alle Frames derselben Aufnahmeserie | `original/arbeiten/<id>/serie/` | `01.jpg`, `02.jpg`, … und beim Treffer `03-gewaehlt.jpg` |
 | Film zu einer Arbeit (Aftermovie) | `original/video/` | `<id>.mp4` |
 | Hero-Standbild | `original/hero/` | `standbild.jpg` |
@@ -65,20 +65,30 @@ stehen kann.
 ⚠️ **Führende Null nicht vergessen** (`01`, nicht `1`). Sortiert wird nach Dateiname; ohne sie
 stünde `10` vor `2`.
 
-⚠️ **`-oben` / `-unten` am Dateinamen** bestimmt, **welcher Teil eines Bildes im Hero zu sehen
-ist.** Ohne Endung: die Mitte.
+⚠️ **Der Bildausschnitt im Hero steht in `lib/bildausschnitte.ts`**, eine Zeile je Bild:
 
-    01.jpg         →  mittig, der Standard
-    02-unten.jpg   →  unteres Drittel — für Motive am Boden (Lagerfeuer, Boot im Wasser)
-    05-oben.jpg    →  oberes Drittel — für Sprünge, Gesichter im oberen Bilddrittel
+    "arbeiten/wiwawo-53/02": "50% 78%",   // Lagerfeuer sitzt unten
 
-Warum das je Bild eingestellt werden muss: Ein Hochformat (4672 × 7008) zeigt in einem
+Der Schlüssel ist derselbe Pfad wie im Manifest (`arbeiten/<id>` fürs Leitbild,
+`arbeiten/<id>/01` für die Strecke), der Wert ein `object-position`: erst waagerecht, dann
+senkrecht. Ohne Eintrag steht das Bild mittig.
+
+**Nicht schätzen — es gibt ein Werkzeug dafür:** Bilder laden, Punkt auf dem Foto ziehen, der rote
+Rahmen zeigt, was im Hero übrig bleibt, unten fällt die fertige Datei heraus.
+→ <https://claude.ai/code/artifact/ca3af403-f535-4e52-97e6-633cd9414c34>
+
+Warum das je Bild gewählt werden muss: Ein Hochformat (4672 × 7008) zeigt in einem
 1920 × 1080-Hero nur **37,5 % seiner Höhe** — bei jeder Einstellung. Welche 37,5 % die richtigen
 sind, weiß nur, wer das Bild kennt. Eine feste Regel liegt bei jedem zweiten Motiv daneben; genau
 das war am 2026-09-13 der Fall, als hier pauschal 38 % standen.
 
+⚠️ **Eine Änderung hier braucht weder Bucket-Zugriff noch `npm run medien`** — Datei bearbeiten,
+pushen, fertig. Eine Zwischenstufe mit Endungen am Dateinamen (`-oben`, `-unten`) ist am
+2026-09-13 wieder verworfen worden: drei Stufen sind zu grob, und jede Änderung hätte Umbenennen
+im Bucket **und** einen neuen Medien-Lauf verlangt.
+
 **Das Mosaik unter dem Text ist davon nicht betroffen** — dort wird nichts beschnitten, jedes
-Bild steht in voller Form. Die Endung wirkt also **ausschließlich** im Hero.
+Bild steht in voller Form. Der Wert wirkt **ausschließlich** im Hero.
 
 ⚠️ **`-gewaehlt` am Dateinamen** markiert im Kontaktbogen das Bild, das es geworden ist — es
 bekommt den roten Rahmen. Genau eins pro Serie. Ist keins markiert, gibt es keine Markierung.
