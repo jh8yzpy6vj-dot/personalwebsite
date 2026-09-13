@@ -1,5 +1,15 @@
 /*
- * Porträt und zwei Sätze, in der dunklen Hälfte zwischen Hero und Material.
+ * Porträt und zwei Sätze, zwischen Hero und Material.
+ *
+ * ⚠️ **Heller Grund seit dem 2026-09-13, auf Jans Entscheidung.** Der Block
+ * lag vorher auf `--buehne` und war damit der unauffälligste der Seite: Das
+ * Porträt ist im Gegenlicht aufgenommen und dunkel, seine Ränder gingen im
+ * Grund unter. Auf Papier steht es.
+ *
+ * Der Preis ist bekannt und im UI-SPEC festgehalten: Die Startseite hat
+ * damit **drei** Wechsel dunkel/hell statt einem, die Naht ist kein
+ * Strukturelement mehr. Zwei Alternativen ohne diesen Preis standen zur
+ * Wahl und stehen dort ebenfalls.
  *
  * Zweispaltig ab 800px, darunter untereinander. Der Umbruchpunkt liegt höher
  * als die üblichen 700px der Seite: Zwei Spalten mit einem Porträt links und
@@ -13,7 +23,7 @@
  * „arbeiten." — zwei Rastergesetze auf zwölf Zentimetern.
  */
 .anriss {
-  background: var(--buehne);
+  background: var(--papier);
   display: grid;
   gap: var(--space-2xl);
   align-items: center;
@@ -30,8 +40,10 @@
   }
 }
 
+/* Grund unter dem Bild, sichtbar nur solange es lädt — auf Papier `--stein`
+   statt Schwarz, sonst klafft dort kurz ein Loch. */
 .bildSpalte {
-  background: #000;
+  background: var(--stein);
 }
 
 /*
@@ -61,8 +73,8 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-sm);
-  background: linear-gradient(150deg, #17171b 0%, #0b0b0d 100%);
-  border: 1px solid rgba(244, 243, 239, 0.06);
+  background: linear-gradient(150deg, #e7e4dc 0%, #d6d2c8 100%);
+  border: 1px solid var(--stein);
 }
 
 .platzhalterPunkt {
@@ -76,7 +88,7 @@
 .platzhalterNotiz {
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: var(--text-label);
-  color: var(--ton-buehne);
+  color: var(--ton-papier);
 }
 
 .textSpalte {
@@ -91,20 +103,22 @@
   font-size: var(--text-heading);
   font-weight: var(--weight-bold);
   line-height: var(--leading-heading);
-  color: var(--papier);
+  color: var(--buehne);
 }
 
 /*
- * Fließtext auf dunklem Grund. `--stein` statt `--papier`: reines Papierweiß
- * auf `--buehne` ist für mehrere Zeilen zu hart, `--stein` misst gegen
- * `--buehne` 13:1 und liegt damit weit über der Untergrenze.
+ * Fließtext auf hellem Grund: volles `--buehne`. Vorher stand hier `--stein`,
+ * ein aufgehelltes Papierweiß — richtig auf dunklem Grund, auf Papier aber
+ * praktisch unsichtbar. Die gedämpfte Variante (`--ton-papier`) wäre hier
+ * falsch: Das sind die beiden Sätze, die sagen, wer hinter der Seite steht,
+ * kein Hilfstext.
  */
 .satz {
   margin: 0;
   max-width: 58ch;
   font-size: var(--text-body);
   line-height: var(--leading-body);
-  color: var(--stein);
+  color: var(--buehne);
 }
 
 .mehrZeile {
@@ -115,7 +129,7 @@
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: var(--text-label);
   line-height: var(--leading-label);
-  color: var(--papier);
+  color: var(--buehne);
   text-decoration-color: var(--rec);
   text-underline-offset: 4px;
   /* Der Weiterweg ist ein echtes Ziel und wird angetippt — 44px Höhe. */
