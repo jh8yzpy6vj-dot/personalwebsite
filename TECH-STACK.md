@@ -45,7 +45,7 @@ Alles unter dem Präfix `original/` im Bucket:
 | Was | Schlüssel im Bucket | Dateiname |
 |---|---|---|
 | Leitbild einer Arbeit | `original/arbeiten/` | genau die `id` der Arbeit aus `lib/content.ts`, z. B. `tete-a-tete-2026.jpg` |
-| **Bildstrecke** — die kuratierte Folge, waagerecht durchblätterbar | `original/arbeiten/<id>/` | `01.jpg`, `02.jpg`, … |
+| **Bildstrecke** — die Folge, die im Hero läuft und darunter als Mosaik steht | `original/arbeiten/<id>/` | `01.jpg`, `02.jpg`, … , bei Bedarf `02-unten.jpg` |
 | **Kontaktbogen** — alle Frames derselben Aufnahmeserie | `original/arbeiten/<id>/serie/` | `01.jpg`, `02.jpg`, … und beim Treffer `03-gewaehlt.jpg` |
 | Film zu einer Arbeit (Aftermovie) | `original/video/` | `<id>.mp4` |
 | Hero-Standbild | `original/hero/` | `standbild.jpg` |
@@ -64,6 +64,21 @@ stehen kann.
 
 ⚠️ **Führende Null nicht vergessen** (`01`, nicht `1`). Sortiert wird nach Dateiname; ohne sie
 stünde `10` vor `2`.
+
+⚠️ **`-oben` / `-unten` am Dateinamen** bestimmt, **welcher Teil eines Bildes im Hero zu sehen
+ist.** Ohne Endung: die Mitte.
+
+    01.jpg         →  mittig, der Standard
+    02-unten.jpg   →  unteres Drittel — für Motive am Boden (Lagerfeuer, Boot im Wasser)
+    05-oben.jpg    →  oberes Drittel — für Sprünge, Gesichter im oberen Bilddrittel
+
+Warum das je Bild eingestellt werden muss: Ein Hochformat (4672 × 7008) zeigt in einem
+1920 × 1080-Hero nur **37,5 % seiner Höhe** — bei jeder Einstellung. Welche 37,5 % die richtigen
+sind, weiß nur, wer das Bild kennt. Eine feste Regel liegt bei jedem zweiten Motiv daneben; genau
+das war am 2026-09-13 der Fall, als hier pauschal 38 % standen.
+
+**Das Mosaik unter dem Text ist davon nicht betroffen** — dort wird nichts beschnitten, jedes
+Bild steht in voller Form. Die Endung wirkt also **ausschließlich** im Hero.
 
 ⚠️ **`-gewaehlt` am Dateinamen** markiert im Kontaktbogen das Bild, das es geworden ist — es
 bekommt den roten Rahmen. Genau eins pro Serie. Ist keins markiert, gibt es keine Markierung.

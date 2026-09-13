@@ -226,8 +226,56 @@ export function bildZurArbeit(id: string): Bildquelle | null {
   return bild(`arbeiten/${id}`);
 }
 
+/**
+ * Wo der Zuschnitt eines Bildes sitzt, wenn es beschnitten werden **muss**
+ * — also im Hero, nie im Mosaik.
+ *
+ * ⚠️ **Warum das je Bild einstellbar sein muss und nicht global geht:**
+ * Ein Hochformat (4672×7008) zeigt in einem 1920×1080-Hero nur **37,5 %
+ * seiner Höhe**, bei jeder Einstellung. Welche 37,5 % die richtigen sind,
+ * hängt allein vom Motiv ab: Beim Lagerfeuer sitzt es unten, beim Porträt
+ * in der Mitte, beim Sprung über eine Kante oben. Eine feste Zahl ist
+ * deshalb bei jedem zweiten Bild falsch — hier stand bis zum 2026-09-13
+ * pauschal 38 %, mit der Begründung „in Wildwasserbildern ist oben das
+ * Geschehen". Jan an drei Beispielen: stimmt nicht.
+ *
+ * Gesteuert wird über den **Dateinamen** — dieselbe Konvention wie beim
+ * Kontaktbogen, wo `-gewaehlt` den ausgewählten Frame markiert: Eine
+ * Regel, die man im Ordner sehen kann, wird seltener falsch angewendet
+ * als eine, die in einer Datei steht.
+ *
+ *     01.jpg        → mittig (Standard)
+ *     02-unten.jpg  → unteres Drittel, für Motive am Boden
+ *     05-oben.jpg   → oberes Drittel
+ */
+export const AUSSCHNITTE = {
+  oben: "center 25%",
+  mitte: "center 50%",
+  unten: "center 75%",
+} as const;
+
+export type Ausschnitt = keyof typeof AUSSCHNITTE;
+
+/**
+ * Liest den Ausschnitt aus dem Dateinamen. Ohne Endung: mittig.
+ *
+ * Mittig ist der einzig vertretbare Standard: Es ist der Zuschnitt, den
+ * jede Kamera-App und jedes Vorschaubild verwendet, und er ist bei keinem
+ * Motiv grob falsch — anders als ein Drittel, das bei der Hälfte der
+ * Bilder danebenliegt.
+ */
+export function ausschnittAus(schluessel: string): string {
+  const treffer = /-(oben|mitte|unten)$/.exec(schluessel);
+  return treffer ? AUSSCHNITTE[treffer[1] as Ausschnitt] : AUSSCHNITTE.mitte;
+}
+
 /** Ein Bild samt seinem Schlüssel — für Listen, in denen die Reihenfolge zählt. */
-export type Streckenbild = { schluessel: string; quelle: Bildquelle };
+export type Streckenbild = {
+  schluessel: string;
+  quelle: Bildquelle;
+  /** Fertiger `object-position`-Wert, siehe `ausschnittAus`. */
+  ausschnitt: string;
+};
 
 /**
  * Alle Schlüssel eines Ordners, **ohne** Unterordner, alphabetisch.
@@ -239,7 +287,11 @@ function ordnerInhalt(praefix: string): Streckenbild[] {
   return Object.keys(BILDER)
     .filter((k) => k.startsWith(praefix) && !k.slice(praefix.length).includes("/"))
     .sort()
-    .map((schluessel) => ({ schluessel, quelle: BILDER[schluessel] }));
+    .map((schluessel) => ({
+      schluessel,
+      quelle: BILDER[schluessel],
+      ausschnitt: ausschnittAus(schluessel),
+    }));
 }
 
 /**

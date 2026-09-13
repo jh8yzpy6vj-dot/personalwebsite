@@ -25,6 +25,12 @@ type Props = {
    * Muss je Seite eindeutig sein — deshalb der Slug der Arbeit darin.
    */
   uebergang?: string;
+  /**
+   * `object-position`, wenn das Bild beschnitten wird. Nur dort nötig, wo
+   * `object-fit: cover` gilt — im Hero. Siehe `ausschnittAus` in
+   * lib/bilder.ts, warum das je Bild einstellbar sein muss.
+   */
+  ausschnitt?: string;
   className?: string;
 };
 
@@ -64,6 +70,7 @@ export default function Bild({
   sizes,
   vorrang = false,
   uebergang,
+  ausschnitt,
   className,
 }: Props) {
   const sparsamAvif = sparsamesSrcset(quelle.avif);
@@ -93,6 +100,7 @@ export default function Bild({
         decoding="async"
         style={{
           backgroundImage: `url("${quelle.lqip}")`,
+          ...(ausschnitt ? { objectPosition: ausschnitt } : {}),
           ...(uebergang ? { viewTransitionName: uebergang } : {}),
         }}
       />

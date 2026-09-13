@@ -27,17 +27,18 @@
   inset: 0;
 }
 
+/*
+ * ⚠️ **Hier steht bewusst kein `object-position`.** Bis zum 2026-09-13
+ * stand hier pauschal `center 38%`, begründet mit „in Wildwasserbildern
+ * ist oben das Geschehen". Das ist bei jedem zweiten Bild falsch: Beim
+ * Lagerfeuer sitzt das Motiv unten, beim Porträt in der Mitte. Der Wert
+ * kommt jetzt je Bild aus dem Dateinamen — siehe `ausschnittAus` in
+ * lib/bilder.ts.
+ */
 .bild {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /*
-   * ⚠️ Nicht mittig, sondern auf 38 % Höhe. Fünf von sechs Bildern der
-   * Wiwawo-Strecke sind Hochformat; in einem breiten Hero zeigt `cover`
-   * davon einen Querstreifen, und der sitzt bei mittigem Zuschnitt auf
-   * Höhe der Hüften. Oben ist in Sport- und Bühnenbildern das Geschehen.
-   */
-  object-position: center 38%;
   display: block;
 }
 
@@ -130,8 +131,8 @@
   display: block;
   max-width: none;
   object-fit: cover;
-  object-position: center 38%;
-  /* Keine Animation. Siehe Kopf dieser Datei. */
+  /* `object-position` setzt Blende.tsx — es muss mit dem eintreffenden
+     Bild übereinstimmen. Keine Animation, siehe Kopf dieser Datei. */
 }
 
 /* `.bereit` fehlt hier absichtlich: Das ist der Zustand mit Deckkraft 0,

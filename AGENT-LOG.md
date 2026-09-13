@@ -6,6 +6,74 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-09-13 — Der Bildausschnitt im Hero gehoert ans Bild, nicht ins Stylesheet
+
+Jan, mit drei Bildschirmfotos der laufenden Seite: „viel besser! aber jetzt muessen wir ueber die
+bildausschnitte reden. die muessen angepasst werden, und zwar dringend."
+
+Zu sehen war: beim Lagerfeuer die obere, dunkle Bildhaelfte statt der Flammen; beim Kajakfahrer
+mit dem roten Paddel der Kopf am unteren Rand und darueber nur Wald.
+
+### Die Ursache war eine Zahl, die ich selbst geraten hatte
+
+Im Stylesheet stand pauschal `object-position: center 38%`, und der Kommentar daneben lieferte
+meine Begruendung gleich mit: „in Sport- und Buehnenbildern ist oben das Geschehen". Das ist eine
+Behauptung ueber Motive, keine Regel — und sie liegt bei jedem zweiten Bild daneben.
+
+### Die Arithmetik, die zeigt, dass keine Zahl stimmen kann
+
+Ein Hochformat 4672 × 7008 in einem 1920 × 1080-Hero, `object-fit: cover`:
+
+| object-position | gezeigter Teil der Quelle |
+|---|---|
+| 25 % | 15,6 % – 53,1 % |
+| 38 % | 23,8 % – 61,3 % |
+| **50 %** | **31,2 % – 68,8 %** |
+| 62 % | 38,8 % – 76,2 % |
+| 75 % | 46,9 % – 84,4 % |
+
+**Sichtbar sind immer nur 37,5 % der Bildhoehe.** Welche 37,5 % die richtigen sind, weiss nur,
+wer das Motiv kennt. Eine globale Einstellung kann das nicht leisten — sie kann nur
+unterschiedlich falsch sein.
+
+### Behoben: der Ausschnitt steht am Dateinamen
+
+    01.jpg         →  mittig, der Standard
+    02-unten.jpg   →  unteres Drittel
+    05-oben.jpg    →  oberes Drittel
+
+Dieselbe Konvention wie `-gewaehlt` beim Kontaktbogen, und aus demselben Grund: **Eine Regel, die
+man im Ordner sehen kann, wird seltener falsch angewendet als eine, die in einer Datei steht.**
+Jakob kann den Ausschnitt damit selbst steuern, ohne Code anzufassen — Datei umbenennen,
+`npm run medien`, fertig.
+
+Mittig ist der neue Standard. Nicht weil es optimal waere, sondern weil es das einzige ist, das
+bei **keinem** Motiv grob falsch liegt — anders als ein Drittel, das bei der Haelfte danebentrifft.
+
+⚠️ Die Blockflaechen der Blende tragen **denselben** Wert wie das Bild, das sie aufdecken. Ein
+Test haelt das fest; ein Auseinanderlaufen waere derselbe Bruch wie damals bei der Fahrt, nur an
+anderer Stelle.
+
+**Das Mosaik ist nicht betroffen** — dort wird nichts beschnitten. Die Endung wirkt ausschliesslich
+im Hero.
+
+### Was damit **nicht** geloest ist
+
+Ein bildschirmfuellendes 16:9-Hero bleibt der falsche Rahmen fuer ein Hochformat: Zwei Drittel des
+Fotos sind weg, egal wie gut der Ausschnitt sitzt. Die Endung macht aus einem schlechten Zuschnitt
+einen ertraeglichen, keinen guten. Die ehrliche Alternative waere, im Hero nur Querformate laufen
+zu lassen (bei `wiwawo-53` das Leitbild und 06) und die Hochformate dem Mosaik zu ueberlassen, wo
+sie vollstaendig stehen. Das ist Jans Entscheidung und steht offen.
+
+### Geprueft
+
+115 Tests (sechs neue: Standard mittig, alle drei Endungen, Endung greift nur am Schluesselende,
+jedes Streckenbild traegt einen Wert, kein `object-position` mehr im Stylesheet, Flaechen und Bild
+gleich). Lint, Typecheck, Build. Der Takt der Blende ist unveraendert — nachgemessen: Flaeche 1
+bei 423 ms auf 0.95, Flaeche 3 ab 847 ms, Endbild 1270 → 1633 ms.
+
+---
+
 ## 2026-09-13 — Die Blende hatte gar keinen Uebergang
 
 Jan, dritte Runde am selben Hero:

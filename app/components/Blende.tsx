@@ -50,9 +50,12 @@ const FELDER = [
   [16, 56, 26, 28],
 ] as const;
 
+/** Ein Bild der Folge samt seinem Zuschnitt — siehe `ausschnittAus`. */
+export type Heroquelle = { quelle: Bildquelle; ausschnitt: string };
+
 type Props = {
   /** Leitbild zuerst, danach die Strecke. Mindestens ein Bild. */
-  bilder: Bildquelle[];
+  bilder: Heroquelle[];
   alt: string;
   /** `view-transition-name` für das erste Bild — siehe Bild.tsx. */
   uebergang?: string;
@@ -254,7 +257,8 @@ export default function Blende({ bilder, alt, uebergang }: Props) {
           <div key={i} className={`${styles.lage} ${rolle}`} ref={meldeGeladen(i)}>
             <Bild
               className={styles.bild}
-              quelle={bilder[i]}
+              quelle={bilder[i].quelle}
+              ausschnitt={bilder[i].ausschnitt}
               /* Nur das laufende Bild wird beschrieben — die anderen
                  liegen unsichtbar darunter und wären als Wiederholung
                  desselben Alt-Textes nur Lärm im Screenreader. */
@@ -302,8 +306,8 @@ export default function Blende({ bilder, alt, uebergang }: Props) {
               }}
             >
               <img
-                src={bilder[naechster].fallback}
-                srcSet={bilder[naechster].webp}
+                src={bilder[naechster].quelle.fallback}
+                srcSet={bilder[naechster].quelle.webp}
                 sizes={HERO_SIZES}
                 alt=""
                 style={{
@@ -311,6 +315,10 @@ export default function Blende({ bilder, alt, uebergang }: Props) {
                   height: `${(100 / h) * 100}%`,
                   left: `${-(l / b) * 100}%`,
                   top: `${-(t / h) * 100}%`,
+                  /* ⚠️ Muss derselbe Zuschnitt sein wie am eintreffenden
+                     Bild, sonst zeigen die Flächen einen anderen
+                     Bildausschnitt als das, was danach aufdeckt. */
+                  objectPosition: bilder[naechster].ausschnitt,
                 }}
               />
             </span>

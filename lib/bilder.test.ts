@@ -176,6 +176,35 @@ const lies = (pfad: string) =>
     fs.readFile(new URL(pfad, import.meta.url), "utf8"),
   );
 
+describe("Ausschnitt aus dem Dateinamen", () => {
+  it("ist ohne Endung mittig", async () => {
+    const { ausschnittAus, AUSSCHNITTE } = await import("./bilder");
+    expect(ausschnittAus("arbeiten/wiwawo-53/01")).toBe(AUSSCHNITTE.mitte);
+  });
+
+  it("liest oben, mitte und unten", async () => {
+    const { ausschnittAus, AUSSCHNITTE } = await import("./bilder");
+    expect(ausschnittAus("arbeiten/x/02-unten")).toBe(AUSSCHNITTE.unten);
+    expect(ausschnittAus("arbeiten/x/05-oben")).toBe(AUSSCHNITTE.oben);
+    expect(ausschnittAus("arbeiten/x/07-mitte")).toBe(AUSSCHNITTE.mitte);
+  });
+
+  it("greift nur am Ende des Schlüssels", async () => {
+    const { ausschnittAus, AUSSCHNITTE } = await import("./bilder");
+    // Ein Ordner namens „oben" oder eine Arbeit mit „-unten" im Slug darf
+    // den Zuschnitt der Bilder darin nicht bestimmen.
+    expect(ausschnittAus("arbeiten/oben/03")).toBe(AUSSCHNITTE.mitte);
+    expect(ausschnittAus("arbeiten/tal-unten/03")).toBe(AUSSCHNITTE.mitte);
+  });
+
+  it("hängt an jedem Bild der Strecke", async () => {
+    const { bildstreckeZurArbeit } = await import("./bilder");
+    const strecke = bildstreckeZurArbeit("wiwawo-53");
+    expect(strecke.length).toBeGreaterThan(0);
+    for (const b of strecke) expect(b.ausschnitt, b.schluessel).toMatch(/^center \d+%$/);
+  });
+});
+
 describe("Mosaik", () => {
   /*
    * ⚠️ Der Zeilensatz (bis 2026-09-13) konnte Formate nicht mischen — er
@@ -334,6 +363,27 @@ describe("Blende im Hero", () => {
    * einem Screenshot nicht zu sehen und mit Platzhalterbildern nicht zu
    * reproduzieren — deshalb stehen sie hier.
    */
+  /*
+   * ⚠️ Ein Hochformat (4672×7008) zeigt in einem 1920×1080-Hero nur
+   * 37,5 % seiner Höhe — bei **jeder** Einstellung. Welche 37,5 % die
+   * richtigen sind, entscheidet das Motiv, nicht eine Regel. Hier stand
+   * pauschal 38 %, und Jan hat an drei Bildern gezeigt, dass das nicht
+   * trägt: Lagerfeuer unten, Porträt mittig.
+   */
+  it("legt den Zuschnitt je Bild fest, nicht pauschal im Stylesheet", async () => {
+    const css = await lies("../app/components/Blende.module.css");
+    const tsx = await lies("../app/components/Blende.tsx");
+    expect(css).not.toMatch(/\.bild\s*\{[^}]*object-position/);
+    expect(tsx).toContain("ausschnitt={bilder[i].ausschnitt}");
+  });
+
+  it("gibt den Flächen denselben Zuschnitt wie dem Bild darunter", async () => {
+    const tsx = await lies("../app/components/Blende.tsx");
+    // Sonst zeigen die Ausschnitte einen anderen Bildteil als das, was
+    // danach aufdeckt — derselbe Bruch wie damals bei der Fahrt.
+    expect(tsx).toContain("objectPosition: bilder[naechster].ausschnitt");
+  });
+
   it("bewegt nur das laufende Bild", async () => {
     const css = await lies("../app/components/Blende.module.css");
     // Blockausschnitte und eintreffendes Bild müssen dieselbe
