@@ -57,7 +57,8 @@
 .kommt {
   z-index: 2;
   opacity: 0;
-  transition: opacity 300ms linear; /* 0,25 × Dauer */
+  /* Zeiten kommen aus Blende.tsx — siehe dort. */
+  transition: opacity var(--takt-aufdecken) cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .fertig .kommt {
@@ -86,7 +87,9 @@
  */
 @media (prefers-reduced-motion: no-preference) {
   .aktiv .bild {
-    animation: fahrt 5200ms linear both;
+    /* Standzeit plus ganze Blende — der Wert kommt aus Blende.tsx, damit
+       er nicht von den Taktzeiten abweichen kann. */
+    animation: fahrt var(--takt-fahrt) linear both;
   }
 
   @keyframes fahrt {
@@ -104,11 +107,22 @@
   z-index: 1;
 }
 
+/*
+ * ⚠️ Damit hier überhaupt etwas überblendet, müssen die Flächen **erst
+ * mit Deckkraft 0 im Dokument stehen** und `.laeuft` einen Bildaufbau
+ * später dazukommen. Das erledigt die Phase `bereit` in Blende.tsx. Ohne
+ * sie ist die erste berechnete Deckkraft schon 1 — es gibt keinen
+ * Anfangswert, also keinen Übergang, und alle drei erscheinen
+ * gleichzeitig.
+ *
+ * Die Beschleunigung ist weich und ohne harten Einsatz: `linear` ließ die
+ * Flächen wie geschaltet wirken statt wie eingeblendet.
+ */
 .block {
   position: absolute;
   overflow: hidden;
   opacity: 0;
-  transition: opacity 360ms linear; /* 0,3 × Dauer */
+  transition: opacity var(--takt-block) cubic-bezier(0.33, 0, 0.25, 1);
 }
 
 .block img {
@@ -120,6 +134,8 @@
   /* Keine Animation. Siehe Kopf dieser Datei. */
 }
 
+/* `.bereit` fehlt hier absichtlich: Das ist der Zustand mit Deckkraft 0,
+   von dem aus überblendet wird. */
 .laeuft .block,
 .fertig .block {
   opacity: 1;

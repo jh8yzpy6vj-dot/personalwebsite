@@ -279,7 +279,52 @@ describe("Blende im Hero", () => {
     // Hingen sie aneinander, sah man die Bilder nicht — der Fehler, der
     // den ganzen Umbau ausgelöst hat.
     expect(tsx).toMatch(/const STANDZEIT_MS = \d+/);
-    expect(tsx).toMatch(/const DAUER_MS = \d+/);
+    expect(tsx).toMatch(/const DAUER_MS = BLOCK_MS \+ AUFDECK_MS/);
+  });
+
+  it("führt die Taktzeiten nur an einer Stelle", async () => {
+    const tsx = await lies("../app/components/Blende.tsx");
+    const css = await lies("../app/components/Blende.module.css");
+    // Doppelt geführt laufen sie auseinander, sobald sich der Takt ändert
+    // — im Stylesheet standen einmal 5200ms, die zu nichts mehr passten.
+    expect(tsx).toContain('"--takt-block"');
+    expect(tsx).toContain('"--takt-aufdecken"');
+    expect(tsx).toContain('"--takt-fahrt"');
+    expect(css).not.toMatch(/transition:\s*opacity\s*\d+ms/);
+    expect(css).not.toMatch(/animation:\s*fahrt\s*\d+ms/);
+  });
+
+  /*
+   * ⚠️ Der Fehler, den Jan zweimal gesehen hat: „die drei vierecke kommen
+   * nicht nacheinander, sondern gleichzeitig." Ein Element, dessen erste
+   * berechnete Deckkraft schon der Endwert ist, bekommt keinen Übergang.
+   * Die Flächen müssen also erst unsichtbar im Dokument stehen und
+   * `laeuft` einen Bildaufbau später dazubekommen.
+   */
+  it("hängt die Flächen ein, bevor sie aufkommen", async () => {
+    const tsx = await lies("../app/components/Blende.tsx");
+    const css = await lies("../app/components/Blende.module.css");
+    expect(tsx).toContain('setPhase("bereit")');
+    expect(tsx).toContain("requestAnimationFrame");
+    // `bereit` darf die Flächen gerade **nicht** aufdecken.
+    expect(css).not.toMatch(/\.bereit \.block/);
+  });
+
+  it("lässt die Flächen einander überlappen", async () => {
+    const tsx = await lies("../app/components/Blende.tsx");
+    const einzeln = Number(tsx.match(/const BLOCK_EINZELN_MS = (\d+)/)?.[1]);
+    const block = Number(tsx.match(/const BLOCK_MS = (\d+)/)?.[1]);
+    // Versatz = (BLOCK_MS − BLOCK_EINZELN_MS) / 2. Ist eine Fläche nicht
+    // länger als der Versatz, erscheinen sie im Gänsemarsch statt als
+    // eine Bewegung.
+    expect(einzeln).toBeGreaterThan((block - einzeln) / 2);
+  });
+
+  it("wechselt erst nach der Überblendung weiter", async () => {
+    const tsx = await lies("../app/components/Blende.tsx");
+    // Vorher stand hier DAUER_MS + 40 — das schnitt die Überblendung nach
+    // einem Vierzigstel ab, das Bild stand schlagartig da.
+    expect(tsx).toContain("DAUER_MS + 60");
   });
 
   /*
@@ -294,7 +339,7 @@ describe("Blende im Hero", () => {
     // Blockausschnitte und eintreffendes Bild müssen dieselbe
     // Transformation tragen, sonst springt das Motiv beim Umschlag. Am
     // sichersten ist: beide tragen keine.
-    expect(css).toMatch(/\.aktiv \.bild\s*\{\s*animation:/);
+    expect(css).toMatch(/\.aktiv \.bild\s*\{[^}]*animation:\s*fahrt/);
     expect(css).not.toMatch(/\.block img\s*\{[^}]*animation:/);
   });
 

@@ -16,7 +16,26 @@ import styles from "./Blende.module.css";
  * worden und stehen so in design/UI-SPEC.md.
  */
 const STANDZEIT_MS = 4000;
-const DAUER_MS = 1200;
+
+/**
+ * Die Blende in ihren zwei Abschnitten.
+ *
+ * `BLOCK_MS` ist die Zeit, in der die drei Flächen **nacheinander**
+ * aufkommen; `AUFDECK_MS` die Überblendung auf das ganze Bild danach.
+ * `BLOCK_EINZELN_MS` ist die Dauer **einer** Fläche — sie ist länger als
+ * der Versatz zwischen zweien, damit sich die drei überlappen statt im
+ * Gänsemarsch zu erscheinen.
+ *
+ * ⚠️ Diese Zahlen gehen als CSS-Eigenschaften an die Bühne und stehen
+ * **nur hier**. In der ersten Fassung standen dieselben Werte zusätzlich
+ * im Stylesheet — und liefen prompt auseinander, als sich der Takt
+ * änderte.
+ */
+const BLOCK_MS = 1200;
+const BLOCK_EINZELN_MS = 520;
+const AUFDECK_MS = 420;
+/** Die ganze Blende, von der ersten Fläche bis zum fertigen Bild. */
+const DAUER_MS = BLOCK_MS + AUFDECK_MS;
 
 /**
  * Die drei Flächen der Blockblende, als Prozent des Heros:
@@ -77,7 +96,23 @@ type Props = {
  */
 export default function Blende({ bilder, alt, uebergang }: Props) {
   const [index, setIndex] = useState(0);
-  const [phase, setPhase] = useState<"still" | "laeuft" | "fertig">("still");
+  /*
+   * ⚠️ **`bereit` ist kein Zierschritt, sondern der Grund, warum die
+   * Blende überhaupt läuft.** Ein Element, dessen *erste* berechnete
+   * Deckkraft schon der Endwert ist, bekommt keinen Übergang — CSS
+   * überblendet nur zwischen zwei Werten. In der ersten Fassung wurden
+   * die Flächen im selben Durchlauf eingehängt, in dem `laeuft` gesetzt
+   * wurde; sie erschienen deshalb **alle drei schlagartig**, und die
+   * Staffelung lief ins Leere. Jan: „die drei vierecke kommen nicht
+   * nacheinander, sondern gleichzeitig."
+   *
+   * In `bereit` hängen die Flächen mit Deckkraft 0 im Dokument. Erst ein
+   * Bildaufbau später kommt `laeuft` dazu — und dann gibt es einen
+   * Anfangswert, von dem aus überblendet werden kann.
+   */
+  const [phase, setPhase] = useState<"still" | "bereit" | "laeuft" | "fertig">(
+    "still",
+  );
   /* Welche Bilder im Dokument hängen. Wächst um genau eins je Schritt —
      nie die ganze Strecke auf einmal, das wäre bei sieben Bildern über
      10 MB Original eine Zumutung für die Leitung. */
@@ -101,6 +136,25 @@ export default function Blende({ bilder, alt, uebergang }: Props) {
     stand.current = { index, geladen };
   }, [index, geladen]);
 
+  /*
+   * Der eine Bildaufbau zwischen „Flächen sind da" und „Flächen kommen
+   * auf". Zwei verschachtelte `requestAnimationFrame`, weil der erste
+   * noch vor dem Zeichnen des neuen Zustands laufen kann — dann wäre die
+   * Deckkraft 0 nie berechnet worden und wir stünden wieder vor dem
+   * ursprünglichen Fehler.
+   */
+  useEffect(() => {
+    if (phase !== "bereit") return;
+    let zweiter = 0;
+    const erster = requestAnimationFrame(() => {
+      zweiter = requestAnimationFrame(() => setPhase("laeuft"));
+    });
+    return () => {
+      cancelAnimationFrame(erster);
+      cancelAnimationFrame(zweiter);
+    };
+  }, [phase]);
+
   useEffect(() => {
     if (!mehrere) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -120,8 +174,10 @@ export default function Blende({ bilder, alt, uebergang }: Props) {
        */
       if (!stand.current.geladen.includes(kommt)) return;
 
-      setPhase("laeuft");
-      zeitgeber.push(setTimeout(() => setPhase("fertig"), DAUER_MS));
+      /* Flächen einhängen, noch unsichtbar. Weiter geht es im Effekt
+         unten, einen Bildaufbau später. */
+      setPhase("bereit");
+      zeitgeber.push(setTimeout(() => setPhase("fertig"), BLOCK_MS));
       zeitgeber.push(
         setTimeout(() => {
           setIndex(kommt);
@@ -132,7 +188,13 @@ export default function Blende({ bilder, alt, uebergang }: Props) {
             const dann = (kommt + 1) % anzahl;
             return m.includes(dann) ? m : [...m, dann];
           });
-        }, DAUER_MS + 40),
+          /*
+           * ⚠️ Erst **nach** der Überblendung, nicht 40 ms nach ihrem
+           * Beginn. Vorher schnitt der Wechsel sie nach einem Vierzigstel
+           * ab: Die Flächen verschwanden und das Bild stand schlagartig
+           * da, statt aufzukommen.
+           */
+        }, DAUER_MS + 60),
       );
     };
 
@@ -172,7 +234,19 @@ export default function Blende({ bilder, alt, uebergang }: Props) {
   };
 
   return (
-    <div className={`${styles.buehne} ${styles[phase]}`} ref={heroRef}>
+    <div
+      className={`${styles.buehne} ${styles[phase]}`}
+      ref={heroRef}
+      /* Die Zeiten stehen nur oben in dieser Datei und werden von dort ins
+         Stylesheet gereicht — doppelt geführt liefen sie auseinander. */
+      style={
+        {
+          "--takt-block": `${BLOCK_EINZELN_MS}ms`,
+          "--takt-aufdecken": `${AUFDECK_MS}ms`,
+          "--takt-fahrt": `${STANDZEIT_MS + DAUER_MS}ms`,
+        } as React.CSSProperties
+      }
+    >
       {gemountet.map((i) => {
         const rolle =
           i === index ? styles.aktiv : i === naechster ? styles.kommt : styles.ruht;
@@ -215,9 +289,16 @@ export default function Blende({ bilder, alt, uebergang }: Props) {
                 top: `${t}%`,
                 width: `${b}%`,
                 height: `${h}%`,
-                /* Gestaffelt über 70 % der Dauer, damit der Rest für das
-                   Aufdecken des ganzen Bildes bleibt. */
-                transitionDelay: `${(i * (DAUER_MS * 0.7)) / (FELDER.length - 1)}ms`,
+                /*
+                 * Der Versatz füllt `BLOCK_MS` genau aus: Die letzte
+                 * Fläche startet so, dass sie am Ende fertig ist. Weil
+                 * eine Fläche länger braucht (`BLOCK_EINZELN_MS`) als der
+                 * Versatz zwischen zweien, überlappen sich die drei —
+                 * sonst wäre es ein Gänsemarsch statt einer Bewegung.
+                 */
+                transitionDelay: `${
+                  (i * (BLOCK_MS - BLOCK_EINZELN_MS)) / (FELDER.length - 1)
+                }ms`,
               }}
             >
               <img

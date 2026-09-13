@@ -6,6 +6,81 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-09-13 — Die Blende hatte gar keinen Uebergang
+
+Jan, dritte Runde am selben Hero:
+
+> „die drei vierecke kommen nicht nacheinander, sondern gleichzeitig und dann ein halbe sekunde
+> spaeter das ganze bild. das ist fuerchterlich. die transition muss smooth sein!"
+
+Der Befund war so genau, dass er die Ursache mitlieferte.
+
+### Die Ursache: ein Uebergang braucht einen Anfangswert
+
+**Die drei Flaechen wurden im selben Durchlauf eingehaengt, in dem die Klasse `laeuft` gesetzt
+wurde.** Ein Element, dessen *erste* berechnete Deckkraft schon der Endwert ist, bekommt keinen
+Uebergang — CSS blendet nur zwischen zwei Werten ueber. Es gab also nie eine Animation: Die
+Flaechen standen sofort auf 1, und die sorgfaeltig gerechnete Staffelung (`transition-delay`)
+lief ins Leere.
+
+Im Prototyp (`blenden.html`) war genau das richtig gelöst — dort baute `baueSzene()` erst das
+Markup und `requestAnimationFrame(spiele)` setzte die Klasse einen Bildaufbau spaeter. Beim
+Uebertragen nach React ist der Schritt verlorengegangen, weil dort beides ein einziger
+Zustandswechsel war.
+
+**Behoben** mit einer Phase `bereit`: Flaechen haengen mit Deckkraft 0 im Dokument, zwei
+verschachtelte `requestAnimationFrame` spaeter kommt `laeuft` dazu.
+
+### Der zweite Fehler: der Wechsel schnitt die Ueberblendung ab
+
+Der Index rueckte `DAUER_MS + 40` nach Beginn vor — also **40 ms nach dem Start** der 300 ms
+langen Ueberblendung auf das ganze Bild. Die Flaechen verschwanden, das Bild stand schlagartig da.
+Genau Jans „und dann ein halbe sekunde spaeter das ganze bild".
+
+Jetzt wechselt er **nach** der Ueberblendung.
+
+### Gemessen, vorher und nachher
+
+Deckkraft der drei Flaechen und des Endbildes, alle 60 ms abgetastet (mit untergeschobenen
+Bildern, weil die Bilddomaene gesperrt ist):
+
+| | vorher | nachher |
+|---|---|---|
+| Flaeche 1 | 1.00 ab dem ersten Messpunkt | 0.00 → 1.00 ueber 0–545 ms |
+| Flaeche 2 | 1.00 ab dem ersten Messpunkt | ab 424 ms, voll bei 847 ms |
+| Flaeche 3 | 1.00 ab dem ersten Messpunkt | ab 726 ms, voll bei 1210 ms |
+| Endbild | kam im Fenster nie ueber 0.00 | 1271 ms → 1.00 bei 1634 ms |
+
+Die Flaechen ueberlappen jetzt bewusst: eine blendet 520 ms auf, der Versatz zur naechsten
+betraegt 340 ms. Waere die Einzeldauer kuerzer als der Versatz, erschienen sie im Gaensemarsch
+statt als eine Bewegung.
+
+### Nebenbei behoben: die Zeiten standen doppelt
+
+`5200ms`, `360ms`, `300ms` standen im Stylesheet, `STANDZEIT_MS` und `DAUER_MS` in der
+Komponente — und sie passten nach dem ersten Taktwechsel nicht mehr zueinander. Alle Zeiten stehen
+jetzt **nur** in `Blende.tsx` und gehen als CSS-Eigenschaften an die Buehne. Ein Test verbietet
+feste Millisekundenwerte im Stylesheet.
+
+### Die Lehre, zum zweiten Mal in derselben Sitzung
+
+Die letzte Runde endete mit dem Vorsatz, echte Bilder unterzuschieben. **Das habe ich getan — und
+trotzdem nur Standbilder angesehen.** Ein Screenshot mitten in der Blende sieht richtig aus, egal
+ob die Flaechen ueberblenden oder springen; sichtbar wird der Unterschied nur **ueber die Zeit**.
+
+**Konsequenz:** Bei allem, was sich bewegt, wird der Verlauf **abgetastet**, nicht ein Moment
+fotografiert. Zwanzig Zeilen Playwright, die alle 60 ms `getComputedStyle` mitschreiben, haetten
+den Fehler beim ersten Mal gezeigt — sie haben ihn jetzt in einem Durchlauf bestaetigt und die
+Korrektur belegt.
+
+### Geprueft
+
+109 Tests (vier neue zum Takt: Phase `bereit` vorhanden, Ueberlappung der Flaechen, Wechsel erst
+nach der Ueberblendung, keine doppelt gefuehrten Zeiten), Lint, Typecheck, Build. Abtastung wie
+oben, dazu Schnappschuesse bei 250 / 600 / 1000 / 1400 ms.
+
+---
+
 ## 2026-09-13 — Beides live durchgefallen: die Blende hing, das Mosaik war ein Raster
 
 Jan hat den Umbau eingespielt und angesehen. Zwei Befunde, beide berechtigt:
