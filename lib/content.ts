@@ -1,9 +1,14 @@
 /**
  * Single source of truth für alle Inhalte der Seite.
  *
- * ⚠️ WICHTIG: Alle Angaben hier stammen aus dem Briefing-Dokument und sind
- * NOCH NICHT von Jakob freigegeben. Vor dem Livegang gegenprüfen lassen
- * (siehe TODO.md). Nichts hier erfinden — nur belegte Angaben eintragen.
+ * Seit dem Umbau vom 2026-10-08 („Präsenz statt Verkauf", siehe SITE-PLAN.md)
+ * stehen hier nur noch drei Dinge: die Fotoarbeiten, die Filme und die
+ * Zeilen für `/ueber`. Pro Arbeit gibt es genau zwei Angaben — Titel und
+ * Kunde. Mehr zeigt die Seite nicht.
+ *
+ * ⚠️ WICHTIG: Nichts hier ist von Jakob freigegeben, solange er es nicht
+ * ausdrücklich bestätigt hat (siehe TODO.md, Launch-Blocker). Nichts
+ * erfinden — nur belegte Angaben eintragen.
  */
 
 /**
@@ -25,302 +30,136 @@ export const HERO_VIDEO: string | null = null;
  * Bucket).
  *
  * `null` behandelt das Bild als reine Dekoration (`alt=""`) — vertretbar,
- * weil direkt daneben die Positionierung als Überschrift steht. Sobald das
- * Bild feststeht, gehört hier trotzdem eine echte Szenenbeschreibung hin;
- * das Hero ist das erste, was ein Screenreader auf der Startseite trifft.
- *
- * Ein separater Pfad zum Posterbild ist nicht nötig: Das Standbild dient
- * sowohl als Poster des Videos als auch als Hero, solange kein Video da ist.
- * Siehe lib/bilder.ts.
+ * weil darüber der Schriftzug als Überschrift steht. Sobald das Bild
+ * feststeht, gehört hier trotzdem eine echte Szenenbeschreibung hin.
  */
 export const HERO_ALT: string | null = null;
 
 export const SITE = {
+  /** Schriftzug und Wortmarke — bewusst kleingeschrieben (UI-SPEC, E7). */
   name: "jakob sax",
-  /** Eigene Selbstbeschreibung (Instagram-Bio), bewusst kleingeschrieben. */
-  positioning: "fotografie für kultur & theater im öffentlichen raum",
-  locations: "rastatt · stuttgart",
 } as const;
 
-export type Category = "festivals" | "bewegtbild" | "redaktion";
-
-export const CATEGORIES: { id: Category; label: string }[] = [
-  { id: "festivals", label: "festivals." },
-  { id: "bewegtbild", label: "bewegtbild." },
-  { id: "redaktion", label: "redaktion." },
-];
-
-export type Work = {
+/**
+ * Eine Fotoarbeit. Ihre Bilder liegen im Bucket unter
+ * `original/arbeiten/<id>.jpg` (optional, erscheint als erstes) und
+ * `original/arbeiten/<id>/01.jpg`, `02.jpg`, … — die `id` ist der Ordnername.
+ * Kein Bildfeld: Konvention statt Konfiguration, siehe TECH-STACK.md.
+ */
+export type Fotoarbeit = {
+  /** Ordnername im Bucket. Nicht umbenennen, ohne den Ordner mitzunehmen. */
   id: string;
-  category: Category;
-  /** Auftraggeber bzw. Sender — steht als Label über dem Titel. */
-  client: string;
-  title: string;
-  /** Ort bzw. Spielort. Leer lassen, wenn nicht belegt — nicht erfinden. */
-  place?: string;
-  year: string;
-  /** Eigene Rolle. Pflichtangabe — Credit-Kultur, siehe Briefing. */
-  role: string;
-  /*
-   * Kein Bildfeld: Das Leitbild einer Arbeit ergibt sich aus ihrer `id` —
-   * `original/arbeiten/<id>.jpg` im Bucket wird von `npm run medien`
-   * verarbeitet und über `bildZurArbeit(id)` gefunden. Liegt keine Datei da,
-   * zeigt die Oberfläche
-   * ihren Platzhalter. Siehe lib/bilder.ts und TECH-STACK.md, „Medien".
+  /** So, wie Jakob ihn schreibt. Gehört das Jahr dazu, steht es hier. */
+  titel: string;
+  /** Ohne Rechtsformzusatz (kein „e.V.", keine „GmbH") — UI-SPEC, E10. */
+  kunde: string;
+  /**
+   * Szenenbeschreibung je Bild, Schlüssel ist der Dateiname ohne Endung
+   * (`"01"`, `"02"`, …; das Bild ohne Nummer heißt `"leitbild"`). Fehlt ein
+   * Eintrag, setzt die Seite „Titel – Kunde, Bild n" ein — korrekt, aber
+   * ohne Information über das Motiv.
    */
-  /** Beschreibt die Szene — Barrierefreiheit und SEO. */
-  alt?: string;
+  alt?: Record<string, string>;
 };
 
 /**
- * Arbeiten. Bewusst NICHT enthalten: die Onetake-Arbeiten (Kath. Kirche
- * Rastatt, Stadtverwaltung Rastatt, Narren-Gemeinschaft, Schlosslichtspiele) —
- * dafür ist laut Briefing erst eine Freigabe nötig, weil sie über eine Firma
- * liefen, an der Jakob nicht mehr beteiligt ist.
+ * Ein Film. Er liegt **nicht** bei uns, sondern bei YouTube, Vimeo oder in
+ * einer Mediathek — die Seite verlinkt nur. Bei uns liegt allein das
+ * Standbild: `original/film/<id>.jpg` im Bucket. Ohne Standbild erscheint
+ * der Film nicht.
  */
-export const WORKS: Work[] = [
-  {
-    id: "tete-a-tete-2026",
-    category: "festivals",
-    client: "tête-à-tête",
-    title: "Straßentheaterfestival Rastatt",
-    place: "Rastatt",
-    year: "2026",
-    role: "Fotografie",
-    alt: "Höhenartistik über dem Ehrenhof des Rastatter Schlosses",
-  },
-  {
-    /*
-     * ⚠️ **Zwei Angaben hier sind aus den Geschwistereinträgen übernommen und
-     * NICHT belegt** — Jan hat am 2026-08-30 nur „es ist die 53." bestätigt:
-     *
-     * - `role`: bei 50–52 stand „Kamera, Schnitt". Geliefert wurden für 2026
-     *   aber Fotos, nicht Bewegtbild — gut möglich, dass „Fotografie" richtig
-     *   ist oder beides.
-     * - `category`: aus demselben Grund fraglich. Sind es überwiegend Fotos,
-     *   gehört die Arbeit nicht unter `bewegtbild`.
-     *
-     * `place` fehlt bewusst — bei 51 und 50 steht auch keiner, und geraten
-     * wird hier nichts (siehe Kopf dieser Datei).
-     */
-    id: "wiwawo-53",
-    category: "bewegtbild",
-    client: "Bayerischer Kanu-Verband",
-    title: "53. Jugend-Wildwasserwoche",
-    year: "2026",
-    role: "Kamera, Schnitt",
-  },
-  {
-    id: "wiwawo-52",
-    category: "bewegtbild",
-    client: "Bayerischer Kanu-Verband",
-    title: "52. Jugend-Wildwasserwoche",
-    place: "Pfunds, Tirol",
-    year: "2025",
-    role: "Kamera, Schnitt",
-  },
-  {
-    id: "wiwawo-51",
-    category: "bewegtbild",
-    client: "Bayerischer Kanu-Verband",
-    title: "51. Jugend-Wildwasserwoche",
-    year: "2024",
-    role: "Kamera, Schnitt",
-  },
-  {
-    id: "wiwawo-50",
-    category: "bewegtbild",
-    client: "Bayerischer Kanu-Verband",
-    title: "50. Jugend-Wildwasserwoche",
-    year: "2023",
-    role: "Kamera, Schnitt",
-  },
-  {
-    id: "bkv-filmworkshop",
-    category: "bewegtbild",
-    client: "Bayerischer Kanu-Verband",
-    title: "Filmworkshop mit Jugendlichen",
-    year: "2024",
-    role: "Workshopleitung",
-  },
-  {
-    id: "swr-klima",
-    category: "redaktion",
-    client: "SWR",
-    title: "Klimaredaktion, Wirtschaft und Umwelt",
-    place: "Stuttgart",
-    year: "seit 2026",
-    role: "Redaktion, Hörfunk und Online",
-  },
-  {
-    id: "ard-aktuell-ltw",
-    category: "redaktion",
-    client: "ARD aktuell",
-    title: "Landtagswahl Baden-Württemberg",
-    place: "Stuttgart",
-    year: "2026",
-    role: "Redaktion",
-  },
-  {
-    id: "strg-f",
-    category: "redaktion",
-    client: "NDR — STRG_F / Panorama",
-    title: "Reportage über einen Rechtsextremisten",
-    year: "2025",
-    role: "Recherche und Kamera",
-  },
-  {
-    id: "swr-heimat",
-    category: "redaktion",
-    client: "SWR Heimat",
-    title: "Porträt eines katholischen Pfarrers",
-    year: "2025",
-    role: "Beitrag im Team",
-  },
-];
-
-export type Service = {
-  /** Zugleich der URL-Slug: `/leistungen/<id>`. URL-stabil halten. */
+export type Film = {
+  /** Name des Standbilds im Bucket (`original/film/<id>.jpg`). */
   id: string;
-  title: string;
-  /** Kurzform ohne Schlusspunkt — für Seitentitel und Navigation. */
-  shortTitle: string;
-  audience: string;
-  description: string;
-  /** Konkrete Eckdaten. Preise erst eintragen, wenn Jakob sie festgelegt hat. */
-  facts: string[];
-  /**
-   * Passende Arbeiten, **explizit zugeordnet** statt über die Kategorie
-   * abgeleitet: Der Filmworkshop liegt in der Kategorie `bewegtbild`,
-   * gehört inhaltlich aber zu den Workshops. Eine geratene Ableitung würde
-   * ihn der falschen Leistung zuschlagen.
-   */
-  works: string[];
-  /**
-   * Richtwert für den Preis. `null`, solange keiner feststeht — dann zeigt
-   * die Seite an der Stelle nichts statt einer erfundenen Zahl.
-   *
-   * ⚠️ **Der wichtigste offene Punkt dieser Seiten.** Ein Kulturamt plant
-   * mit festen Budgets; ohne Anker schreibt es entweder gar nicht oder
-   * fragt zuerst nach dem Preis. Siehe TODO.md.
-   */
-  priceAnchor: string | null;
+  titel: string;
+  /** Ohne Rechtsformzusatz; mehrere Auftraggeber mit Schrägstrich, „SWR/ARD". */
+  kunde: string;
+  /** Vollständige `https://`-Adresse. Wird von `npm run links` geprüft. */
+  link: string;
 };
 
-export const SERVICES: Service[] = [
+/**
+ * Die Fotoarbeiten. **Die Reihenfolge hier ist die Reihenfolge im Mosaik.**
+ *
+ * Bewusst NICHT enthalten: die Onetake-Arbeiten (Rechte ungeklärt, siehe
+ * TODO.md, Langfristig).
+ */
+export const FOTOS: Fotoarbeit[] = [
   {
-    id: "festivalfotografie",
-    title: "festival- & bühnenfotos.",
-    shortTitle: "Festival- und Bühnenfotografie",
-    audience: "Festivals, Compagnien, Kulturämter",
-    description:
-      "Fotografie von Auftritten im öffentlichen Raum — Höhenartistik, Stelzentheater, Feuerperformance, Publikum. Ein Moment auf dem Hochseil passiert genau einmal.",
-    facts: [
-      "Auswahl über eine Online-Galerie",
-      "Lieferzeit: noch festzulegen",
-      "Nutzungsrechte: noch festzulegen",
-    ],
-    works: ["tete-a-tete-2026"],
-    priceAnchor: null,
-  },
-  {
-    id: "bewegtbild",
-    title: "bewegtbild & aftermovie.",
-    shortTitle: "Bewegtbild und Aftermovie",
-    audience: "Veranstalter, Kulturämter, Verbände",
-    description:
-      "Filme, die einen Zweck haben — beim Bayerischen Kanu-Verband ging es um Nachwuchs- und Mitgliedergewinnung, nicht um Dekoration.",
-    facts: [
-      "Konzept, Kamera und Schnitt aus einer Hand",
-      "Lieferzeit: noch festzulegen",
-      "Nutzungsrechte: noch festzulegen",
-    ],
-    works: ["wiwawo-53", "wiwawo-52", "wiwawo-51", "wiwawo-50"],
-    priceAnchor: null,
-  },
-  {
-    id: "workshops",
-    title: "filmworkshops.",
-    shortTitle: "Filmworkshops",
-    audience: "Jugendarbeit, Vereine, Verbände",
-    description:
-      "Mehrtägige Workshops, in denen die Teilnehmenden selbst konzipieren, drehen und schneiden. Beim Bayerischen Kanu-Verband entstanden so eine Doku und ein Werbeclip.",
-    facts: [
-      "Dauer: nach Absprache",
-      "Ab acht Teilnehmenden",
-      "Konditionen: noch festzulegen",
-    ],
-    works: ["bkv-filmworkshop"],
-    priceAnchor: null,
+    id: "wiwawo-53",
+    /*
+     * Titel und Kunde wie in Jakobs Konzept vom 2026-10-08, der Kunde ohne
+     * „e.V." (E10). Die 53. Jugend-Wildwasserwoche fand 2026 statt.
+     */
+    titel: "WiWaWo 2026",
+    kunde: "Bayerischer Kanuverband",
+    /*
+     * ⚠️ Von den Bildern abgeleitet, **nicht von Jakob freigegeben** — wie
+     * alles hier gegenlesen lassen.
+     */
+    alt: {
+      leitbild:
+        "Gruppenfoto der Teilnehmenden und Betreuenden unter einem offenen Holzdach, viele in hellgrünen T-Shirts",
+      "01": "Ein Kajak fährt einen weiß schäumenden Wasserfall in einer Felsschlucht hinab, oben auf den Felsen stehen Zuschauende",
+      "02": "Lagerfeuer bei Nacht",
+      "03": "Kajakfahrer mit blauem Helm im gelben Boot in einer brechenden Welle",
+      "04": "Kajakfahrerin mit rotem Helm stellt ihr grünes Boot im Wildwasser senkrecht",
+      "05": "Kajakfahrer im grünen Boot mit rotem Paddel auf einem Fluss mit Kiesufer",
+      "06": "Weißer Kleinbus mit Kajaks auf dem Dach an einer Bergstraße, im Tal liegt Nebel",
+    },
   },
 ];
 
-/** Referenzzeile. Nur belegte Auftraggeber — siehe Hinweis bei WORKS. */
-export const REFERENCES: string[] = [
-  "tête-à-tête Rastatt",
-  "Bayerischer Kanu-Verband",
-];
+/**
+ * Die Filme. **Die Reihenfolge hier ist die Reihenfolge auf `/film`.**
+ *
+ * Noch leer: Für keinen Film liegt bisher ein öffentlicher Link **und** ein
+ * Standbild vor. Bekannt sind WiWaWo 50–52 (Bayerischer Kanuverband; die
+ * Filme liegen bisher nirgends öffentlich) und „Y-Kollektiv: Tödliches Gold"
+ * (SWR/ARD; der Link fehlt). Einträge ohne belegten Link bleiben draußen —
+ * nichts erfinden. Was Jakob liefern muss: TODO.md, UMBAU-Schritt 7.
+ *
+ * Form eines Eintrags:
+ *
+ *     {
+ *       id: "y-kollektiv-toedliches-gold",
+ *       titel: "Y-Kollektiv: Tödliches Gold",
+ *       kunde: "SWR/ARD",
+ *       link: "https://…",
+ *     },
+ */
+export const FILME: Film[] = [];
 
 export const ABOUT = {
-  paragraphs: [
+  /**
+   * Die 3–4 Zeilen auf `/ueber`.
+   *
+   * ⚠️ **Übergangstext.** Jakob schreibt die endgültigen Zeilen selbst
+   * (TODO.md). Bis dahin stehen hier die beiden Absätze, die vorher schon
+   * im Kurzanriss der Startseite standen — nichts Neues, nichts erfunden.
+   */
+  zeilen: [
     "Ich arbeite als Journalist beim SWR in Stuttgart, in der Klimaredaktion und in der Abteilung Wirtschaft und Umwelt.",
-    "Davor: 18 Monate Volontariat mit Stationen in Stuttgart, Mainz, Rastatt, Hamburg, Mannheim und Bremen. Sechs Wochen davon bei STRG_F und Panorama – Die Reporter beim NDR, dort auch an der Kamera. Zum Abschluss vier Wochen bei ARD aktuell während der Landtagswahl in Baden-Württemberg.",
     "Dieselbe Aufmerksamkeit bringe ich auf den Festivalplatz mit: antizipieren, warten, im richtigen Moment auslösen. Beim Straßentheater gibt es keinen zweiten Take.",
   ],
-  authorPageLabel: "SWR-Autorenseite",
-  authorPageUrl: "https://www.swr.de/swraktuell/autor-jakob-sax-100.html",
 
   /**
-   * Beschreibung des Porträts (`original/portrait.jpg` im Bucket) für
-   * Screenreader und Suchmaschinen. Beschreibt die Szene, nicht das
-   * Medium — „Foto von Jakob"
-   * sagt nichts, was das `img` nicht ohnehin ist.
+   * Beschreibung des Porträts (`original/portrait.jpg` im Bucket).
    *
-   * ⚠️ Von der Aufnahme abgeleitet, **nicht von Jakob freigegeben** — wie
-   * alles hier gegenlesen lassen (siehe TODO.md).
+   * ⚠️ Von der Aufnahme abgeleitet, **nicht von Jakob freigegeben**. Wer das
+   * Foto austauscht, muss die Beschreibung mit austauschen.
    */
   portraitAlt:
     "Jakob Sax im Gegenlicht der untergehenden Sonne, dahinter unscharf Bäume und Dächer",
 
-  /**
-   * Welche Absätze der Anriss auf der Startseite zeigt.
-   *
-   * Bewusst **Indizes statt eigener Kurztexte**: Zwei Fassungen desselben
-   * Inhalts laufen auseinander, sobald jemand nur eine ändert — genau das
-   * war vorher der Fall, als der Vertrauensblock denselben Absatz wie
-   * `/ueber` trug. Der erste Absatz sagt, wer er ist; der dritte, warum das
-   * für die Fotografie zählt. Zusammen sind das die zwei Sätze, die auf die
-   * Startseite gehören.
-   */
-  anriss: [0, 2],
-} as const;
-
-/**
- * Kontakt.
- *
- * `booking.email` ist seit 2026-08-27 die **echte** Adresse (vorher der
- * erfundene Platzhalter `hallo@jakobsax.media`).
- *
- * ⚠️ Die vertraulichen Kanäle stehen weiterhin auf „noch einzutragen" —
- * echte Werte einsetzen oder den Block entfernen, siehe `TODO.md`. Ein
- * Vertraulichkeitsversprechen ohne funktionierenden Kanal ist schlimmer
- * als keines.
- */
-export const CONTACT = {
-  booking: {
-    heading: "buchungsanfragen.",
-    /** Primary CTA — Verb + Nomen, siehe design/UI-SPEC.md. */
-    cta: "E-Mail schreiben",
-    email: "mail@jakobsax.de",
-    note: "Für Anfragen von Festivals, Kulturämtern, Veranstaltern und Compagnien.",
-  },
-  confidential: {
-    heading: "vertraulich.",
-    note: "Für Hinweise an mich als Journalist. Ich behandle Quellen vertraulich und nenne niemanden ohne Absprache.",
-    channels: ["Signal: noch einzutragen", "Threema: noch einzutragen", "PGP: noch einzutragen"],
-  },
+  /** Die Kontaktzeile — drei Links, sonst nichts (E6, E12). */
+  email: "mail@jakobsax.de",
   instagram: {
-    label: "@jakobsax.media",
+    label: "Instagram",
     url: "https://www.instagram.com/jakobsax.media/",
+  },
+  swr: {
+    label: "SWR-Autorenseite",
+    url: "https://www.swr.de/swraktuell/autor-jakob-sax-100.html",
   },
 } as const;

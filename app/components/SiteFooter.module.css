@@ -1,52 +1,38 @@
 .footer {
-  /* `width: 100%` ist nötig, nicht kosmetisch: Auf den Flex-Column-Seiten
-     (LightPage) hebt `margin: 0 auto` das `align-items: stretch` auf, der
-     Footer schrumpft dann auf Inhaltsbreite und steht schmaler als der Text
-     darüber. Auf der Startseite fiel das nicht auf, weil er dort in einem
-     normalen Block liegt. */
   width: 100%;
-  max-width: 1040px;
-  margin: 0 auto;
-  padding: var(--space-xl) var(--space-lg) var(--space-2xl);
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-md);
-  justify-content: space-between;
-  align-items: center;
-  border-top: 1px solid var(--stein);
-  font-family: var(--font-mono), ui-monospace, monospace;
+  padding: var(--space-2xl) var(--rand) var(--space-xl);
+  font-family: var(--font-text);
   font-size: var(--text-label);
   line-height: var(--leading-label);
-  color: var(--ton-papier);
+  color: var(--leise);
 }
 
-.nav {
+.liste {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-md);
+  gap: 0 var(--space-lg);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.footer a {
+/* Freistehende Links: 44px Klickfläche (UI-SPEC, „Spacing"). */
+.liste a,
+.aktuell {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  color: var(--ton-papier);
-  text-decoration-color: var(--rec);
+}
+
+.liste a {
+  color: var(--leise);
   text-underline-offset: 4px;
 }
 
-/* Der aktuelle Bereich wird nicht verlinkt, sondern markiert. */
-.current {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  color: var(--buehne);
+.liste a:hover {
+  color: var(--schrift);
 }
 
-@media (max-width: 700px) {
-  .footer {
-    padding: var(--space-lg) var(--space-md) var(--space-xl);
-    gap: var(--space-sm);
-  }
+.aktuell {
+  color: var(--schrift);
 }
