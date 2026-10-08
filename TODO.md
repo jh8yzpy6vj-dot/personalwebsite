@@ -16,6 +16,351 @@ erledigen. Die ausführlichen Beschreibungen stehen weiterhin unter „Kurzfrist
 
 ---
 
+## 🧭 UMBAU: Präsenz statt Verkauf — Umsetzungsplan (Stand 2026-10-08)
+
+> **Grundlage:** Jakobs Konzept vom 2026-10-08, im Wortlaut oben in `SITE-PLAN.md`. Es ersetzt
+> die bisherige Ausrichtung („aus Gesehenem eine Anfrage machen"). **Die Seite verkauft nichts
+> mehr** — kein Angebot, kein Preis, kein Formular, kein „hier buchen". Sie ist eine Bühne für
+> Fotos und Filme und tritt selbst zurück.
+>
+> **Die Reihenfolge ist verbindlich:** erst die Entscheidungen (Schritt 0), dann der Vertrag
+> (Schritt 1), dann der Code (Schritte 2–6). So verlangt es `CLAUDE.md`: Widerspricht eine
+> Änderung dem UI-SPEC, wird zuerst der Vertrag angepasst.
+>
+> ⚠️ **Viele Punkte weiter unten in dieser Datei werden durch den Umbau hinfällig.** Sie bleiben
+> stehen, bis Schritt 1.4 sie mit Log-Eintrag entfernt. Bis dahin gilt bei Widerspruch dieser
+> Abschnitt.
+
+### Zielbild
+
+| Route | Inhalt | Text auf der Seite |
+|-------|--------|--------------------|
+| `/` | Video in voller Fensterhöhe, mittig der Schriftzug „jakob sax", darüber die Navigation | Schriftzug und Navigation, sonst nichts |
+| `/foto` | Mosaik aus den Fotos aller Arbeiten, jedes Bild in seiner eigenen Form | „Titel – Kunde", erst beim Überfahren bzw. im Lichtkasten (E4) |
+| `/film` | Raster aus Standbildern, jedes ein Link nach außen (YouTube, Vimeo, Mediathek) | je Film „Titel – Kunde" |
+| `/ueber` | Bild links, rechts 3–4 Zeilen, darunter E-Mail und Instagram | 3–4 Zeilen |
+| `/impressum`, `/datenschutz` | Pflichtseiten | nur im Footer verlinkt, nicht im Header |
+
+**Navigation:** foto · film · über mich. Der Schriftzug führt zur Startseite.
+
+**Fällt weg:** `/arbeiten`, `/arbeiten/[slug]`, `/leistungen/[slug]`, `/kontakt`, das
+Anfrageformular samt API-Route, Preisanker, „Anfrage stellen", Referenzzeile, Porträt auf der
+Startseite („nicht durch meine Fresse"), EXIF-Zeile, Kontaktbogen, selbst gehostete Filme.
+
+**Was wiederverwendet wird:** Medien-Pipeline (R2, `npm run medien`, AVIF/WebP, GPS-Entfernung),
+Hero mit Video und Standbild, `Mosaik` mit Lichtkasten und Blättertasten, `Bild`, `LegalPage`,
+Impressum/Datenschutz, Sicherheits-Header, `INDEXABLE`-Schalter.
+
+---
+
+### Schritt 0 — Entscheidungen (Jakob, mit Jan)
+
+Jede Frage hat eine Empfehlung. **Bis jemand widerspricht, wird mit der Empfehlung gebaut.** Die
+Stellen sind so angelegt, dass ein späterer Wechsel billig bleibt (letzte Spalte).
+
+✅ = **von Jakob entschieden am 2026-10-08** (über Jan). Für die übrigen gilt die Empfehlung, bis
+jemand widerspricht.
+
+| # | Frage | Empfehlung | Warum | Wo ein Wechsel ansetzt |
+|---|-------|------------|-------|------------------------|
+| E1 | Grundfläche hell oder dunkel? | **Dunkel, eine einzige Fläche** für die ganze Seite | Das Video im Hero geht nahtlos in die Seite über; Fotos und Standbilder tragen auf fast Schwarz am stärksten; eine Fläche statt zwei Hälften ist die reduzierteste Form | drei Farb-Tokens in `app/globals.css` |
+| E2 ✅ | Bleibt das rote ●REC als Akzent? | **Entschieden: Das ●REC bleibt.** Rot ist die **einzige** Farbe neben Grund und Schrift und dem ●REC vorbehalten. Ob es zusätzlich den Fokusring trägt, legt 1.2 fest — sonst nirgends | Seine Bildmarke. Als einzige Farbe auf einer sonst farblosen Seite wirkt sie stärker als vorher | Token `--rec` bleibt |
+| E3 | Ist die Startseite nur das Video? | **Ja**, nichts darunter, kein Scrollen | Konzept: „Startseite (Video)". Alles andere hat eine eigene Seite | `app/page.tsx` |
+| E4 ✅ | Foto: ein Mosaik oder nach Arbeit gruppiert? | **Entschieden: ein Mosaik, ohne Zwischenzeilen.** Arbeiten hintereinander. „Titel – Kunde" beim Überfahren (nur mit Maus) und im Lichtkasten (überall) | Die Fläche bleibt textfrei, die Zuordnung trotzdem erreichbar | Zwischenzeilen wären eine Zeile in `app/foto/page.tsx` |
+| E5 ✅ | Schriftlizenzen? | **Entschieden: Jakob hat die Lizenzen.** Beide Schriften werden selbst ausgeliefert (`next/font/local`), kein Ersatz. ⚠️ Vorher prüfen, dass es eine **Web**-Lizenz ist (siehe 1.3), und die `woff2`-Dateien besorgen (Schritt 7) | Eine Desktop-Lizenz erlaubt in der Regel nicht, die Schrift in eine Website einzubetten | je Familie eine CSS-Variable |
+| E6 ✅ | Kontakt? | **Entschieden: E-Mail und Instagram als Zeile auf `/ueber`.** Kein Formular, keine vertraulichen Kanäle | Kein „hier buchen", aber erreichbar bleiben. Ein Vertraulichkeitsversprechen ohne eingerichtete Kanäle ist schlimmer als keines | `lib/content.ts` |
+| E7 | Schreibweise | Wie im Konzept: „jakob sax" klein; Navigation klein, **ohne** Schlusspunkt | Der Punkt-Stil (`arbeiten.`) gehört zur alten Gestaltung, Jakobs Konzept nutzt ihn nicht | Labels in `lib/nav.ts` |
+| E8 | Detailseiten je Arbeit? | **Weg** | Im Konzept nicht vorgesehen, und sie bestehen vor allem aus Text. Verlust: eine eigene URL je Festival für die Suche — das war ein Verkaufsargument | Weiterleitungen in `next.config.mjs` |
+| E9 | Filmworkshops? | **Kein eigener Bereich.** Ein Film aus dem Workshop kann in `/film` stehen | Nicht im Konzept, ohne Angebotsseiten gibt es keinen Ort dafür | — |
+| E10 ✅ | Kundennamen | **Entschieden: ohne „e.V."**, also „WiWaWo 2026 – Bayerischer Kanuverband". Daraus als Copy-Regel fürs UI-SPEC: **keine Rechtsformzusätze** (e.V., GmbH, gGmbH) in der Beschriftung | Kürzer, und die Rechtsform sagt dem Betrachter nichts | `lib/content.ts` |
+| E11 | Externe Filmlinks im selben Tab? | **Ja, selber Tab** | Der Zurück-Knopf führt zurück; neue Tabs ungefragt zu öffnen ist eine Barriere | `app/film/page.tsx` |
+| E12 | SWR-Autorenseite auf `/ueber` verlinken? | **Ja, als eine Zeile** neben E-Mail und Instagram | Kostet keinen Text, und sie verknüpft für Google „Jakob Sax, SWR" mit dieser Seite (`sameAs`) | `lib/content.ts` |
+
+---
+
+### Schritt 1 — Vertrag und Dokumente (Claude, kein Code)
+
+- [ ] **1.1 `SITE-PLAN.md` neu fassen.** Zielbild und Absicht aus dem Konzept. Die bisherigen
+  Abschnitte (drei Standbeine, Zielgruppen, Startseite als Weiche, drei Türen, Archiv) wandern
+  unter „Abgelöst" — **verschieben, nicht löschen**, damit nachvollziehbar bleibt, warum sie
+  einmal galten. Anti-Features ergänzen: kein Angebot, kein Preis, kein Formular, kein Text, der
+  nicht Titel, Kunde oder die 3–4 Zeilen auf `/ueber` ist.
+  - Dabei ausdrücklich festhalten: Die alte Regel „Journalismus ist keine Ware, deshalb getrennt
+    vom Angebot" **erledigt sich**, weil es kein Angebot mehr gibt. Y-Kollektiv steht in `/film`
+    neben einem Aftermovie, und das ist jetzt richtig.
+- [ ] **1.2 `design/UI-SPEC.md` neu schreiben.** Abschnitte:
+  - Positionierung (Präsenz statt Verkauf) und Seitenstruktur (Tabelle oben)
+  - Farbe nach E1/E2: Grund, Schrift, gedämpfte Schrift, Linie. Kontrastwerte nachrechnen
+  - Typografie: **zwei Familien** (Druk Wide Bold für Schriftzug, Navigation und Seitentitel;
+    Avenir Next für alles andere), neue Größenskala, Mobilstufen
+  - Copy: Format „Titel – Kunde" (Halbgeviertstrich mit Leerzeichen, wie im Konzept), Labels der
+    Navigation, 404-Text, Leerzustände
+  - Bildbehandlung: Mosaik unbeschnitten (wie bisher), Film-Standbilder in festem Seitenverhältnis
+    mit Ausschnitt aus `lib/bildausschnitte.ts`, Hero-Video mit Abdunklung unter dem Schriftzug
+  - Motion: Hero-Video mit **Pause-Knopf** (Pflicht, siehe 4.1), `prefers-reduced-motion`
+  - Zustände: kein Video, kein Standbild, Arbeit ohne Bilder, Film ohne Standbild, leere Seite
+  - **Sign-Off neu einholen** (`gsd-ui-checker`). Das alte deckt einen Entwurf, den es dann nicht
+    mehr gibt
+- [ ] **1.3 `TECH-STACK.md` nachziehen.**
+  - **Schriften:**
+    - **Jakob hat die Lizenzen (E5).** Beide Familien — *Druk Wide Bold* (Commercial Type) und
+      *Avenir Next* (Linotype/Monotype) — werden über `next/font/local` aus `app/fonts/` selbst
+      ausgeliefert.
+    - ⚠️ **Vor dem Einchecken klären, welche Lizenz es ist.** Schriften werden getrennt für
+      Desktop, Web, App und Video lizenziert. Nur eine **Web-Lizenz** erlaubt, die Datei auf
+      einem Server abzulegen. In `TECH-STACK.md` festhalten: Lizenzart, Lizenznehmer, Grenze der
+      Seitenaufrufe (falls vorhanden), ob Selbsthosting erlaubt ist. Die Lizenzurkunde selbst
+      gehört **nicht** ins Repo.
+    - Falls es für Avenir Next nur eine Desktop-Lizenz gibt, ist der Rückfallweg der
+      Systemname `font-family: "Avenir Next", …`. Auf macOS und iOS ist sie vorinstalliert und
+      erscheint dort ohne Download; Windows und Android bekommen einen freien Ersatz. Damit ist
+      keine Web-Lizenz nötig.
+    - Nur die Schnitte einbinden, die das UI-SPEC wirklich nutzt — jede Datei kostet Ladezeit.
+    - ⚠️ **Keine Schrift von einem fremden Server laden** (Adobe Fonts, Google-CDN). Das wäre eine
+      Datenübermittlung an Dritte und müsste in die Datenschutzerklärung.
+    - ⚠️ **Vorschaukarten (`scripts/og-karte.mjs`) rendern Schrift in ein Bild.** Ob die Lizenz
+      das deckt, mit prüfen.
+  - **Wegfall:** Mailer/Resend, AV-Vertrag, Turnstile, Worker-Secrets `RESEND_API_KEY`,
+    `ANFRAGE_AN`, `ANFRAGE_VON`.
+  - **Bucket-Pfade:** neu `original/film/<id>.jpg` für Standbilder; `original/video/<id>.mp4` und
+    `…/serie/` entfallen. `original/arbeiten/<id>/01.jpg …` **bleibt unverändert**, damit nichts
+    neu hochgeladen werden muss.
+  - Weiterleitungen (5.3) und Linkprüfung (2.5).
+- [ ] **1.4 `TODO.md` aufräumen.** Hinfällig werden — jeweils mit kurzer Begründung in den
+  Log-Eintrag, dann hier entfernen:
+  - Kurzfristig: Versand des Anfrageformulars, Turnstile, drei Türen, Zitat von tête-à-tête,
+    Projektkontext je Arbeit, Beschreibungstexte, Lebenslauf verlinken, Bildausschnitte im Hero
+    der Detailseite, Seitenstruktur prüfen lassen (wird durch 1.2 ersetzt), `wiwawo-53`
+    gegenlesen (`role`/`category` gibt es nicht mehr; bleibt nur die Frage nach Titel und Kunde)
+  - Langfristig: Preisangaben, „Startseite wiederholt sich", „Trägt die Archivstruktur?",
+    „Kategorien mischen zwei Denkweisen", „`content.ts` mischt fünf Belange", Untertitel für die
+    Filme, eigene URL pro Arbeit, Kontaktbogen, EXIF-Zeile
+  - Launch-Blocker: vertrauliche Kanäle (entfallen, entschieden mit E6), Mailer-Teil der
+    Datenschutzerklärung
+  - Personenliste: Preisrahmen, vertrauliche Kanäle, Lebenslauf, Zitat (Jakob); Mailer, Turnstile
+    (Jan)
+  - Die Bestandsaufnahme (CSV) schrumpft auf zwei Listen: Fotoarbeiten und Filme (siehe Schritt 7)
+- [ ] **1.5 Log-Eintrag** in `AGENT-LOG.md`.
+
+---
+
+### Schritt 2 — Datenmodell und Medien (Claude)
+
+- [ ] **2.1 `lib/content.ts` neu.** Statt `WORKS`, `CATEGORIES`, `SERVICES`, `REFERENCES`:
+
+      export type Fotoarbeit = { id: string; titel: string; kunde: string; jahr: number };
+      export type Film       = { id: string; titel: string; kunde: string; jahr: number; link: string };
+      export const FOTOS: Fotoarbeit[] = [ … ];
+      export const FILME: Film[] = [ … ];
+
+  - **Die Reihenfolge in der Datei ist die Reihenfolge auf der Seite.** Keine Sortierung nach
+    Jahr — die Auswahl und Abfolge ist Jakobs Kuration, und genau die soll die Seite zeigen.
+  - `id` bleibt der Ordnername im Bucket: `wiwawo-53` behält seine sieben Bilder ohne neuen
+    Upload.
+  - `ABOUT` schrumpft auf `zeilen` (3–4), `portraitAlt`, `email`, `instagram`, `swr`. `CONTACT`
+    und die vertraulichen Kanäle entfallen.
+  - Startbestand aus dem, was belegt ist: Foto `wiwawo-53`; Filme WiWaWo 50–52, Y-Kollektiv
+    „Tödliches Gold" — **Links und Standbilder fehlen** (Schritt 7). Nichts erfinden: Einträge
+    ohne Link bleiben draußen.
+- [ ] **2.2 `lib/works.ts` → `lib/arbeiten.ts`.** Nur noch: `beschriftung(a)` →
+  `"Titel – Kunde"`, `fotosMitBildern()`, `filmeMitStandbild()`.
+  - **Regel: Was kein Bild hat, erscheint nicht.** Eine Seite, die nur aus Bildern besteht, darf
+    keine grauen Platzhalterkacheln zeigen. `npm run medien` nennt stattdessen, was fehlt.
+- [ ] **2.3 `lib/bilder.ts` / `lib/video.ts` ausdünnen.** Raus: `serieZurArbeit`,
+  `aufnahmeZeile`, `streckenZeile`, `videoZurArbeit`. Neu: `standbildZumFilm(id)` →
+  `film/<id>`. `heroVideo()` bleibt.
+  - ⚠️ **Die GPS-Entfernung in `scripts/exif.mjs` bleibt** — nur die Anzeige der EXIF-Zeile
+    fällt weg, nicht der Schutz.
+  - Alt-Texte: je Bild optional, sonst Rückfall auf „Titel – Kunde, Bild n". Korrekt, aber
+    schwach — echte Beschreibungen kommen von Jakob.
+  - `arbeiten/wiwawo-53` (Leitbild ohne Nummer): beim Umbau ansehen und entweder als erstes Bild
+    ins Mosaik nehmen oder aus dem Bucket entfernen.
+- [ ] **2.4 `scripts/medien.mjs` → `pruefeZuordnung`** auf die neuen Pfade umstellen:
+  `arbeiten/<id>/NN` gegen `FOTOS`, `film/<id>` gegen `FILME`, dazu `hero/film`,
+  `hero/standbild`, `portrait`. Zusätzlich warnen: Fotoarbeit ohne Bilder, Film ohne Standbild.
+- [ ] **2.5 Linkprüfung: `npm run links`** (neues Skript). Ruft jeden `FILME[].link` ab und meldet
+  alles außer 200. **Bewusst nicht im Build:** Ein Build darf nicht davon abhängen, ob YouTube
+  gerade antwortet.
+  - Grund: **ARD- und SWR-Mediathek depublizieren nach Ablauf der Verweildauer.** Ein toter Link
+    auf einer Seite, die nur aus Links besteht, ist ein sichtbarer Mangel. Wo es einen dauerhaften
+    Ort gibt (YouTube-Kanal von Y-Kollektiv/funk), den bevorzugen.
+- [ ] **2.6 `scripts/og.mjs`:** Nur noch eine Karte (`start.jpg`) für alle Seiten — ohne
+  Detailseiten gibt es keine Karte je Arbeit. Neue Schrift, keine Positionierungszeile. Alte
+  Karten räumt das Skript selbst weg.
+- [ ] **2.7 Tests:** `lib/works.test.ts` → `lib/arbeiten.test.ts` (ids eindeutig, jeder Film hat
+  einen `https://`-Link, Beschriftung im richtigen Format, Arbeiten ohne Bild fallen heraus).
+  Aus `lib/bilder.test.ts` die Teile zu Blende, Kontaktbogen und Aufnahmezeile entfernen;
+  Mosaik, Bildausschnitte und Manifest bleiben.
+
+---
+
+### Schritt 3 — Gestaltungsgrundlage (Claude, nach 1.2)
+
+- [ ] **3.1 `app/globals.css`:** Tokens nach UI-SPEC. Die Hälften-Logik (`--buehne`/`--papier`,
+  Naht, `#lesen`) fällt weg. `medien-scrim` bleibt für den Hero.
+- [ ] **3.2 Schriften in `app/layout.tsx`:** Bricolage Grotesque, Newsreader und Martian Mono
+  raus; Druk Wide Bold und Avenir Next über `next/font/local` rein. Rückfallschriften mit
+  angepasster Größe, damit beim Laden nichts springt.
+- [ ] **3.3 `Topbar` neu und einfacher.** Kein `<dialog>`-Menü mehr — drei Ziele passen
+  ausgeschrieben auch aufs Telefon (bei 320 px Breite nachmessen; passt es nicht, rutscht die
+  Navigation unter den Schriftzug, sie wird nicht eingeklappt). Kein Hälften-Beobachter.
+  - **●REC bleibt (E2)** und steht beim Schriftzug: in der Topbar und auf `/` beim großen
+    Schriftzug in der Mitte. Die genaue Stelle legt 1.2 fest.
+  - Auf `/` steht links **kein** Schriftzug, weil er groß in der Mitte des Videos steht. Auf allen
+    anderen Seiten links „jakob sax", rechts die Navigation.
+  - Aktive Seite markiert (`aria-current`), wie bisher über `isCurrent`.
+- [ ] **3.4 `SiteFooter`:** Impressum · Datenschutz. Sonst nichts.
+- [ ] **3.5 `Cache-Control` für HTML** (steht unter „Kurzfristig") **in diesen Umbau vorziehen.**
+  Bei einem Strukturumbau ist veraltetes HTML im Edge-Cache besonders tückisch: alte Seiten mit
+  Links auf Routen, die es nicht mehr gibt.
+
+---
+
+### Schritt 4 — Die Seiten (Claude)
+
+- [ ] **4.1 Startseite `/`.**
+  - `<video autoplay muted loop playsinline poster=…>` in voller Fensterhöhe (`100svh`), darüber
+    mittig „jakob sax" als `<h1>` (echter Text, kein Bild — Screenreader und Suche).
+  - **Pause-Knopf, klein in einer Ecke.** Pflicht nach WCAG 2.2.2: Was sich länger als fünf
+    Sekunden von selbst bewegt, muss sich anhalten lassen.
+  - `prefers-reduced-motion`: kein Autoplay; Standbild mit Abspielknopf.
+  - Rückfälle: kein Video → Standbild; weder noch → leere Fläche mit Schriftzug. **Das Standbild
+    muss allein tragen** — iOS spielt im Energiesparmodus nichts automatisch ab.
+  - Optional: eine kleinere Fassung fürs Telefon (`<source media=…>`) — erst, wenn das Video da
+    ist und die Messung es verlangt.
+  - Vorbild für die Anmutung: bildmanufaktur.de.
+- [ ] **4.2 `/foto`.**
+  - `Mosaik` über alle Fotoarbeiten in Dateireihenfolge. Die Komponente bekommt je Bild die
+    Beschriftung mit; der Lichtkasten zeigt „Titel – Kunde" und blättert über **alle** Bilder
+    der Seite, nicht nur innerhalb einer Arbeit.
+  - Beschriftung beim Überfahren nur mit `@media (hover: hover)`. Auf Touch ist der Lichtkasten
+    der Weg.
+  - Ladezeit: die ersten Bilder sofort, der Rest `loading="lazy"`; Größen über `MOSAIK_SIZES`.
+    Mit wachsendem Bestand prüfen, ob die Seite noch schnell steht.
+- [ ] **4.3 `/film`.**
+  - Raster, zweispaltig ab Tablet, einspaltig am Telefon. Kachel = Standbild in festem
+    Seitenverhältnis (16:9) + Zeile „Titel – Kunde" darunter. Die ganze Kachel ist der Link.
+  - **Standbilder liegen bei uns** (`film/<id>`), keine Vorschaubilder von YouTube nachladen —
+    das wäre eine Anfrage an Google bei jedem Seitenaufruf und gehörte in die
+    Datenschutzerklärung.
+  - Ziel für Screenreader benennen („auf YouTube"), ein kleines ↗ für Sehende.
+- [ ] **4.4 `/ueber`.**
+  - Ab Tabletbreite zweispaltig: Bild links, rechts die 3–4 Zeilen, darunter E-Mail, Instagram,
+    SWR-Autorenseite. Am Telefon untereinander, Bild zuerst.
+  - Porträt aus `original/portrait.jpg` (liegt schon im Bucket). Ob Jakob dieses Bild will oder
+    ein anderes, fragen — „nicht durch meine Fresse" heißt mindestens: nur hier.
+- [ ] **4.5 Impressum und Datenschutz** auf den neuen Tokens. Datenschutz bereinigen: Formular,
+  Versanddienstleister und Turnstile raus (`VERSAND_AKTIV` in `lib/legal.ts` entfällt).
+  Beschreiben, was wirklich passiert: Hosting bei Cloudflare, Medien von der eigenen
+  Medien-Domain, selbst ausgelieferte Schriften, externe Links erst beim Klick.
+- [ ] **4.6 404-Seite** in der neuen Gestaltung; führt weiter zu foto und film.
+- [ ] **4.7 Metadaten.**
+  - Seitentitel „foto — jakob sax" usw., kurze Beschreibungen.
+  - `StructuredData`: nur noch `Person` mit `sameAs` (SWR, Instagram). `ProfessionalService`
+    fällt weg — es gibt keinen Dienst mehr.
+  - `sitemap.ts`: vier Adressen.
+
+---
+
+### Schritt 5 — Abbau und Weiterleitungen (Claude)
+
+- [ ] **5.1 Löschen:**
+  - Routen: `app/arbeiten/`, `app/leistungen/`, `app/kontakt/`, `app/api/anfrage/`
+  - Komponenten: `AnfrageForm`, `Kachelraster`, `Kontaktbogen`, `UeberAnriss`, `Works`, `Film`,
+    `Blende` (jeweils mit `.module.css`)
+  - Bibliotheken: `lib/anfrage.ts` und `lib/anfrage.test.ts`, `lib/mailer.ts`
+  - CSS-Module der alten Startseite
+- [ ] **5.2 Prüfen, dass nichts ins Leere zeigt:** keine Importe auf Gelöschtes, keine Links auf
+  entfernte Routen, keine verwaisten CSS-Klassen. Danach `npm run lint`, `npm test`,
+  `npm run build`, `npm run cf:build`.
+- [ ] **5.3 Weiterleitungen in `next.config.mjs`** (dauerhaft, 308):
+
+  | Von | Nach |
+  |-----|------|
+  | `/arbeiten` und `/arbeiten/:slug` | `/foto` |
+  | `/leistungen/:slug` | `/` |
+  | `/kontakt` | `/ueber` |
+
+  Die Seite war nie indexiert. Die Weiterleitungen sind trotzdem billig und fangen Links ab, die
+  schon herumgeschickt wurden.
+
+---
+
+### Schritt 6 — Prüfen und ausliefern
+
+- [ ] **6.1 Lokal im Worker-Laufzeitmodell** (`npm run cf:preview`), nicht nur `next dev`.
+- [ ] **6.2 Im Browser:**
+  - Breiten 375 / 768 / 1440
+  - nur Tastatur: Fokus sichtbar, Lichtkasten, Pause-Knopf
+  - `prefers-reduced-motion`
+  - Video fällt aus → Standbild
+  - gedrosseltes 4G: Startseite mit Standbild als größtem Element unter 2,5 s
+- [ ] **6.3 UI-Prüfung** gegen das neue UI-SPEC (`gsd-ui-checker`).
+- [ ] **6.4 Ein einziger Push.** ⚠️ `main` geht sofort live. Die Schritte 2–5 deshalb **lokal als
+  einzelne Commits** sammeln und erst zusammen pushen, wenn 6.1–6.3 bestanden sind. Sonst steht
+  zwischendurch eine halb umgebaute Seite online, mit Navigation auf Seiten, die es noch nicht
+  oder nicht mehr gibt.
+  - Alternative: Arbeitsbranch mit Cloudflare-Vorschau. Das wäre eine Änderung am Workflow und
+    müsste laut `CLAUDE.md` erst dort eingetragen werden. Für einen einmaligen Umbau einer
+    ungelisteten Seite lohnt das nicht.
+- [ ] **6.5 Log-Einträge** in `AGENT-LOG.md`, je abgeschlossenem Schritt.
+
+---
+
+### Schritt 7 — Material von Jakob (läuft parallel, ab sofort)
+
+**Der eigentliche Engpass.** Im Bucket liegen heute acht Bilder (sieben von `wiwawo-53`, ein
+Porträt) und **kein einziges Video**. Eine Seite, die nur aus Arbeit besteht, ist ohne Material
+leer — der Code ist in Schritt 2–6 schneller fertig als das.
+
+| Was | Vorgaben | Ablage |
+|-----|----------|--------|
+| **Hero-Video** | stumm, 8–15 s, Anfang und Ende gehen ineinander über (Loop), H.264-MP4, 1920 px breit, unter 8 MB (Details und ffmpeg-Zeile in `TECH-STACK.md`, „Medien") | `original/hero/film.mp4` |
+| **Standbild zum Video** | ein Frame aus dem Video, der allein trägt | `original/hero/standbild.jpg` |
+| **Fotos** | Auswahl je Arbeit; über alle Arbeiten lieber 20–40 starke als 100 gute | `original/arbeiten/<id>/01.jpg`, `02.jpg`, … |
+| **Liste Fotoarbeiten** | je Zeile: Titel, Kunde, Jahr | an Jan/Claude → `lib/content.ts` |
+| **Liste Filme** | je Zeile: Titel, Kunde, Jahr, **Link** | an Jan/Claude → `lib/content.ts` |
+| **Standbild je Film** | Querformat | `original/film/<id>.jpg` |
+| **Über mich** | 3–4 Zeilen; Wahl des Bildes | `lib/content.ts`, `original/portrait.jpg` |
+| **Schriftdateien** | Druk Wide Bold und Avenir Next als `woff2` (Web-Fassung aus dem Lizenzpaket), dazu die Angabe, welche Lizenz es ist (E5) | an Jan/Claude → `app/fonts/` |
+
+- **WiWaWo 50–52** liegen nirgends öffentlich, die Seite hat sie bisher selbst ausliefern wollen.
+  Für `/film` müssen sie auf YouTube oder Vimeo (eigener Kanal oder der des BKV).
+- **Freigaben bleiben nötig, auch ohne Verkauf:**
+  - Bild- und Persönlichkeitsrechte an den Fotos
+  - Nennung der Kunden
+  - SWR-Nebentätigkeit: Ist **Verlinken** von eigenen Beiträgen unproblematisch? Vermutlich
+    ja, aber fragen.
+
+---
+
+### Schritt 8 — Danach
+
+- [ ] `npm run links` regelmäßig laufen lassen, z. B. vierteljährlich oder als geplanter Lauf.
+- [ ] `INDEXABLE` auf `true`, sobald die verbleibenden Launch-Blocker erledigt sind. Übrig nach
+  dem Umbau: Rechtstexte prüfen lassen, Bild- und Persönlichkeitsrechte, Kundennennung,
+  Nebentätigkeit, Jakobs Freigabe aller Texte.
+- [ ] Domain-Entscheidung (`.de`/`.media`), cookielose Analytics — beide unverändert offen.
+
+### Umfang und Abhängigkeiten
+
+| Schritt | Wer | Hängt an | Umfang |
+|---------|-----|----------|--------|
+| 0 Entscheidungen | Jakob, Jan | — | ein Gespräch |
+| 1 Vertrag | Claude | 0 (oder Empfehlungen) | mittel |
+| 2 Datenmodell | Claude | 1 | mittel |
+| 3 Grundlage | Claude | 1.2, Schriftdateien von Jakob | mittel |
+| 4 Seiten | Claude | 2, 3 | groß |
+| 5 Abbau | Claude | 4 | klein |
+| 6 Ausliefern | Claude, Jan (Push) | 5 | klein |
+| 7 Material | Jakob | — | **der lange Pol** |
+
+Die Schritte 1–6 sind ohne Material baubar: Die Seiten zeigen dann ehrlich, was da ist. Live
+geht der Umbau aber am besten erst, wenn mindestens das **Hero-Standbild**, **eine Fotoarbeit**
+und **drei Filme mit Standbild** vorliegen. Sonst ist `/film` leer.
+
+---
+
 ## 🚫 LAUNCH-BLOCKER — muss erledigt sein, bevor die Seite öffentlich beworben wird
 
 > ⚠️ Achtung: Laut `TECH-STACK.md` geht **jeder Push auf `main` sofort live**. Zwischen „hier notiert" und „öffentlich online" steht nichts. Diese Punkte deshalb vor dem Push abarbeiten oder den Push zurückhalten.

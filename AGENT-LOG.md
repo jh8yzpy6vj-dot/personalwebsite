@@ -6,6 +6,54 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-08 — Fünf Entscheidungen zum Umbau von Jakob
+
+Jakob hat über Jan fünf der offenen Fragen aus dem Umbauplan beantwortet. In `TODO.md`, Schritt 0,
+sind sie mit ✅ markiert:
+
+- **E2:** Das rote ●REC **bleibt** und ist die einzige Farbe neben Grund und Schrift. Damit ist
+  die Empfehlung „keine Akzentfarbe" verworfen.
+- **E4:** Fotos als **ein Mosaik ohne Zwischenzeilen**.
+- **E5:** **Jakob hat die Lizenzen** für Druk Wide und Avenir Next. Beide werden selbst
+  ausgeliefert, ein Ersatz entfällt. Offen ist nur noch, ob es Web-Lizenzen sind, und die
+  `woff2`-Dateien fehlen. Beides steht jetzt in der Materialliste (Schritt 7).
+- **E6:** Als Kontakt reicht eine Zeile mit E-Mail und Instagram auf `/ueber`. Die vertraulichen
+  Kanäle (Signal, Threema, PGP) entfallen, damit auch der Launch-Blocker dazu.
+- **E10:** Kundennamen **ohne „e.V."**. Daraus wird eine Copy-Regel fürs UI-SPEC: keine
+  Rechtsformzusätze in der Beschriftung.
+
+Offen bleiben E1 (hell/dunkel), E3, E7–E9, E11 und E12. Bis jemand widerspricht, wird dort mit
+der Empfehlung gebaut.
+
+## 2026-10-08 — Jakobs Konzept bewertet, Umsetzungsplan für den Umbau geschrieben
+
+Jakob hat ein Zwischenfeedback geschickt: **Präsenz statt Verkauf.** Möglichst wenig Text, ein
+Hero-Video mit „jakob sax" in der Mitte, Unterseiten Foto (Mosaik), Film (nur verlinkt) und Über
+mich, „Titel – Kunde" als einzige Angabe je Arbeit, Druk Wide Bold und Avenir Next.
+
+Bewertung: Das Konzept ist stimmig, kehrt aber die bisherige Ausrichtung um. Die Seite war auf
+Anfragen gebaut (`buchbar.`, Preisanker, Formular, `/leistungen`). Vieles bleibt verwendbar:
+Medien-Pipeline, Hero mit Video, Mosaik mit Lichtkasten, Pflichtseiten. Ohne Angebot und
+Formular entfallen mehrere Launch-Blocker.
+
+Festgehalten:
+- Konzept im Wortlaut oben in `SITE-PLAN.md`, als neue Richtung markiert.
+- Umsetzungsplan in `TODO.md`, Abschnitt „UMBAU":
+  - zwölf Entscheidungen mit Empfehlung (E1–E12)
+  - acht Schritte von Vertrag über Datenmodell, Gestaltung, Seiten und Abbau bis zur
+    Auslieferung
+  - die Materialliste für Jakob
+
+Punkte, die beim Lesen des Konzepts nicht offensichtlich sind:
+- **Schriftlizenzen.** Avenir Next ist auf Apple-Geräten vorinstalliert und lässt sich dort ohne
+  Lizenz per Name nutzen. Druk Wide braucht eine Web-Lizenz oder einen Ersatz.
+- **Pause-Knopf am Hero-Video.** Pflicht nach WCAG 2.2.2.
+- **Mediathek-Links depublizieren.** Deshalb ist eine Linkprüfung eingeplant.
+- **Ein einziger Push.** Weil `main` sofort live geht, wird der Umbau gebündelt ausgeliefert.
+
+Noch kein Code geändert. Die hinfälligen TODO-Punkte bleiben stehen, bis Schritt 1.4 sie mit
+Begründung entfernt.
+
 ## 2026-09-13 — Ausschnitt je Bild: eigene Datei statt Dateinamen, plus ein Werkzeug
 
 Jan zur Endung am Dateinamen, die ich eine Stunde vorher eingebaut hatte: „da werden wir glaub ich

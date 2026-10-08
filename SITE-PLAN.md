@@ -6,6 +6,42 @@ Struktur und Absicht: welche Bereiche gibt es, was kommt wohin, was ist noch off
 > Dokument beschreibt die Absicht, das UI-SPEC den genauen Vertrag (Abstände, Schriftgrößen,
 > Farbregeln, Copy, Bildbehandlung). **Bei Widerspruch gilt das UI-SPEC.**
 
+## 🧭 Neuausrichtung vom 2026-10-08 — Jakobs Konzept
+
+> ⚠️ **Das ist ab jetzt die Richtung.** Alles darunter beschreibt die bisherige, auf Aufträge
+> ausgerichtete Seite und wird mit dem Umbau unter „Abgelöst" verschoben. Den Umsetzungsplan und
+> die offenen Entscheidungen (E1–E12) führt [`TODO.md`](TODO.md), Abschnitt „UMBAU". Das
+> UI-SPEC wird in Schritt 1.2 nachgezogen; bis dahin gilt es für den **bestehenden** Code.
+
+Jakobs Zwischenfeedback, im Wortlaut:
+
+> **Was ist mir wichtig:**
+> Die Website soll durch meine Arbeit überzeugen, durch die Bilder und Filme nicht durch meine
+> Fresse. Außerdem möchte ich nichts verkaufen, also kein „hier buchen", sondern die Website
+> soll mehr einfach eine Präsenz sein für das, was ich mache.
+>
+> **Designtechnische Leitlinien:**
+> - Möglichst wenig Text und Schrift
+> - Header soll ein kurzes Video sein, ähnlich wie bei bildmanufaktur.de, mittig Schriftzug
+>   jakob sax
+> - Pro Referenz 2 Dinge: Titel & Kunde z.B. WiWaWo 2026 – Bayerischer Kanuverband e.V. oder
+>   Y-Kollektiv: Tödliches Gold – SWR/ ARD
+> - Überschriften in Druk Wide Bold, Text in Avenir Next
+> - Möglichst wenig Farben, alles ehr reduziert → Website bietet Bühne für die Inhalte und ist
+>   nicht selbst zu präsent
+>
+> **Unterseiten:**
+> - Startseite (Video)
+> - Foto (Mosaik aus Fotos)
+> - Film (Diverse Filme alle verlinkt → nicht auf Website selbst gespeichert)
+> - Über mich (seitlich Bild, rechts 3-4 Zeilen zu mir)
+> - Impressum (nicht im Header)
+
+**Was sich daraus ändert, in einem Satz:** Die bisherige Aufgabe („aus ‚ich habe etwas von ihm
+gesehen' ein ‚ich will mit ihm arbeiten' machen") entfällt. Die Seite zeigt Arbeit und tritt
+selbst zurück. Damit entfallen Angebot, Preise, Anfrageformular und Detailseiten, und die Seite
+wird deutlich kleiner.
+
 ## Was die Seite leisten soll
 
 Aufgabe in einem Satz: *aus „ich habe etwas von ihm gesehen" ein „ich will mit ihm arbeiten oder
