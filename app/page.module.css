@@ -94,7 +94,11 @@
   text-decoration: none;
 }
 
-.rechtliches a:hover {
-  text-decoration: underline;
-  text-underline-offset: 4px;
+/* Nur mit echtem Zeigegerät — auf Touch bliebe der Zustand nach dem
+   Antippen hängen. */
+@media (hover: hover) and (pointer: fine) {
+  .rechtliches a:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
 }

@@ -107,7 +107,7 @@ Punkt wie im ●REC: hier wird gerade aufgenommen.
 | **Mosaik** (`/foto`) | Die Fotos aller Arbeiten in **drei ungleich breiten Spalten** (Gewichte 1.18 / 0.9 / 1.12), **reihum** verteilt (Bild 1 → Spalte 1, Bild 2 → Spalte 2, Bild 3 → Spalte 3, Bild 4 → Spalte 1). **Kein Bild wird beschnitten** — jedes steht in seiner eigenen Form. Unter 860px eine Spalte, die Bilder tragen dann `order`, damit die Reihenfolge stimmt. Kein JavaScript im Layout. |
 | Mosaik — Reihenfolge | Arbeiten in der Reihenfolge von `FOTOS` in `lib/content.ts`, innerhalb einer Arbeit nach Dateiname (`01`, `02`, …). **Keine Sortierung nach Jahr** — die Abfolge ist Jakobs Kuration. |
 | Mosaik — warum so | ⚠️ Die ungleichen Breiten sind der Hebel, nicht Zierde: Gleich breite Spalten stellen Hochformate zwangsläufig gleich hoch nebeneinander. ⚠️ Reihum, nicht spaltenweise (`column-count` kann das nicht) — sonst läse sich die obere Reihe 1-3-5. Zwei gescheiterte Vorstufen (Flanken, Zeilensatz) sind im alten Vertrag dokumentiert. |
-| **Beschriftung im Mosaik** | „Titel – Kunde" erscheint **beim Überfahren mit der Maus und bei Tastaturfokus**, unten im Bild auf einem Verlauf (siehe *Text über Fotos*). Nur unter `@media (hover: hover)` für das Überfahren; auf Touch gibt es kein Überfahren, dort ist der Lichtkasten der Weg. Sonst ist die Fläche textfrei. |
+| **Beschriftung im Mosaik** | „Titel – Kunde" erscheint **beim Überfahren mit der Maus und bei Tastaturfokus**, unten im Bild auf einem Verlauf (siehe *Text über Fotos*). Nur unter `@media (hover: hover) and (pointer: fine)` für das Überfahren; auf Touch gibt es kein Überfahren, dort ist der Lichtkasten der Weg. Sonst ist die Fläche textfrei. |
 | **Lichtkasten** | Jede Mosaikkachel öffnet groß: Klick oder `Enter`; `←`/`→` blättert **über alle Bilder der Seite**, nicht nur innerhalb einer Arbeit; `Esc` und ein Klick neben das Bild schließen. Bild `contain` auf `--grund`, darunter „Titel – Kunde". ⚠️ **`position: fixed`, nie `absolute`** — sonst springt die Seite beim Öffnen an den Anfang und man steht nach dem Schließen oben. ⚠️ Beim Schließen geht der Fokus **auf die Kachel zurück**, von der er kam. Ohne Skript ist jede Kachel ein gewöhnlicher Link auf die Bilddatei. |
 | **Film-Standbild** (`/film`) | Festes Seitenverhältnis **16:9**, `object-fit: cover`. Ausschnitt je Bild aus `lib/bildausschnitte.ts` (Schlüssel `film/<id>`), sonst mittig. Die **ganze Kachel** — Standbild und Beschriftung — ist der Link. |
 | Film-Standbild — Quelle | **Liegt bei uns** (`original/film/<id>.jpg` im Bucket). ⚠️ Keine Vorschaubilder von YouTube, Vimeo oder der Mediathek nachladen: Das wäre bei jedem Seitenaufruf eine Anfrage an Dritte und gehörte in die Datenschutzerklärung. **Keine eingebetteten Player.** |
@@ -324,6 +324,10 @@ Applicable state considerations resolved: **10 covered, 1 backstop, 0 unresolved
 - [ ] Kontraste ≥ 4.5:1 für Text, ≥ 3:1 für große Schrift und Nicht-Text — **im Browser
       nachgemessen**, über Fotos gegen ein weißes Testbild
 - [ ] Klickflächen ≥ 44px (Ausnahme: Links im Fließtext)
+- [ ] **Jeder `:hover`-Zustand** steht in `@media (hover: hover) and (pointer: fine)` — auf
+      Touch bleibt er sonst nach dem Antippen hängen (gemessen am Lichtkasten, 2026-10-08)
+- [ ] `theme-color` in `--grund`, damit die Statusleiste am Telefon nicht weiß über der
+      dunklen Seite steht
 - [ ] Kein waagerechtes Scrollen bei **320, 360, 390 und 414px** auf allen Seiten
 - [ ] Pause-Knopf per Tastatur erreichbar, Zustand für Screenreader angesagt
 - [ ] `prefers-reduced-motion`: kein Autoplay, keine Übergänge, nichts bleibt unsichtbar

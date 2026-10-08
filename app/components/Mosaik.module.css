@@ -122,7 +122,7 @@
 
 /* Überfahren nur mit echtem Zeigegerät — ein Finger kann nicht überfahren,
    auf Touch ist der Lichtkasten der Weg. */
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .griff:hover .beschriftung {
     opacity: 1;
   }
@@ -190,9 +190,13 @@
   cursor: pointer;
 }
 
-.zu:hover,
-.pfeil:hover:not(:disabled) {
-  background: rgba(244, 243, 239, 0.14);
+/* Nur mit echtem Zeigegerät — auf Touch bliebe der Zustand nach dem
+   Antippen hängen. */
+@media (hover: hover) and (pointer: fine) {
+  .zu:hover,
+  .pfeil:hover:not(:disabled) {
+    background: rgba(244, 243, 239, 0.14);
+  }
 }
 
 .zu {

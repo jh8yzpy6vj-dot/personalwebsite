@@ -6,6 +6,37 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-08 — Prüfung nach drei Skills von Emil Kowalski (mobile-native, break-ui, apple-design)
+
+Auf Jans Wunsch die Seite gegen drei Skills aus `github.com/emilkowalski/skills` geprüft. Die
+Skills selbst sind **nicht** installiert, nur gelesen und als Prüfliste benutzt.
+
+**Behoben (im Browser nachgemessen):**
+- **Hover blieb auf Touch hängen.** Nach dem Antippen des Pfeils im Lichtkasten blieb dessen
+  Hover-Fläche stehen (gemessen mit Touch-Emulation). Jetzt stehen alle `:hover`-Regeln in
+  `@media (hover: hover) and (pointer: fine)`: Topbar, Footer, Startseite, Filmkacheln,
+  Lichtkasten, Beschriftung im Mosaik.
+- **`theme-color` fehlte** → Statusleiste am Telefon jetzt `--grund` statt weiß
+  (`viewport`-Export in `app/layout.tsx`, dazu `colorScheme: "dark"`).
+- `touch-action: manipulation` auf Links und Knöpfen, `user-select: none` auf Knöpfen.
+- UI-SPEC: zwei neue Punkte in der Qualitätsuntergrenze.
+
+**Extremdaten (`break-ui`), vorübergehend eingespielt und wieder entfernt:** Ein Filmtitel mit
+rund 100 Zeichen, ein Titel „Jo", ein langes Kompositum, eine unbekannte Linkdomain, eine
+Fotoarbeit mit langem Titel und doppeltem Kunden. Bei 320 / 375 / 1440 px läuft nichts über den
+Rand, Filmraster und Lichtkasten brechen sauber um.
+
+**Bewusst nicht übernommen:**
+- `-webkit-tap-highlight-color: transparent`: Hier steht absichtlich ein heller Schimmer, weil die
+  Seite sonst keine Rückmeldung beim Antippen gibt (kein `:active`, UI-SPEC „Motion").
+- Federn, Gesten, Glas-Effekte (`apple-design`): Die Seite hat keine Gesten und keine
+  durchscheinenden Flächen. Das UI-SPEC schließt Bewegung außer dem Hero-Video bewusst aus.
+- `viewport-fit=cover` mit Safe Areas: Ohne das bleibt das Video im Querformat am iPhone neben
+  der Notch schwarz gerahmt. Das ist eine Gestaltungsfrage, keine Fehlerbehebung, siehe Antwort
+  an Jan.
+
+---
+
 ## 2026-10-08 — Umbau, Schritte 2–5: neue Seite im Code
 
 Die Seite folgt jetzt dem neuen UI-SPEC: `/`, `/foto`, `/film`, `/ueber`, Pflichtseiten, 404.

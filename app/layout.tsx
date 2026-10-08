@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Archivo, Figtree } from "next/font/google";
 import "./globals.css";
 import StructuredData from "./StructuredData";
@@ -37,6 +37,16 @@ const avenirErsatz = Figtree({
 
 const TITLE = "jakob sax";
 const DESCRIPTION = "Fotos und Filme von Jakob Sax.";
+
+/*
+ * Statusleiste und Browserleiste auf dem Telefon in der Farbe der Fläche
+ * (`--grund`), statt weiß über einer dunklen Seite. Die Seite ist immer
+ * dunkel, deshalb genügt ein Wert.
+ */
+export const viewport: Viewport = {
+  themeColor: "#0e0e10",
+  colorScheme: "dark",
+};
 
 export const metadata: Metadata = {
   // Basis für alle relativen URLs in OpenGraph und Canonical.

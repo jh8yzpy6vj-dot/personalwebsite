@@ -58,9 +58,13 @@
   color: var(--leise);
 }
 
-.kachel:hover .zeile {
-  text-decoration: underline;
-  text-underline-offset: 4px;
+/* Nur mit echtem Zeigegerät — auf Touch bliebe der Zustand nach dem
+   Antippen hängen. */
+@media (hover: hover) and (pointer: fine) {
+  .kachel:hover .zeile {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
 }
 
 /* Fokusring um die ganze Kachel. */

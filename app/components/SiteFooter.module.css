@@ -29,8 +29,12 @@
   text-underline-offset: 4px;
 }
 
-.liste a:hover {
-  color: var(--schrift);
+/* Nur mit echtem Zeigegerät — auf Touch bliebe der Zustand nach dem
+   Antippen hängen. */
+@media (hover: hover) and (pointer: fine) {
+  .liste a:hover {
+    color: var(--schrift);
+  }
 }
 
 .aktuell {

@@ -169,6 +169,21 @@ a {
 }
 
 /*
+ * Kein Warten auf einen möglichen Doppeltipp: Links und Knöpfe lösen sofort
+ * aus. Gezoomt werden kann weiterhin mit zwei Fingern.
+ */
+a,
+button {
+  touch-action: manipulation;
+}
+
+/* Langes Drücken auf einen Knopf markiert sonst sein Zeichen (✕, ‹, ›). */
+button {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/*
  * Fokusring in Schriftfarbe, nicht in Rot — Rot ist dem ●REC vorbehalten.
  * 17.4:1 auf --grund. Über Fotos sorgt ein dunkler Saum dafür, dass er auch
  * vor hellem Bildinhalt sichtbar bleibt (siehe Mosaik.module.css).

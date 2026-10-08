@@ -111,10 +111,14 @@
   white-space: nowrap;
 }
 
-.ziel:hover {
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 6px;
+/* Nur mit echtem Zeigegerät — auf Touch bliebe der Zustand nach dem
+   Antippen hängen. */
+@media (hover: hover) and (pointer: fine) {
+  .ziel:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 6px;
+  }
 }
 
 /*
