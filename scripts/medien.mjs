@@ -311,37 +311,53 @@ async function verarbeite(r2, name, quelldatei, basisUrl, warnungen, schluessel)
  * einmal klaglos verarbeitet und erschienen nirgends.
  */
 async function pruefeZuordnung(namen, warnungen) {
-  let ids;
+  let FOTOS, FILME;
   try {
-    const { WORKS } = await import("../lib/content.ts");
-    ids = new Set(WORKS.map((w) => w.id));
+    ({ FOTOS, FILME } = await import("../lib/content.ts"));
   } catch {
     return; // Ohne content.ts (zu altes Node) entfällt die Prüfung.
   }
-
+  const fotoIds = new Set(FOTOS.map((a) => a.id));
+  const filmIds = new Set(FILME.map((f) => f.id));
   const bekannt = new Set(["portrait", "hero/standbild", "hero/film"]);
+  const vorhanden = new Set(namen);
 
   for (const name of namen) {
     if (bekannt.has(name)) continue;
     const teile = name.split("/");
 
-    // `video/<id>` — dieselben ids wie die Arbeiten.
-    if (teile.length === 2 && teile[0] === "video" && ids.has(teile[1])) continue;
+    // film/<id> — das Standbild eines Films aus FILME.
+    if (teile.length === 2 && teile[0] === "film" && filmIds.has(teile[1])) continue;
 
-    if (teile[0] === "arbeiten" && ids.has(teile[1])) {
-      // arbeiten/<id> · arbeiten/<id>/01 · arbeiten/<id>/serie/01
+    // arbeiten/<id> · arbeiten/<id>/01 — eine Fotoarbeit aus FOTOS.
+    if (teile[0] === "arbeiten" && fotoIds.has(teile[1])) {
       if (teile.length === 2 || teile.length === 3) continue;
-      if (teile.length === 4 && teile[2] === "serie") continue;
     }
 
     warnungen.push(
       `${name}: gehört zu nichts und erscheint nirgends auf der Seite. ` +
-        (teile[0] === "arbeiten" || teile[0] === "video"
-          ? `Erwartet wird eine id aus content.ts ` +
-            `(${[...ids].slice(0, 3).join(", ")}, …).`
-          : `Erlaubt sind \`arbeiten/…\`, \`video/<id>\`, \`hero/standbild\`, ` +
-            `\`hero/film\`, \`portrait\`.`),
+        (teile[0] === "arbeiten"
+          ? `Erwartet wird eine id aus FOTOS in content.ts ` +
+            `(${[...fotoIds].slice(0, 3).join(", ")}, …).`
+          : teile[0] === "film"
+            ? `Erwartet wird eine id aus FILME in content.ts.`
+            : `Erlaubt sind \`arbeiten/<id>/NN\`, \`film/<id>\`, ` +
+              `\`hero/standbild\`, \`hero/film\`, \`portrait\`.`),
     );
+  }
+
+  /* Umgekehrt: Was in content.ts steht, aber kein Bild hat, erscheint nicht
+     (UI-SPEC) — das soll jemand erfahren, statt es auf der Seite zu suchen. */
+  for (const id of fotoIds) {
+    const hat = [...vorhanden].some(
+      (n) => n === `arbeiten/${id}` || n.startsWith(`arbeiten/${id}/`),
+    );
+    if (!hat) warnungen.push(`Fotoarbeit „${id}" hat kein Bild und erscheint nicht.`);
+  }
+  for (const id of filmIds) {
+    if (!vorhanden.has(`film/${id}`)) {
+      warnungen.push(`Film „${id}" hat kein Standbild (original/film/${id}.jpg) und erscheint nicht.`);
+    }
   }
 }
 

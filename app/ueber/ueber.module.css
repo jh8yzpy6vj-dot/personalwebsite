@@ -1,0 +1,57 @@
+/*
+ * `/ueber` (UI-SPEC, „Spacing"): ab 800px zweispaltig, Bild 5/12, Text
+ * 7/12, Abstand `--space-2xl`, Text oben bündig. Darunter untereinander,
+ * Bild zuerst.
+ */
+.zweispaltig {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-xl);
+  align-items: start;
+}
+
+@media (min-width: 800px) {
+  .zweispaltig {
+    grid-template-columns: 5fr 7fr;
+    gap: var(--space-2xl);
+  }
+}
+
+.bildspalte {
+  min-width: 0;
+}
+
+/*
+ * Ohne Zuschnitt — das Bild bringt seine Form mit. Begrenzt wird die Höhe,
+ * sonst schiebt ein Hochformat den Text unter die Falz.
+ */
+.portrait {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 80svh;
+  border-radius: var(--radius-bild);
+}
+
+.text {
+  max-width: 640px;
+}
+
+.zeile {
+  margin: 0 0 var(--space-md);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.kontakt {
+  margin: var(--space-xl) 0 0;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--leise);
+}
+
+.kontakt a {
+  color: var(--schrift);
+  text-underline-offset: 4px;
+}

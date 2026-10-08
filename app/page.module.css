@@ -1,24 +1,10 @@
-/* Topbar liegt in components/Topbar.module.css — sie wechselt je nach
-   Hälfte (dunkel/hell) die Farbe und braucht dafür eigenen Zustand. */
-
-.page {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  background: var(--buehne);
-}
-
-/* ── Hero ───────────────────────────────────────────────────────── */
-
 /*
- * Volle Fensterhöhe. Vorher 82vh — damit sah man am Laptop schon den Anfang
- * des nächsten Blocks, und das Hero war eben kein Bild, sondern ein Ausschnitt.
+ * Startseite. Werte: design/UI-SPEC.md, „Bildbehandlung" und „Text über
+ * Fotos und Bewegtbild".
  *
- * ⚠️ `100svh`, nicht `100vh`. Auf dem Telefon meint `100vh` die Höhe *ohne*
- * die ein- und ausfahrende Browserleiste; das Hero ragte damit unten aus dem
- * Bild und die Bildunterschrift lag teils hinter der Leiste. `svh` ist die
- * kleinste Variante und passt in beiden Zuständen. Die `100vh`-Zeile darüber
- * bleibt als Rückfall für Browser, die `svh` nicht kennen.
+ * ⚠️ `100svh`, nicht `100vh`: Mit `vh` ragt das Hero auf dem Telefon unter
+ * die ein- und ausfahrende Browserleiste. Die `vh`-Zeile ist der Rückfall
+ * für Browser ohne `svh`.
  */
 .hero {
   position: relative;
@@ -26,273 +12,89 @@
   height: 100svh;
   min-height: 420px;
   overflow: hidden;
-  background: #000;
+  background: var(--grund);
 }
 
-.heroMedia {
+.hero:focus {
+  outline: none;
+}
+
+.medium {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.heroPlaceholder {
-  width: 100%;
-  height: 100%;
-  background:
-    radial-gradient(
-      120% 80% at 30% 20%,
-      rgba(225, 27, 27, 0.16) 0%,
-      transparent 60%
-    ),
-    linear-gradient(160deg, #17171b 0%, #0b0b0d 100%);
-}
-
 /*
- * Wie bei den Kacheln (Works.module.css): deckend, wo Text steht, und nur im
- * oberen Innenabstand ausblendend. Über die volle Höhe verlaufend läge die
- * Positionierung — 56px, das Erste, was jemand liest — bei fast
- * durchsichtigem Verlauf und wäre über einem hellen Standbild weg.
- *
- * Hier genügen 0.8 statt der 0.94 der Kacheln, weil beide Textfarben nahezu
- * weiß sind: Über reinem Weiß ergibt das `--papier` 11.38:1 und `--stein`
- * 8.63:1. Die Kacheln tragen zusätzlich Rot und Grau und brauchen deshalb
- * mehr. Ein dunklerer Verlauf würde hier nur das Bild verschlucken.
+ * Radiale Abdunklung hinter dem Schriftzug: 0.55 in der Mitte, auslaufend
+ * bei rund 60 % der Breite. Der Rest des Videos bleibt unverändert.
  */
-.heroCaption {
+.mitte {
   position: absolute;
-  inset: auto 0 0 0;
-  padding: var(--space-2xl) var(--space-lg) var(--space-xl);
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.8) calc(100% - var(--space-2xl)),
-    rgba(0, 0, 0, 0) 100%
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--rand);
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 60% 40% at 50% 50%,
+    rgba(14, 14, 16, 0.55) 0%,
+    rgba(14, 14, 16, 0) 100%
   );
 }
 
-.positioning {
+.schriftzug {
   margin: 0;
-  max-width: 22ch;
-  font-family: var(--font-display), system-ui, sans-serif;
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 700;
   font-size: var(--text-display);
-  font-weight: var(--weight-bold);
   line-height: var(--leading-display);
-  color: var(--papier);
+  color: var(--schrift);
+  white-space: nowrap;
+  text-shadow: 0 0 24px rgba(14, 14, 16, 0.4);
 }
-
-.locations {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  margin: var(--space-md) 0 0;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: var(--text-label);
-  line-height: var(--leading-label);
-  color: var(--stein);
-}
-
-.locationDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--rec);
-}
-
-/* ── Heller Lesebereich ─────────────────────────────────────────── */
-
-.light {
-  composes: light from "./components/shared.module.css";
-}
-
-.section {
-  max-width: 1040px;
-  margin: 0 auto;
-  padding: var(--space-3xl) var(--space-lg);
-  border-bottom: 1px solid var(--stein);
-  /* Damit Ankersprünge nicht unter der fixen Topbar landen. Wert aus
-     --topbar-h in globals.css, plus etwas Luft. */
-  scroll-margin-top: calc(var(--topbar-h) + var(--space-md));
-}
-
-.sectionTitle {
-  margin: 0 0 var(--space-xl);
-  font-family: var(--font-display), system-ui, sans-serif;
-  font-size: var(--text-heading);
-  font-weight: var(--weight-bold);
-  line-height: var(--leading-heading);
-}
-
-/* ── Drei Türen ─────────────────────────────────────────────────── */
-
-.doors {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-xl);
-}
-
-.door {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-}
-
-.doorTitle {
-  margin: 0;
-  font-family: var(--font-display), system-ui, sans-serif;
-  font-size: var(--text-body);
-  font-weight: var(--weight-bold);
-  line-height: var(--leading-heading);
-}
-
-.doorLink {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  color: var(--buehne);
-  text-decoration-color: var(--rec);
-  text-underline-offset: 4px;
-}
-
-.doorAudience {
-  margin: 0;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: var(--text-label);
-  line-height: var(--leading-label);
-  color: var(--ton-papier);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.doorText {
-  margin: 0;
-  font-size: var(--text-body);
-  line-height: var(--leading-body);
-}
-
-.doorFacts {
-  margin: var(--space-sm) 0 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: var(--text-label);
-  line-height: var(--leading-label);
-  color: var(--ton-papier);
-}
-
-/* ── Material: dasselbe randlose Raster wie im Archiv ───────────── */
 
 /*
- * Kein `max-width` und kein seitlicher Innenabstand: Das Raster ist randlos
- * und stößt an die Fensterkanten, genau wie unter `/arbeiten`. Ein zentrierter
- * Block mit Rand wäre ein zweites Rastergesetz auf derselben Seite.
+ * Impressum · Datenschutz unten links, gegenüber dem Pause-Knopf. Darunter
+ * ein Streifen, deckend 0.60 hinter der Schrift.
  */
-.material {
-  background: var(--buehne);
-  padding-bottom: var(--space-2xl);
-  scroll-margin-top: calc(var(--topbar-h) + var(--space-md));
+.rechtliches {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 1;
+  padding: var(--space-lg) var(--rand) var(--space-md);
+  background: linear-gradient(
+    to top,
+    rgba(14, 14, 16, 0.6) calc(100% - var(--space-lg)),
+    rgba(14, 14, 16, 0) 100%
+  );
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
 }
 
-.materialTitel {
+.rechtliches ul {
+  display: flex;
+  gap: 0 var(--space-lg);
   margin: 0;
-  padding: 0 var(--space-lg) var(--space-lg);
-  font-family: var(--font-display), system-ui, sans-serif;
-  font-size: var(--text-heading);
-  font-weight: var(--weight-bold);
-  line-height: var(--leading-heading);
-  color: var(--papier);
+  padding: 0;
+  list-style: none;
 }
 
-.moreRow {
-  margin: var(--space-lg) 0 0;
-  padding-left: var(--space-lg);
-}
-
-.more {
+.rechtliches a {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: var(--text-label);
-  line-height: var(--leading-label);
-  color: var(--papier);
-  text-decoration-color: var(--rec);
+  color: var(--schrift);
+  text-decoration: none;
+}
+
+.rechtliches a:hover {
+  text-decoration: underline;
   text-underline-offset: 4px;
-}
-
-/* ── Vertrauen ──────────────────────────────────────────────────── */
-
-.referenceLine {
-  margin: 0 0 var(--space-md);
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: var(--text-label);
-  line-height: var(--leading-body);
-  color: var(--ton-papier);
-}
-
-.trustNote {
-  margin: 0;
-  max-width: 62ch;
-  font-size: var(--text-body);
-  line-height: var(--leading-body);
-}
-
-.trustNote a {
-  color: var(--buehne);
-  text-decoration-color: var(--rec);
-  text-underline-offset: 4px;
-}
-
-/* ── Abschluss von buchbar.: Hinweis und der einzige gefüllte Knopf ── */
-
-.contactNote {
-  margin: var(--space-2xl) 0 0;
-  max-width: 46ch;
-  font-size: var(--text-body);
-  line-height: var(--leading-body);
-}
-
-/* Primary CTA — der einzige gefüllte Button der Seite. */
-.ctaRow {
-  margin: var(--space-xl) 0 0;
-}
-
-.cta {
-  composes: cta from "./components/shared.module.css";
-}
-
-/* ── Mobil ──────────────────────────────────────────────────────── */
-
-@media (max-width: 700px) {
-  /* Auch mobil volle Höhe — `svh` rechnet die Browserleiste bereits ein,
-     der frühere Abschlag auf 72vh war dafür der Behelf. */
-
-  .heroCaption {
-    padding: var(--space-xl) var(--space-md) var(--space-lg);
-  }
-
-  .positioning {
-    font-size: var(--text-heading);
-  }
-
-  .section {
-    padding: var(--space-2xl) var(--space-md);
-    /* scroll-margin-top braucht hier keinen eigenen Wert mehr —
-       --topbar-h wird mobil selbst kleiner. */
-  }
-
-  .doors {
-    grid-template-columns: 1fr;
-    gap: var(--space-2xl);
-  }
-
-  .materialTitel {
-    padding: 0 var(--space-md) var(--space-md);
-  }
-
-  .moreRow {
-    padding-left: var(--space-md);
-  }
 }

@@ -1,26 +1,22 @@
 /*
  * Design-Tokens — Werte und Verwendungsregeln siehe design/UI-SPEC.md.
- * Farbnamen folgen dem Briefing (rec / buehne / papier / stein / ton).
+ *
+ * Seit dem Umbau vom 2026-10-08: **eine Fläche, eine Schriftfarbe, ein
+ * Akzent.** Die frühere Teilung in eine dunkle „sehen"- und eine helle
+ * „lesen"-Hälfte gibt es nicht mehr.
  */
 :root {
-  --rec: #e11b1b;
-  --buehne: #0e0e10;
-  --papier: #f4f3ef;
-  --stein: #d9d5cc;
-  --ton: #6e7873;
+  --grund: #0e0e10; /* die einzige Fläche */
+  --schrift: #f4f3ef; /* alle Schrift, Fokusring — 17.4:1 auf --grund */
+  --leise: #7a857f; /* zurückgenommene Schrift — 5.04:1 auf --grund */
 
   /*
-   * Zugängliche Textvarianten. Die Briefing-Tokens --rec und --ton erreichen
-   * als kleiner Text die geforderten 4.5:1 nicht (--ton auf Papier: 4.11,
-   * --rec auf Schwarz: 4.37). Deshalb: Markenfarben bleiben für Punkte,
-   * Chip-Fläche, Linien und Fokus — kleiner Text nutzt diese Varianten.
-   * Gemessene Werte siehe design/UI-SPEC.md.
+   * Rot ist **ausschließlich** dem ●REC vorbehalten: Chip, Punkt vor dem
+   * aktiven Navigationsziel, Sprungmarke. Nicht für Schrift, Links, Fokus
+   * oder Hover — gerade weil es die einzige Farbe ist, trägt es nur, solange
+   * es selten bleibt. Liste: design/UI-SPEC.md, „Accent reserved for".
    */
-  --ton-papier: #5c665f; /* 5.37:1 auf --papier */
-  --ton-buehne: #7a857f; /* 5.04:1 auf --buehne */
-  --rec-text: #ee3b3b; /* 5.32:1 auf Schwarz */
-  --rec-papier: #d01414; /* rote Schrift auf --papier, siehe UI-SPEC */
-  --rec-hover: #c41616; /* gedrückter Zustand des gefüllten Knopfs */
+  --rec: #e11b1b;
   --auf-rec: #ffffff; /* 4.80:1 auf --rec */
 
   --space-xs: 4px;
@@ -31,81 +27,88 @@
   --space-2xl: 48px;
   --space-3xl: 64px;
 
+  /* Seitenrand: 16px bis 700px, darüber 32px. */
+  --rand: var(--space-xl);
+
   /*
-   * Eckenradius — **genau einer**, wie es bei den Schriftgrößen auch genau
-   * vier gibt. Gilt für Fotos, die *präsentiert* werden: Leitbild,
-   * Bildstrecke, Film. **Nicht** für das Kachelraster auf `/arbeiten`: Das
-   * ist ein Index und stößt absichtlich randlos aneinander, wie ein
-   * Kontaktbogen. Begründung in design/UI-SPEC.md.
-   *
-   * 12px ist bewusst zurückhaltend. Stärker gerundet fängt ein Foto an, wie
-   * eine App-Kachel auszusehen; ungerundet sah es laut Jan „kastenmäßig" aus.
+   * Eckenradius — **genau einer**: Mosaikkacheln, Film-Standbilder, Porträt.
+   * Das Hero-Video ist randlos und hat keinen. 12px ist bewusst
+   * zurückhaltend; stärker gerundet sieht ein Foto aus wie eine App-Kachel.
    */
   --radius-bild: 12px;
 
-  /* Genau 4 Größen. Kein Wert unter 14px — auch Credits bleiben lesbar. */
+  /*
+   * Schriften. **Zwei Familien, zwei Schnitte** (UI-SPEC, „Typografie").
+   *
+   * ⚠️ **Übergang, bis die Lizenzdateien eingebunden sind** (TECH-STACK.md,
+   * „Schriften"): Steht Druk Wide bzw. Avenir Next auf dem Gerät zur
+   * Verfügung, nimmt der Browser sie — Avenir Next ist auf jedem Mac und
+   * iPhone vorinstalliert, Druk Wide nur dort, wo jemand sie installiert
+   * hat. Sonst greifen die freien, vom eigenen Server ausgelieferten
+   * Ersatzschriften aus app/layout.tsx: Archivo in voller Breite für Druk
+   * Wide, Figtree für Avenir Next.
+   */
+  --font-display: "Druk Wide", "Druk Wide Web", var(--font-druk-ersatz), system-ui,
+    sans-serif;
+  --font-text: "Avenir Next", "Avenir Next LT Pro", var(--font-avenir-ersatz),
+    system-ui, sans-serif;
+
+  /*
+   * Genau vier Größen: 14 · 18 · 36 · 96. Kein Wert unter 14px. Das Display
+   * stuft mobil auf 36px herunter — innerhalb derselben Skala.
+   */
   --text-label: 14px;
   --text-body: 18px;
-  --text-heading: 28px;
-  --text-display: 56px;
-
-  --weight-regular: 400;
-  --weight-bold: 700;
+  --text-heading: 36px;
+  --text-display: 96px;
 
   --leading-label: 1.4;
   --leading-body: 1.6;
-  --leading-heading: 1.2;
   --leading-display: 1;
+  --leading-titel: 1.1;
 
   /*
-   * Höhe der fixen Topbar. Im Browser gemessen, nicht geschätzt:
-   * 2 × --space-lg Innenabstand + 44px Mindesthöhe der Wortmarke.
+   * Höhe der Topbar in **einer** Zeile: 2 × Innenabstand + 44px Mindesthöhe
+   * der Ziele. Gebraucht nur noch für den Abdunklungsstreifen über dem Video
+   * auf `/` — auf allen anderen Seiten liegt die Topbar im Fluss
+   * (`sticky`), dort braucht niemand ihre Höhe.
    *
-   * ⚠️ Wer Innenabstand, Schriftgröße oder Mindesthöhe der Topbar ändert,
-   * muss diesen Wert neu messen. Alle Seiten halten ihren oberen Abstand
-   * und ihre Ankersprünge daran fest — vorher standen an vier Stellen
-   * handgerechnete Werte, die nach einer Änderung der Topbar still falsch
-   * wurden und den Titel fast unter die Leiste geschoben haben.
+   * ⚠️ Wer Innenabstand oder Mindesthöhe der Topbar ändert, muss diesen Wert
+   * neu messen.
    */
   --topbar-h: 92px;
 }
 
 @media (max-width: 700px) {
   :root {
+    --rand: var(--space-md);
+    --text-display: 36px;
     /* 2 × --space-md + 44px */
     --topbar-h: 76px;
   }
 }
 
 /*
- * Verlauf unter der Topbar, überall dort, wo sie **über einem Foto oder
- * Video** liegt (Hero der Startseite, Bild der Detailseite).
+ * Abdunklungsstreifen hinter der Topbar, dort, wo sie **über dem Video**
+ * liegt — nur auf `/`. Über Bewegtbild kann jederzeit ein weißer Himmel
+ * hinter der Navigation stehen; ohne den Streifen misst helle Schrift über
+ * einem rein weißen Testbild 1.66:1, mit ihm 7.15:1.
  *
- * Warum nicht in Topbar.module.css: Auf `/arbeiten` und den hellen Seiten
- * steht die Leiste über einer ruhigen Fläche und braucht nichts; ein Verlauf
- * dort wäre ein sichtbarer Streifen ohne Grund. Deshalb bringt ihn das
- * Medium mit, nicht die Leiste.
- *
- * Warum überhaupt: Die Wortmarke ist `--papier` auf durchsichtigem Grund.
- * Solange der Hero ein dunkler Farbverlauf war, ging das auf; über einem
- * rein weißen Testbild misst sie ohne diesen Verlauf **1.66:1**, mit ihm
- * **7.15:1** — nötig sind 3:1 (28px, fett). Der bestehende `text-shadow`
- * hilft dem Auge, zählt für die Kontrastuntergrenze aber nicht.
- *
- * Deckend bis knapp unter die Wortmarke, ausblendend erst darunter — aus
- * demselben Grund wie bei den Kacheln: Ein Verlauf über die ganze Höhe wäre
- * genau dort am schwächsten, wo der Text steht.
+ * Deckend hinter der Schrift, ausblendend erst im äußeren Innenabstand: Ein
+ * Verlauf über die ganze Höhe wäre genau dort am schwächsten, wo der Text
+ * steht. Siehe „Text über Fotos und Bewegtbild" in design/UI-SPEC.md.
  */
 .medien-scrim::before {
   content: "";
   position: absolute;
   inset: 0 0 auto 0;
-  height: var(--topbar-h);
+  z-index: 1;
+  height: calc(var(--topbar-h) + var(--space-lg));
   pointer-events: none;
   background: linear-gradient(
     to bottom,
-    rgba(0, 0, 0, 0.6) calc(100% - var(--space-lg)),
-    rgba(0, 0, 0, 0) 100%
+    rgba(14, 14, 16, 0.6) var(--topbar-h),
+    rgba(14, 14, 16, 0) 100%
   );
 }
 
@@ -123,45 +126,39 @@ html {
   /*
    * iOS vergrößert Text in eigener Regie, sobald das Gerät ins Querformat
    * kippt. Die Seite kennt genau vier Schriftgrößen — eine fünfte, die das
-   * Betriebssystem erfindet, bricht die Skala und schiebt die Metazeilen
-   * über die Kacheln. Betrifft nur iOS, deshalb der Präfix.
+   * Betriebssystem erfindet, bricht die Skala.
    */
   -webkit-text-size-adjust: 100%;
+  background: var(--grund);
 }
 
 /*
- * Der graue Kasten, den mobile Browser beim Antippen über den Link legen,
- * sieht auf einem randlosen Bildraster nach Fehler aus. Ersetzt durch einen
- * knappen roten Schimmer — dieselbe Farbe wie Fokus und Akzent.
- *
- * **Nicht** auf `transparent` gesetzt: Ohne jede Rückmeldung wirkt ein Tap
- * auf einer Kachel wie ein toter Klick, gerade bei langsamer Verbindung,
- * wenn die neue Seite noch nicht da ist.
+ * Der graue Kasten, den mobile Browser beim Antippen über einen Link legen,
+ * wirkt auf Bildern wie ein Fehler. Ersetzt durch einen knappen hellen
+ * Schimmer. **Nicht** transparent: Ohne jede Rückmeldung wirkt ein Tap wie
+ * ein toter Klick, gerade bei langsamer Verbindung. **Nicht** rot: Rot ist
+ * dem ●REC vorbehalten.
  */
 a,
 button,
 summary {
-  -webkit-tap-highlight-color: rgba(225, 27, 27, 0.18);
+  -webkit-tap-highlight-color: rgba(244, 243, 239, 0.14);
 }
 
 body {
-  background: var(--buehne);
-  color: var(--papier);
-  font-family: var(--font-serif), Georgia, "Times New Roman", serif;
+  background: var(--grund);
+  color: var(--schrift);
+  font-family: var(--font-text);
+  font-weight: 400;
   font-size: var(--text-body);
   line-height: var(--leading-body);
   -webkit-font-smoothing: antialiased;
 
   /*
-   * Deutsche Komposita sind länger als das Fenster. „Straßentheaterfestival"
-   * bei 28px braucht 313px und ragte auf einem 320px-Gerät aus der Seite —
-   * die Detailseite ließ sich dort waagerecht schieben. Beim Mobiltest
-   * gefunden, erst mit echten Titeln aufgefallen.
-   *
-   * `hyphens: auto` trennt nach den Regeln der Sprache, die `lang="de"` am
-   * `<html>` angibt — ohne dieses Attribut passiert nichts. `overflow-wrap`
-   * ist das Netz darunter: Es greift nur, wenn selbst mit Trennung nichts
-   * mehr passt, etwa bei einer langen URL im Impressum.
+   * Deutsche Komposita sind länger als das Fenster. `hyphens: auto` trennt
+   * nach den Regeln der Sprache, die `lang="de"` am `<html>` angibt — ohne
+   * dieses Attribut passiert nichts. `overflow-wrap` ist das Netz darunter,
+   * etwa für eine lange Adresse im Impressum.
    */
   hyphens: auto;
   overflow-wrap: break-word;
@@ -171,26 +168,50 @@ a {
   color: inherit;
 }
 
+/*
+ * Fokusring in Schriftfarbe, nicht in Rot — Rot ist dem ●REC vorbehalten.
+ * 17.4:1 auf --grund. Über Fotos sorgt ein dunkler Saum dafür, dass er auch
+ * vor hellem Bildinhalt sichtbar bleibt (siehe Mosaik.module.css).
+ */
 :focus-visible {
-  outline: 2px solid var(--rec);
-  outline-offset: 3px;
+  outline: 2px solid var(--schrift);
+  outline-offset: 2px;
+}
+
+/*
+ * Text, der nur vorgelesen wird — etwa die `<h1>` auf `/foto`, `/film` und
+ * `/ueber`, die es für Screenreader und Suchmaschinen braucht, die aber
+ * nicht sichtbar dastehen soll (UI-SPEC, „Keine sichtbaren Seitentitel").
+ *
+ * Eine explizite Größe, damit die Browser-Vorgabe für `h1` keinen
+ * undeklarierten Wert in die Skala trägt.
+ */
+.nur-vorlesen {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  font-size: var(--text-heading);
 }
 
 /*
  * Sprungmarke zum Inhalt. Unsichtbar, bis sie den Tastaturfokus bekommt —
- * dann das erste Element der Seite.
+ * dann das erste Element der Seite. Bewusst nicht mit `display: none`
+ * versteckt: Ein so verstecktes Element ist gar nicht fokussierbar.
  *
- * Ohne sie muss sich jede Person, die mit der Tastatur navigiert, auf
- * *jeder* Seite zuerst durch die fixe Topbar arbeiten. Bewusst nicht mit
- * `display: none` versteckt: Ein so verstecktes Element ist gar nicht
- * fokussierbar und die Marke damit wirkungslos.
+ * Rote Fläche: eine der drei Stellen, an denen Rot erlaubt ist. Sie
+ * erscheint nur, wenn jemand sie aktiv ansteuert, und konkurriert deshalb
+ * mit nichts.
  */
 .skip-link {
   position: absolute;
   top: 0;
   left: 0;
   z-index: 200;
-  /* Aus dem Sichtbereich geschoben, aber fokussierbar. */
   transform: translateY(-200%);
   display: inline-flex;
   align-items: center;
@@ -199,7 +220,7 @@ a {
   background: var(--rec);
   color: var(--auf-rec);
   text-decoration: none;
-  font-family: var(--font-mono), ui-monospace, monospace;
+  font-family: var(--font-text);
   font-size: var(--text-label);
   line-height: var(--leading-label);
 }
@@ -209,115 +230,12 @@ a {
 }
 
 /*
- * Seitenübergreifende View Transitions.
- *
- * Beim Wechsel von einer Kachel auf ihre Detailseite blendet der Browser
- * beide Seiten ineinander, statt hart umzuschalten. Das ist genau das, wofür
- * man früher eine Animationsbibliothek gebraucht hätte — hier sind es drei
- * Zeilen CSS und **kein Byte JavaScript**.
- *
- * **Reines Progressive Enhancement:** Browser, die es nicht können (derzeit
- * vor allem Firefox), wechseln die Seite wie eh und je. Nichts geht kaputt,
- * nichts muss nachgeladen werden.
+ * Seitenwechsel blendet über, statt hart umzuschalten — drei Zeilen CSS,
+ * kein JavaScript. Browser ohne Unterstützung wechseln die Seite wie eh und
+ * je.
  */
 @view-transition {
   navigation: auto;
-}
-
-/*
- * ── Das Foto wandert mit ─────────────────────────────────────────────
- *
- * Kachel und Detailseitenbild tragen denselben `view-transition-name`
- * (`bild-<slug>`, gesetzt in Bild.tsx). Der Browser erkennt beide als
- * dasselbe Element und **bewegt das Foto von der Kachelposition in den
- * großen Rahmen**, statt die Seiten zu überblenden — über einen echten
- * Seitenwechsel hinweg, ohne eine Zeile JavaScript.
- *
- * `::view-transition-group(.foto)` greift über die Sammelklasse aus
- * Bild.module.css alle Bilder auf einmal. Ohne sie bräuchte es eine Regel je
- * Arbeit.
- *
- * ⚠️ **`object-fit: cover` an den Schnappschüssen ist nicht optional.**
- * Kachel (4:3) und Detailbild (72vh, volle Breite) haben verschiedene
- * Seitenverhältnisse. Ohne diese Zeile zieht der Browser die beiden
- * Standbilder auf die jeweilige Gruppengröße — das Motiv quetscht sich
- * sichtbar, bevor es sich wieder streckt. Mit ihr bleibt der Bildausschnitt
- * über den ganzen Weg derselbe wie vorher und nachher.
- *
- * Reines Progressive Enhancement: Wo es fehlt (derzeit Firefox), wechselt
- * die Seite wie eh und je.
- */
-::view-transition-group(.foto) {
-  animation-duration: 380ms;
-  animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
-}
-
-::view-transition-old(.foto),
-::view-transition-new(.foto) {
-  height: 100%;
-  width: 100%;
-  object-fit: cover;
-}
-
-/*
- * ── Scrollgetriebene Bewegung ────────────────────────────────────────
- *
- * Elemente steigen beim Eintreten in den Sichtbereich auf. Der Fortschritt
- * hängt an der **Scrollposition**, nicht an einer Uhr: Wer langsam scrollt,
- * sieht es langsam; wer zurückscrollt, sieht es rückwärts. Das ist der
- * Unterschied zu einer Einblendanimation, die einmal abläuft und dann
- * fertig ist — hier folgt die Bewegung der Hand.
- *
- * **Kein JavaScript, kein IntersectionObserver, keine Bibliothek.**
- * `animation-timeline: view()` macht das im Browser selbst, auf dem
- * Compositor. Genau deshalb ist es auf dem Handy tragbar: Es läuft nicht im
- * Haupt-Thread mit und kann das Scrollen nicht ins Stocken bringen.
- *
- * Animiert werden **ausschließlich `opacity` und `transform`** — die beiden
- * Eigenschaften, die ohne neues Layout und ohne Neuzeichnen auskommen.
- *
- * ⚠️ Der Startzustand (unsichtbar, nach unten versetzt) steht **innerhalb**
- * des `@supports`-Blocks. Stünde er außerhalb, wäre in Browsern ohne
- * Unterstützung die halbe Seite dauerhaft unsichtbar — der klassische
- * Weg, wie „Progressive Enhancement" zur Falle wird.
- *
- * ⚠️ Abgeschaltet wird über `prefers-reduced-motion: no-preference`, also
- * indem die Regel gar nicht erst greift. Die globale Abschaltung weiter
- * unten (`animation-duration: 0.01ms`) reicht hier **nicht**:
- * Scrollgetriebene Animationen haben keine Laufzeit — ihren Fortschritt
- * bestimmt die Scrollposition, nicht eine Uhr. Derselbe Fallstrick wie
- * beim Seitenübergang, der dort eine eigene Abschaltung braucht.
- */
-@keyframes aufsteigen {
-  from {
-    opacity: 0;
-    transform: translateY(var(--aufsteigen-weg, 28px));
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .aufsteigen {
-      animation: aufsteigen linear both;
-      animation-timeline: view();
-      /*
-       * Fertig, wenn das Element zu gut einem Drittel im Bild ist — nicht
-       * erst in der Mitte. Sonst liest man eine Zeile, die noch halb
-       * durchsichtig ist, und das ist kein Effekt, sondern ein Mangel.
-       */
-      animation-range: entry 10% entry 45%;
-    }
-
-    /* Für Textzeilen: kürzerer Weg. 28px sind bei einer einzelnen
-       Metazeile keine Bewegung mehr, sondern ein Sprung. */
-    .aufsteigen-kurz {
-      --aufsteigen-weg: 14px;
-    }
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -329,8 +247,8 @@ a {
     transition-duration: 0.01ms !important;
   }
 
-  /* Auch den Seitenübergang abschalten — er ist eine Animation wie jede
-     andere, und `animation-duration` allein greift hier nicht. */
+  /* Auch den Seitenübergang abschalten — `animation-duration` allein greift
+     bei View Transitions nicht. */
   @view-transition {
     navigation: none;
   }

@@ -1,30 +1,42 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Newsreader, Martian_Mono } from "next/font/google";
+import { Archivo, Figtree } from "next/font/google";
 import "./globals.css";
 import StructuredData from "./StructuredData";
 import { INDEXABLE, SITE_URL } from "@/lib/site";
 
-const display = Bricolage_Grotesque({
+/*
+ * ⚠️ **Ersatzschriften für den Übergang** — nicht die Schriften der Seite.
+ *
+ * Laut UI-SPEC sind das Druk Wide Bold und Avenir Next. Jakob hat die
+ * Lizenzen, aber die Dateien dürfen erst ins Projekt, wenn das GitHub-Repo
+ * privat ist und feststeht, dass es Web-Lizenzen sind (TECH-STACK.md,
+ * „Schriften"). Bis dahin nennt globals.css die echten Namen zuerst — wo sie
+ * installiert sind (Avenir Next auf jedem Apple-Gerät), erscheinen sie —
+ * und fällt sonst auf diese beiden zurück.
+ *
+ * `next/font/google` lädt sie zur Build-Zeit und liefert sie vom eigenen
+ * Worker aus. Der Browser baut **keine** Verbindung zu Google auf.
+ *
+ * - **Archivo** mit Breitenachse, gesetzt auf 125 % (`font-stretch`): die
+ *   breiteste freie Grotesk, die Druk Wide nahekommt. Ähnlich, nicht gleich.
+ * - **Figtree**: geometrisch-humanistisch wie Avenir Next.
+ */
+const drukErsatz = Archivo({
   subsets: ["latin"],
-  variable: "--font-display",
+  axes: ["wdth"],
+  variable: "--font-druk-ersatz",
   display: "swap",
 });
 
-const serif = Newsreader({
+const avenirErsatz = Figtree({
   subsets: ["latin"],
-  variable: "--font-serif",
+  weight: ["400"],
+  variable: "--font-avenir-ersatz",
   display: "swap",
 });
 
-const mono = Martian_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-  display: "swap",
-});
-
-const TITLE = "jakob sax — fotografie für kultur & theater im öffentlichen raum";
-const DESCRIPTION =
-  "Jakob Sax, Journalist beim SWR und Fotograf für Straßentheater und zeitgenössischen Zirkus. Rastatt und Stuttgart.";
+const TITLE = "jakob sax";
+const DESCRIPTION = "Fotos und Filme von Jakob Sax.";
 
 export const metadata: Metadata = {
   // Basis für alle relativen URLs in OpenGraph und Canonical.
@@ -40,12 +52,9 @@ export const metadata: Metadata = {
     title: TITLE,
     description: DESCRIPTION,
     /*
-     * Die Vorschaukarte entsteht bei `npm run medien` (scripts/og.mjs) und
-     * liegt als fertige Datei unter `public/og/`. Sie trägt die
-     * Positionierung auch ohne Foto; sobald `original/hero/standbild.jpg` im
-     * Bucket liegt, trägt sie es mit. Gilt für jede Seite ohne eigene Karte
-     * — die Arbeiten haben ihre
-     * eigene, siehe app/arbeiten/[slug]/page.tsx.
+     * Die Vorschaukarte entsteht bei `npm run og` (scripts/og.mjs) und liegt
+     * als fertige Datei unter `public/og/`. Eine Karte für alle Seiten —
+     * Detailseiten mit eigener Karte gibt es seit dem Umbau nicht mehr.
      */
     images: [{ url: "/og/start.jpg", width: 1200, height: 630, alt: TITLE }],
   },
@@ -56,7 +65,7 @@ export const metadata: Metadata = {
     images: ["/og/start.jpg"],
   },
   // Siehe lib/site.ts: bleibt auf noindex, solange die Launch-Blocker offen
-  // sind (erfundene E-Mail-Adresse, kein Impressum, ungeprüfte Inhalte).
+  // sind.
   robots: INDEXABLE
     ? { index: true, follow: true }
     : { index: false, follow: false },
@@ -68,10 +77,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="de"
-      className={`${display.variable} ${serif.variable} ${mono.variable}`}
-    >
+    <html lang="de" className={`${drukErsatz.variable} ${avenirErsatz.variable}`}>
       <head>
         {/*
           Speculation Rules: Der Browser lädt eine Seite schon vor, wenn der
@@ -82,8 +88,8 @@ export default function RootLayout({
           Absicht, nicht bei jedem Link im Blickfeld — sonst zahlt jemand mit
           teurem Mobilfunk für Seiten, die er nie öffnet.
 
-          Progressive Enhancement: Browser ohne Unterstützung ignorieren den
-          Block. Kein JavaScript im eigentlichen Sinn, nur eine Anweisung.
+          Gilt nur für eigene Seiten (`/*`): Die Filmlinks führen nach
+          außen und werden nie vorgeladen.
         */}
         <script
           type="speculationrules"

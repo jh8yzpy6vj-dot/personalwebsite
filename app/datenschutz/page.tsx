@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import LegalPage, { Missing, legalStyles as styles } from "../components/LegalPage";
-import { LEGAL, VERSAND_AKTIV } from "@/lib/legal";
+import { LEGAL } from "@/lib/legal";
 
 /**
  * Datenschutzerklärung nach DSGVO.
@@ -13,15 +13,12 @@ import { LEGAL, VERSAND_AKTIV } from "@/lib/legal";
  * verschweigt — und sie macht es später unmöglich zu erkennen, was wirklich
  * läuft.
  *
- * Das **Anfrageformular** ist seit 2026-08-27 beschrieben. Der Absatz zum
- * Versanddienstleister hängt an `VERSAND_AKTIV` in `lib/legal.ts` — solange
- * kein Dienstleister eingesetzt wird, darf hier auch keiner stehen.
+ * Seit dem Umbau vom 2026-10-08 gibt es kein Formular mehr — damit
+ * entfallen Formular, Versanddienstleister und Turnstile auch hier.
  *
  * **Noch NICHT enthalten, weil noch nicht umgesetzt** (siehe TODO.md) —
- * beim Umsetzen jeweils hier ergänzen, jeweils mit
- * Auftragsverarbeitungsvertrag:
+ * beim Umsetzen hier ergänzen, mit Auftragsverarbeitungsvertrag:
  * - Cloudflare Web Analytics (cookielos, verarbeitet aber Daten)
- * - Cloudflare Turnstile (Spam-Schutz)
  */
 export const metadata: Metadata = {
   title: "Datenschutz — jakob sax",
@@ -31,7 +28,7 @@ export const metadata: Metadata = {
 
 export default function Datenschutz() {
   return (
-    <LegalPage title="datenschutz." scope="datenschutz">
+    <LegalPage title="Datenschutz" scope="datenschutz" aktuell="/datenschutz">
       <h2>Verantwortlicher</h2>
       <p>Verantwortlich für die Datenverarbeitung auf dieser Website ist:</p>
       <address className={styles.address}>
@@ -102,43 +99,22 @@ export default function Datenschutz() {
           Informationspflicht nach DSGVO. Der Absatz stand in Mustertexten
           aus einer Zeit, in der HTTPS noch die Ausnahme war. */}
 
-      <h2>Anfrageformular</h2>
+      <h2>Bilder und Video</h2>
       <p>
-        Auf der Kontaktseite können Sie eine Anfrage über ein Formular
-        stellen. Die dort eingegebenen Angaben — Name, E-Mail-Adresse,
-        Nachricht sowie die freiwilligen Angaben zu Art der Veranstaltung,
-        Datum, Ort und Budgetrahmen — werden an den Server dieser Website
-        übertragen und ausschließlich zur Bearbeitung Ihrer Anfrage
-        verwendet.
+        Fotos, Standbilder und das Video auf der Startseite werden von einer
+        eigenen Adresse dieser Website ausgeliefert, die ebenfalls bei{" "}
+        {LEGAL.host.name} liegt. Es gelten dieselben Angaben wie unter
+        „Hosting“. Inhalte Dritter werden nicht eingebunden.
       </p>
+
+      <h2>Links zu anderen Websites</h2>
       <p>
-        Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO, soweit die Anfrage
-        der Anbahnung eines Vertrags dient, sonst Art. 6 Abs. 1 lit. f DSGVO
-        aufgrund des berechtigten Interesses an der Beantwortung. Eine
-        Speicherung über die Bearbeitung hinaus findet nicht statt.
+        Die Filme auf dieser Seite sind nicht eingebettet, sondern verlinkt
+        (etwa zu YouTube, Vimeo oder einer Mediathek). Beim Aufruf dieser
+        Seite wird dabei <strong>keine Verbindung</strong> zu diesen Anbietern
+        aufgebaut. Erst wenn Sie einem Link folgen, verlassen Sie diese Website;
+        dann gilt die Datenschutzerklärung des jeweiligen Anbieters.
       </p>
-      <p>
-        Zum Schutz vor automatisierten Einsendungen enthält das Formular ein
-        für Sie unsichtbares Feld und misst die Zeit bis zum Absenden. Dabei
-        werden <strong>keine</strong> zusätzlichen personenbezogenen Daten
-        erhoben und keine Cookies gesetzt.
-      </p>
-      {VERSAND_AKTIV ? (
-        <p>
-          Für die Zustellung der Anfrage per E-Mail setze ich einen
-          Versanddienstleister ein, der die Daten auf Grundlage eines
-          Auftragsverarbeitungsvertrags nach Art. 28 DSGVO in meinem Auftrag
-          verarbeitet.
-        </p>
-      ) : (
-        /* Bewusst kein Dienstleister genannt, solange keiner eingesetzt
-           wird — siehe VERSAND_AKTIV in lib/legal.ts. Beim Aktivieren muss
-           dort auch der Anbieter namentlich ergänzt werden. */
-        <p>
-          Der E-Mail-Versand des Formulars ist derzeit nicht aktiv; eine
-          Weitergabe an Dritte findet dabei nicht statt.
-        </p>
-      )}
 
       <h2>Kontaktaufnahme</h2>
       <p>
@@ -153,16 +129,6 @@ export default function Datenschutz() {
         Diese Daten gebe ich nicht ohne Ihre Einwilligung weiter. Ich lösche
         sie, sobald sie für den Zweck der Verarbeitung nicht mehr erforderlich
         sind und keine gesetzlichen Aufbewahrungspflichten entgegenstehen.
-      </p>
-
-      <h2>Hinweise an mich als Journalist</h2>
-      <p>
-        Erhalte ich Hinweise im Rahmen meiner journalistischen Tätigkeit,
-        behandle ich diese vertraulich und nenne niemanden ohne vorherige
-        Absprache. Für journalistisch-redaktionelle Zwecke gelten zudem die
-        besonderen Regelungen des Medienprivilegs (Art. 85 DSGVO in Verbindung
-        mit den landesrechtlichen Vorschriften), die den Schutz von Quellen
-        sicherstellen.
       </p>
 
       <h2>Ihre Rechte</h2>

@@ -11,12 +11,12 @@ Verbindliche technische Fakten und Regeln für dieses Projekt. Bei jeder technis
 - Status: **Umgesetzt.** Next.js 16.3.3 + `@opennextjs/cloudflare` 1.20.3 (offiziell unterstützte Kombination, kein Legacy-Flag nötig). Lokal via `npm run build` und `npx opennextjs-cloudflare build` getestet.
 - ✅ **Erledigt am 2026-08-27:** Die Build-/Deploy-Befehle im Cloudflare-Dashboard (Workers & Pages → personalwebsite → Settings → Build) sind auf den Next.js-Workflow umgestellt (`npx opennextjs-cloudflare build` / `npx wrangler deploy`). Erster erfolgreicher Build und Livegang mit dem neuen Stack bestätigt.
 
-## ⏳ Umbau „Präsenz statt Verkauf" (beschlossen 2026-10-08) — was sich technisch ändert
+## ✅ Umbau „Präsenz statt Verkauf" (beschlossen 2026-10-08, im Code umgesetzt 2026-10-08)
 
-Die Seite wird nach Jakobs Konzept umgebaut (`SITE-PLAN.md`, Plan in `TODO.md`, Abschnitt
-„UMBAU"). **Beschlossen ist alles in diesem Abschnitt; umgesetzt wird es in den Schritten 2–5.**
-Bis dahin beschreiben die übrigen Abschnitte dieser Datei den laufenden Code. Wo ein Abschnitt
-durch den Umbau hinfällig wird, steht dort ein Hinweis mit Verweis hierher.
+Die Seite ist nach Jakobs Konzept umgebaut (`SITE-PLAN.md`, Plan in `TODO.md`, Abschnitt
+„UMBAU", Log in `AGENT-LOG.md`). **Alles in diesem Abschnitt steht im Code — mit einer
+Ausnahme: die Schriften** (siehe „Schriften"; bis die Lizenzdateien da sind, laufen freie
+Ersatzschriften). Wo ein älterer Abschnitt weiter unten dem widerspricht, gilt dieser.
 
 | Bereich | Bisher | Nach dem Umbau | Schritt |
 |---------|--------|----------------|---------|
@@ -41,8 +41,13 @@ nicht in Frage — er lädt beim Seitenaufruf Inhalte und Tracker eines Dritten.
 
 ## Schriften
 
-> Beschlossen am 2026-10-08 (E5), umgesetzt in Schritt 3 des Umbaus. Bis dahin lädt die Seite
-> noch Bricolage Grotesque, Newsreader und Martian Mono über `next/font/google`.
+> Beschlossen am 2026-10-08 (E5). ⏳ **Übergang:** Die Lizenzdateien liegen noch nicht vor, und
+> das Repo ist (Stand 2026-10-08) nicht nachweislich privat. Bis dahin nennt `app/globals.css`
+> „Druk Wide" und „Avenir Next" zuerst (wo installiert, z. B. Avenir Next auf Apple-Geräten,
+> erscheinen sie) und fällt sonst auf **Archivo** (Breitenachse auf 125 %) und **Figtree**
+> zurück — beide über `next/font/google` zur Build-Zeit geladen und vom eigenen Worker
+> ausgeliefert, also ohne Anfrage an Google. Umstellen auf `next/font/local` in
+> `app/layout.tsx`, sobald die drei Punkte unten geklärt sind.
 
 | Familie | Schnitt | Hersteller | Lizenz |
 |---------|---------|------------|--------|

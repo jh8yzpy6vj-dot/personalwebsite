@@ -1,0 +1,21 @@
+/*
+ * Pause-Knopf, unten rechts im Video (UI-SPEC, „Motion"): 44×44px,
+ * `--schrift` auf `--grund` mit 0.60 Deckung.
+ */
+.knopf {
+  position: absolute;
+  right: var(--rand);
+  bottom: var(--space-md);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(14, 14, 16, 0.6);
+  color: var(--schrift);
+  cursor: pointer;
+}

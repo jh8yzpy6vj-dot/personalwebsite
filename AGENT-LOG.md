@@ -6,6 +6,65 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-08 — Umbau, Schritte 2–5: neue Seite im Code
+
+Die Seite folgt jetzt dem neuen UI-SPEC: `/`, `/foto`, `/film`, `/ueber`, Pflichtseiten, 404.
+Gebaut auf dem Arbeitsbranch `main-wlv97t`, **nicht** auf `main` — live ist es erst nach dem
+Merge.
+
+### Neu
+- **Startseite** (`app/page.tsx`): Hero in `100svh`, mittig „jakob sax" als `<h1>`, oben links
+  nur ●REC, rechts die Navigation, unten links Impressum · Datenschutz (§ 5 DDG). Rückfälle:
+  Video → Standbild → leere Fläche.
+- **`HeroVideo`** (Client-Komponente): Pause-Knopf unten rechts (WCAG 2.2.2), Wahl in
+  `sessionStorage`, kein Autoplay unter `prefers-reduced-motion`, Pause im Hintergrund-Tab.
+  `autoPlay` steht bewusst nicht am Element, sonst liefe das Video vor der Prüfung an.
+- **`/foto`**: `Mosaik` über alle Fotoarbeiten, „Titel – Kunde" beim Überfahren (nur
+  `hover: hover`) und bei Tastaturfokus, Lichtkasten blättert über alle Bilder.
+- **`/film`**: Raster 1/2/3 Spalten, 16:9-Standbild aus dem Bucket, ganze Kachel ist der
+  Link, Ziel für Screenreader („auf YouTube"), sichtbar nur ↗. Bisher leer, weil kein Film
+  Link **und** Standbild hat → „Filme folgen."
+- **`/ueber`**: Porträt links (5/12), Zeilen rechts (7/12), Kontaktzeile mit E-Mail,
+  Instagram, SWR-Autorenseite.
+- **404**: „Hier ist nichts." mit foto und film.
+- **`next.config.mjs`**: Weiterleitungen (308) `/arbeiten*` → `/foto`, `/leistungen/*` → `/`,
+  `/kontakt` → `/ueber`; `Cache-Control: public, max-age=0, must-revalidate` für alles außer
+  `/_next/static` und `/og` (erledigt den Kurzfrist-Punkt „Cache-Control für HTML").
+- **`npm run links`** (`scripts/links.mjs`): prüft jeden `FILME[].link`, nicht im Build.
+- **Tests**: `lib/arbeiten.test.ts` (ids eindeutig, `https://`-Links, keine Rechtsform,
+  Beschriftung, „was kein Bild hat, erscheint nicht", Reihenfolge).
+
+### Geändert
+- `scripts/medien.mjs`: Zuordnung gegen `FOTOS`/`FILME`; warnt zusätzlich bei Fotoarbeit ohne
+  Bild und Film ohne Standbild.
+- `scripts/og.mjs`: nur noch `start.jpg`; die zehn alten Karten unter `public/og/` gelöscht.
+- Datenschutz: Formular, Versanddienstleister und Journalisten-Hinweis raus; neu „Bilder und
+  Video" und „Links zu anderen Websites". Titel der Rechtsseiten ohne Punkt-Stil.
+- `StructuredData`: nur `Person` mit `sameAs`. Sitemap: vier Adressen.
+- `Mosaik.module.css`, `Bild.module.css`: alte Tokens (`--stein`, `--papier`, `--font-mono`)
+  ersetzt; Hover-Anheben und Zoom entfernt (UI-SPEC, „Motion": sonst nichts).
+
+### Entfernt
+Routen `/arbeiten`, `/leistungen`, `/kontakt`, `/api/anfrage`; Komponenten `AnfrageForm`,
+`Kachelraster`, `Kontaktbogen`, `UeberAnriss`, `Works`, `Film`, `Blende`, `Blaettertasten`,
+`LightPage`; `lib/anfrage.ts`, `lib/mailer.ts`, `lib/works.ts` samt Tests; Tests zu Blende,
+Kontaktbogen, Aufnahmezeile.
+
+### Geprüft
+`lint`, `test` (62), `build`, `cf:build` grün. Im Browser (Chromium) bei 375/768/1440: kein
+waagerechtes Scrollen, Lichtkasten per Tastatur, Scrollposition bleibt. **Nicht geprüft:**
+Hero-Video (keins im Bucket), echte Bilder (Medien-Domain aus der Sitzung nicht erreichbar —
+sichtbar waren nur die Vorschaubildchen).
+
+### Bewusst offen
+- **Schriften:** weiter Archivo/Figtree als Ersatz. Druk Wide und Avenir Next kommen erst,
+  wenn die `woff2`-Dateien da sind und das Repo privat ist.
+- **Material:** kein Hero-Video, kein Film mit Link und Standbild.
+- `content-visibility` auf den Mosaikkacheln weggelassen: Mit `aspect-ratio` gab es im Test
+  falsche Scrollpositionen beim Fokussieren; bei der Bildmenge bringt es ohnehin nichts.
+
+---
+
 ## 2026-10-08 — Umbau, Schritt 1: Vertrag und Dokumente neu gefasst
 
 Erster Schritt des Umbaus „Präsenz statt Verkauf" (`TODO.md`, Abschnitt „UMBAU"). Kein Code

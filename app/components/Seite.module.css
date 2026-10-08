@@ -1,0 +1,119 @@
+/*
+ * Rahmen aller Seiten außer der Startseite. Alle Werte aus den Tokens in
+ * globals.css — keine neuen Größen, keine neuen Schnitte.
+ */
+
+.seite {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100svh;
+  background: var(--grund);
+}
+
+.inhalt {
+  flex: 1;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-lg) var(--rand) 0;
+}
+
+/* `:focus` des <main> nach der Sprungmarke: kein Rahmen um die ganze Seite. */
+.inhalt:focus {
+  outline: none;
+}
+
+/* Größte Inhaltsbreiten (UI-SPEC, „Spacing"), jeweils plus Seitenrand. */
+.breiteFoto {
+  max-width: calc(1600px + 2 * var(--rand));
+}
+.breiteFilm {
+  max-width: calc(1400px + 2 * var(--rand));
+}
+.breiteUeber {
+  max-width: calc(1100px + 2 * var(--rand));
+}
+.breiteText {
+  max-width: calc(720px + 2 * var(--rand));
+}
+
+/*
+ * Sichtbarer Titel — nur Rechtsseiten und 404. Rolle *Heading*: Druk Wide
+ * Bold, 36px.
+ */
+.titel {
+  margin: var(--space-xl) 0 var(--space-2xl);
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 700;
+  font-size: var(--text-heading);
+  line-height: var(--leading-titel);
+}
+
+/* ── Fließtext (Rechtsseiten, 404) ─────────────────────────────────── */
+
+.prose h2 {
+  margin: var(--space-2xl) 0 var(--space-md);
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 700;
+  font-size: var(--text-body);
+  line-height: var(--leading-titel);
+}
+
+.prose h2:first-child {
+  margin-top: 0;
+}
+
+.prose p,
+.prose li {
+  margin: 0 0 var(--space-md);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.prose ul {
+  margin: 0 0 var(--space-md);
+  padding-left: var(--space-lg);
+}
+
+.prose li {
+  margin-bottom: var(--space-xs);
+}
+
+/*
+ * Kein fetter Schnitt (UI-SPEC: genau zwei Schnitte, Avenir Next nur
+ * Regular). Ein vom Browser erfundenes Fett sähe nach Fehler aus, und eine
+ * Unterstreichung läse sich als Link. `<strong>` bleibt im Markup für
+ * Screenreader, sichtbar ist es normaler Text.
+ */
+.prose strong {
+  font-weight: inherit;
+}
+
+.prose a {
+  color: var(--schrift);
+  text-underline-offset: 4px;
+}
+
+/* Adressblöcke und Angaben, bei denen Zeilenumbrüche zählen. */
+.address {
+  margin: 0 0 var(--space-md);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  font-style: normal;
+}
+
+.meta {
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--leise);
+}
+
+/* Leerzustand von `/foto` und `/film` (UI-SPEC, „Zustände"). */
+.leer {
+  margin: var(--space-xl) 0;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--leise);
+}

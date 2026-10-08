@@ -2,40 +2,36 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Bild from "./Bild";
-import { MOSAIK_SIZES, aufnahmeZeile, type Streckenbild } from "@/lib/bilder";
+import { MOSAIK_SIZES } from "@/lib/bilder";
+import type { Mosaikbild } from "@/lib/arbeiten";
 import styles from "./Mosaik.module.css";
 
 type Props = {
-  bilder: Streckenbild[];
-  titel: string;
+  /** Alle Bilder der Seite, in Anzeigereihenfolge (lib/arbeiten.ts). */
+  bilder: Mosaikbild[];
 };
 
+/** Wie viele Bilder sofort laden — der Rest lädt, wenn er in die Nähe kommt. */
+const SOFORT = 3;
+
 /**
- * Die Bildstrecke als Spaltenmosaik: jedes Bild in seiner eigenen Form,
- * **nichts beschnitten**.
- *
- * Das ist der Punkt der ganzen Komponente. Eine Strecke mischt Hoch- und
- * Querformat — bei `wiwawo-53` fünf zu eins —, und jedes Raster mit festen
- * Zellen schneidet dabei irgendwo einen Kopf ab.
+ * Das Mosaik auf `/foto`: alle Fotos aller Arbeiten in Spalten, jedes Bild
+ * in seiner eigenen Form, **nichts beschnitten**, **keine Zwischenzeilen**
+ * (E4). „Titel – Kunde" erscheint erst beim Überfahren bzw. bei
+ * Tastaturfokus und im Lichtkasten.
  *
  * ⚠️ **Der erste Anlauf war ein Zeilensatz und ist am 2026-09-13
- * gescheitert.** Er rechnete Zeilen gleicher Höhe, bündig an beiden
- * Rändern — sauber, aber das falsche Werkzeug: Ein Zeilensatz reiht die
- * Bilder in Dateireihenfolge aneinander und kann Formate nicht mischen.
- * Bei fünf Hochformaten gefolgt von einem Querformat kam genau das heraus:
- * ein Streifen aus fünf schmalen Bildern, darunter ein einzelnes breites.
- * Jan: „das mosaik ist geordnet … das ist kein mosaik."
+ * gescheitert.** Ein Zeilensatz reiht die Bilder in Dateireihenfolge
+ * aneinander und kann Formate nicht mischen — bei fünf Hochformaten und
+ * einem Querformat ein Streifen plus Einzelbild. Jan: „das mosaik ist
+ * geordnet … das ist kein mosaik." Spalten mischen von selbst, weil jede
+ * unabhängig gefüllt wird.
  *
- * Spalten mischen von selbst, weil jede unabhängig gefüllt wird. Die
- * Begründung und der Preis (senkrechte Reihenfolge) stehen im Kopf von
- * `Mosaik.module.css`.
- *
- * Weiterhin: **kein JavaScript im Layout.** Der Spaltensatz ist reines CSS
- * und trägt auch ohne Skript; der Lichtkasten obendrauf ist eine
- * Aufwertung, und ohne ihn ist jede Kachel ein gewöhnlicher Link auf die
- * Bilddatei.
+ * **Kein JavaScript im Layout.** Der Spaltensatz ist reines CSS und trägt
+ * auch ohne Skript; der Lichtkasten obendrauf ist eine Aufwertung, ohne ihn
+ * ist jede Kachel ein gewöhnlicher Link auf die Bilddatei.
  */
-export default function Mosaik({ bilder, titel }: Props) {
+export default function Mosaik({ bilder }: Props) {
   const [offen, setOffen] = useState<number | null>(null);
   /* Wohin der Fokus zurückgeht. Das hält zugleich die Scrollposition —
      siehe `schliesse`. */
@@ -44,16 +40,16 @@ export default function Mosaik({ bilder, titel }: Props) {
   const schliesse = useCallback(() => {
     setOffen(null);
     /*
-     * ⚠️ Das ist die Behebung von Jans Fehlerbild („beim schließen von
-     * einem bild in großer ansicht landet man wieder ganz oben"). Ursache
-     * war ein Kasten mit `position: absolute` im scrollenden Element: Er
-     * lag am Anfang des Inhalts, der Browser scrollte beim Fokussieren
-     * dorthin, und nach dem Schließen stand man oben. Der Kasten ist jetzt
+     * ⚠️ Behebung von Jans Fehlerbild („beim schließen von einem bild in
+     * großer ansicht landet man wieder ganz oben"). Ursache war ein Kasten
+     * mit `position: absolute` im scrollenden Element. Der Kasten ist jetzt
      * `fixed`, und der Fokus geht auf die Kachel zurück, von der er kam.
      */
     ausloeser.current?.focus({ preventScroll: true });
   }, []);
 
+  /* Blättert über **alle** Bilder der Seite, nicht nur innerhalb einer
+     Arbeit — das Mosaik hat keine Grenzen zwischen den Arbeiten. */
   const blaettere = useCallback(
     (schritt: number) =>
       setOffen((i) => {
@@ -92,12 +88,9 @@ export default function Mosaik({ bilder, titel }: Props) {
       /*
        * ⚠️ Chromium behält die Scrollposition über das Sperren hinweg —
        * gemessen. Safari und iOS setzen sie beim Aufheben von
-       * `overflow: hidden` bekanntlich zurück, und genau das wäre wieder
-       * Jans Fehlerbild. Hier kann ich nur Chromium prüfen, deshalb wird
-       * die Position ausdrücklich zurückgesetzt: im geprüften Browser ein
-       * Sprung auf denselben Wert, also wirkungslos; im ungeprüften die
-       * Absicherung. Gescrollt werden kann dazwischen nicht, der
-       * Hintergrund ist gesperrt.
+       * `overflow: hidden` bekanntlich zurück. Deshalb wird die Position
+       * ausdrücklich zurückgesetzt: im geprüften Browser wirkungslos, im
+       * ungeprüften die Absicherung.
        */
       window.scrollTo(0, hoehe);
     };
@@ -110,36 +103,38 @@ export default function Mosaik({ bilder, titel }: Props) {
   /*
    * Reihum verteilt, nicht spaltenweise: Bild 1 in Spalte 1, Bild 2 in
    * Spalte 2, Bild 3 in Spalte 3, Bild 4 wieder in Spalte 1. Damit liest
-   * sich die obere Reihe 1-2-3 statt 1-3-5.
-   *
-   * Genau das kann der Mehrspaltensatz des Browsers (`column-count`)
-   * nicht — er füllt Spalte für Spalte — und war der Grund, die Spalten
-   * hier selbst zu bilden.
+   * sich die obere Reihe 1-2-3 statt 1-3-5. Genau das kann der
+   * Mehrspaltensatz des Browsers (`column-count`) nicht.
    */
-  const spalten: { bild: Streckenbild; i: number }[][] = [[], [], []];
+  const spalten: { bild: Mosaikbild; i: number }[][] = [[], [], []];
   bilder.forEach((bild, i) => spalten[i % spalten.length].push({ bild, i }));
 
   return (
     <>
-      <div className={styles.mosaik}>
+      {/*
+        Eine Liste für Screenreader, drei Spalten fürs Auge. Die Spalten
+        sind `role="presentation"`, damit sie nicht als drei Listen
+        angesagt werden. Vorgelesen wird in DOM-Reihenfolge, also
+        spaltenweise (1, 4, 7, 2, …) — jedes Bild nennt seine Arbeit im
+        Alt-Text, deshalb bleibt die Zuordnung trotzdem klar.
+      */}
+      <div className={styles.mosaik} role="list">
         {spalten.map((spalte, s) => (
-          <div key={s} className={styles.spalte}>
-            {spalte.map(({ bild, i }) => {
-              const zeile = aufnahmeZeile(bild.quelle.exif);
-              return (
-                <figure
-                  key={bild.schluessel}
-                  className={styles.figur}
-                  /*
-                   * ⚠️ **Nur auf dem Telefon wirksam, dort aber
-                   * entscheidend.** Die Spalten sind schmal `display:
-                   * contents`; die Bilder werden damit direkte Kinder des
-                   * Mosaiks und lägen sonst in der Reihenfolge
-                   * 1, 4, 2, 5, 3, 6 untereinander. Genau dieser Fehler
-                   * ist schon einmal in den Flanken aufgetreten.
-                   */
-                  style={{ order: i }}
-                >
+          <div key={s} className={styles.spalte} role="presentation">
+            {spalte.map(({ bild, i }) => (
+              <div
+                role="listitem"
+                key={bild.schluessel}
+                className={styles.figur}
+                /*
+                 * ⚠️ **Nur auf dem Telefon wirksam, dort aber
+                 * entscheidend.** Die Spalten sind schmal `display:
+                 * contents`; die Bilder werden damit direkte Kinder des
+                 * Mosaiks und lägen sonst in der Reihenfolge
+                 * 1, 4, 2, 5, 3, 6 untereinander.
+                 */
+                style={{ order: i }}
+              >
                 {/*
                   Ein echter Link, kein `button`: Ohne JavaScript öffnet er
                   die Bilddatei, und im Kontextmenü steht „Link in neuem Tab
@@ -149,11 +144,9 @@ export default function Mosaik({ bilder, titel }: Props) {
                   className={styles.griff}
                   href={bild.quelle.fallback}
                   style={{ aspectRatio: `${bild.quelle.breite} / ${bild.quelle.hoehe}` }}
-                  aria-label={`Bild ${i + 1} von ${bilder.length} groß öffnen${zeile ? `: ${zeile}` : ""}`}
                   onClick={(e) => {
                     /* Mit Zusatztaste oder mittlerer Maustaste darf der
-                       Link Link bleiben — sonst nimmt man Leuten das
-                       Öffnen in einem neuen Tab weg. */
+                       Link Link bleiben. */
                     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
                     e.preventDefault();
                     ausloeser.current = e.currentTarget;
@@ -163,17 +156,19 @@ export default function Mosaik({ bilder, titel }: Props) {
                   <Bild
                     className={styles.bild}
                     quelle={bild.quelle}
-                    alt={`${titel}, Bild ${i + 1} von ${bilder.length}`}
+                    alt={bild.alt}
                     sizes={MOSAIK_SIZES}
+                    vorrang={i < SOFORT}
                   />
+                  {/* Für Sehende beim Überfahren. Vorgelesen wird sie nicht —
+                      die Beschriftung steckt schon im Alt-Text. */}
+                  <span className={styles.beschriftung} aria-hidden="true">
+                    {bild.beschriftung}
+                  </span>
+                  <span className={styles.nurVorlesen}>, groß ansehen</span>
                 </a>
-                {/* Die **volle** Zeile, nicht die kurze — so von Jan am
-                    2026-09-13 festgelegt, siehe „Aufnahmezeile" im
-                    UI-SPEC. */}
-                  {zeile && <figcaption className={styles.zeile}>{zeile}</figcaption>}
-                </figure>
-              );
-            })}
+              </div>
+            ))}
           </div>
         ))}
       </div>
@@ -183,10 +178,7 @@ export default function Mosaik({ bilder, titel }: Props) {
           className={styles.kasten}
           role="dialog"
           aria-modal="true"
-          aria-label={`${titel}, Bild ${offen! + 1} von ${bilder.length}`}
-          /* Hier blättern ← und → durch die Bilder, nicht durch die
-             Arbeiten — siehe Blaettertasten.tsx. */
-          data-blaettern="aus"
+          aria-label={bildImKasten.alt}
           onClick={(e) => {
             /* Klick neben das Bild schließt — aber nur, wenn wirklich der
                Grund getroffen wurde und nicht ein Kind davon. */
@@ -198,18 +190,13 @@ export default function Mosaik({ bilder, titel }: Props) {
               src={bildImKasten.quelle.fallback}
               srcSet={bildImKasten.quelle.webp}
               sizes="100vw"
-              alt={`${titel}, Bild ${offen! + 1} von ${bilder.length}`}
+              alt={bildImKasten.alt}
               width={bildImKasten.quelle.breite}
               height={bildImKasten.quelle.hoehe}
             />
           </div>
 
-          <p className={styles.kastenZeile}>
-            <span>{aufnahmeZeile(bildImKasten.quelle.exif)}</span>
-            <span className={styles.kastenZahl}>
-              {offen! + 1} / {bilder.length}
-            </span>
-          </p>
+          <p className={styles.kastenZeile}>{bildImKasten.beschriftung}</p>
 
           <button
             type="button"

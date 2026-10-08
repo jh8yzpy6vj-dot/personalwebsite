@@ -37,8 +37,8 @@
    * Schriftgrößen kennt. Größe und Farbe bleiben deshalb in der Skala aus
    * design/UI-SPEC.md. Auf das geladene Bild hat das keine Wirkung.
    */
-  font-family: var(--font-mono), ui-monospace, monospace;
+  font-family: var(--font-text);
   font-size: var(--text-label);
   line-height: var(--leading-label);
-  color: var(--ton-buehne);
+  color: var(--leise);
 }

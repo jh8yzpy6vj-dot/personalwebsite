@@ -19,11 +19,9 @@ export const SITE_URL = "https://jakobsax.de";
  * Steuert, ob Suchmaschinen die Seite indexieren dürfen.
  *
  * ⚠️ **Steht bewusst auf `false`.** Solange die Launch-Blocker aus TODO.md
- * offen sind, darf die Seite nicht in den Index: Die E-Mail-Adresse in
- * `content.ts` ist erfunden, alle Preise stehen auf „noch festzulegen", die
- * Inhalte sind nicht von Jakob gegengeprüft und ein Impressum fehlt. Ein
- * fehlendes Impressum ist abmahnfähig, und ein einmal indexierter Stand wird
- * auch nach der Korrektur noch eine Weile ausgeliefert.
+ * offen sind, darf die Seite nicht in den Index: Die Inhalte sind nicht von
+ * Jakob gegengeprüft und die Rechtstexte nicht anwaltlich gelesen. Ein einmal
+ * indexierter Stand wird auch nach der Korrektur noch eine Weile ausgeliefert.
  *
  * **Auf `true` setzen, wenn:** Impressum und Datenschutz existieren, die
  * Kontaktdaten echt sind und Jakob die Inhalte freigegeben hat.

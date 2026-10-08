@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 
 export default function Impressum() {
   return (
-    <LegalPage title="impressum." scope="impressum">
+    <LegalPage title="Impressum" scope="impressum" aktuell="/impressum">
       <h2>Angaben gemäß § 5 DDG</h2>
       <address className={styles.address}>
         {LEGAL.name}
@@ -80,9 +80,8 @@ export default function Impressum() {
 
           Der Inhalt ist aber nicht wertlos: Eine Rechtebehauptung wirkt dort,
           wo die Bilder stehen, ohnehin besser als in einer Rechtsseite, die
-          niemand liest. Der richtige Ort ist die Detailseite einer Arbeit
-          bzw. die Credits je Kachel. Falls der Absatz doch hierher soll:
-          siehe Commit-Historie. */}
+          niemand liest. Falls der Absatz doch hierher soll: siehe
+          Commit-Historie. */}
 
       {/* Kein Abschnitt zur Streitschlichtung — bewusst weggelassen, nicht
           vergessen. Zwei Gründe:

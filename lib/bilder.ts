@@ -13,26 +13,23 @@ import { BILDAUSSCHNITTE } from "./bildausschnitte";
  * relativ. Wer die Bucket-Domain wechselt, muss einmal `npm run medien`
  * laufen lassen; Begründung in scripts/medien.mjs.
  *
- * Solange im Bucket nichts liegt, ist das Manifest `{}` — jede Suche liefert
- * `null`, und die Oberfläche zeigt ihren Platzhalter. Genau das ist der
- * aktuelle Zustand: Die Mechanik steht, die Fotos fehlen (siehe TODO.md).
+ * Fehlt ein Schlüssel, liefert jede Suche `null` — und was kein Bild hat,
+ * erscheint auf der Seite nicht (siehe lib/arbeiten.ts).
  */
 
 /**
  * Aufnahmedaten aus dem EXIF des Originals. Alle Felder optional — je nach
  * Kamera und Exportweg fehlt einzelnes oder alles.
  *
+ * Seit dem Umbau vom 2026-10-08 **zeigt die Seite sie nicht mehr an** — pro
+ * Arbeit stehen nur Titel und Kunde. Der Typ bleibt, weil das Manifest die
+ * Felder weiter trägt und `npm run medien` sie schreibt.
+ *
  * ⚠️ Hier stehen **ausschließlich** diese vier Werte. Standortdaten werden
  * gar nicht erst eingelesen (`EXIF_FELDER` in `lib/bilder-regeln.mjs`).
  */
 export type Aufnahme = {
-  /**
-   * „22:14:03" — genau wie in der Datei, ohne Zeitzonen-Umrechnung.
-   *
-   * Mit Sekunden gespeichert, obwohl die Zeile unter dem Bild nur Stunde und
-   * Minute zeigt: Im Kontaktbogen liegen alle Frames in derselben Minute,
-   * dort ist die Sekunde die eigentliche Aussage. Gekürzt wird beim Anzeigen.
-   */
+  /** „22:14:03" — genau wie in der Datei, ohne Zeitzonen-Umrechnung. */
   zeit?: string;
   /** Belichtungszeit in Sekunden, z. B. 0.002 für 1/500. */
   belichtung?: number;
@@ -92,21 +89,23 @@ export function sparsamesSrcset(
  * Das Mosaik läuft in drei Spalten, eine Kachel füllt genau eine davon.
  * Die Spalten sind absichtlich ungleich breit (Gewichte 1.18 / 0.9 / 1.12
  * in `Mosaik.module.css`); `38vw` ist die **breiteste** davon, großzügig
- * aufgerundet. Unter 860px steht eine Spalte über die volle Breite.
+ * aufgerundet. Unter 860px steht eine Spalte über die volle Breite. Ab
+ * 1660px Fensterbreite wächst das Mosaik nicht mehr (höchstens 1600px, siehe
+ * UI-SPEC), die breiteste Spalte bleibt dann unter 600px.
  *
  * ⚠️ **Muss mit dem Umbruch dort übereinstimmen.** Laufen sie
  * auseinander, lädt der Browser stillschweigend die falsche Stufe — kein
  * Fehler, den irgendwo etwas meldet, nur zu viele Bytes oder ein weiches
  * Bild. Ein Test hält die Zahlen zusammen.
  */
-export const MOSAIK_SIZES = "(max-width: 860px) 92vw, 38vw";
+export const MOSAIK_SIZES = "(max-width: 860px) 92vw, (max-width: 1660px) 38vw, 600px";
 
 /**
- * `sizes` für das Hero der Detailseite.
+ * `sizes` für das Hero-Standbild der Startseite.
  *
- * Randlos über die volle Fensterbreite, mit `object-fit: cover` — am Desktop
- * über `100svh`, mobil in einer 4:3-Box. In beiden Fällen ist die gerenderte
- * Breite die Fensterbreite, deshalb reicht hier tatsächlich `100vw`.
+ * Randlos über die volle Fensterbreite, mit `object-fit: cover` über
+ * `100svh`. Die gerenderte Breite ist die Fensterbreite, deshalb reicht hier
+ * tatsächlich `100vw`.
  *
  * ⚠️ Das ist kein Rückfall auf den Standardwert, sondern die richtige Angabe
  * für ein randloses Bild. Auf einem Retina-Schirm fordert der Browser damit
@@ -116,87 +115,14 @@ export const MOSAIK_SIZES = "(max-width: 860px) 92vw, 38vw";
 export const HERO_SIZES = "100vw";
 
 /**
- * Belichtungszeit, wie Fotografen sie schreiben: kürzer als eine Sekunde
- * als Bruch (`1/500`), ab einer Sekunde mit Einheit (`2s`).
+ * `sizes` für ein Film-Standbild auf `/film`.
  *
- * `1/500` statt `0.002` ist keine Kosmetik — auf jedem Kameradisplay und in
- * jedem Gespräch steht der Bruch. Die Dezimalzahl liest hier niemand.
+ * Einspaltig bis 700px, zweispaltig bis 1400px, darüber drei Spalten in
+ * höchstens 1400px Seitenbreite — eine Kachel also rund 440px. Dieselben
+ * Umbrüche stehen in `app/film/film.module.css`; ein Test hält beide
+ * zusammen.
  */
-export function belichtungAlsText(sekunden: number): string {
-  if (sekunden >= 1) {
-    // `4s`, aber `1.6s` — nachkommastellen nur, wo sie etwas sagen.
-    return `${Number(sekunden.toFixed(1))}s`;
-  }
-  return `1/${Math.round(1 / sekunden)}`;
-}
-
-/** `f/2` statt `f/2.0`, `f/2.8` mit Stelle. */
-export function blendeAlsText(zahl: number): string {
-  return `f/${Number(zahl.toFixed(1))}`;
-}
-
-/**
- * Der Aufnahmezeitpunkt allein: `22:14` oder, mit Sekunden, `22:14:03`.
- *
- * Die Sekunden trägt nur der Kontaktbogen — dort unterscheiden sich die
- * Frames genau darin. Überall sonst wären sie eine Genauigkeit, die niemand
- * braucht und die die Zeile länger macht.
- */
-export function zeitpunkt(
-  exif: Aufnahme | undefined,
-  mitSekunden = false,
-): string | null {
-  if (!exif?.zeit) return null;
-  return mitSekunden ? exif.zeit : exif.zeit.slice(0, 5);
-}
-
-/**
- * Die Aufnahmezeile: `22:14 uhr · 1/500 · f/2.8 · iso 6400`.
- *
- * Klein geschrieben und mit `·` getrennt — dieselbe Schreibweise wie die
- * bestehende Metazeile (siehe design/UI-SPEC.md). Fehlende Werte fallen
- * ersatzlos weg, statt leere Trenner stehen zu lassen; bleibt nichts übrig,
- * gibt es `null` und die Zeile erscheint gar nicht.
- *
- * Warum das überhaupt auf der Seite steht: Für Kuratoren und Kollegen ist
- * `1/500 · f/2.8 · iso 6400` sofort lesbar als „der weiß, was er tut" —
- * eine konkrete Nennung statt eines Eigenschaftsworts, genau wie es der
- * Copywriting Contract verlangt.
- */
-export function aufnahmeZeile(exif: Aufnahme | undefined): string | null {
-  if (!exif) return null;
-
-  const zeit = zeitpunkt(exif);
-  const teile = [
-    zeit ? `${zeit} uhr` : null,
-    typeof exif.belichtung === "number" ? belichtungAlsText(exif.belichtung) : null,
-    typeof exif.blende === "number" ? blendeAlsText(exif.blende) : null,
-    typeof exif.iso === "number" ? `iso ${exif.iso}` : null,
-  ].filter(Boolean);
-
-  return teile.length > 0 ? teile.join(" · ") : null;
-}
-
-/**
- * Die kurze Variante für den Filmstreifen: `21:02 uhr · iso 3200`.
- *
- * Blende und Belichtungszeit stehen in einer Strecke an jedem Bild gleich —
- * sie wiederholen sich acht Mal und sagen beim zweiten Bild nichts mehr.
- * Was sich über den Abend ändert, ist die Uhrzeit und mit dem Licht die
- * Empfindlichkeit; genau das bleibt stehen.
- *
- * Nebenbei löst das ein Platzproblem: Die volle Zeile brach auf einem
- * 390px-Display innerhalb des Bildrahmens um.
- */
-export function streckenZeile(exif: Aufnahme | undefined): string | null {
-  if (!exif) return null;
-  const zeit = zeitpunkt(exif);
-  const teile = [
-    zeit ? `${zeit} uhr` : null,
-    typeof exif.iso === "number" ? `iso ${exif.iso}` : null,
-  ].filter(Boolean);
-  return teile.length > 0 ? teile.join(" · ") : null;
-}
+export const FILM_SIZES = "(max-width: 700px) 92vw, (max-width: 1400px) 46vw, 440px";
 
 export const BILDER: Record<string, Bildquelle> = manifest as Record<
   string,
@@ -215,28 +141,33 @@ export function bild(schluessel: string | null | undefined): Bildquelle | null {
 }
 
 /**
- * Das Leitbild einer Arbeit — **über die `id`, nicht über ein Feld in
- * `content.ts`**.
- *
- * Bewusst Konvention statt Konfiguration: Jakob und Jan legen die Datei nach
- * `original/arbeiten/<id>.jpg` in den Bucket und sind fertig. Ein zusätzliches
- * `image`-Feld wäre eine zweite Stelle, an der derselbe Name steht — und
- * damit eine Stelle, an der er falsch stehen kann.
+ * Das Bild ohne Nummer einer Fotoarbeit: `original/arbeiten/<id>.jpg`.
+ * Auf `/foto` steht es vor den nummerierten Bildern der Arbeit.
  */
-export function bildZurArbeit(id: string): Bildquelle | null {
+export function leitbildZurArbeit(id: string): Bildquelle | null {
   return bild(`arbeiten/${id}`);
+}
+
+/**
+ * Das Standbild eines Films: `original/film/<id>.jpg` im Bucket.
+ *
+ * Über die `id`, nicht über ein Feld in `content.ts` — Konvention statt
+ * Konfiguration. Ein zusätzliches Bildfeld wäre eine zweite Stelle, an der
+ * derselbe Name steht, und damit eine Stelle, an der er falsch stehen kann.
+ */
+export function standbildZumFilm(id: string): Bildquelle | null {
+  return bild(`film/${id}`);
 }
 
 /**
  * Mittig — der Standard, wenn für ein Bild nichts gewählt wurde.
  *
  * ⚠️ **Warum der Ausschnitt je Bild gewählt werden muss und keine Regel
- * ihn ersetzen kann:** Ein Hochformat (4672×7008) zeigt in einem
- * 1920×1080-Hero nur **37,5 % seiner Höhe**, bei jeder Einstellung. Welche
- * 37,5 % die richtigen sind, hängt allein vom Motiv ab — beim Lagerfeuer
- * unten, beim Porträt mittig, beim Sprung oben. Hier stand bis zum
- * 2026-09-13 pauschal 38 %; Jan hat an drei Bildern gezeigt, dass das
- * nicht trägt.
+ * ihn ersetzen kann:** Wo ein Bild in eine feste Form muss — seit dem Umbau
+ * das 16:9-Standbild auf `/film` —, bleibt nur ein Teil davon sichtbar, und
+ * welcher der richtige ist, hängt allein vom Motiv ab. Bis zum 2026-09-13
+ * stand für das damalige Hero pauschal 38 %; Jan hat an drei Bildern
+ * gezeigt, dass das nicht trägt.
  *
  * Mittig ist der einzig vertretbare Standard: bei keinem Motiv grob
  * falsch, anders als ein Drittel, das bei der Hälfte danebenliegt.
@@ -281,35 +212,10 @@ function ordnerInhalt(praefix: string): Streckenbild[] {
 /**
  * Die Bildstrecke einer Arbeit: `original/arbeiten/<id>/*.jpg` im Bucket.
  *
- * Bewusst ein **Ordner** statt einer Liste in `content.ts` — dieselbe
- * Konvention wie beim Leitbild. Wer eine Strecke ergänzen will, legt Dateien
- * ab; niemand muss Code anfassen.
- *
- * Der Unterordner `serie/` gehört nicht dazu, der ist der Kontaktbogen.
+ * Bewusst ein **Ordner** statt einer Liste in `content.ts`. Wer Bilder
+ * ergänzen will, legt Dateien ab; niemand muss Code anfassen. Unterordner
+ * gehören nicht dazu.
  */
 export function bildstreckeZurArbeit(id: string): Streckenbild[] {
   return ordnerInhalt(`arbeiten/${id}/`);
-}
-
-export type Serienbild = Streckenbild & {
-  /** Der Frame, der es geworden ist — Dateiname endet auf `-gewaehlt`. */
-  gewaehlt: boolean;
-};
-
-/**
- * Der Kontaktbogen einer Arbeit: `original/arbeiten/<id>/serie/*.jpg`.
- *
- * Alle Frames derselben Aufnahmeserie, der gewählte darunter. Er erkennt sich
- * am Dateinamen (`…-gewaehlt.jpg`) — **nicht** am EXIF-Zeitstempel, denn den
- * bringt nicht jede Datei mit, und dann stünde die Markierung willkürlich
- * woanders. Ein Dateiname ist außerdem im Ordner sichtbar; eine Regel, die
- * man sehen kann, wird seltener falsch angewendet.
- *
- * Ist keiner markiert, gibt es eben keine Markierung. Das ist kein Fehler.
- */
-export function serieZurArbeit(id: string): Serienbild[] {
-  return ordnerInhalt(`arbeiten/${id}/serie/`).map((b) => ({
-    ...b,
-    gewaehlt: /-gewaehlt$/.test(b.schluessel),
-  }));
 }

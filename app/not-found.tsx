@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
-import LightPage, { lightStyles as styles } from "./components/LightPage";
+import Seite from "./components/Seite";
+import styles from "./not-found.module.css";
 
 /**
- * Eigene 404-Seite.
- *
- * Ohne diese Datei landet man auf der Next.js-Standardseite: weißer Grund,
- * englischer Text, kein Bezug zur Seite. Bei einer Struktur mit eigenen
- * URLs je Arbeit (`/arbeiten/[slug]`) passiert das zwangsläufig — durch
- * Tippfehler, alte Links oder eine Arbeit, die wieder entfernt wurde.
- *
- * Sie führt bewusst weiter statt sich zu entschuldigen: Wer hier landet,
- * suchte etwas Bestimmtes und braucht den nächsten Schritt, keine
- * Fehlermeldung.
+ * Eigene 404-Seite. Führt weiter, statt sich zu entschuldigen (UI-SPEC,
+ * „Copywriting Contract"): eine Zeile, zwei Wege.
  */
 export const metadata: Metadata = {
   title: "Seite nicht gefunden — jakob sax",
@@ -20,18 +13,15 @@ export const metadata: Metadata = {
 
 export default function NotFound() {
   return (
-    <LightPage title="hier ist nichts.">
-      <div className={styles.prose}>
-        <p>
-          Die Adresse führt ins Leere. Vielleicht ein Tippfehler, vielleicht
-          ein alter Link.
-        </p>
-        <p>
-          Weiter geht es bei den <a href="/arbeiten">Arbeiten</a>, auf der{" "}
-          <a href="/">Startseite</a> oder direkt über den{" "}
-          <a href="/kontakt">Kontakt</a>.
-        </p>
-      </div>
-    </LightPage>
+    <Seite titel="Hier ist nichts." titelSichtbar breite="text">
+      <ul className={styles.wege}>
+        <li>
+          <a href="/foto">foto</a>
+        </li>
+        <li>
+          <a href="/film">film</a>
+        </li>
+      </ul>
+    </Seite>
   );
 }

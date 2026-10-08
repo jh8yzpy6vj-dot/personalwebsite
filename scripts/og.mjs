@@ -2,8 +2,9 @@
  * Vorschaukarten (OpenGraph) — **läuft lokal**, im Anschluss an
  * `scripts/medien.mjs` (`npm run medien` ruft beides nacheinander auf).
  *
- * Erzeugt je Arbeit und einmal für die Seite selbst ein JPEG unter
- * `public/og/`. Anders als die Bildvarianten liegen die Karten **im Repo**:
+ * Erzeugt **eine** Karte (`start.jpg`) für alle Seiten unter `public/og/`.
+ * Seit dem Umbau vom 2026-10-08 gibt es keine Detailseiten mehr und damit
+ * keine Karte je Arbeit; alte Karten räumt das Skript selbst weg. Anders als die Bildvarianten liegen die Karten **im Repo**:
  * Es sind rund zehn Dateien à 50 kB, sie ändern sich nur mit den Titeln, und
  * so ist die Seite ohne den Bucket vollständig. Nach einem Lauf gehören die
  * geänderten Karten mit committet. Das ist das Bild, das WhatsApp, Slack, Mastodon und LinkedIn
@@ -121,9 +122,6 @@ async function schreibe(name, element, fonts) {
   return jpeg.length;
 }
 
-/** Metazeile einer Arbeit — dieselbe Regel wie in lib/works.ts. */
-const metaZeile = (w) => [w.place, w.role, w.year].filter(Boolean).join(" · ");
-
 async function main() {
   let inhalt;
   try {
@@ -137,7 +135,7 @@ async function main() {
     return;
   }
 
-  const { SITE, WORKS } = inhalt;
+  const { SITE } = inhalt;
   const manifest = existsSync(MANIFEST)
     ? JSON.parse(await readFile(MANIFEST, "utf8"))
     : {};
@@ -157,32 +155,14 @@ async function main() {
       "start",
       ogKarte({
         marke: SITE.name,
-        titel: SITE.positioning,
-        unter: SITE.locations,
+        /* Keine Positionierungszeile (UI-SPEC) — nur, was es hier gibt. */
+        titel: "foto · film",
         foto: await foto(manifest["hero/standbild"]),
       }),
       fonts,
     ),
   );
   behalten.add("start.jpg");
-
-  for (const work of WORKS) {
-    pruefe(
-      work.id,
-      await schreibe(
-        work.id,
-        ogKarte({
-          marke: SITE.name,
-          ueber: work.client,
-          titel: work.title,
-          unter: metaZeile(work),
-          foto: await foto(manifest[`arbeiten/${work.id}`]),
-        }),
-        fonts,
-      ),
-    );
-    behalten.add(`${work.id}.jpg`);
-  }
 
   // Karten zu gelöschten Arbeiten wegräumen — sonst bleibt eine Vorschau für
   // eine URL liegen, die es nicht mehr gibt.

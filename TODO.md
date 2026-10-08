@@ -93,171 +93,34 @@ Offen:
 
 ---
 
-### Schritt 2 — Datenmodell und Medien (Claude)
+### Schritte 2–5 — Datenmodell, Grundlage, Seiten, Abbau ✅ (2026-10-08)
 
-- [ ] **2.1 `lib/content.ts` neu.** Statt `WORKS`, `CATEGORIES`, `SERVICES`, `REFERENCES`:
+Erledigt, Einzelheiten in `AGENT-LOG.md`. Offen geblieben, weil es an Material oder Menschen
+hängt:
 
-      export type Fotoarbeit = { id: string; titel: string; kunde: string };
-      export type Film       = { id: string; titel: string; kunde: string; link: string };
-      export const FOTOS: Fotoarbeit[] = [ … ];
-      export const FILME: Film[] = [ … ];
-
-  - **Kein `jahr`.** Gezeigt werden nur Titel und Kunde, sortiert wird nach Dateireihenfolge.
-    Gehört das Jahr zur Arbeit („WiWaWo 2026“), steht es im Titel.
-  - **Die Reihenfolge in der Datei ist die Reihenfolge auf der Seite.** Keine Sortierung nach
-    Jahr — die Auswahl und Abfolge ist Jakobs Kuration, und genau die soll die Seite zeigen.
-  - `id` bleibt der Ordnername im Bucket: `wiwawo-53` behält seine sieben Bilder ohne neuen
-    Upload.
-  - `ABOUT` schrumpft auf `zeilen` (3–4), `portraitAlt`, `email`, `instagram`, `swr`. `CONTACT`
-    und die vertraulichen Kanäle entfallen.
-  - Startbestand aus dem, was belegt ist: Foto `wiwawo-53`; Filme WiWaWo 50–52, Y-Kollektiv
-    „Tödliches Gold" — **Links und Standbilder fehlen** (Schritt 7). Nichts erfinden: Einträge
-    ohne Link bleiben draußen.
-- [ ] **2.2 `lib/works.ts` → `lib/arbeiten.ts`.** Nur noch: `beschriftung(a)` →
-  `"Titel – Kunde"`, `fotosMitBildern()`, `filmeMitStandbild()`.
-  - **Regel: Was kein Bild hat, erscheint nicht.** Eine Seite, die nur aus Bildern besteht, darf
-    keine grauen Platzhalterkacheln zeigen. `npm run medien` nennt stattdessen, was fehlt.
-- [ ] **2.3 `lib/bilder.ts` / `lib/video.ts` ausdünnen.** Raus: `serieZurArbeit`,
-  `aufnahmeZeile`, `streckenZeile`, `videoZurArbeit`. Neu: `standbildZumFilm(id)` →
-  `film/<id>`. `heroVideo()` bleibt.
-  - ⚠️ **Die GPS-Entfernung in `scripts/exif.mjs` bleibt** — nur die Anzeige der EXIF-Zeile
-    fällt weg, nicht der Schutz.
-  - Alt-Texte: je Bild optional, sonst Rückfall auf „Titel – Kunde, Bild n". Korrekt, aber
-    schwach — echte Beschreibungen kommen von Jakob.
-  - `arbeiten/wiwawo-53` (Leitbild ohne Nummer): beim Umbau ansehen und entweder als erstes Bild
-    ins Mosaik nehmen oder aus dem Bucket entfernen.
-- [ ] **2.4 `scripts/medien.mjs` → `pruefeZuordnung`** auf die neuen Pfade umstellen:
-  `arbeiten/<id>/NN` gegen `FOTOS`, `film/<id>` gegen `FILME`, dazu `hero/film`,
-  `hero/standbild`, `portrait`. Zusätzlich warnen: Fotoarbeit ohne Bilder, Film ohne Standbild.
-- [ ] **2.5 Linkprüfung: `npm run links`** (neues Skript). Ruft jeden `FILME[].link` ab und meldet
-  alles außer 200. **Bewusst nicht im Build:** Ein Build darf nicht davon abhängen, ob YouTube
-  gerade antwortet.
-  - Grund: **ARD- und SWR-Mediathek depublizieren nach Ablauf der Verweildauer.** Ein toter Link
-    auf einer Seite, die nur aus Links besteht, ist ein sichtbarer Mangel. Wo es einen dauerhaften
-    Ort gibt (YouTube-Kanal von Y-Kollektiv/funk), den bevorzugen.
-- [ ] **2.6 `scripts/og.mjs`:** Nur noch eine Karte (`start.jpg`) für alle Seiten — ohne
-  Detailseiten gibt es keine Karte je Arbeit. Neue Schrift, keine Positionierungszeile. Alte
-  Karten räumt das Skript selbst weg.
-- [ ] **2.7 Tests:** `lib/works.test.ts` → `lib/arbeiten.test.ts` (ids eindeutig, jeder Film hat
-  einen `https://`-Link, Beschriftung im richtigen Format, Arbeiten ohne Bild fallen heraus).
-  Aus `lib/bilder.test.ts` die Teile zu Blende, Kontaktbogen und Aufnahmezeile entfernen;
-  Mosaik, Bildausschnitte und Manifest bleiben.
-
----
-
-### Schritt 3 — Gestaltungsgrundlage (Claude, nach 1.6)
-
-- [ ] **3.1 `app/globals.css`:** Tokens nach UI-SPEC. Die Hälften-Logik (`--buehne`/`--papier`,
-  Naht, `#lesen`) fällt weg. `medien-scrim` bleibt für den Hero.
-- [ ] **3.2 Schriften in `app/layout.tsx`** — ⚠️ erst, wenn das Repo privat ist und die Lizenzart
-  feststeht (`TECH-STACK.md`, „Schriften“): Bricolage Grotesque, Newsreader und Martian Mono
-  raus; Druk Wide Bold und Avenir Next über `next/font/local` rein. Rückfallschriften mit
-  angepasster Größe, damit beim Laden nichts springt.
-- [ ] **3.3 `Topbar` neu und einfacher.** Kein `<dialog>`-Menü mehr — drei Ziele passen
-  ausgeschrieben auch aufs Telefon (bei 320 px Breite nachmessen; passt es nicht, rutscht die
-  Navigation unter den Schriftzug, sie wird nicht eingeklappt). Kein Hälften-Beobachter.
-  - **●REC bleibt (E2)** und steht beim Schriftzug: in der Topbar und auf `/` beim großen
-    Schriftzug in der Mitte. Die genaue Stelle legt 1.2 fest.
-  - Auf `/` steht links **kein** Schriftzug, weil er groß in der Mitte des Videos steht. Auf allen
-    anderen Seiten links „jakob sax", rechts die Navigation.
-  - Aktive Seite markiert (`aria-current`), wie bisher über `isCurrent`.
-- [ ] **3.4 `SiteFooter`:** Impressum · Datenschutz. Sonst nichts.
-- [ ] **3.5 `Cache-Control` für HTML** (steht unter „Kurzfristig") **in diesen Umbau vorziehen.**
-  Bei einem Strukturumbau ist veraltetes HTML im Edge-Cache besonders tückisch: alte Seiten mit
-  Links auf Routen, die es nicht mehr gibt.
-
----
-
-### Schritt 4 — Die Seiten (Claude)
-
-- [ ] **4.1 Startseite `/`.**
-  - `<video autoplay muted loop playsinline poster=…>` in voller Fensterhöhe (`100svh`), darüber
-    mittig „jakob sax" als `<h1>` (echter Text, kein Bild — Screenreader und Suche).
-  - **Pause-Knopf, klein in einer Ecke.** Pflicht nach WCAG 2.2.2: Was sich länger als fünf
-    Sekunden von selbst bewegt, muss sich anhalten lassen.
-  - `prefers-reduced-motion`: kein Autoplay; Standbild mit Abspielknopf.
-  - Rückfälle: kein Video → Standbild; weder noch → leere Fläche mit Schriftzug. **Das Standbild
-    muss allein tragen** — iOS spielt im Energiesparmodus nichts automatisch ab.
-  - Optional: eine kleinere Fassung fürs Telefon (`<source media=…>`) — erst, wenn das Video da
-    ist und die Messung es verlangt.
-  - Impressum und Datenschutz klein unten links im Video — `/` hat keinen Footer, und das
-    Impressum muss von jeder Seite aus erreichbar sein (§ 5 DDG).
-  - Vorbild für die Anmutung: bildmanufaktur.de.
-- [ ] **4.2 `/foto`.**
-  - `Mosaik` über alle Fotoarbeiten in Dateireihenfolge. Die Komponente bekommt je Bild die
-    Beschriftung mit; der Lichtkasten zeigt „Titel – Kunde" und blättert über **alle** Bilder
-    der Seite, nicht nur innerhalb einer Arbeit.
-  - Beschriftung beim Überfahren nur mit `@media (hover: hover)`. Auf Touch ist der Lichtkasten
-    der Weg.
-  - Ladezeit: die ersten Bilder sofort, der Rest `loading="lazy"`; Größen über `MOSAIK_SIZES`.
-    Mit wachsendem Bestand prüfen, ob die Seite noch schnell steht.
-- [ ] **4.3 `/film`.**
-  - Raster, zweispaltig ab Tablet, einspaltig am Telefon. Kachel = Standbild in festem
-    Seitenverhältnis (16:9) + Zeile „Titel – Kunde" darunter. Die ganze Kachel ist der Link.
-  - **Standbilder liegen bei uns** (`film/<id>`), keine Vorschaubilder von YouTube nachladen —
-    das wäre eine Anfrage an Google bei jedem Seitenaufruf und gehörte in die
-    Datenschutzerklärung.
-  - Ziel für Screenreader benennen („auf YouTube"), ein kleines ↗ für Sehende.
-- [ ] **4.4 `/ueber`.**
-  - Ab Tabletbreite zweispaltig: Bild links, rechts die 3–4 Zeilen, darunter E-Mail, Instagram,
-    SWR-Autorenseite. Am Telefon untereinander, Bild zuerst.
-  - Porträt aus `original/portrait.jpg` (liegt schon im Bucket). Ob Jakob dieses Bild will oder
-    ein anderes, fragen — „nicht durch meine Fresse" heißt mindestens: nur hier.
-- [ ] **4.5 Impressum und Datenschutz** auf den neuen Tokens. Datenschutz bereinigen: Formular,
-  Versanddienstleister und Turnstile raus (`VERSAND_AKTIV` in `lib/legal.ts` entfällt).
-  Beschreiben, was wirklich passiert: Hosting bei Cloudflare, Medien von der eigenen
-  Medien-Domain, selbst ausgelieferte Schriften, externe Links erst beim Klick.
-- [ ] **4.6 404-Seite** in der neuen Gestaltung; führt weiter zu foto und film.
-- [ ] **4.7 Metadaten.**
-  - Seitentitel „foto — jakob sax" usw., kurze Beschreibungen.
-  - `StructuredData`: nur noch `Person` mit `sameAs` (SWR, Instagram). `ProfessionalService`
-    fällt weg — es gibt keinen Dienst mehr.
-  - `sitemap.ts`: vier Adressen.
-
----
-
-### Schritt 5 — Abbau und Weiterleitungen (Claude)
-
-- [ ] **5.1 Löschen:**
-  - Routen: `app/arbeiten/`, `app/leistungen/`, `app/kontakt/`, `app/api/anfrage/`
-  - Komponenten: `AnfrageForm`, `Kachelraster`, `Kontaktbogen`, `UeberAnriss`, `Works`, `Film`,
-    `Blende` (jeweils mit `.module.css`)
-  - Bibliotheken: `lib/anfrage.ts` und `lib/anfrage.test.ts`, `lib/mailer.ts`
-  - CSS-Module der alten Startseite
-- [ ] **5.2 Prüfen, dass nichts ins Leere zeigt:** keine Importe auf Gelöschtes, keine Links auf
-  entfernte Routen, keine verwaisten CSS-Klassen. Danach `npm run lint`, `npm test`,
-  `npm run build`, `npm run cf:build`.
-- [ ] **5.3 Weiterleitungen in `next.config.mjs`** (dauerhaft, 308):
-
-  | Von | Nach |
-  |-----|------|
-  | `/arbeiten` und `/arbeiten/:slug` | `/foto` |
-  | `/leistungen/:slug` | `/` |
-  | `/kontakt` | `/ueber` |
-
-  Die Seite war nie indexiert. Die Weiterleitungen sind trotzdem billig und fangen Links ab, die
-  schon herumgeschickt wurden.
+- [ ] **3.2 Echte Schriften einbinden** (Druk Wide Bold, Avenir Next über `next/font/local`).
+  Wartet auf die `woff2`-Dateien, die Lizenzart und ein **privates Repo**. Bis dahin laufen
+  Archivo (breit) und Figtree als Ersatz, siehe `TECH-STACK.md`, „Schriften".
+  - Danach: Schriftzug „jakob sax" bei **320px** nachmessen (UI-SPEC, „Typografie") und
+    `--topbar-h` neu messen.
+- [ ] **Alt-Texte, Titel, Kunden, Zeilen auf `/ueber`** von Jakob gegenlesen lassen.
 
 ---
 
 ### Schritt 6 — Prüfen und ausliefern
 
-- [ ] **6.1 Lokal im Worker-Laufzeitmodell** (`npm run cf:preview`), nicht nur `next dev`.
-- [ ] **6.2 Im Browser:**
-  - Breiten 375 / 768 / 1440
-  - nur Tastatur: Fokus sichtbar, Lichtkasten, Pause-Knopf
-  - `prefers-reduced-motion`
-  - Video fällt aus → Standbild
-  - gedrosseltes 4G: Startseite mit Standbild als größtem Element unter 2,5 s
-- [ ] **6.3 UI-Prüfung** gegen das neue UI-SPEC (`gsd-ui-checker`).
-- [ ] **6.4 Ein einziger Push.** ⚠️ `main` geht sofort live. Die Schritte 2–5 deshalb **lokal als
-  einzelne Commits** sammeln und erst zusammen pushen, wenn 6.1–6.3 bestanden sind. Sonst steht
-  zwischendurch eine halb umgebaute Seite online, mit Navigation auf Seiten, die es noch nicht
-  oder nicht mehr gibt.
-  - Alternative: Arbeitsbranch mit Cloudflare-Vorschau. Das wäre eine Änderung am Workflow und
-    müsste laut `CLAUDE.md` erst dort eingetragen werden. Für einen einmaligen Umbau einer
-    ungelisteten Seite lohnt das nicht.
-- [ ] **6.5 Log-Einträge** in `AGENT-LOG.md`, je abgeschlossenem Schritt.
+- [x] 6.1 `npm run lint`, `npm test`, `npm run build`, `npm run cf:build` grün (2026-10-08).
+- [x] 6.2 teilweise: Breiten 375 / 768 / 1440 auf allen Seiten ohne waagerechtes Scrollen;
+  Lichtkasten per Tastatur (Enter, →, Esc, Fokus zurück auf die Kachel, Scrollposition
+  bleibt); Weiterleitungen und `Cache-Control` per `curl`.
+- [ ] 6.2 Rest: Hero-Video mit Pause-Knopf, `prefers-reduced-motion` und Video-Ausfall —
+  **erst prüfbar, wenn ein Video im Bucket liegt.** Gedrosseltes 4G ebenso erst mit
+  Hero-Standbild.
+- [ ] 6.3 UI-Prüfung gegen das neue UI-SPEC (`gsd-ui-checker`), zusammen mit 1.6.
+- [ ] 6.4 Merge nach `main` (= live). Gebaut wurde auf dem Arbeitsbranch `main-wlv97t`;
+  der Merge bleibt eine menschliche Entscheidung (siehe „Schreibzugriff" unten). ⚠️ Ohne
+  Filme zeigt `/film` „Filme folgen." und ohne Hero-Material die Startseite eine leere
+  dunkle Fläche mit Schriftzug — gültige Zustände, aber kein guter erster Eindruck.
 
 ---
 
@@ -399,10 +262,6 @@ ist mit der Neuausrichtung hinfällig.
 - [ ] **Hochformat in Originalqualität ansehen können.** Jan am 2026-09-12: „ggf will ich ja ein Hochformat in Originalqualität laden."
   - ✅ **Der Weg dorthin steht seit dem 2026-09-13:** Jede Mosaikkachel öffnet im Lichtkasten, und der lädt **erst beim Öffnen** die große Fassung. Die Seite bleibt schnell, weil das nur passiert, wenn es jemand will.
   - **Offen bleibt die eigentliche Frage:** Der Lichtkasten zeigt derzeit die ausgelieferte WebP-Stufe, nicht die Datei aus `original/`. Soll er das Original laden? ⚠️ **Vorher müssen die EXIF-Daten der Originale nachweislich sauber sein (GPS!)** — der Bucket ist öffentlich. Abgesichert ist bisher die Pipeline; `scripts/exif.mjs` räumt die Originale seit dem 2026-09-12 mit auf, ein Nachweis über den **vorhandenen** Bestand fehlt aber.
-- [ ] **⚠️ `Cache-Control` für HTML setzen.** Am 2026-09-13 zeigte die Startseite nach einem Deploy weiter die alte Kachel, während die Detailseite bereits die neue war — beide lesen dieselbe Manifest-Zeile, also lag altes **HTML** im Cloudflare-Edge-Cache. Inkognito und harter Reload halfen nicht, erst ein „Purge Everything" im Dashboard.
-  - **Bilder sind seit dem Fingerabdruck (`?v=…`) sicher**: gleiche Adresse heißt gleiche Datei. Für HTML gilt das nicht — dort ist die Adresse stabil und der Inhalt ändert sich bei jedem Deploy. Genau die Lücke.
-  - Zu tun: Für HTML-Antworten einen Header setzen, der den Edge revalidieren lässt (`Cache-Control: public, max-age=0, must-revalidate` oder `s-maxage=0`), die Bilder unter `b/` aber unangetastet lässt. Sonst muss nach jedem Deploy von Hand gepurgt werden — und **wer das vergisst, merkt es nicht**, weil die Seite ja etwas anzeigt.
-  - ⏳ **In den Umbau vorgezogen** (UMBAU, Schritt 3.5).
 - [ ] Prüfen, ob `jakobsax.de` und `www.jakobsax.de` inzwischen für alle stabil ohne Fehler erreichbar sind (DNS-Propagation nach dem 525-Fix abschließend testen).
 - [ ] **Bildmaterial beschaffen.** Die Seite lebt von Fotos, aktuell zeigt jede Kachel „Bild folgt". Laut Briefing schlagen 12–20 wirklich starke Bilder 60 gute. Klären, wer auswählt.
   - ✅ **Die Technik dahinter steht seit 2026-08-28** (`srcset`, AVIF/WebP, Vorschaubildchen, Größenbudget, GPS-Entfernung). Zu tun ist nur noch: **Datei als `original/arbeiten/<id>.jpg` in den Bucket legen** — `<id>` ist die `id` der Arbeit aus `lib/content.ts` — und einmal `npm run medien` laufen lassen. Anleitung in `TECH-STACK.md`, Abschnitt „Medien".

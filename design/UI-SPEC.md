@@ -17,9 +17,9 @@ reviewed_at: —
 > Auftragsseite vom 2026-08-26 vollständig. Was davon entfallen ist und warum, steht ganz unten
 > unter „Abgelöst"; den alten Vertrag im Wortlaut enthält der Git-Verlauf (Stand `9a04e0d`).
 >
-> ⏳ **Der Code folgt diesem Vertrag in den Schritten 2–5 des Umbaus.** Bis der Umbau ausgeliefert
-> ist, entspricht die Live-Seite noch dem alten Vertrag. Das ist die Reihenfolge, die `CLAUDE.md`
-> verlangt: erst der Vertrag, dann der Code.
+> ✅ **Der Code folgt diesem Vertrag seit dem 2026-10-08** (Branch `main-wlv97t`, Log in
+> `AGENT-LOG.md`). Ausnahme: die Schriften — bis die Lizenzdateien da sind, laufen Ersatzschriften
+> (`TECH-STACK.md`, „Schriften"). Live ist der Umbau erst nach dem Merge nach `main`.
 
 ---
 

@@ -35,21 +35,6 @@
  */
 export const LEGAL_DATA_COMPLETE = true;
 
-/**
- * Ist der E-Mail-Versand des Anfrageformulars eingerichtet?
- *
- * Steuert **einen Absatz der Datenschutzerklärung**: Solange kein
- * Versanddienstleister im Spiel ist, darf dort auch keiner genannt werden —
- * eine Erklärung, die nicht stattfindende Verarbeitungen aufführt, ist
- * genauso falsch wie eine, die welche verschweigt.
- *
- * **Auf `true` setzen, sobald die Worker-Secrets gesetzt sind**
- * (`RESEND_API_KEY`, `ANFRAGE_AN`, `ANFRAGE_VON` — siehe `lib/mailer.ts`)
- * und ein Auftragsverarbeitungsvertrag mit dem Anbieter vorliegt.
- * Beides gehört zusammen; ohne AV-Vertrag darf der Versand nicht laufen.
- */
-export const VERSAND_AKTIV = false;
-
 export const LEGAL = {
   /** Vollständiger Name des Diensteanbieters. */
   name: "Jakob Sax",
@@ -117,7 +102,7 @@ export const LEGAL = {
   },
 
   /** Datum der letzten inhaltlichen Änderung an den Rechtstexten. */
-  lastUpdated: "2026-08-27",
+  lastUpdated: "2026-10-08",
 } as const;
 
 /**

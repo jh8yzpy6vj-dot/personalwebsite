@@ -1,77 +1,59 @@
 import type { Metadata } from "next";
-import LightPage, { lightStyles as styles } from "../components/LightPage";
+import Seite from "../components/Seite";
 import Bild from "../components/Bild";
 import { bild } from "@/lib/bilder";
-import { ABOUT, REFERENCES } from "@/lib/content";
-import portraitStyles from "./portrait.module.css";
+import { ABOUT } from "@/lib/content";
+import styles from "./ueber.module.css";
 
-/**
- * Die Person. Hier lebt der Journalismus — auffindbar und prominent, aber
- * getrennt vom Angebot.
- *
- * Der Grund für die Trennung (siehe SITE-PLAN.md): Stünden SWR-Beiträge als
- * Portfolio-Kacheln neben einem Aftermovie, verkaufte er seine Recherche.
- * Als eigener Bereich sind sie ein Beleg — und genau darin liegt ihr Wert
- * für die Fotografie-Kundschaft.
- */
 export const metadata: Metadata = {
-  title: "über — jakob sax",
-  description:
-    "Jakob Sax, Journalist beim SWR in der Klimaredaktion und Fotograf für Kultur und Theater im öffentlichen Raum.",
+  title: "über mich — jakob sax",
+  description: "Jakob Sax, Journalist beim SWR, Fotos und Filme.",
   alternates: { canonical: "/ueber" },
 };
 
+/**
+ * `/ueber`: Bild links, rechts 3–4 Zeilen, darunter die Kontaktzeile
+ * (E6, E12). Am Telefon untereinander, Bild zuerst. Das einzige Bild von
+ * Jakob auf der ganzen Seite („nicht durch meine Fresse").
+ */
 export default function Ueber() {
   const portrait = bild("portrait");
 
   return (
-    <LightPage title="über." current="/ueber">
-      {/*
-        Das Porträt steht **vor** dem Text, nicht daneben: Wer wissen will,
-        wer da schreibt, schaut zuerst. Danebengestellt wäre es Dekoration
-        neben einer Textspalte; darüber ist es die Antwort auf die Frage,
-        mit der man diese Seite öffnet.
+    <Seite titel="Über Jakob Sax" aktuell="/ueber" breite="ueber">
+      <div className={portrait ? styles.zweispaltig : undefined}>
+        {portrait && (
+          <div className={styles.bildspalte}>
+            <Bild
+              className={styles.portrait}
+              quelle={portrait}
+              alt={ABOUT.portraitAlt}
+              sizes="(max-width: 800px) 92vw, 460px"
+              vorrang
+            />
+          </div>
+        )}
 
-        Fehlt die Datei, erscheint hier nichts — kein Platzhalter. Auf der
-        Startseite ist einer nötig, weil das Raster sonst ein Loch hätte;
-        hier folgt einfach der Text.
-      */}
-      {portrait && (
-        <figure className={portraitStyles.figur}>
-          <Bild
-            className={portraitStyles.bild}
-            quelle={portrait}
-            alt={ABOUT.portraitAlt}
-            sizes="(max-width: 800px) 100vw, 720px"
-            vorrang
-            /* Derselbe Name wie im Anriss auf der Startseite: Das Porträt
-               wandert beim Klick auf „mehr erfahren" mit. */
-            uebergang="portrait"
-          />
-        </figure>
-      )}
+        <div className={styles.text}>
+          {ABOUT.zeilen.map((zeile) => (
+            <p key={zeile} className={styles.zeile}>
+              {zeile}
+            </p>
+          ))}
 
-      <div className={styles.prose}>
-        {ABOUT.paragraphs.map((paragraph) => (
-          <p key={paragraph}>{paragraph}</p>
-        ))}
-
-        <h2>Belege</h2>
-        <p>
-          Meine redaktionellen Beiträge stehen bei den jeweiligen Sendern.
-          Eine Übersicht führt die{" "}
-          <a href={ABOUT.authorPageUrl} rel="noreferrer">
-            {ABOUT.authorPageLabel}
-          </a>
-          .
-        </p>
-
-        <h2>Schon fotografiert für</h2>
-        <p className={styles.meta}>{REFERENCES.join(" · ")}</p>
+          <p className={styles.kontakt}>
+            <a href={`mailto:${ABOUT.email}`}>{ABOUT.email}</a>
+            <span aria-hidden="true"> · </span>
+            <a href={ABOUT.instagram.url} rel="noreferrer">
+              {ABOUT.instagram.label}
+            </a>
+            <span aria-hidden="true"> · </span>
+            <a href={ABOUT.swr.url} rel="noreferrer">
+              {ABOUT.swr.label}
+            </a>
+          </p>
+        </div>
       </div>
-
-      {/* Kein Lebenslauf-Link: Es gibt noch keinen. Sobald ein ausführlicher
-          CV vorliegt (siehe TODO.md), hier verlinken — nicht erfinden. */}
-    </LightPage>
+    </Seite>
   );
 }
