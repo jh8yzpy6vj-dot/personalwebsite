@@ -11,6 +11,76 @@ Verbindliche technische Fakten und Regeln für dieses Projekt. Bei jeder technis
 - Status: **Umgesetzt.** Next.js 16.3.3 + `@opennextjs/cloudflare` 1.20.3 (offiziell unterstützte Kombination, kein Legacy-Flag nötig). Lokal via `npm run build` und `npx opennextjs-cloudflare build` getestet.
 - ✅ **Erledigt am 2026-08-27:** Die Build-/Deploy-Befehle im Cloudflare-Dashboard (Workers & Pages → personalwebsite → Settings → Build) sind auf den Next.js-Workflow umgestellt (`npx opennextjs-cloudflare build` / `npx wrangler deploy`). Erster erfolgreicher Build und Livegang mit dem neuen Stack bestätigt.
 
+## ⏳ Umbau „Präsenz statt Verkauf" (beschlossen 2026-10-08) — was sich technisch ändert
+
+Die Seite wird nach Jakobs Konzept umgebaut (`SITE-PLAN.md`, Plan in `TODO.md`, Abschnitt
+„UMBAU"). **Beschlossen ist alles in diesem Abschnitt; umgesetzt wird es in den Schritten 2–5.**
+Bis dahin beschreiben die übrigen Abschnitte dieser Datei den laufenden Code. Wo ein Abschnitt
+durch den Umbau hinfällig wird, steht dort ein Hinweis mit Verweis hierher.
+
+| Bereich | Bisher | Nach dem Umbau | Schritt |
+|---------|--------|----------------|---------|
+| Routen | `/`, `/arbeiten`, `/arbeiten/[slug]`, `/leistungen/[slug]`, `/kontakt`, `/ueber`, Pflichtseiten | `/`, `/foto`, `/film`, `/ueber`, Pflichtseiten | 4, 5 |
+| Weiterleitungen | — | in `next.config.mjs`, dauerhaft (308): `/arbeiten` und `/arbeiten/:slug` → `/foto`, `/leistungen/:slug` → `/`, `/kontakt` → `/ueber` | 5 |
+| Inhalte | `WORKS`, `CATEGORIES`, `SERVICES`, `REFERENCES`, `CONTACT` | `FOTOS` (`id`, `titel`, `kunde`), `FILME` (dazu `link`), `ABOUT` | 2 |
+| Schriften | Bricolage Grotesque, Newsreader, Martian Mono über `next/font/google` | Druk Wide Bold und Avenir Next über `next/font/local` — siehe „Schriften" unten | 3 |
+| Kontaktformular | Route `app/api/anfrage`, `lib/anfrage.ts`, `lib/mailer.ts`, Resend, Turnstile | **entfällt ersatzlos.** Keine Worker-Secrets `RESEND_API_KEY`, `ANFRAGE_AN`, `ANFRAGE_VON`; kein AV-Vertrag nötig | 5 |
+| Filme | selbst ausgeliefert aus `original/video/<id>.mp4` | **verlinkt**, nicht gespeichert. Nur das Standbild liegt bei uns: `original/film/<id>.jpg` | 2, 4 |
+| Bucket-Pfade | siehe „Wohin welche Datei" | `original/arbeiten/<id>/01.jpg …` **bleibt**; neu `original/film/<id>.jpg`; entfallen: `original/arbeiten/<id>.jpg` (Leitbild), `…/serie/`, `original/video/` | 2 |
+| EXIF | als Aufnahmezeile angezeigt | **nicht mehr angezeigt.** Die GPS-Sperre (`EXIF_FELDER`) bleibt unverändert — sie ist Schutz, nicht Anzeige | 2 |
+| Vorschaukarten | je Arbeit eine plus `start.jpg` | nur noch `start.jpg` | 2 |
+| Strukturierte Daten | `Person` + `ProfessionalService` | nur `Person` mit `sameAs` | 4 |
+| Linkprüfung | — | `npm run links`: ruft jeden `FILME[].link` ab, meldet alles außer 200. **Nicht im Build** — ein Deploy darf nicht davon abhängen, ob YouTube antwortet | 2 |
+| Cache-Control für HTML | fehlt (siehe `TODO.md`) | wird im Umbau gesetzt — bei einem Strukturumbau ist altes HTML im Edge-Cache besonders tückisch | 3 |
+
+⚠️ **Warum die Filme nicht mehr bei uns liegen:** Jakobs Vorgabe („alle verlinkt, nicht auf
+Website selbst gespeichert"). Folge: **Links verfallen.** ARD- und SWR-Mediathek depublizieren
+nach Ablauf der Verweildauer. Deshalb die Linkprüfung, und deshalb wo möglich dauerhafte Orte
+bevorzugen (YouTube-Kanal von Y-Kollektiv/funk, eigener Kanal). Ein eingebetteter Player kommt
+nicht in Frage — er lädt beim Seitenaufruf Inhalte und Tracker eines Dritten.
+
+## Schriften
+
+> Beschlossen am 2026-10-08 (E5), umgesetzt in Schritt 3 des Umbaus. Bis dahin lädt die Seite
+> noch Bricolage Grotesque, Newsreader und Martian Mono über `next/font/google`.
+
+| Familie | Schnitt | Hersteller | Lizenz |
+|---------|---------|------------|--------|
+| **Druk Wide** | Bold | Commercial Type | Jakob hat eine Lizenz — **Art noch bestätigen** (siehe unten) |
+| **Avenir Next** | Regular | Linotype / Monotype | Jakob hat eine Lizenz — **Art noch bestätigen** |
+
+**Eingebunden über `next/font/local`, ausgeliefert vom eigenen Worker.** Nie von einem fremden
+Server (Adobe Fonts, Google-CDN, Monotype-CDN) — das wäre eine Datenübermittlung an Dritte und
+gehörte in die Datenschutzerklärung. Nur die Schnitte einbinden, die das UI-SPEC nutzt; jede
+Datei kostet Ladezeit.
+
+⚠️ **Drei Dinge müssen geklärt sein, bevor eine Schriftdatei ins Projekt kommt:**
+
+1. **Ist es eine Web-Lizenz?** Schriften werden getrennt für Desktop, Web, App und Video
+   lizenziert. Eine Desktop-Lizenz erlaubt in aller Regel **nicht**, die Datei auf einem Server
+   abzulegen. Festzuhalten (hier, in dieser Tabelle): Lizenzart, Lizenznehmer, Grenze der
+   Seitenaufrufe, ob Selbsthosting erlaubt ist. Die Lizenzurkunde selbst gehört **nicht** ins
+   Repo.
+2. **⚠️ Das GitHub-Repo `jh8yzpy6vj-dot/personalwebsite` ist öffentlich** (geprüft am
+   2026-10-08). Eine eingecheckte Schriftdatei wäre damit für jeden herunterladbar — das ist
+   Weitergabe, und die erlaubt praktisch keine kommerzielle Lizenz, auch keine Web-Lizenz.
+   **Vorher das Repo auf privat stellen** (GitHub → Settings → Danger Zone → Change visibility).
+   Der Cloudflare-Build hat über die GitHub-App weiterhin Zugriff; nach dem Umstellen einen
+   Deploy abwarten und prüfen, dass er durchläuft. Bis dahin: **keine Schriftdatei committen.**
+3. **Dürfen die Vorschaukarten die Schrift verwenden?** `scripts/og.mjs` rendert Schrift in ein
+   JPEG und braucht dafür TTF/OTF (Satori kann kein WOFF2, siehe `assets/fonts/README.md`). Ob
+   die Lizenz Schrift in erzeugten Bildern deckt, steht im Lizenztext. Wenn nicht: die
+   Vorschaukarte mit Schriftzug als fertigem Bild aus einem Programm mit Desktop-Lizenz.
+
+**Rückfallweg für Avenir Next**, falls es nur eine Desktop-Lizenz gibt: den Namen in CSS
+benennen statt die Datei mitzuliefern (`font-family: "Avenir Next", …`). Auf macOS und iOS ist
+sie vorinstalliert und erscheint dort ohne Download; Windows und Android zeigen dann einen freien
+Ersatz, der mit `next/font/google` mitgeliefert wird. Damit ist keine Web-Lizenz nötig. Für Druk
+Wide gibt es diesen Weg nicht — sie ist nirgends vorinstalliert.
+
+**Ablage:** `app/fonts/` (WOFF2 für die Seite), `assets/fonts/` (TTF/OTF für die
+Vorschaukarten). Beide Ordner **erst nach Punkt 2** befüllen.
+
 ## Medien (Fotos und Videos) — sie liegen im R2-Bucket, nicht im Repo
 
 **Seit dem 2026-08-29 liegt kein einziges Foto und kein Video mehr im Git.** Beides liegt im
@@ -39,6 +109,14 @@ Datei in den Bucket legen  →  npm run medien  →  Manifeste committen  →  D
 schreibt nichts.
 
 ### Wohin welche Datei
+
+> ⏳ **Ändert sich mit dem Umbau (Schritt 2), siehe oben.** Es bleiben: `original/arbeiten/<id>/`
+> mit `01.jpg`, `02.jpg`, … (die Fotos im Mosaik auf `/foto`), Hero-Video, Hero-Standbild,
+> Porträt. Neu: **`original/film/<id>.jpg`** — das Standbild je Film, Querformat; `<id>` ist die
+> `id` aus `FILME` in `lib/content.ts`. Es entfallen: Leitbild `original/arbeiten/<id>.jpg`,
+> Kontaktbogen `…/serie/`, Filme unter `original/video/`. Standbilder für Filme dürfen schon
+> jetzt abgelegt werden; bis Schritt 2 meldet die Pipeline sie als „gehört zu nichts", das ist
+> harmlos.
 
 Alles unter dem Präfix `original/` im Bucket:
 
@@ -268,6 +346,12 @@ Siehe `TODO.md` — das sind Launch-Blocker.
 
 ### Videos — sie werden nicht umgerechnet
 
+> ⏳ **Mit dem Umbau bleibt nur das Hero-Video.** Filme zu Arbeiten werden verlinkt, nicht mehr
+> ausgeliefert; die rechte Spalte der Tabelle und der Absatz zu Untertiteln entfallen. Für das
+> Hero-Video zusätzlich: **Anfang und Ende müssen ineinander übergehen**, es läuft in Schleife
+> unter dem Schriftzug — ein sichtbarer Sprung alle zwölf Sekunden fällt mehr auf als jeder
+> Schnitt.
+
 Anders als Bilder rührt die Pipeline Videos nicht an. Sie verzeichnet nur, was da ist, und die
 Datei wird direkt aus dem Bucket ausgeliefert. Umrechnen bräuchte ffmpeg im Werkzeugkasten und
 gehört ohnehin in die Hand dessen, der den Schnitt gemacht hat. **Also bitte fertig exportieren:**
@@ -307,6 +391,10 @@ vortäuscht. Siehe `TODO.md`.
 bei einem Streamingdienst) und hat Vorrang vor dem Bucket. Normalfall ist `null`.
 
 ### Vorschaukarten (OpenGraph)
+
+> ⏳ **Mit dem Umbau nur noch eine Karte** (`start.jpg`) für alle Seiten — ohne Detailseiten gibt
+> es keine Karte je Arbeit. Die Schriften wechseln auf Druk Wide und Avenir Next, **sofern die
+> Lizenz Schrift in erzeugten Bildern erlaubt** (siehe „Schriften").
 
 `scripts/og.mjs` erzeugt je Arbeit und einmal für die Seite selbst eine Karte unter
 `public/og/<id>.jpg` (1200×630). Referenziert wird sie in `app/layout.tsx` und in
@@ -378,7 +466,9 @@ auf. Ein unter npm 11 erzeugtes Lockfile kann unter npm 10 unvollständig sein.
 Tests liegen neben dem Code als `lib/*.test.ts`.
 
 **Getestet wird ausschließlich die reine Logik in `lib/`** — die Validierung des Anfrageformulars
-und die Ableitungen aus den Inhalten. Für die Oberfläche gibt es den Browser-Durchlauf im
+und die Ableitungen aus den Inhalten. (⏳ Die Formulartests entfallen mit dem Umbau, die
+Datenzusagen werden auf `FOTOS`/`FILME` umgestellt: ids eindeutig, jeder Film mit
+`https://`-Link, Beschriftung im Format „Titel – Kunde".) Für die Oberfläche gibt es den Browser-Durchlauf im
 Abschnitt darunter; ein zweites, halbes Browser-Abbild wäre Aufwand ohne zusätzliche Sicherheit.
 
 Ein Teil der Tests prüft **die Daten selbst** auf Zusagen, auf die sich der Code verlässt: dass
@@ -429,6 +519,11 @@ ausgeführt. Er lief zwar durch, aber das war Glück, keine Prüfung.
 (`IntersectionObserver`), Kategoriefilter, Tastaturfokus, `prefers-reduced-motion`, Mobilbreiten
 375px und 320px.
 
+⏳ **Nach dem Umbau** stattdessen: Pause-Knopf am Hero-Video (Tastatur, Screenreader-Ansage),
+Video unter `prefers-reduced-motion` (darf nicht von selbst starten), Lichtkasten über alle
+Bilder von `/foto`, Weiterleitungen der alten Adressen, und **die Navigation bei 320px mit der
+echten Schrift** — Druk Wide ist so breit, dass „über mich" dort als Erstes umbricht.
+
 **Bei Änderungen an Bewegung oder Layout zusätzlich** — alles im Browser gegen den laufenden
 Worker, nicht aus dem Quelltext geschlossen:
 
@@ -476,6 +571,11 @@ Aufgaben selbst stehen in `TODO.md`.
 
 ### Kontaktformular
 
+> ❌ **Verworfen am 2026-10-08** mit der Neuausrichtung: Die Seite verkauft nichts, Kontakt ist
+> eine Zeile mit E-Mail und Instagram auf `/ueber` (E6). Das bereits gebaute Formular samt Route
+> wird in Schritt 5 des Umbaus entfernt; Resend, AV-Vertrag und Turnstile werden nie gebraucht.
+> Der Text darunter bleibt zur Nachvollziehbarkeit stehen.
+
 - Formular-Endpoint als Route im bestehenden Worker — **kein zusätzlicher Dienst, kein Backend**.
 - **Versand:** ⚠️ MailChannels' Gratis-Versand für Cloudflare Workers ist seit 2024 eingestellt.
   Deshalb ein Transaktions-Mailer mit API — **Resend oder Postmark** (beide mit ausreichendem
@@ -500,6 +600,8 @@ Aufgaben selbst stehen in `TODO.md`.
   herunter und liefert sie vom eigenen Worker aus. Es gibt **keine** Anfrage des Browsers an ein
   Google-CDN — die bekannte Google-Fonts-Abmahnfalle greift hier nicht. Das darf nicht
   versehentlich rückgängig gemacht werden (kein `<link>` auf `fonts.googleapis.com`).
+  ⏳ Mit dem Umbau gilt dasselbe für `next/font/local`: Druk Wide und Avenir Next kommen vom
+  eigenen Worker, nie von Adobe Fonts oder einem Monotype-CDN (siehe „Schriften").
 
 ### Bilder & EXIF
 
@@ -552,6 +654,8 @@ festgehalten, damit es niemand „korrigiert".
 ⚠️ **Keine Platzhalter in strukturierten Daten.** `app/StructuredData.tsx` enthält bewusst keine
 Kontaktdaten, solange die Adresse in `content.ts` erfunden ist — Google übernimmt solche Angaben
 in Wissensfelder, wo sie schwerer zu korrigieren sind als auf der Seite.
+- ❌ **Verworfen am 2026-10-08** (keine Detailseiten mehr, siehe `SITE-PLAN.md`) — der folgende
+  Punkt gilt nicht mehr und wird mit dem Umbau durch Weiterleitungen ersetzt.
 - **Routing:** perspektivisch eine statisch vorgerenderte Route pro Arbeit
   (`/arbeiten/[slug]`), gespeist aus dem bestehenden `WORKS`-Array in `lib/content.ts`. Die
   `id`-Felder dort dienen dann als Slug — sie sind entsprechend stabil zu halten, ein späterer

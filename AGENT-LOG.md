@@ -6,6 +6,87 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-08 — Umbau, Schritt 1: Vertrag und Dokumente neu gefasst
+
+Erster Schritt des Umbaus „Präsenz statt Verkauf" (`TODO.md`, Abschnitt „UMBAU"). Kein Code
+geändert — erst der Vertrag, dann der Code, wie `CLAUDE.md` es verlangt.
+
+### `design/UI-SPEC.md` — neu geschrieben
+
+Ein neuer Vertrag statt einer Überarbeitung, weil fast nichts vom alten Aufbau trägt: keine
+Hälften, keine Naht, kein CTA, keine Detailseiten. Kern:
+
+- **Farbe:** eine Fläche `--grund`, eine Schrift `--schrift`, dazu `--leise`. **Rot ist allein
+  dem ●REC vorbehalten**: Chip, Punkt vor dem aktiven Navigationsziel, Sprungmarke. Der Fokusring
+  ist jetzt weiß statt rot — gerade weil Rot die einzige Farbe ist, trägt es nur, solange es
+  selten bleibt.
+- **Schrift:** Druk Wide Bold und Avenir Next Regular, Skala 14 · 18 · 36 · 96. ⚠️ Die
+  Display-Größen sind Startwerte; mit der echten Schrift bei 320px nachmessen.
+- **Topbar:** Auf `/` steht oben links **nur ●REC** — über einem laufenden Video ist das die
+  Anzeige eines Kameradisplays, und der Schriftzug steht ohnehin groß in der Mitte. Auf den
+  Unterseiten deckend und `sticky`, kein Menü-Dialog mehr.
+- **Impressum auf `/`:** Die Startseite hat keinen Footer, weil sie nicht scrollt. Damit das
+  Impressum trotzdem von jeder Seite erreichbar ist (§ 5 DDG), stehen Impressum und Datenschutz
+  dort klein unten links im Video. Im Plan stand das noch nicht; beim Schreiben des Vertrags
+  aufgefallen.
+- **Pause-Knopf am Hero-Video** (WCAG 2.2.2), kein Autoplay unter `prefers-reduced-motion`.
+- **Was kein Bild hat, erscheint nicht** — keine Platzhalterkacheln mehr.
+- Übernommen, weil erkauft: `svh`, Lichtkasten mit `position: fixed` und Fokusrückgabe, Mosaik
+  mit ungleichen Spalten reihum, gleiche Breiten für AVIF und WebP, Kontrastmessung über Weiß.
+- Der alte Vertrag steht im Wortlaut in Git (`9a04e0d`); am Ende des neuen eine Tabelle, was
+  entfallen ist und warum. **Sign-Off steht aus** (neuer Punkt 1.6).
+
+### `SITE-PLAN.md` — neu gegliedert
+
+Oben die neue Seite: Aufgabe, Struktur, Inhalte, Anti-Features, Tonalität. Die bisherigen
+Abschnitte stehen **unverändert** darunter unter „Abgelöst", eine Gliederungsebene tiefer. Neu
+festgehalten: Die Trennung von Journalismus und Auftragsarbeit entfällt, weil sie nur gegen das
+Verkaufen der Recherche schützte. Redaktionelles wird weiterhin nur **verlinkt**.
+
+### `TECH-STACK.md` — Umbau und Schriften ergänzt
+
+Ein Abschnitt mit allen beschlossenen technischen Änderungen und dem Schritt, in dem sie kommen.
+Die betroffenen alten Abschnitte tragen einen Hinweis. Dazu ein neuer Abschnitt „Schriften".
+
+⚠️ **Dabei aufgefallen: Das GitHub-Repo ist öffentlich.** Eine eingecheckte Schriftdatei von
+Druk Wide oder Avenir Next wäre damit öffentliche Weitergabe, und die erlaubt praktisch keine
+kommerzielle Lizenz. **Vor Schritt 3 muss das Repo privat werden.** Steht als Aufgabe für Jan in
+`TODO.md`. Bis dahin kommt keine Schriftdatei ins Projekt.
+
+### `TODO.md` — hinfällige Punkte entfernt
+
+Mit Begründung, damit niemand sie zurückholt:
+
+| Entfernt | Warum |
+|----------|-------|
+| Versand des Anfrageformulars, Turnstile; bei Jan Mailer/AV-Vertrag, Absenderdomain/Secrets, Turnstile-Key | Kein Formular mehr (E6) |
+| Vertrauliche Kanäle (Launch-Blocker und Jakob) | Entfallen nach E6 |
+| Drei Türen, Preisangaben, Preisrahmen | Kein Angebot mehr |
+| Zitat von tête-à-tête | Vertrauenselement für Aufträge; die Seite verkauft nichts |
+| Projektkontext je Arbeit, Beschreibungstexte, „zwei Sätze Kontext" | Nur noch Titel und Kunde |
+| Lebenslauf anlegen und verlinken | `/ueber` hat 3–4 Zeilen, keinen CV |
+| Bildausschnitte im Hero der Detailseite | Keine Detailseiten. `lib/bildausschnitte.ts` bleibt für die Film-Standbilder |
+| `wiwawo-53` gegenlesen | `role` und `category` gibt es nicht mehr; Titel und Kunde stehen in Jakobs Konzept („WiWaWo 2026 – Bayerischer Kanuverband") |
+| Porträt ablegen | **Erledigt** — `portrait` steht im Manifest. Die Bildbeschreibung prüft Jakob mit „Alle Inhalte gegenlesen" |
+| Bestandsaufnahme (CSV) | Ersetzt durch zwei Listen (Fotoarbeiten, Filme), UMBAU-Schritt 7 |
+| Seitenstruktur prüfen lassen, Design-Vertrag prüfen lassen | Ersetzt durch 1.6 (Sign-Off des neuen Vertrags) |
+| „Startseite wiederholt sich", „Trägt die Archivstruktur?", „Kategorien mischen", „`content.ts` mischt fünf Belange" | Die Strukturen, um die es ging, entfallen |
+| Untertitel für die Filme | Filme liegen nicht mehr bei uns |
+| Eigene URL pro Arbeit | Keine Detailseiten (E8) |
+| ✅-Einträge Bildstrecken, OG je Arbeit, Kontaktbogen, EXIF-Zeile | Umgesetzt, aber mit dem Umbau hinfällig. Die GPS-Sperre bleibt und ist in `TECH-STACK.md` dokumentiert |
+| Reihenfolge vom 2026-08-27 | Ersetzt durch den Plan |
+
+Umformuliert statt entfernt: Nebentätigkeit (Verlinken statt Einbetten), Referenznennungen
+(auch Sender), Datenschutz-Hinweis (nur noch Analytics). Neu bei Jakob: Schriftdateien und
+Lizenzart, 3–4 Zeilen, WiWaWo 50–52 online stellen, E1. Neu bei Jan: Repo privat stellen.
+
+Im Plan selbst: `jahr` aus dem Datenmodell gestrichen (gezeigt werden nur Titel und Kunde,
+sortiert wird nach Dateireihenfolge), Impressum-Links auf `/` in Schritt 4.1 aufgenommen.
+
+**Nicht angefasst**, obwohl veraltet: „Schreibzugriff für Claude einrichten" und „Patches
+einspielen" bei Jan. Aus dieser Sitzung heraus funktioniert der Push inzwischen; ob das für alle
+Wege gilt (Web-Sitzung), weiß nur Jan.
+
 ## 2026-10-08 — Fünf Entscheidungen zum Umbau von Jakob
 
 Jakob hat über Jan fünf der offenen Fragen aus dem Umbauplan beantwortet. In `TODO.md`, Schritt 0,

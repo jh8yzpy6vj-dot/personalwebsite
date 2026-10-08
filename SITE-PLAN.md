@@ -8,10 +8,10 @@ Struktur und Absicht: welche Bereiche gibt es, was kommt wohin, was ist noch off
 
 ## 🧭 Neuausrichtung vom 2026-10-08 — Jakobs Konzept
 
-> ⚠️ **Das ist ab jetzt die Richtung.** Alles darunter beschreibt die bisherige, auf Aufträge
-> ausgerichtete Seite und wird mit dem Umbau unter „Abgelöst" verschoben. Den Umsetzungsplan und
-> die offenen Entscheidungen (E1–E12) führt [`TODO.md`](TODO.md), Abschnitt „UMBAU". Das
-> UI-SPEC wird in Schritt 1.2 nachgezogen; bis dahin gilt es für den **bestehenden** Code.
+> ✅ **Das ist die Richtung, seit dem 2026-10-08.** Die Abschnitte direkt darunter beschreiben die
+> neue Seite; die bisherige, auf Aufträge ausgerichtete Fassung steht unverändert am Ende unter
+> „Abgelöst". Umsetzungsplan und Entscheidungen (E1–E12): [`TODO.md`](TODO.md), Abschnitt
+> „UMBAU". Gestaltungsregeln: [`design/UI-SPEC.md`](design/UI-SPEC.md).
 
 Jakobs Zwischenfeedback, im Wortlaut:
 
@@ -44,6 +44,119 @@ wird deutlich kleiner.
 
 ## Was die Seite leisten soll
 
+**Eine Präsenz, keine Verkaufsseite.** Wer Jakobs Namen sucht, unter einem Beitrag auf ihn stößt
+oder von einem Festival kommt, soll in wenigen Sekunden sehen, was er macht — an der Arbeit
+selbst, nicht an einer Beschreibung davon. Danach ist der Job der Seite erledigt.
+
+Was daraus folgt:
+
+- **Die Arbeit spricht, die Seite schweigt.** Fotos und Filme sind der Inhalt; Schrift ist
+  Beschriftung, nicht Botschaft. Jede Zeile Text muss sich rechtfertigen.
+- **Keine Aufforderung.** Kein Angebot, kein Preis, kein Formular, kein „hier buchen". Wer Jakob
+  erreichen will, findet E-Mail und Instagram auf `/ueber` — erreichbar, aber nicht beworben.
+- **Pro Arbeit zwei Angaben: Titel und Kunde.** Mehr nicht.
+- **Jakob tritt hinter die Arbeit zurück.** Ein Bild von ihm gibt es nur auf `/ueber`.
+
+### Journalismus und Auftragsarbeit stehen jetzt nebeneinander
+
+Die alte Struktur trennte beides streng, mit gutem Grund: Stünden SWR-Beiträge als Ware neben
+einem Aftermovie, verkaufte er seine Recherche. **Dieser Grund entfällt, weil nichts mehr
+verkauft wird.** Auf `/film` steht „Y-Kollektiv: Tödliches Gold – SWR/ARD" neben „WiWaWo 2026 –
+Bayerischer Kanuverband" — beides ist Arbeit, die er gemacht hat, und so wird es gezeigt.
+
+⚠️ **Was bleibt:** Redaktionelle Beiträge werden **verlinkt, nie eingebettet** — rechtlich
+(Nutzungsrechte der Sender) und weil der Link auf die Mediathek das glaubwürdigere Signal ist. Die
+Frage nach der SWR-Nebentätigkeit ist mit dem Wegfall des Angebots kleiner geworden, aber nicht
+erledigt (`TODO.md`, Launch-Blocker).
+
+## Seitenstruktur
+
+| Route | Job | Inhalt |
+|-------|-----|--------|
+| `/` | **Der erste Eindruck.** | Kurzes Video in voller Fensterhöhe, mittig „jakob sax". Nichts darunter |
+| `/foto` | **Die Fotos.** | Ein Mosaik aus den Fotos aller Arbeiten, ohne Zwischenzeilen. Titel und Kunde erst beim Überfahren und in der Großansicht |
+| `/film` | **Die Filme.** | Standbild und „Titel – Kunde" je Film; jeder führt nach außen (YouTube, Vimeo, Mediathek). Kein Film liegt auf der Seite selbst |
+| `/ueber` | **Wer.** | Bild seitlich, daneben 3–4 Zeilen, darunter E-Mail, Instagram, SWR-Autorenseite |
+| `/impressum`, `/datenschutz` | Pflicht | Nur im Footer verlinkt, nicht im Header |
+
+**Navigation:** foto · film · über mich. Die genauen Gestaltungsregeln — Topbar, Mosaik,
+Filmraster, Farbe, Schrift, Copy — stehen in [`design/UI-SPEC.md`](design/UI-SPEC.md).
+
+**Vorbild für die Startseite:** [bildmanufaktur.de](https://www.bildmanufaktur.de) — Video über
+die volle Fläche, der Name in der Mitte. Übernommen wird die Anmutung, nicht die Gestaltung.
+
+### Warum es keine Detailseiten mehr gibt
+
+Bisher hatte jede Arbeit eine eigene Seite mit Vorspann, Credits, Aufnahmedaten und Bildstrecke.
+Das ist fast alles Text, und Jakob will „möglichst wenig Text und Schrift". Die Fotos stehen im
+Mosaik, die Filme liegen bei den Plattformen. **Was dabei verloren geht:** eine eigene Adresse je
+Festival, die für dessen Namen in der Suche ranken könnte. Das war ein Argument, um Aufträge zu
+gewinnen — für eine Präsenz ist es entbehrlich. Wer „Jakob Sax" sucht, findet die Seite weiterhin;
+dafür sorgen der Name und die Verknüpfung mit der SWR-Autorenseite in den strukturierten Daten.
+
+## Inhalte
+
+Alle Inhalte liegen in [`lib/content.ts`](lib/content.ts): die Fotoarbeiten (`FOTOS`), die Filme
+(`FILME`) und die Zeilen für `/ueber`. Wer Inhalte ändert, ändert nur diese Datei. Bilder liegen
+im R2-Bucket (`TECH-STACK.md`, „Medien").
+
+- **Die Reihenfolge in der Datei ist die Reihenfolge auf der Seite.** Keine automatische
+  Sortierung — welche Arbeit vorne steht, ist Jakobs Entscheidung, und die Seite zeigt genau sie.
+- **Was kein Bild hat, erscheint nicht.** Eine Arbeit ohne Fotos und ein Film ohne Standbild
+  tauchen nicht auf, statt eine graue Kachel zu zeigen.
+- **Kundennamen ohne Rechtsform** (kein „e.V.", keine „GmbH").
+
+⚠️ **Nichts davon ist von Jakob freigegeben**, solange er es nicht ausdrücklich bestätigt hat —
+siehe Launch-Blocker in [`TODO.md`](TODO.md).
+
+**Bewusst nicht enthalten:** die Onetake-Arbeiten (liefen über eine Firma, an der Jakob nicht mehr
+beteiligt ist; Rechte ungeklärt) und Filmworkshops als eigener Bereich (E9 — ein Film aus einem
+Workshop kann trotzdem in `/film` stehen).
+
+## Bewusst gar nicht gebaut (Anti-Features)
+
+Damit die Diskussion nicht alle drei Monate von vorn losgeht (Stand 2026-10-08):
+
+- **Kein Angebot, kein Preis, kein Formular, kein Call to Action.** Der Kern der Neuausrichtung.
+- **Keine Detailseiten, keine Kategorien, kein Filter.** Siehe oben.
+- **Keine eingebetteten Player** (YouTube, Vimeo, Mediathek). Ein eingebetteter Player lädt beim
+  Seitenaufruf Inhalte und Tracker eines Dritten und müsste in die Datenschutzerklärung —
+  ein Link tut das nicht.
+- **Kein Text, der nicht Titel, Kunde, die Zeilen auf `/ueber` oder Pflichttext ist.** Keine
+  Einleitung, keine Positionierungszeile, keine Bildunterschriften mit Aufnahmedaten.
+- **Kein Blog.** Ein Blog mit drei Beiträgen aus 2026 ist schlechter als keiner — er signalisiert
+  „aufgegeben".
+- **Kein Instagram-Feed-Embed.** Tracking-Problem, bricht regelmäßig. Ein Textlink reicht.
+- **Keine selbstgebaute Kundengalerie.** Picdrop oder Pixieset lösen Auswahl, Download und Rechte.
+- **Kein Cookie-Banner** — und das ist ein Feature. Mit cookieloser Analytics braucht die Seite
+  keine Einwilligung. Das muss so bleiben, sobald jemand „nur kurz Google Analytics" vorschlägt.
+- **Kein Hero-Karussell.** Ein Video, ausgewählt.
+- **Keine Schriften von fremden Servern** (Adobe Fonts, Google-CDN). Selbst ausliefern.
+
+## Tonalität
+
+Gilt für das wenige, was an Text bleibt — vor allem die Zeilen auf `/ueber`.
+
+Erste Person, aktiv. Konkrete Nennungen (Sender, Format, Jahr) statt Eigenschaftswörtern — der
+Leser soll sich das Bild selbst bauen. Kurze, direkte Sätze.
+
+**Nicht:** „durfte", „mega", Emoji, Werbe-Sprech über magische Atmosphäre und unvergessliche
+Momente. Wer sonst über Klimapolitik schreibt, kann das daneben nicht schreiben.
+
+Zielregister: *präzise, konkret, unangestrengt* — wie ein guter Hörfunkbeitrag.
+
+---
+
+## Abgelöst — die Auftragsseite (gültig 2026-08-26 bis 2026-10-08)
+
+> Alles ab hier beschreibt die **bisherige** Ausrichtung: eine Seite, die aus Interesse eine
+> Anfrage machen sollte, mit drei Standbeinen, drei Zielgruppen, Angeboten, Preisen, Formular und
+> einer Detailseite je Arbeit. **Es gilt nicht mehr.** Es bleibt stehen, damit nachvollziehbar
+> ist, warum die Seite so gebaut war und was beim Umbau bewusst aufgegeben wurde. Die Abschnitte
+> sind unverändert übernommen, nur eine Gliederungsebene tiefer gesetzt.
+
+### Was die Seite leisten soll
+
 Aufgabe in einem Satz: *aus „ich habe etwas von ihm gesehen" ein „ich will mit ihm arbeiten oder
 reden" machen.*
 
@@ -63,7 +176,7 @@ andere entwertet:
 - **Quellen und Menschen, die ihn nach einem Beitrag googeln** — ist der seriös, und wie erreiche
   ich ihn vertraulich?
 
-### Wie diese Zielgruppen die Seite überhaupt finden
+#### Wie diese Zielgruppen die Seite überhaupt finden
 
 Drei Suchanlässe, jeder mit einer anderen Konsequenz für die Struktur:
 
@@ -77,7 +190,7 @@ Der dritte Anlass ist der Grund, warum jede Arbeit perspektivisch eine **eigene 
 (`/arbeiten/tete-a-tete-2026`) statt nur eine Kachel auf der Startseite: Nur so kann eine
 Bildstrecke für den Festivalnamen ranken. Siehe `TODO.md`, Langfristig.
 
-## Strukturprinzip: nach Frage sortieren, nicht nach Medium oder Zeit
+### Strukturprinzip: nach Frage sortieren, nicht nach Medium oder Zeit
 
 Eine Portfolioseite hat nicht die Aufgabe, Arbeiten auszustellen, sondern **die eine Frage zu
 beantworten, mit der jemand gekommen ist** — bevor er wieder weg ist. Aus den drei Zielgruppen
@@ -98,7 +211,7 @@ oben folgen drei Fragen, und daraus die Struktur:
 - **Medium.** „Foto/Video/Text" ist die Sicht des Herstellers, nicht die des Bestellers. Ein
   Veranstalter denkt in Anlässen, nicht in Dateiformaten.
 
-### Die zwei Hälften — jetzt auf Navigationsebene
+#### Die zwei Hälften — jetzt auf Navigationsebene
 
 Das bisherige Prinzip *dunkel = sehen, hell = lesen* bleibt inhaltlich gültig, wandert aber von
 der **Scroll-Ebene auf die Navigations-Ebene**: Früher war es „oben dunkel, unten hell" auf einer
@@ -114,7 +227,7 @@ verkaufte er seine Recherche — das beschädigt beides. Als eigener Bereich ist
 *der Mann arbeitet in einer Klimaredaktion, der erfindet nichts.* Genau darin liegt der Wert für
 die Fotografie-Kundschaft, und er entsteht nur durch die Trennung.
 
-## Seitenstruktur (Stand 2026-08-27)
+### Seitenstruktur (Stand 2026-08-27)
 
 > ✅ **Umgesetzt am 2026-08-27.** Die frühere Einzelseite ist abgelöst und unten unter
 > „Abgelöst" nur noch zur Nachvollziehbarkeit dokumentiert. Die verbindlichen Gestaltungswerte
@@ -126,7 +239,7 @@ die Fotografie-Kundschaft, und er entsteht nur durch die Trennung.
 > Bilderblock zwischen zwei hellen Textblöcken hätte die Naht verdoppelt und damit genau das
 > Strukturelement entwertet, das die zwei Hälften ausmacht.
 
-### Die Routen
+#### Die Routen
 
 | Route | Job | Inhalt |
 |-------|-----|--------|
@@ -140,7 +253,7 @@ die Fotografie-Kundschaft, und er entsteht nur durch die Trennung.
 Der entscheidende Unterschied zum bisherigen Stand: **Die Startseite hört auf, das Archiv zu
 sein.** Sie wird zur Weiche.
 
-### Startseite — jeder Block hat genau einen Job
+#### Startseite — jeder Block hat genau einen Job
 
 > **Reihenfolge am 2026-08-29 auf Jans Ansage geändert.** Vorher standen die drei Türen direkt
 > hinter dem Hero. Die alte Fassung steht unter der Tabelle.
@@ -164,7 +277,7 @@ Wer bis `buchbar.` gescrollt hat, hat sich die Frage inzwischen selbst gestellt.
 Titel) und der eigene Abschnitt `kontakt.` (er trug nur einen Satz und einen zweiten roten Knopf;
 der Satz steht jetzt am Ende von `buchbar.`).
 
-### Das Archiv
+#### Das Archiv
 
 **Kategorie ist die primäre Achse, das Jahr ist ein Label** (Begründung im Strukturprinzip oben).
 Innerhalb einer Kategorie ist ein asymmetrisches Bento-Raster sinnvoll — große Kacheln für die
@@ -175,7 +288,7 @@ und der Besucher bereits gefiltert hat.
 Lücken als Mangel, nicht als Komposition. Vor der Umsetzung muss die Bestandsaufnahme zeigen,
 wie viele Arbeiten je Kategorie tatsächlich zeigbar sind.
 
-### Detailseite
+#### Detailseite
 
 Acht bis zwölf Bilder, kurzer Vorspann, saubere Credits, Link zur Originalquelle. Gleichzeitig
 der wichtigste SEO-Hebel der Seite — nur eine eigene URL kann für einen Festivalnamen ranken.
@@ -190,7 +303,7 @@ gewerblichen Privatseite einzubetten ist rechtlich sehr wahrscheinlich nicht ged
 Nebentätigkeitsfrage ist offen (siehe Launch-Blocker). Ein Link auf die Mediathek ist zudem das
 glaubwürdigere Signal.
 
-### Bewusst nicht Teil der Struktur
+#### Bewusst nicht Teil der Struktur
 
 - **Kein Sticky Scrubber / Index Rail.** Er navigiert zu wenigen Zielen, ist barrierefrei
   aufwendig (Tastatur, ARIA, 44px-Touch-Target), und sobald Kategorie die Hauptachse ist, hat er
@@ -201,7 +314,7 @@ glaubwürdigere Signal.
   Detailseite.
 - **Keine Chronologie als Archiv-Gliederung** (siehe Strukturprinzip).
 
-### Vibe: jung und nahbar — wodurch tatsächlich
+#### Vibe: jung und nahbar — wodurch tatsächlich
 
 Nahbarkeit entsteht durch **Konkretheit und Stimme**, nicht durch weiche Ecken und Verläufe.
 Steril werden Agenturseiten, weil kein Mensch darin vorkommt. Was wirkt: ein echtes Foto von ihm,
@@ -209,7 +322,7 @@ erste Person, Bildunterschriften, die etwas sagen („22:14 Uhr, letzter Durchga
 nass"), und die Bereitschaft zu zeigen, dass etwas schiefgehen kann. **Animation macht eine Seite
 teuer, nicht jung.**
 
-### Abgelöst — die bisherige Einzelseiten-Struktur
+#### Abgelöst — die bisherige Einzelseiten-Struktur
 
 Der Vollständigkeit halber, weil der Code aktuell noch so aussieht:
 
@@ -231,7 +344,7 @@ Kachelraster mit Sender-/Auftraggeber-Label. Übernommen wurde die Struktur, nic
 Die Topbar, die ●REC-Marke, der Kategoriefilter und das randlose Raster bleiben auch in der neuen
 Struktur erhalten — sie wandern von `/` nach `/arbeiten`.
 
-## Inhalte
+### Inhalte
 
 Alle Inhalte liegen zentral in [`lib/content.ts`](lib/content.ts) — Arbeiten, Leistungen,
 Referenzen, Bio, Kontakt. Wer Inhalte ändert, ändert nur diese Datei.
@@ -239,7 +352,7 @@ Referenzen, Bio, Kontakt. Wer Inhalte ändert, ändert nur diese Datei.
 ⚠️ **Alle Angaben stammen aus dem Briefing und sind nicht von Jakob freigegeben.** Siehe die
 Launch-Blocker in [`TODO.md`](TODO.md).
 
-## Bewusst (noch) nicht enthalten
+### Bewusst (noch) nicht enthalten
 
 - **Onetake-Arbeiten** — liefen über eine Firma, an der Jakob nicht mehr beteiligt ist; Freigabe
   und Nutzungsrechte sind ungeklärt.
@@ -249,7 +362,7 @@ Launch-Blocker in [`TODO.md`](TODO.md).
   sinnvoll erst mit genug Material.
 - **Impressum und Datenschutz** — Pflichtseiten, müssen vor dem Livegang angelegt werden.
 
-## Bewusst gar nicht gebaut (Anti-Features)
+### Bewusst gar nicht gebaut (Anti-Features)
 
 Der Abschnitt darüber listet Dinge, die **noch** fehlen. Hier stehen Dinge, gegen die wir uns
 entschieden haben — damit die Diskussion nicht alle drei Monate von vorn losgeht (Stand
@@ -268,7 +381,7 @@ entschieden haben — damit die Diskussion nicht alle drei Monate von vorn losge
 - **Kein Effekt an der dunkel/hell-Naht.** Der harte Wechsel ist die beste Idee des Entwurfs; er
   wirkt, *weil* er hart ist. Nicht dekorieren.
 
-## Tonalität
+### Tonalität
 
 Erste Person, aktiv. Konkrete Nennungen (Sender, Format, Jahr) statt Eigenschaftswörtern —
 der Leser soll sich das Bild selbst bauen. Kurze, direkte Sätze. Saubere Credits.
