@@ -273,11 +273,11 @@ describe("Mosaik", () => {
     expect(css).toMatch(/\.kasten\s*\{[^}]*position:\s*fixed/);
   });
 
-  it("gibt den Fokus an die Kachel zurück, die ihn geöffnet hat", async () => {
+  it("gibt den Fokus an die Kachel des zuletzt gezeigten Bildes zurück", async () => {
     const tsx = await lies("../app/components/Mosaik.tsx");
     // Hält zugleich die Scrollposition. Ohne `preventScroll` springt der
     // Browser die Kachel an und verschiebt die Seite dabei doch wieder.
-    expect(tsx).toContain("ausloeser.current?.focus({ preventScroll: true })");
+    expect(tsx).toContain("ziel.focus({ preventScroll: true })");
   });
 
   it("das Hero fordert die volle Fensterbreite an", async () => {

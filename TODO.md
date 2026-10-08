@@ -104,6 +104,11 @@ hängt:
   - Danach: Schriftzug „jakob sax" bei **320px** nachmessen (UI-SPEC, „Typografie") und
     `--topbar-h` neu messen.
 - [ ] **Alt-Texte, Titel, Kunden, Zeilen auf `/ueber`** von Jakob gegenlesen lassen.
+- [ ] **Jakob: Foto für die Startseite bestätigen oder tauschen.** Bis ein Hero-Video da ist,
+  trägt `HERO_ERSATZ` in `lib/content.ts` (derzeit `arbeiten/wiwawo-53/06`, Bus im Nebel) die
+  Startseite. Von Claude gewählt, nicht von Jakob.
+- [ ] **Vorschaukarte mit Foto:** nach dem nächsten `npm run medien` einmal `npm run og` und
+  `public/og/start.jpg` committen. In der Cloud-Sitzung war die Medien-Domain gesperrt.
 
 ---
 

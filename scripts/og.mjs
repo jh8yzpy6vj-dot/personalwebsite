@@ -135,7 +135,7 @@ async function main() {
     return;
   }
 
-  const { SITE } = inhalt;
+  const { SITE, HERO_ERSATZ } = inhalt;
   const manifest = existsSync(MANIFEST)
     ? JSON.parse(await readFile(MANIFEST, "utf8"))
     : {};
@@ -157,7 +157,11 @@ async function main() {
         marke: SITE.name,
         /* Keine Positionierungszeile (UI-SPEC) — nur, was es hier gibt. */
         titel: "foto · film",
-        foto: await foto(manifest["hero/standbild"]),
+        /* Dasselbe Bild wie auf der Startseite: das Hero-Standbild, sonst das
+           Ersatzfoto aus content.ts. */
+        foto: await foto(
+          manifest["hero/standbild"] ?? (HERO_ERSATZ ? manifest[HERO_ERSATZ] : null),
+        ),
       }),
       fonts,
     ),

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import Bild from "./Bild";
 import { MOSAIK_SIZES } from "@/lib/bilder";
 import type { Mosaikbild } from "@/lib/arbeiten";
@@ -31,70 +32,169 @@ const SOFORT = 3;
  * auch ohne Skript; der Lichtkasten obendrauf ist eine Aufwertung, ohne ihn
  * ist jede Kachel ein gewöhnlicher Link auf die Bilddatei.
  */
+/** Name des Übergangs zwischen Kachel und Lichtkasten. Je Zustand trägt ihn
+    genau ein Element — zwei gleichnamige brechen den Übergang ab. */
+const UEBERGANG = "lichtkasten";
+
+/**
+ * Führt eine Änderung als View Transition aus: Das Foto wächst aus seiner
+ * Kachel in den Lichtkasten und kehrt beim Schließen dorthin zurück (UI-SPEC,
+ * „Motion"). Ohne Unterstützung oder unter `prefers-reduced-motion` passiert
+ * dieselbe Änderung sofort — der Übergang ist Zugabe, keine Voraussetzung.
+ */
+function mitUebergang(
+  aenderung: () => void | Promise<void>,
+  danach?: () => void,
+): void {
+  const ruhig = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (ruhig || typeof document.startViewTransition !== "function") {
+    void aenderung();
+    danach?.();
+    return;
+  }
+  const t = document.startViewTransition(aenderung);
+  t.finished.finally(() => danach?.());
+}
+
+/** Das `<img>` in einem Element, oder `null`. */
+const bildIn = (el: Element | null | undefined) =>
+  (el?.querySelector("img") as HTMLImageElement | null) ?? null;
+
+/** Wartet kurz auf das große Bild, damit der Übergang nicht in eine leere
+    Fläche läuft — aber nie länger als `ms`, sonst wirkt der Klick träge. */
+function hoechstens(versprechen: Promise<unknown>, ms: number) {
+  return Promise.race([
+    versprechen.catch(() => undefined),
+    new Promise((fertig) => setTimeout(fertig, ms)),
+  ]);
+}
+
+type Sperre = { css: string; hoehe: number };
+
+/**
+ * Hintergrund festhalten, solange der Kasten offen ist. Die
+ * Breitenkompensation ist kein Beiwerk: Verschwindet die Bildlaufleiste
+ * ersatzlos, springt die ganze Seite darunter um deren Breite zur Seite —
+ * sichtbar als Ruck beim Öffnen **und** beim Schließen.
+ */
+function sperren(): Sperre {
+  const leiste = window.innerWidth - document.documentElement.clientWidth;
+  const sperre = { css: document.body.style.cssText, hoehe: window.scrollY };
+  document.body.style.overflow = "hidden";
+  if (leiste > 0) document.body.style.paddingRight = `${leiste}px`;
+  return sperre;
+}
+
+/**
+ * ⚠️ Chromium behält die Scrollposition über das Sperren hinweg — gemessen.
+ * Safari und iOS setzen sie beim Aufheben von `overflow: hidden` bekanntlich
+ * zurück. Deshalb wird die Position ausdrücklich zurückgesetzt.
+ */
+function entsperren(sperre: Sperre) {
+  document.body.style.cssText = sperre.css;
+  window.scrollTo(0, sperre.hoehe);
+}
+
 export default function Mosaik({ bilder }: Props) {
   const [offen, setOffen] = useState<number | null>(null);
-  /* Wohin der Fokus zurückgeht. Das hält zugleich die Scrollposition —
-     siehe `schliesse`. */
-  const ausloeser = useRef<HTMLAnchorElement | null>(null);
+  /* Alle Kacheln, nach Bildnummer — Ziel des Übergangs beim Schließen. */
+  const kacheln = useRef<(HTMLAnchorElement | null)[]>([]);
+  const kasten = useRef<HTMLDivElement | null>(null);
+  const sperre = useRef<Sperre | null>(null);
 
+  /*
+   * Was gezeigt werden **soll** — sofort gesetzt, während `offen` erst nach
+   * dem Übergang nachzieht. Ohne diese Trennung ging ein `Esc` während des
+   * Öffnens verloren, und der Kasten öffnete trotzdem (gemessen 2026-10-08).
+   */
+  const soll = useRef<number | null>(null);
+
+  const oeffne = useCallback((i: number, kachel: HTMLAnchorElement) => {
+    soll.current = i;
+    const klein = bildIn(kachel);
+    if (klein) klein.style.viewTransitionName = UEBERGANG;
+    sperre.current ??= sperren();
+    mitUebergang(async () => {
+      if (klein) klein.style.viewTransitionName = "";
+      // Inzwischen geschlossen oder weitergeblättert: nichts überschreiben.
+      if (soll.current !== i) return;
+      flushSync(() => setOffen(i));
+      const gross = bildIn(kasten.current);
+      if (gross) await hoechstens(gross.decode(), 120);
+    });
+  }, []);
+
+  /*
+   * ⚠️ Behebung von Jans Fehlerbild („beim schließen von einem bild in
+   * großer ansicht landet man wieder ganz oben"). Ursache war ein Kasten mit
+   * `position: absolute` im scrollenden Element. Der Kasten ist jetzt
+   * `fixed`, und der Fokus geht auf eine Kachel zurück.
+   *
+   * Seit dem 2026-10-08 auf die Kachel des **zuletzt gezeigten** Bildes, nicht
+   * mehr auf die, von der man kam: Wer im Kasten weitergeblättert hat, steht
+   * danach dort, wo er zuletzt hingesehen hat — wie in einer Foto-App. Das
+   * Foto kehrt sichtbar in genau diese Kachel zurück.
+   */
   const schliesse = useCallback(() => {
-    setOffen(null);
-    /*
-     * ⚠️ Behebung von Jans Fehlerbild („beim schließen von einem bild in
-     * großer ansicht landet man wieder ganz oben"). Ursache war ein Kasten
-     * mit `position: absolute` im scrollenden Element. Der Kasten ist jetzt
-     * `fixed`, und der Fokus geht auf die Kachel zurück, von der er kam.
-     */
-    ausloeser.current?.focus({ preventScroll: true });
+    const i = soll.current;
+    if (i === null) return;
+    soll.current = null;
+    const ziel = kacheln.current[i] ?? null;
+    const zielBild = bildIn(ziel);
+    mitUebergang(
+      () => {
+        flushSync(() => setOffen(null));
+        if (sperre.current) entsperren(sperre.current);
+        sperre.current = null;
+        if (!ziel) return;
+        const r = ziel.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > window.innerHeight) {
+          ziel.scrollIntoView({ block: "center" });
+        }
+        if (zielBild) zielBild.style.viewTransitionName = UEBERGANG;
+        ziel.focus({ preventScroll: true });
+      },
+      () => {
+        if (zielBild) zielBild.style.viewTransitionName = "";
+      },
+    );
   }, []);
 
   /* Blättert über **alle** Bilder der Seite, nicht nur innerhalb einer
      Arbeit — das Mosaik hat keine Grenzen zwischen den Arbeiten. */
   const blaettere = useCallback(
-    (schritt: number) =>
-      setOffen((i) => {
-        if (i === null) return i;
-        const neu = i + schritt;
-        return neu >= 0 && neu < bilder.length ? neu : i;
-      }),
+    (schritt: number) => {
+      const i = soll.current;
+      if (i === null) return;
+      const neu = i + schritt;
+      if (neu < 0 || neu >= bilder.length) return;
+      soll.current = neu;
+      setOffen(neu);
+    },
     [bilder.length],
   );
 
+  /* Dauerhaft angemeldet, nicht erst wenn `offen` gesetzt ist — sonst wären
+     die Tasten während des Öffnens tot. */
   useEffect(() => {
-    if (offen === null) return;
-
     const taste = (e: KeyboardEvent) => {
+      if (soll.current === null) return;
       if (e.key === "Escape") { e.preventDefault(); schliesse(); }
       if (e.key === "ArrowLeft") { e.preventDefault(); blaettere(-1); }
       if (e.key === "ArrowRight") { e.preventDefault(); blaettere(1); }
     };
     document.addEventListener("keydown", taste);
+    return () => document.removeEventListener("keydown", taste);
+  }, [schliesse, blaettere]);
 
-    /*
-     * Hintergrund festhalten, solange der Kasten offen ist. Die
-     * Breitenkompensation ist kein Beiwerk: Verschwindet die Bildlaufleiste
-     * ersatzlos, springt die ganze Seite darunter um deren Breite zur
-     * Seite — sichtbar als Ruck beim Öffnen **und** beim Schließen.
-     */
-    const leiste = window.innerWidth - document.documentElement.clientWidth;
-    const vorher = document.body.style.cssText;
-    const hoehe = window.scrollY;
-    document.body.style.overflow = "hidden";
-    if (leiste > 0) document.body.style.paddingRight = `${leiste}px`;
-
-    return () => {
-      document.removeEventListener("keydown", taste);
-      document.body.style.cssText = vorher;
-      /*
-       * ⚠️ Chromium behält die Scrollposition über das Sperren hinweg —
-       * gemessen. Safari und iOS setzen sie beim Aufheben von
-       * `overflow: hidden` bekanntlich zurück. Deshalb wird die Position
-       * ausdrücklich zurückgesetzt: im geprüften Browser wirkungslos, im
-       * ungeprüften die Absicherung.
-       */
-      window.scrollTo(0, hoehe);
-    };
-  }, [offen, schliesse, blaettere]);
+  /* Verlässt jemand die Seite mit offenem Kasten, darf die Sperre nicht
+     hängen bleiben. */
+  useEffect(
+    () => () => {
+      if (sperre.current) entsperren(sperre.current);
+    },
+    [],
+  );
 
   if (bilder.length === 0) return null;
 
@@ -141,6 +241,9 @@ export default function Mosaik({ bilder }: Props) {
                   öffnen" — beides das, was man bei einem Foto erwartet.
                 */}
                 <a
+                  ref={(el) => {
+                    kacheln.current[i] = el;
+                  }}
                   className={styles.griff}
                   href={bild.quelle.fallback}
                   style={{ aspectRatio: `${bild.quelle.breite} / ${bild.quelle.hoehe}` }}
@@ -149,8 +252,7 @@ export default function Mosaik({ bilder }: Props) {
                        Link Link bleiben. */
                     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
                     e.preventDefault();
-                    ausloeser.current = e.currentTarget;
-                    setOffen(i);
+                    oeffne(i, e.currentTarget);
                   }}
                 >
                   <Bild
@@ -163,7 +265,7 @@ export default function Mosaik({ bilder }: Props) {
                   {/* Für Sehende beim Überfahren. Vorgelesen wird sie nicht —
                       die Beschriftung steckt schon im Alt-Text. */}
                   <span className={styles.beschriftung} aria-hidden="true">
-                    {bild.beschriftung}
+                    <span className={styles.beschriftungText}>{bild.beschriftung}</span>
                   </span>
                   <span className={styles.nurVorlesen}>, groß ansehen</span>
                 </a>
@@ -185,14 +287,17 @@ export default function Mosaik({ bilder }: Props) {
             if (e.target === e.currentTarget) schliesse();
           }}
         >
-          <div className={styles.kastenBild}>
-            <img
-              src={bildImKasten.quelle.fallback}
-              srcSet={bildImKasten.quelle.webp}
-              sizes="100vw"
+          <div className={styles.kastenBild} ref={kasten}>
+            {/* `key`: ein neues Element je Bild, sonst zeigt der Browser beim
+                Blättern kurz das alte Foto in den Maßen des neuen. */}
+            <Bild
+              key={bildImKasten.schluessel}
+              className={styles.kastenFoto}
+              quelle={bildImKasten.quelle}
               alt={bildImKasten.alt}
-              width={bildImKasten.quelle.breite}
-              height={bildImKasten.quelle.hoehe}
+              sizes="100vw"
+              vorrang
+              uebergang={UEBERGANG}
             />
           </div>
 

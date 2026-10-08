@@ -81,6 +81,28 @@
   background: var(--auf-rec);
 }
 
+/*
+ * Solange das Hero-Video läuft, blinkt der Punkt im Sekundentakt — die
+ * Aufnahmeleuchte einer Kamera. Den Zustand setzt HeroVideo.tsx am <html>;
+ * Pause hält Video und Blinken gemeinsam an (WCAG 2.2.2). Harter Wechsel
+ * statt Überblendung: So blinkt eine Leuchte, sie pulsiert nicht.
+ */
+:global(html[data-aufnahme="laeuft"]) .topbar[data-startseite="true"] .recPunkt {
+  animation: aufnahme 1s steps(1, end) infinite;
+}
+
+@keyframes aufnahme {
+  50% {
+    opacity: 0.2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global(html[data-aufnahme="laeuft"]) .topbar[data-startseite="true"] .recPunkt {
+    animation: none;
+  }
+}
+
 .nav {
   /* Bricht die Zeile, rückt die Navigation an den linken Rand der zweiten
      Zeile — `margin-left: auto` hielte sie sonst rechts außen. */

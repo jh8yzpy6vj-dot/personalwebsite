@@ -26,6 +26,9 @@
   height: 100%;
   object-fit: cover;
   display: block;
+  /* Kommt das Bild nicht an, zeichnet der Browser den Alt-Text in die Box —
+     im Hero läge er quer unter der Topbar. Screenreader lesen ihn trotzdem. */
+  color: transparent;
 }
 
 /*

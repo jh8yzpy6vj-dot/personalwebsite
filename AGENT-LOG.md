@@ -6,6 +6,50 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-08 — Regressionstest und vier Verbesserungen „für Jakob"
+
+Auf Jans Auftrag: alles noch einmal testen, dann umsetzen, was Jakob vermutlich gefällt.
+Vertrag zuerst: Alle vier Punkte stehen jetzt im UI-SPEC (Bildbehandlung, Motion, Zustände).
+
+### Regressionstest
+- `lint`, `test` (62), `build`, `cf:build` grün.
+- **Worker-Laufzeit** (`opennextjs-cloudflare preview`): alle Routen 200, 404 korrekt,
+  Weiterleitungen 308, `Cache-Control` gesetzt.
+- Alle Seiten bei 320 / 375 / 768 / 1440 px: kein waagerechtes Scrollen, genau eine `<h1>`,
+  Startseite scrollt nicht, keine Skriptfehler.
+- **Hero-Video erstmals echt getestet**, mit einem im Browser erzeugten Testvideo (nicht
+  eingecheckt): Autoplay, Pause per Tastatur, Pause bleibt nach Neuladen
+  (`sessionStorage`), pausiert im Hintergrund-Tab, unter `reduce` kein Autoplay.
+- **Gefunden:** Die Vorschaukarte `public/og/start.jpg` zeigte noch den alten Verkaufstext
+  („fotografie für kultur & theater im öffentlichen raum"). Neu erzeugt.
+
+### Neu
+1. **Startseite nicht mehr schwarz.** Ohne Hero-Video und -Standbild trägt ein Foto aus `/foto`
+   das Hero: `HERO_ERSATZ` in `lib/content.ts`, gesetzt auf `arbeiten/wiwawo-53/06` (Bus an der
+   Bergstraße, Nebel im Tal — das einzige Querformat ohne Gesichter). ⚠️ Claudes Wahl, Jakob
+   entscheidet. Sobald `hero/standbild` im Bucket liegt, ist der Wert wirkungslos.
+2. **Lichtkasten wie eine Foto-App.** Das Foto wächst per View Transition aus seiner Kachel und
+   kehrt beim Schließen in die Kachel des zuletzt gezeigten Bildes zurück; Fokus und
+   Scrollposition folgen dorthin. Unter `reduce` und ohne Browserunterstützung sofort.
+   - **Dabei gefundener und behobener Fehler:** Ein `Esc` während des Öffnens ging verloren, der
+     Kasten öffnete trotzdem. Der gewünschte Zustand steht jetzt in einer Referenz (`soll`),
+     die Tasten sind dauerhaft angemeldet. Getestet: doppelt öffnen, doppelt schließen,
+     Seitenwechsel bei offenem Kasten — keine hängende Sperre, keine übrig gebliebenen
+     Übergangsnamen.
+3. **●REC blinkt, solange das Hero-Video läuft** (1 Hz, harter Wechsel). Pause hält beides an;
+   ohne Video, unter `reduce` und auf Unterseiten steht der Punkt. Getestet mit dem Testvideo.
+4. **Beschriftung im Mosaik höchstens drei Zeilen**, vollständig im Lichtkasten.
+
+### Klein
+- Hero: Alt-Text wird bei Ladefehler nicht mehr quer unter die Topbar gezeichnet.
+- `scripts/og.mjs` nimmt für die Karte das Hero-Standbild, sonst `HERO_ERSATZ`.
+
+### Nicht prüfbar in der Sitzung
+Echte Fotos (Medien-Domain vom Proxy gesperrt) — deshalb auch die Vorschaukarte noch ohne
+Foto. Nach `npm run medien` einmal `npm run og` laufen lassen, dann kommt das Foto dazu.
+
+---
+
 ## 2026-10-08 — Prüfung nach drei Skills von Emil Kowalski (mobile-native, break-ui, apple-design)
 
 Auf Jans Wunsch die Seite gegen drei Skills aus `github.com/emilkowalski/skills` geprüft. Die

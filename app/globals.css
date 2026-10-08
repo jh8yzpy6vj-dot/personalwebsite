@@ -253,6 +253,29 @@ button {
   navigation: auto;
 }
 
+/*
+ * Lichtkasten auf `/foto`: Das Foto bewegt sich aus seiner Kachel an seinen
+ * Platz im Kasten und zurück (Mosaik.tsx). Weich auslaufend, ohne
+ * Überschwingen — wie ein Foto, das man heranholt, nicht wie ein Ball.
+ * Hier und nicht im CSS-Modul, weil die Pseudo-Elemente am <html> hängen.
+ */
+::view-transition-group(lichtkasten) {
+  animation-duration: 300ms;
+  animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+::view-transition-old(lichtkasten),
+::view-transition-new(lichtkasten) {
+  /* Beide Fassungen füllen die Fläche, statt sich zu verzerren — das
+     Seitenverhältnis ist ohnehin gleich. */
+  height: 100%;
+  object-fit: cover;
+}
+
+::view-transition-group(root) {
+  animation-duration: 300ms;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

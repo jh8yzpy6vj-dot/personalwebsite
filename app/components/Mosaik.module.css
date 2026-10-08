@@ -92,6 +92,9 @@
    * Seitenverhältnis des Originals. Es fängt nur Rundungsreste ab.
    */
   object-fit: cover;
+  /* Dieselbe Rundung wie die Kachel: Der Übergang in den Lichtkasten nimmt
+     das Bild selbst mit, nicht den abgerundeten Rahmen drumherum. */
+  border-radius: var(--radius-bild);
 }
 
 /*
@@ -114,6 +117,16 @@
   opacity: 0;
   transition: opacity 120ms ease;
   pointer-events: none;
+}
+
+/* Höchstens drei Zeilen — sonst deckt ein langer Titel ein kleines
+   Querformat zu. Vollständig steht er im Lichtkasten. */
+.beschriftungText {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
 }
 
 .griff:focus-visible .beschriftung {
@@ -153,12 +166,14 @@
   justify-content: center;
 }
 
-.kastenBild img {
+.kastenFoto {
   max-width: 100%;
   max-height: 100%;
   width: auto;
   height: auto;
   display: block;
+  /* Das Vorschaubildchen füllt nur die Fläche des Fotos, nicht mehr. */
+  background-size: contain;
 }
 
 .kastenZeile {

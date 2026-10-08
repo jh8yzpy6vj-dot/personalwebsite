@@ -32,6 +32,16 @@ function merke(pausiert: boolean) {
 }
 
 /**
+ * Läuft das Video, blinkt der ●REC-Punkt in der Topbar (UI-SPEC, „Motion").
+ * Die Topbar ist eine Serverkomponente und weiß davon nichts — sie liest den
+ * Zustand über dieses Attribut am `<html>`.
+ */
+function aufnahme(laeuft: boolean) {
+  if (laeuft) document.documentElement.dataset.aufnahme = "laeuft";
+  else delete document.documentElement.dataset.aufnahme;
+}
+
+/**
  * Das Hero-Video der Startseite mit Pause-Knopf.
  *
  * - **Pause-Knopf ist Pflicht** (WCAG 2.2.2): Was sich länger als fünf
@@ -63,8 +73,14 @@ export default function HeroVideo({ src, poster, className }: Props) {
       video.play().catch(() => setLaeuft(false));
     };
 
-    const onPlay = () => setLaeuft(true);
-    const onPause = () => setLaeuft(false);
+    const onPlay = () => {
+      setLaeuft(true);
+      aufnahme(true);
+    };
+    const onPause = () => {
+      setLaeuft(false);
+      aufnahme(false);
+    };
     video.addEventListener("play", onPlay);
     video.addEventListener("pause", onPause);
 
@@ -80,6 +96,8 @@ export default function HeroVideo({ src, poster, className }: Props) {
       video.removeEventListener("play", onPlay);
       video.removeEventListener("pause", onPause);
       document.removeEventListener("visibilitychange", sichtbarkeit);
+      /* Beim Verlassen der Startseite: Auf den Unterseiten steht der Punkt. */
+      aufnahme(false);
     };
   }, []);
 

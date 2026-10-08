@@ -35,6 +35,23 @@ export const HERO_VIDEO: string | null = null;
  */
 export const HERO_ALT: string | null = null;
 
+/**
+ * Das Foto, das die Startseite trägt, solange es **weder Hero-Video noch
+ * Hero-Standbild** gibt (`original/hero/…` im Bucket). Schlüssel wie im
+ * Manifest, also `arbeiten/<id>/NN`.
+ *
+ * Eine schwarze Fläche ist als erster Eindruck einer Seite, die durch Bilder
+ * überzeugen soll, das Schwächste, was es gibt. Gewählt nach drei Regeln
+ * (UI-SPEC, „Bildbehandlung"): Querformat, keine erkennbaren Gesichter, trägt
+ * auch hinter dem Schriftzug. Bei `wiwawo-53` erfüllt das nur Bild 06 (Bus an
+ * der Bergstraße, Nebel im Tal).
+ *
+ * ⚠️ Eine Wahl von Claude, **nicht von Jakob** — er entscheidet. Sobald
+ * `hero/standbild` im Bucket liegt, hat das Vorrang, und dieser Wert ist
+ * wirkungslos. `null` schaltet den Ersatz ab.
+ */
+export const HERO_ERSATZ: string | null = "arbeiten/wiwawo-53/06";
+
 export const SITE = {
   /** Schriftzug und Wortmarke — bewusst kleingeschrieben (UI-SPEC, E7). */
   name: "jakob sax",
