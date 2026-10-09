@@ -122,10 +122,8 @@ hängt:
   **erst prüfbar, wenn ein Video im Bucket liegt.** Gedrosseltes 4G ebenso erst mit
   Hero-Standbild.
 - [ ] 6.3 UI-Prüfung gegen das neue UI-SPEC (`gsd-ui-checker`), zusammen mit 1.6.
-- [ ] 6.4 Merge nach `main` (= live). Gebaut wurde auf dem Arbeitsbranch `main-wlv97t`;
-  der Merge bleibt eine menschliche Entscheidung (siehe „Schreibzugriff" unten). ⚠️ Ohne
-  Filme zeigt `/film` „Filme folgen." und ohne Hero-Material die Startseite eine leere
-  dunkle Fläche mit Schriftzug — gültige Zustände, aber kein guter erster Eindruck.
+- [x] 6.4 Live seit 2026-10-09 (siehe `AGENT-LOG.md`). Offen: einmal auf `jakobsax.de` im
+  Browser ansehen — aus der Cloud-Sitzung war die Domain nicht erreichbar.
 
 ---
 
@@ -252,8 +250,6 @@ ist mit der Neuausrichtung hinfällig.
 
 ## Kurzfristig
 
-- [ ] **Schreibzugriff für Claude einrichten.** Aktuell kann Claude nicht selbst pushen: Der Git-Proxy der Session hat keine GitHub-Autorisierung für das Repo (`403`), der GitHub-MCP-Zugang nur Leserechte. Änderungen müssen deshalb als ZIP/Bundle exportiert und von Hand eingespielt werden. Zu tun: Claude GitHub App unter https://github.com/apps/claude/installations/select_target für `jh8yzpy6vj-dot/personalwebsite` freigeben (Contents: Read **and write**), und die GitHub-Verbindung unter claude.ai → Einstellungen → Connectors neu verbinden.
-  - ⚠️ **Wenn das steht: Claude weiterhin auf einem Arbeitsbranch pushen lassen, nicht auf `main`.** Laut `CLAUDE.md` geht jeder Push auf `main` sofort live, ohne Preview — die Regel „Änderungen vor dem Pushen kurz selbst gegenlesen" existiert genau deswegen. Der Merge nach `main` bleibt eine menschliche Entscheidung.
 - [ ] **⚠️ Ersten echten Medien-Lauf abschließen.** Bucket `websitebucket` steht (Stand 2026-08-30), Bilder sind hochgeladen — **aber flach im Wurzelverzeichnis, mit Kameranamen und 11–12 MB**. So findet die Pipeline nichts. Zu tun:
   1. **Public access → Custom Domain** setzen, z. B. `medien.jakobsax.de`. ⚠️ Nicht die `…r2.dev`-Adresse.
   2. **Token** mit **Object Read & Write** für diesen Bucket, dann `.dev.vars` füllen (`R2_BUCKET=websitebucket`). Die Datei ist von Git ausgenommen — **nichts davon committen**.

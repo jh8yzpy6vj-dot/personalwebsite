@@ -6,6 +6,21 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-09 — Umbau live
+
+Auf Jans Anweisung („Push mal live") `main-wlv97t` per Fast-Forward nach `main` gepusht
+(`cc81dbb..1735654`), damit hat Cloudflare den Deploy angestoßen. Der Schreibzugriff für Claude
+funktioniert seit diesem Tag; vorher brach jeder Push mit 403 ab.
+
+Live sind damit: die neue Seite (`/`, `/foto`, `/film`, `/ueber`), die Mobil-Fixes und die vier
+Verbesserungen vom 2026-10-08. **Nicht von hier geprüft:** die Live-Seite selbst — `jakobsax.de`
+ist aus der Cloud-Sitzung nicht erreichbar. Nach dem Deploy einmal im Browser ansehen.
+
+Bewusst so live gegangen, obwohl `TODO.md` empfahl zu warten: `/film` zeigt „Filme folgen.", die
+Schriften sind noch Ersatz, und `INDEXABLE` steht weiter auf `false`.
+
+---
+
 ## 2026-10-08 — Regressionstest und vier Verbesserungen „für Jakob"
 
 Auf Jans Auftrag: alles noch einmal testen, dann umsetzen, was Jakob vermutlich gefällt.
