@@ -73,7 +73,7 @@ erledigt (`TODO.md`, Launch-Blocker).
 
 | Route | Job | Inhalt |
 |-------|-----|--------|
-| `/` | **Der erste Eindruck.** | Kurzes Video in voller Fensterhöhe, mittig „jakob sax". Nichts darunter |
+| `/` | **Der erste Eindruck.** | Seit dem 2026-10-10 (Jans Entscheidung) wieder scrollend: Hero mit Positionierungszeile wie vor dem Umbau, Über-mich-Anriss, zwei Wege zu foto und film, vier Highlights, Footer. Details: UI-SPEC, „Startseite" |
 | `/foto` | **Die Fotos.** | Ein Mosaik aus den Fotos aller Arbeiten, ohne Zwischenzeilen. Titel und Kunde erst beim Überfahren und in der Großansicht |
 | `/film` | **Die Filme.** | Standbild und „Titel – Kunde" je Film; jeder führt nach außen (YouTube, Vimeo, Mediathek). Kein Film liegt auf der Seite selbst |
 | `/ueber` | **Wer.** | Bild seitlich, daneben 3–4 Zeilen, darunter E-Mail, Instagram, SWR-Autorenseite |

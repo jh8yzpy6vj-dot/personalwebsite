@@ -1,6 +1,24 @@
 /*
- * Startseite. Werte: design/UI-SPEC.md, „Bildbehandlung" und „Text über
- * Fotos und Bewegtbild".
+ * Startseite: Hero → Anriss → Wege → Highlights → Footer (UI-SPEC,
+ * „Startseite"). Der Anriss bringt sein eigenes Stylesheet mit.
+ */
+
+.seite {
+  /* Bezugspunkt für die Topbar, die durchsichtig über dem Hero liegt. */
+  position: relative;
+  background: var(--grund);
+}
+
+/* Abstand zwischen dem letzten Block und dem Footer. */
+.inhalt {
+  padding-bottom: var(--space-2xl);
+}
+
+.inhalt:focus {
+  outline: none;
+}
+
+/* ── 1. Hero ───────────────────────────────────────────────────────
  *
  * ⚠️ `100svh`, nicht `100vh`: Mit `vh` ragt das Hero auf dem Telefon unter
  * die ein- und ausfahrende Browserleiste. Die `vh`-Zeile ist der Rückfall
@@ -15,11 +33,7 @@
   background: var(--grund);
 }
 
-.hero:focus {
-  outline: none;
-}
-
-.medium {
+.heroMedium {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -31,77 +45,290 @@
   color: transparent;
 }
 
-/*
- * Radiale Abdunklung hinter dem Schriftzug: 0.55 in der Mitte, auslaufend
- * bei rund 60 % der Breite. Der Rest des Videos bleibt unverändert.
- */
-.mitte {
+/* Kein Bild, kein Video: der Verlauf von vor dem Umbau, ohne Rot. */
+.heroPlatzhalter {
   position: absolute;
   inset: 0;
+  background: linear-gradient(160deg, #17171b 0%, #0b0b0d 100%);
+}
+
+/*
+ * Positionierungszeile und Orte unten links. Der Verlauf ist **deckend
+ * 0.80**, wo der Text steht, und blendet nur im oberen Innenabstand aus —
+ * über die volle Höhe verlaufend wäre er genau an der ersten Zeile am
+ * schwächsten (UI-SPEC, „Text über Fotos und Bewegtbild").
+ */
+.heroText {
+  position: absolute;
+  inset: auto 0 0 0;
   z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 var(--rand);
-  pointer-events: none;
-  background: radial-gradient(
-    ellipse 60% 40% at 50% 50%,
-    rgba(14, 14, 16, 0.55) 0%,
+  /* Rechts kein eigener Platz für den Pause-Knopf: Er sitzt unten rechts
+     neben der kurzen Ortszeile, die lange Zeile darüber endet bei 22ch. */
+  padding: var(--space-3xl) var(--rand) var(--space-xl);
+  background: linear-gradient(
+    to top,
+    rgba(14, 14, 16, 0.8) calc(100% - var(--space-3xl)),
     rgba(14, 14, 16, 0) 100%
   );
 }
 
-.schriftzug {
+.positionierung {
   margin: 0;
+  max-width: 22ch;
   font-family: var(--font-display);
   font-stretch: 125%;
   font-weight: 700;
   font-size: var(--text-display);
-  line-height: var(--leading-display);
+  line-height: var(--leading-titel);
   color: var(--schrift);
-  white-space: nowrap;
-  text-shadow: 0 0 24px rgba(14, 14, 16, 0.4);
 }
 
-/*
- * Impressum · Datenschutz unten links, gegenüber dem Pause-Knopf. Darunter
- * ein Streifen, deckend 0.60 hinter der Schrift.
- */
-.rechtliches {
-  position: absolute;
-  inset: auto 0 0 0;
-  z-index: 1;
-  padding: var(--space-lg) var(--rand) var(--space-md);
-  background: linear-gradient(
-    to top,
-    rgba(14, 14, 16, 0.6) calc(100% - var(--space-lg)),
-    rgba(14, 14, 16, 0) 100%
-  );
+.orte {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin: var(--space-md) 0 0;
   font-size: var(--text-label);
   line-height: var(--leading-label);
+  color: var(--schrift);
 }
 
-.rechtliches ul {
+/* Derselbe Punkt wie im ●REC — eine der erlaubten Stellen für Rot. */
+.ortePunkt {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--rec);
+}
+
+/* ── 3. Wege ───────────────────────────────────────────────────────
+ *
+ * Zwei große Bild-Buttons. Die ganze Fläche ist der Link; Bild als Grund,
+ * unten „foto →" bzw. „film →" auf einem deckenden Verlauf.
+ */
+.wege {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-lg);
+  max-width: calc(1400px + 2 * var(--rand));
+  margin: 0 auto;
+  padding: var(--space-3xl) var(--rand) 0;
+}
+
+.weg {
+  position: relative;
+  display: block;
+  /* Nur das Seitenverhältnis, keine Mindesthöhe: Beides zusammen erzwingt
+     eine Mindestbreite und schob die Seite bei 320px auf 369px. */
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: var(--radius-bild);
+  background: #17171b;
+  color: var(--schrift);
+  text-decoration: none;
+}
+
+/* Fokusring innen, sonst schneidet ihn der Rand ab — wie im Mosaik. */
+.weg:focus-visible {
+  outline: 2px solid var(--schrift);
+  outline-offset: -4px;
+  box-shadow: inset 0 0 0 5px var(--grund);
+}
+
+.wegBild {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  color: transparent;
+  transition: transform 400ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.wegLeer {
+  position: absolute;
+  inset: 0;
   display: flex;
-  gap: 0 var(--space-lg);
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #1d1d22 0%, #0b0b0d 100%);
+  color: var(--leise);
+}
+
+.wegPlay {
+  width: 64px;
+  height: 64px;
+}
+
+.wegBeschriftung {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-2xl) var(--space-lg) var(--space-lg);
+  background: linear-gradient(
+    to top,
+    rgba(14, 14, 16, 0.8) calc(100% - var(--space-2xl)),
+    rgba(14, 14, 16, 0) 100%
+  );
+}
+
+.wegLabel {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 700;
+  font-size: var(--text-heading);
+  line-height: var(--leading-titel);
+}
+
+.wegPfeil {
+  font-size: var(--text-heading);
+  line-height: var(--leading-titel);
+  transition: transform 400ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Nur mit echtem Zeigegerät — auf Touch bliebe der Zustand hängen. */
+@media (hover: hover) and (pointer: fine) {
+  .weg:hover .wegBild {
+    transform: scale(1.03);
+  }
+  .weg:hover .wegPfeil {
+    transform: translateX(var(--space-sm));
+  }
+}
+
+/* ── 4. Highlights ─────────────────────────────────────────────── */
+.highlights {
+  max-width: calc(1400px + 2 * var(--rand));
+  margin: 0 auto;
+  padding: var(--space-3xl) var(--rand) 0;
+}
+
+.titel {
+  margin: 0 0 var(--space-xl);
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 700;
+  font-size: var(--text-heading);
+  line-height: var(--leading-titel);
+}
+
+.highlightListe {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-lg);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.rechtliches a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
+.highlight,
+.highlightPlatzhalter {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: var(--radius-bild);
+}
+
+.highlight {
   color: var(--schrift);
   text-decoration: none;
 }
 
-/* Nur mit echtem Zeigegerät — auf Touch bliebe der Zustand nach dem
-   Antippen hängen. */
+.highlight:focus-visible {
+  outline: 2px solid var(--schrift);
+  outline-offset: -4px;
+  box-shadow: inset 0 0 0 5px var(--grund);
+}
+
+.highlightBild {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  color: transparent;
+  transition: transform 400ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* „Titel – Kunde" wie im Mosaik: erst beim Überfahren bzw. bei Fokus. */
+.highlightZeile {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: var(--space-lg) var(--space-md) var(--space-md);
+  background: linear-gradient(
+    to top,
+    rgba(14, 14, 16, 0.8) calc(100% - var(--space-lg)),
+    rgba(14, 14, 16, 0) 100%
+  );
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.highlight:focus-visible .highlightZeile {
+  opacity: 1;
+}
+
 @media (hover: hover) and (pointer: fine) {
-  .rechtliches a:hover {
-    text-decoration: underline;
-    text-underline-offset: 4px;
+  .highlight:hover .highlightZeile {
+    opacity: 1;
+  }
+  .highlight:hover .highlightBild {
+    transform: scale(1.03);
+  }
+}
+
+.highlightPlatzhalter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  background: linear-gradient(160deg, #1d1d22 0%, #0b0b0d 100%);
+  color: var(--leise);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+.platzhalterPunkt {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--leise);
+}
+
+@media (max-width: 900px) {
+  .highlightListe {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+  }
+}
+
+@media (max-width: 700px) {
+  .heroText {
+    padding-top: var(--space-2xl);
+  }
+
+  .wege {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+    padding-top: var(--space-2xl);
+  }
+
+  .highlights {
+    padding-top: var(--space-2xl);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wegBild,
+  .wegPfeil,
+  .highlightBild {
+    transition: none;
   }
 }

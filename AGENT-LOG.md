@@ -6,6 +6,36 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-10 — Startseite wiederhergestellt und erweitert
+
+Jan: „Du hast die Startseite ja einfach getötet." Die reine Videoseite mit „jakob sax" in der
+Mitte und nichts darunter (E3) ist zurückgenommen. **Jans Entscheidung**, erst im UI-SPEC
+(neuer Abschnitt „Startseite"), dann im Code.
+
+**Neuer Aufbau von `/`:**
+1. **Hero wie vor dem Umbau:** unten links die Positionierungszeile „fotografie für kultur &
+   theater im öffentlichen raum" als `<h1>`, darunter ● „rastatt · stuttgart". Behalten aus dem
+   Umbau: Video mit Pause-Knopf und blinkendem ●REC, Rückfall auf `HERO_ERSATZ`. Die Topbar zeigt
+   auf `/` wieder „jakob sax".
+2. **Über-mich-Anriss wie vor dem Umbau** (`UeberAnriss` aus `cc81dbb` zurückgeholt): heller
+   Grund, Porträt links, „jakob.", die zwei Sätze, „→ mehr erfahren". Farben aus den
+   vorhandenen Tokens (vertauscht), keine neue Farbe.
+3. **Neu: zwei Wege** „foto →" und „film →" als große Bild-Buttons. Bild für foto aus `WEGE`
+   in `lib/content.ts`; film nimmt das Standbild des ersten Films, bis dahin dunkle Fläche mit ▶.
+4. **Neu: „highlights."** — vier Fotos 4:5 aus `HIGHLIGHTS` in `lib/content.ts`, fehlende Plätze
+   zeigen „Highlight folgt". Vorauswahl von Claude, Jakob entscheidet.
+5. Footer wie auf allen Seiten (Impressum · Datenschutz); die Links unten im Hero entfallen.
+
+**Nebenbei:** Display-Größe wieder 56px statt 96px (die lange Zeile wäre sonst vierzeilig);
+`--topbar-h` mobil auf 120px, weil die Topbar dort jetzt zweizeilig ist. Beim Testen gefunden:
+`aspect-ratio` plus `min-height` an den Wege-Kacheln schob die Seite bei 320px auf 369px —
+Mindesthöhe entfernt.
+
+**Geprüft:** 320 / 390 / 768 / 1440 px ohne waagerechtes Scrollen, alle Seiten ohne
+Skriptfehler, Tab-Reihenfolge, Links, `lint`, `test`, `build`, `cf:build`.
+
+---
+
 ## 2026-10-09 — Umbau live
 
 Auf Jans Anweisung („Push mal live") `main-wlv97t` per Fast-Forward nach `main` gepusht

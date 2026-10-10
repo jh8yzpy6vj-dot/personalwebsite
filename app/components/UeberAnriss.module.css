@@ -1,0 +1,120 @@
+/*
+ * Porträt und zwei Sätze, zwischen Hero und Wegen — wie vor dem Umbau auf
+ * **hellem** Grund (Jans Entscheidung vom 2026-09-13, wiederhergestellt am
+ * 2026-10-10): Das Porträt ist im Gegenlicht aufgenommen und dunkel, auf
+ * dunklem Grund gingen seine Ränder unter.
+ *
+ * Hell heißt hier: die Farben vertauscht. `--schrift` wird Fläche, `--grund`
+ * wird Schrift — 17.4:1 in beide Richtungen, keine neue Farbe.
+ *
+ * Zweispaltig ab 800px. Ein Porträt, das auf 200px schrumpft, zeigt kein
+ * Gesicht mehr; deshalb liegt der Umbruch höher als die üblichen 700px.
+ */
+.anriss {
+  background: var(--schrift);
+  color: var(--grund);
+  padding: var(--space-3xl) var(--rand);
+}
+
+/* Fokusring in der Schriftfarbe dieses Blocks — weiß auf hell wäre weg. */
+.anriss :focus-visible {
+  outline-color: var(--grund);
+}
+
+.innen {
+  display: grid;
+  gap: var(--space-2xl);
+  align-items: center;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+@media (min-width: 800px) {
+  .innen {
+    grid-template-columns: 420px minmax(0, 1fr);
+  }
+}
+
+.bildSpalte {
+  min-width: 0;
+}
+
+/*
+ * **Kein Zuschnitt.** Ein Porträt muss sich an keinem Nachbarn ausrichten.
+ * `height: auto` ist Pflicht: Das `<img>` trägt die Maße des Originals als
+ * Attribute, und die wirken sonst als feste Höhe.
+ */
+.portrait {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-bild);
+}
+
+.platzhalter {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  border-radius: var(--radius-bild);
+  background: linear-gradient(150deg, #e7e4dc 0%, #d6d2c8 100%);
+}
+
+.platzhalterPunkt {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--grund);
+  opacity: 0.4;
+}
+
+.platzhalterNotiz {
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+.textSpalte {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.titel {
+  margin: 0;
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 700;
+  font-size: var(--text-heading);
+  line-height: var(--leading-titel);
+}
+
+.satz {
+  margin: 0;
+  max-width: 58ch;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.mehrZeile {
+  margin: var(--space-sm) 0 0;
+}
+
+/* Ein echtes Ziel, das angetippt wird — 44px Höhe. */
+.mehr {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--grund);
+  text-underline-offset: 4px;
+}
+
+@media (max-width: 700px) {
+  .anriss {
+    padding: var(--space-2xl) var(--rand);
+  }
+}

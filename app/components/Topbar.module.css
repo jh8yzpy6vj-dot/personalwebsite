@@ -164,10 +164,10 @@
 
   /*
    * Schmal: Wortmarke und ●REC in der ersten Zeile, die Navigation darunter
-   * über die volle Breite. Auf der Startseite (ohne Wortmarke) passt meist
-   * alles in eine Zeile; wenn nicht, gilt dasselbe.
+   * über die volle Breite — auf allen Seiten, seit die Startseite wieder
+   * eine Wortmarke trägt.
    */
-  .topbar:not([data-startseite="true"]) .nav {
+  .topbar .nav {
     flex-basis: 100%;
     margin-left: 0;
   }

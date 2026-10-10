@@ -54,13 +54,13 @@
     system-ui, sans-serif;
 
   /*
-   * Genau vier Größen: 14 · 18 · 36 · 96. Kein Wert unter 14px. Das Display
+   * Genau vier Größen: 14 · 18 · 36 · 56. Kein Wert unter 14px. Das Display
    * stuft mobil auf 36px herunter — innerhalb derselben Skala.
    */
   --text-label: 14px;
   --text-body: 18px;
   --text-heading: 36px;
-  --text-display: 96px;
+  --text-display: 56px;
 
   --leading-label: 1.4;
   --leading-body: 1.6;
@@ -83,8 +83,8 @@
   :root {
     --rand: var(--space-md);
     --text-display: 36px;
-    /* 2 × --space-md + 44px */
-    --topbar-h: 76px;
+    /* Zwei Zeilen (Wortmarke, darunter Navigation): 2 × --space-md + 2 × 44px */
+    --topbar-h: 120px;
   }
 }
 

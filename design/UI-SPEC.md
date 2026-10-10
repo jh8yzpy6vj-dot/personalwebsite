@@ -44,17 +44,30 @@ Daraus folgen drei Regeln, an denen sich jede Entscheidung unten messen lassen m
 
 | Route | Aufbau | Sichtbarer Text |
 |-------|--------|-----------------|
-| `/` | Video in voller Fensterhöhe. Darüber: oben links ●REC, oben rechts die Navigation, mittig der Schriftzug „jakob sax", unten rechts der Pause-Knopf. **Nichts darunter, kein Scrollen.** | Schriftzug, Navigation |
+| `/` | **Seit dem 2026-10-10 (Jans Entscheidung) wieder eine scrollende Startseite**, siehe *Startseite* unten: Hero → Über-mich-Anriss → zwei Wege (foto, film) → Highlights → Footer | Positionierungszeile und Orte im Hero, „jakob." mit zwei Sätzen, Beschriftung der Wege |
 | `/foto` | Topbar, darunter ein Mosaik aus den Fotos aller Arbeiten, in Dateireihenfolge, **ohne Zwischenzeilen** | keiner; „Titel – Kunde" erst beim Überfahren und im Lichtkasten |
 | `/film` | Topbar, darunter ein Raster aus Standbildern; jede Kachel ist ein Link nach außen | je Film „Titel – Kunde" unter dem Standbild |
 | `/ueber` | Topbar, darunter zweispaltig: Bild links, rechts 3–4 Zeilen und eine Kontaktzeile | 3–4 Zeilen, Kontaktzeile |
 | `/impressum`, `/datenschutz` | Topbar, Lesespalte | Pflichttext |
 | 404 | Topbar, eine Zeile, zwei Wege | „Hier ist nichts." · foto · film |
 
-Auf jeder Seite unten der Footer mit **Impressum · Datenschutz** — außer auf `/`: Dort gibt es
-keinen Footer, weil es kein Scrollen gibt. Die beiden Links stehen auf `/` stattdessen klein
-unten links im Video, gegenüber dem Pause-Knopf. ⚠️ Sie dürfen nicht fehlen: Das Impressum muss
-von jeder Seite aus „leicht erkennbar und unmittelbar erreichbar" sein (§ 5 DDG).
+Auf **jeder** Seite unten der Footer mit **Impressum · Datenschutz**, auch auf `/`. ⚠️ Er darf
+nicht fehlen: Das Impressum muss von jeder Seite aus „leicht erkennbar und unmittelbar
+erreichbar" sein (§ 5 DDG).
+
+### Startseite
+
+> **Entscheidung von Jan am 2026-10-10:** Die reine Videoseite (E3) hat die Startseite „getötet".
+> Zurück kommt der alte Aufbau aus Hero und Über-mich-Anriss, ergänzt um Wege und Highlights.
+> Das hebt E3 und die Regel „kein Text über dem Hero außer dem Schriftzug" für `/` auf.
+
+| Block | Inhalt | Fläche |
+|-------|--------|--------|
+| **Hero** | Wie vor dem Umbau: Medium in voller Fensterhöhe (Video → Standbild → `HERO_ERSATZ` → Verlauf), unten links als `<h1>` die Positionierungszeile „fotografie für kultur & theater im öffentlichen raum", darunter ●-Punkt und „rastatt · stuttgart". Pause-Knopf unten rechts, sobald ein Video läuft | dunkel, Verlauf unter dem Text deckend 0.80 |
+| **Über-mich-Anriss** | Wie vor dem Umbau: Porträt links (420px, ohne Zuschnitt), rechts „jakob.", die zwei Sätze aus `ABOUT.zeilen`, darunter „→ mehr erfahren" nach `/ueber`. Fehlt das Porträt: Platzhalter „Porträt folgt" | **hell** (`--schrift` als Fläche, `--grund` als Schrift) |
+| **Wege** | Zwei große Bild-Buttons nebeneinander (untereinander ≤ 700px): „foto" und „film", je mit einem Bild als Grund und „→". Bild für foto: `WEGE.foto` aus `lib/content.ts`; für film das Standbild des ersten Films, sonst eine dunkle Fläche mit ▶ | dunkel |
+| **Highlights** | Überschrift „highlights.", darunter vier Fotos im Hochformat 4:5 nebeneinander (2×2 bis 900px). Welche, steht in `HIGHLIGHTS` in `lib/content.ts`; fehlt ein Bild, steht dort ein Platzhalter „Highlight folgt". Jede Kachel führt nach `/foto` | dunkel |
+| **Footer** | `SiteFooter` wie auf allen Seiten | dunkel |
 
 **Navigation:** foto · film · über mich — in dieser Reihenfolge, an **einer** Stelle definiert
 (`lib/nav.ts`), aus der Topbar und Footer lesen. Rechtliches steht **nur** im Footer bzw. auf `/`
@@ -73,12 +86,12 @@ Tastaturfokus, Ziel `#inhalt` auf dem `<main>`. Mit `transform` aus dem Bild ges
 
 | | `/` | alle anderen Seiten |
 |---|---|---|
-| Links | **nur ●REC** | „jakob sax" (Link auf `/`) und daneben ●REC |
+| Links | „jakob sax" und ●REC (seit 2026-10-10 — der Schriftzug steht nicht mehr mittig im Hero) | „jakob sax" (Link auf `/`) und daneben ●REC |
 | Rechts | Navigation | Navigation |
-| Fläche | transparent über dem Video, mit dem Abdunklungsstreifen aus *Text über Bewegtbild* | **deckend `--grund`**, `position: sticky` |
+| Fläche | transparent über dem Hero, mit dem Abdunklungsstreifen aus *Text über Bewegtbild*; scrollt mit dem Hero weg | **deckend `--grund`**, `position: sticky` |
 | Höhe | `--topbar-h` | `--topbar-h` |
 
-**Warum ●REC auf `/` allein in der Ecke steht:** Über einem laufenden Video ist es genau das, was
+**Abgelöst am 2026-10-10 — warum ●REC auf `/` bis dahin allein in der Ecke stand:** Über einem laufenden Video ist es genau das, was
 es auf einem Kameradisplay ist — die Anzeige, dass aufgenommen wird. Der Schriftzug steht dort
 ohnehin groß in der Mitte; ein zweiter in der Ecke wäre doppelt.
 
@@ -121,8 +134,8 @@ Punkt wie im ●REC: hier wird gerade aufgenommen.
 | Laden | Hero-Standbild `fetchpriority="high"`. Auf `/foto` die ersten drei Bilder sofort, alle weiteren `loading="lazy"`. Auf `/film` die ersten zwei sofort. |
 
 **Wenn die Bilder gut sind, ist jedes erklärende Wort davor ein Verlust.** Deshalb keine
-Überschrift über dem Mosaik, keine Einleitung über dem Filmraster, kein Text über dem Hero außer
-dem Schriftzug.
+Überschrift über dem Mosaik, keine Einleitung über dem Filmraster. (Die Startseite ist seit dem
+2026-10-10 davon ausgenommen, siehe *Startseite*.)
 
 ---
 
@@ -186,7 +199,7 @@ Alle drei Werte sind Startwerte und werden im Browser über Weiß nachgemessen.
 
 | Rolle | Schrift | Größe | Zeilenhöhe |
 |-------|---------|-------|------------|
-| Display (Schriftzug auf `/`) | Druk Wide Bold | **96px** · mobil **36px** | 1.0 |
+| Display (Positionierungszeile im Hero auf `/`) | Druk Wide Bold | **56px** · mobil **36px** | 1.1 |
 | Heading (404-Zeile) | Druk Wide Bold | 36px | 1.1 |
 | Wortmarke (Topbar), Überschriften der Rechtsseiten | Druk Wide Bold | 18px | 1.1 |
 | Navigation | Druk Wide Bold | 14px | 1.1 |
@@ -194,7 +207,7 @@ Alle drei Werte sind Startwerte und werden im Browser über Weiß nachgemessen.
 | Beschriftung („Titel – Kunde", Kontaktzeile, Footer) | Avenir Next Regular | 14px | 1.4 |
 | Screenreader-Überschrift (unsichtbar) | — | 36px | — |
 
-**Skala: 14 · 18 · 36 · 96.** Mobil (≤ 700px) stuft nur das Display von 96 auf 36 herunter,
+**Skala: 14 · 18 · 36 · 56.** (Bis 2026-10-10: 96 für den kurzen Schriftzug „jakob sax"; für die lange Positionierungszeile wieder 56 wie vor dem Umbau.) Mobil (≤ 700px) stuft nur das Display von 56 auf 36 herunter,
 innerhalb derselben Skala. **Kein Wert unter 14px.**
 
 ⚠️ **Die Größen des Displays sind Startwerte und müssen mit der echten Schrift nachgemessen
@@ -249,6 +262,10 @@ neu messen — sonst werden alle abhängigen Stellen still falsch.
 | Element | Copy |
 |---------|------|
 | Schriftzug, Wortmarke | „jakob sax" |
+| Hero auf `/` | „fotografie für kultur & theater im öffentlichen raum" (Jakobs Instagram-Bio, klein geschrieben) · „rastatt · stuttgart" |
+| Anriss auf `/` | „jakob." · zwei Sätze aus `ABOUT.zeilen` · „→ mehr erfahren" |
+| Wege auf `/` | „foto" · „film" (Druk Wide 36px) mit „→"; Screenreader: „Alle Fotos" bzw. „Alle Filme" |
+| Highlights auf `/` | „highlights." · Platzhalter „Highlight folgt" |
 | Navigation | „foto", „film", „über mich" |
 | **Beschriftung einer Arbeit** | „{Titel} – {Kunde}". Halbgeviertstrich (–, U+2013) mit je einem Leerzeichen. Beispiele: „WiWaWo 2026 – Bayerischer Kanuverband", „Y-Kollektiv: Tödliches Gold – SWR/ARD" |
 | Kundennamen | **Ohne Rechtsformzusatz** (kein e.V., GmbH, gGmbH) — E10. Mehrere Auftraggeber mit Schrägstrich **ohne** Leerzeichen („SWR/ARD") |
@@ -285,6 +302,7 @@ und unvergessliche Momente. Zielregister: präzise, konkret, unangestrengt.
 | Video im Hintergrund-Tab | Pausiert, solange die Seite nicht sichtbar ist (`visibilitychange`). Spart Akku und Datenvolumen. |
 | Beschriftung im Mosaik | Erscheint mit 120ms Überblendung (`opacity`). Höchstens **drei Zeilen** (`line-clamp`), sonst deckt ein langer Titel ein kleines Querformat zu; vollständig steht er im Lichtkasten. |
 | **●REC blinkt, solange das Hero-Video läuft** | Der Punkt im Chip geht im Sekundentakt an und aus (`opacity`, harter Wechsel) — die Aufnahmeleuchte einer Kamera. Hält jemand das Video an, steht der Punkt. Ohne Video, ohne Autoplay und unter `reduce` blinkt nichts. Nur auf `/`; auf den Unterseiten steht er immer. WCAG 2.2.2 ist erfüllt, weil der Pause-Knopf auch das Blinken anhält; 1 Hz liegt weit unter der Grenze von drei Blitzen je Sekunde (2.3.1). |
+| Wege und Highlights auf `/` | Beim Überfahren (nur `hover: hover` und `pointer: fine`) wird das Bild um 3 % größer und der Pfeil rückt 8px nach rechts — 400ms, `transform`. Unter `reduce` nichts. |
 | **Lichtkasten öffnen/schließen** | View Transition: Das Foto bewegt sich aus der Kachel an seinen Platz im Kasten (300ms, `cubic-bezier(0.2, 0, 0, 1)`), der Grund blendet über. Nur `transform` und `opacity`. Unter `reduce` und in Browsern ohne View Transitions öffnet er sofort. |
 | Seitenwechsel | `@view-transition` blendet über. Unter `reduce` aus (`navigation: none` — die globale `animation-duration`-Regel greift bei View Transitions nicht). |
 | **Sonst nichts.** | Kein Aufsteigen beim Scrollen, kein Fortschrittsbalken, keine Blende, kein Parallax, kein Ken Burns, keine Filter über Fotos. Bei guten Fotos ist jeder Effekt ein Abzug. |

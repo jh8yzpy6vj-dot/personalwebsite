@@ -9,10 +9,9 @@ type Props = {
    */
   aktuell?: string;
   /**
-   * Die Startseite: Die Leiste liegt durchsichtig über dem Video, und links
-   * steht **nur ●REC** — der Schriftzug steht dort groß in der Mitte, ein
-   * zweiter in der Ecke wäre doppelt. Über einem laufenden Video ist ●REC
-   * genau das, was es auf einem Kameradisplay ist.
+   * Die Startseite: Die Leiste liegt durchsichtig über dem Hero und scrollt
+   * mit ihm weg. Links stehen dort seit dem 2026-10-10 wieder „jakob sax" und
+   * ●REC — die Mitte des Heros gehört der Positionierungszeile.
    */
   startseite?: boolean;
 };
@@ -34,11 +33,9 @@ export default function Topbar({ aktuell, startseite = false }: Props) {
       data-startseite={startseite ? "true" : undefined}
     >
       <div className={styles.links}>
-        {!startseite && (
-          <a className={styles.marke} href="/">
-            {SITE.name}
-          </a>
-        )}
+        <a className={styles.marke} href="/">
+          {SITE.name}
+        </a>
         {/* Die Bildmarke. Für Screenreader ohne Inhalt — „rec" vorgelesen
             sagt nichts, was die Seite betrifft. */}
         <span className={styles.rec} aria-hidden="true">

@@ -55,7 +55,40 @@ export const HERO_ERSATZ: string | null = "arbeiten/wiwawo-53/06";
 export const SITE = {
   /** Schriftzug und Wortmarke — bewusst kleingeschrieben (UI-SPEC, E7). */
   name: "jakob sax",
+  /**
+   * Die Zeile im Hero der Startseite — Jakobs eigene Instagram-Bio, bewusst
+   * kleingeschrieben. Seit dem 2026-10-10 wieder da (Jans Entscheidung, siehe
+   * UI-SPEC, „Startseite").
+   */
+  positioning: "fotografie für kultur & theater im öffentlichen raum",
+  locations: "rastatt · stuttgart",
 } as const;
+
+/**
+ * Die Bilder für die beiden Wege auf der Startseite („foto", „film").
+ * Schlüssel wie im Manifest. Für film gilt: Gibt es einen Film mit Standbild,
+ * nimmt die Seite dessen Standbild; `film` hier ist nur der Rückfall, `null`
+ * zeigt eine dunkle Fläche mit ▶.
+ */
+export const WEGE: { foto: string | null; film: string | null } = {
+  foto: "arbeiten/wiwawo-53/05",
+  film: null,
+};
+
+/**
+ * Die Highlights auf der Startseite: **genau vier Plätze**, in dieser
+ * Reihenfolge. Schlüssel wie im Manifest (`arbeiten/<id>/NN`). Fehlt das Bild
+ * zu einem Schlüssel — oder steht `null` da —, zeigt der Platz „Highlight
+ * folgt". So kann Jakob die vier Plätze nach und nach füllen.
+ *
+ * ⚠️ Vorauswahl von Claude aus dem, was im Bucket liegt — Jakob entscheidet.
+ */
+export const HIGHLIGHTS: (string | null)[] = [
+  "arbeiten/wiwawo-53/01",
+  "arbeiten/wiwawo-53/04",
+  "arbeiten/wiwawo-53/02",
+  "arbeiten/wiwawo-53/03",
+];
 
 /**
  * Eine Fotoarbeit. Ihre Bilder liegen im Bucket unter
