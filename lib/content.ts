@@ -287,18 +287,13 @@ export const FOTOS: Fotoarbeit[] = [
      */
     alt: { leitbild: "Platzhalter: ein gezeichneter Goldbarren auf dunklem Grund" },
   },
-  {
-    id: "strg-f",
-    kategorie: "journalismus",
-    titel: "STRG_F",
-    kunde: "NDR/ARD für funk",
-  },
-  {
-    id: "tagesthemen",
-    kategorie: "journalismus",
-    titel: "Tagesthemen",
-    kunde: "ARD/SWR",
-  },
+  /*
+   * ⚠️ **STRG_F (NDR/ARD für funk) und Tagesthemen (ARD/SWR) am 2026-10-14
+   * offline genommen** — Jan: „nimm hier bitte schnell die personenbilder
+   * offline". Beide zeigen Interviewpartner aus Beiträgen; ob die Bilder auf
+   * Jakobs Seite dürfen, ist ungeklärt. Auch aus dem Bucket gelöscht, die
+   * Kameradateien liegen bei Jakob. Zurück nur nach Klärung der Bildrechte.
+   */
 ];
 
 /**
