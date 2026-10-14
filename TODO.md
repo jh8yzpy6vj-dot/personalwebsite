@@ -208,9 +208,10 @@ nur, wer was anstoßen muss. Alles, was nicht hier steht, kann Claude selbst erl
 
 | | Was | Warum es an ihm hängt |
 |---|---|---|
-| ⏳ | **Bilder liefern und auswählen** | ✅ 33 Fotos mit Liste am 2026-10-14 geliefert und online. Offen: die Bilder zu **„Tödliches Gold"** (bis dahin ein gezeichneter Goldbarren) und **ONE09024 „Cie. Sept fois la langue" (STAMP)** — steht in der Liste, lag nicht im Ordner |
-| 🔲 | **Texte für die Detailseiten** | Je Arbeit ein paar Sätze für den Kasten (`text` in `lib/content.ts`). Bis dahin steht dort „Lass dir was einfallen und schicks mir" — live sichtbar |
-| 🔲 | **Zuordnung gegenlesen** (Stand 2026-10-14) | ① **ONE09173** lag ohne Listeneintrag im Ordner und zeigt eine Moderation vor einem SWR-Logo — steht jetzt unter `/ueber`. Richtig? ② Titel „Stadtfest" für das KME-Bild (in der Liste ohne Überschrift). ③ Welttheater der Strasse komplett unter „theater", auch Commando Percu und Malunés (in der Liste „Festival"). ④ „journalismus" statt „SWR" als Kategorie. ⑤ Startbild je Arbeit = erste Zeile der Liste. ⑥ Bildausschnitte im Hero (`lib/bildausschnitte.ts`) und die vier Highlights auf `/` — Claudes Wahl |
+| ⏳ | **Bilder liefern und auswählen** | ✅ 33 Fotos mit Liste am 2026-10-14 geliefert und online. Offen: die **drei Bilder zu „Tödliches Gold"** (Y-Kollektiv/ARD; `©JakobSaxARD_YGhana_JPG00855_edited.jpg`, `…JPG01882.JPG`, `…JPG02517_edited.jpg` — stehen in der Liste, lagen nicht im Ordner; die Arbeit ist bis dahin nicht auf der Seite) und **ONE09024 „Cie. Sept fois la langue" (STAMP)** — ebenso |
+| 🔲 | **Hero-Auswahl auf `/foto` bestätigen** | Acht Bilder in `FOTO_HERO` (`lib/content.ts`) — Claudes Vorschlag nach dem Ordner-Screenshot: at.tension (Cie. Dyptik), Commando Percu (rotes Feuer), WiWaWo-Bus im Nebel, SPPI bei Nacht (tête-à-tête), Malunés am Trapez, WiWaWo 2025 Walze, Stadtfest-Tuchakrobatik, Chloe Loftus. Jakob tauscht oder nennt seine 6–8 |
+| 🔲 | **STRG_F und Tagesthemen: Bildrechte klären** | Am 2026-10-14 offline genommen (Personenbilder von Interviewpartnern). Zurück nur, wenn geklärt ist, dass sie auf Jakobs Seite dürfen |
+| 🔲 | **Zuordnung gegenlesen** (Stand 2026-10-14) | ① **ONE09173** lag ohne Listeneintrag im Ordner und zeigt eine Moderation vor einem SWR-Logo — steht jetzt unter `/ueber`. Richtig? ② Titel „Stadtfest" für das KME-Bild (in der Liste ohne Überschrift). ③ Welttheater der Strasse komplett unter „theater", auch Commando Percu und Malunés (in der Liste „Festival"). ④ „journalismus" statt „SWR" als Kategorie. ⑤ Startbild je Arbeit = erste Zeile der Liste (im Mosaik das erste Bild der Arbeit). ⑥ Bildausschnitte im Hero (`lib/bildausschnitte.ts`) und die vier Highlights auf `/` — Claudes Wahl |
 | 🔲 | **Hero-Video liefern** (stumm, plus Standbild) | Vorgaben in `TECH-STACK.md` |
 | 🔲 | **Zwei Listen liefern: Fotoarbeiten und Filme** | Je Zeile Titel und Kunde, bei Filmen dazu der Link. Ersetzt die alte Bestandsaufnahme (CSV). Details: UMBAU, Schritt 7 |
 | 🔲 | **Alle Inhalte gegenlesen** | Alles in `lib/content.ts` stammt ungeprüft aus dem Briefing |
@@ -231,6 +232,8 @@ nur, wer was anstoßen muss. Alles, was nicht hier steht, kann Claude selbst erl
 | 🔲 | **Patches einspielen und pushen** | Claude hat keinen Schreibzugriff |
 | 🔲 | **Schreibzugriff für Claude freischalten** | GitHub-App auf „Read and write", siehe unten |
 | 🔲 | **Cloudflare Web Analytics aktivieren** | Dashboard, nicht per Code |
+| 🔲 | **Goldbarren aus dem Bucket löschen** (Stand 2026-10-14) | Seite zeigt ihn nicht mehr, die Dateien liegen aber noch öffentlich: `original/arbeiten/toedliches-gold.jpg` löschen, dann `npm run medien` (entfernt die Varianten unter `b/arbeiten/toedliches-gold-*`). In Claudes Sitzung fehlten die R2-Zugangsdaten |
+| 🔲 | **Cloudflare-Cache leeren** nach den Löschungen vom 2026-10-14 | Dashboard → jakobsax.de → Caching → *Purge Everything*. Sonst liefert der Rand gelöschte Bilder (STRG_F, Tagesthemen, Goldbarren) bis zu einem Jahr weiter aus (`immutable`) |
 | 🔲 | **DNS abschließend prüfen** (`jakobsax.de`, `www`) | Nach dem 525-Fix nie final getestet |
 | 🔲 | **GitHub-Repo auf privat stellen** — vor UMBAU-Schritt 3 | Es ist öffentlich; kommerzielle Schriftdateien darin wären öffentliche Weitergabe. Siehe `TECH-STACK.md`, „Schriften“ |
 

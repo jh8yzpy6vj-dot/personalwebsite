@@ -1,8 +1,8 @@
 /**
  * Wo der Bildausschnitt sitzt — je Bild, von Hand gewählt.
  *
- * Gilt **nur dort, wo ein Bild beschnitten werden muss**: im Hero der
- * Detailseite. Das Mosaik darunter schneidet nichts zu, dort ist der Wert
+ * Gilt **nur dort, wo ein Bild beschnitten werden muss**: im Hero von
+ * `/foto` und bei den Highlights auf `/`. Das Mosaik schneidet nichts zu, dort ist der Wert
  * ohne Wirkung.
  *
  * ## Warum das eine eigene Datei ist
@@ -53,8 +53,8 @@
  */
 export const BILDAUSSCHNITTE: Record<string, string> = {
   /*
-   * Seit dem 2026-10-14 wirkt der Wert wieder im Hero der Detailseite, auf
-   * den Kacheln von `/foto` (4:5) und bei den Highlights auf `/`.
+   * Wirkt im Hero von `/foto` (seit 2026-10-14 abends; vorher im Hero der
+   * Detailseiten und auf den Kacheln) und bei den Highlights auf `/`.
    *
    * ⚠️ Von Claude am Kontaktbogen gewählt, nur für Bilder, bei denen das
    * Geschehen deutlich außerhalb der Mitte sitzt — alle anderen stehen

@@ -277,9 +277,10 @@ button {
 }
 
 /*
- * Startbild auf `/foto` → erstes Bild im Hero der Detailseite (seit
- * 2026-10-14). Kachel (4:5) und Hero (quer) haben verschiedene Formate;
- * ohne `cover` würde das Foto unterwegs gestaucht. Browser ohne
+ * Fotos, die per View Transition ihren Platz wechseln (Klasse `foto`, gesetzt
+ * in Bild.tsx) — heute die Mosaikkachel → Lichtkasten. Bis 2026-10-14 auch
+ * Startbild → Hero der Detailseite. Ohne `cover` würde ein Foto unterwegs
+ * gestaucht, wenn Start- und Zielform verschieden sind. Browser ohne
  * `view-transition-class` blenden einfach über.
  */
 ::view-transition-group(*.foto) {

@@ -1,5 +1,5 @@
 /*
- * Die Blockblende im Hero der Detailseite.
+ * Die Blockblende im Hero von `/foto`.
  *
  * Aufbau: Je Bild eine eigene `.lage`, die es behält. Gewechselt werden
  * nur Deckkraft und Ebene — nie die Adresse eines `img`. Darüber liegen
@@ -232,7 +232,7 @@
 
 /*
  * Seit dem 2026-10-14 liegt das Hero **unter** der deckenden Topbar statt
- * dahinter (app/foto/[id]/detail.module.css); der Zähler sitzt deshalb oben
+ * dahinter (app/foto/foto.module.css); der Zähler sitzt deshalb oben
  * im Bild, nicht unter einer Topbar. Am Telefon ist die Bühne nicht mehr
  * eine 4:3-Box: Die meisten Fotos sind Hochformate, und 4:3 schnitt ihnen
  * zwei Drittel weg. Die Höhe setzt jetzt das Hero selbst.

@@ -195,14 +195,6 @@
     "fallback": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-1200.jpg?v=ef95ab34",
     "lqip": "data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAAAQAgCdASoQAAsAA4BaJZgCdAENeb1rIbzQAP61walLuXTqR4WCt3oMS5BXaV07dXHwTwU/9O8HfBqp4HakcPckU3YbXKdZeQsw4EWpVVTe1S6sps5lbbIbmYOAAA=="
   },
-  "arbeiten/toedliches-gold": {
-    "breite": 4000,
-    "hoehe": 2667,
-    "avif": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold-1200.jpg?v=fe8cad41",
-    "lqip": "data:image/webp;base64,UklGRkIAAABXRUJQVlA4IDYAAADQAQCdASoQAAsAA4BaJYwCdAEPAGrQwAD+9oL/wpe7+sePGrDjW2/DGHYOVypL+oEkj6zIwAA="
-  },
   "arbeiten/welttheater-der-strasse": {
     "breite": 4672,
     "hoehe": 7008,

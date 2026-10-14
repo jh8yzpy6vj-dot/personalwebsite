@@ -3,8 +3,9 @@
  *
  * Seit dem Umbau vom 2026-10-08 („Präsenz statt Verkauf", siehe SITE-PLAN.md)
  * stehen hier vor allem die Fotoarbeiten, die Filme und die Zeilen für
- * `/ueber`. Seit dem 2026-10-14 hat jede Fotoarbeit eine Detailseite mit
- * Kategorie und Textkasten (UI-SPEC, „Detailseite").
+ * `/ueber`. Seit dem 2026-10-14 (abends) ist `/foto` ein Hero mit Blende
+ * über `FOTO_HERO` und darunter ein Mosaik aus allen Fotoarbeiten, nach
+ * Kategorie geordnet, ohne sichtbare Grenzen (UI-SPEC, „/foto").
  *
  * ⚠️ WICHTIG: Nichts hier ist von Jakob freigegeben, solange er es nicht
  * ausdrücklich bestätigt hat (siehe TODO.md, Launch-Blocker). Nichts
@@ -91,37 +92,51 @@ export const HIGHLIGHTS: (string | null)[] = [
 ];
 
 /**
- * Die Kategorien auf `/foto`, **in dieser Reihenfolge**. Seit dem
- * 2026-10-14 aus Jakobs Bilderliste (`261012_jakobsax.de_WebsiteBilder.xlsx`);
- * „Theater" auf Jans Ansage als eigene Kategorie. „Journalismus" heißt in der
- * Liste „SWR" — umbenannt, weil STRG_F vom NDR ist.
+ * Die Bilder im Hero von `/foto`, **in dieser Reihenfolge** — sechs bis acht,
+ * die Blende läuft über sie (UI-SPEC, „/foto"). Schlüssel wie im Manifest.
+ * Ein Schlüssel ohne Bild fällt still weg; ein Test prüft, dass alle da sind.
+ *
+ * Abwechselnd aus den Kategorien, damit die Folge nicht viermal dasselbe
+ * Festival zeigt. ⚠️ Das Hero ist auf dem Laptop breiter als hoch — ein
+ * Hochformat verliert dort viel Höhe. Deshalb nur Hochformate, deren Motiv
+ * in einem Streifen trägt, mit Ausschnitt aus `bildausschnitte.ts`.
+ *
+ * ⚠️ **Vorauswahl von Claude, nicht von Jakob** — gewählt am Screenshot von
+ * Jakobs Bilderordner (2026-10-14), nicht an den Originalen. Jakob
+ * entscheidet. Erstes Bild = das, was ohne Skript steht.
  */
-export const KATEGORIEN = [
-  { id: "festival", label: "festival" },
-  { id: "theater", label: "theater" },
-  { id: "paddeln", label: "paddeln" },
-  { id: "journalismus", label: "journalismus" },
-] as const;
-
-export type Kategorie = (typeof KATEGORIEN)[number]["id"];
+export const FOTO_HERO: string[] = [
+  "arbeiten/at-tension", // Cie. Dyptik — Körper fliegen über dem Publikum
+  "arbeiten/welttheater-der-strasse", // Commando Percu — rotes Feuer
+  "arbeiten/wiwawo-53/06", // Bus an der Bergstraße, Nebel im Tal
+  "arbeiten/tete-a-tete/01", // SPPI — Bühne bei Nacht, Querformat
+  "arbeiten/welttheater-der-strasse/04", // Collectif Malunés — Trapez im Gegenlicht
+  "arbeiten/wiwawo-52", // Boot in der Walze
+  "arbeiten/stadtfest-karlsruhe", // Tuchakrobatik am Kran
+  "arbeiten/tete-a-tete/03", // Chloe Loftus am Gerüst
+];
 
 /**
- * Was im Textkasten einer Detailseite steht, solange eine Arbeit keinen
- * eigenen `text` hat. ⚠️ Wortlaut von Jan (2026-10-14), gerichtet an Jakob:
- * Er schreibt die Texte. Sichtbar auf der Live-Seite — bewusst so.
+ * Die Kategorien, **in dieser Reihenfolge** — danach ist das Mosaik auf
+ * `/foto` geordnet. Sichtbar sind sie nicht: Jakob will ein Mosaik ohne
+ * Grenzen (2026-10-14), keine Zwischenüberschriften. Aus seiner Bilderliste
+ * (`261012_jakobsax.de_WebsiteBilder.xlsx`); „Theater" auf Jans Ansage als
+ * eigene Kategorie. „Journalismus" heißt in der Liste „SWR" — umbenannt,
+ * weil STRG_F vom NDR ist.
  */
-export const TEXT_FOLGT = "Lass dir was einfallen und schicks mir";
+export const KATEGORIEN = ["festival", "theater", "paddeln", "journalismus"] as const;
+
+export type Kategorie = (typeof KATEGORIEN)[number];
 
 /**
  * Eine Fotoarbeit. Ihre Bilder liegen im Bucket unter
- * `original/arbeiten/<id>.jpg` (das **Startbild**: Kachel auf `/foto` und
- * erstes Bild im Hero der Detailseite) und `original/arbeiten/<id>/01.jpg`,
- * `02.jpg`, … — die `id` ist der Ordnername und die Adresse
- * (`/foto/<id>`). Kein Bildfeld: Konvention statt Konfiguration, siehe
+ * `original/arbeiten/<id>.jpg` (das **Startbild**, im Mosaik das erste der
+ * Arbeit) und `original/arbeiten/<id>/01.jpg`, `02.jpg`, … — die `id` ist
+ * der Ordnername. Kein Bildfeld: Konvention statt Konfiguration, siehe
  * TECH-STACK.md.
  */
 export type Fotoarbeit = {
-  /** Ordnername im Bucket und Adresse. Nicht umbenennen, ohne den Ordner mitzunehmen. */
+  /** Ordnername im Bucket. Nicht umbenennen, ohne den Ordner mitzunehmen. */
   id: string;
   kategorie: Kategorie;
   /** So, wie Jakob ihn schreibt. Gehört das Jahr dazu, steht es hier. */
@@ -132,11 +147,6 @@ export type Fotoarbeit = {
    * dann steht nur der Titel da.
    */
   kunde?: string;
-  /**
-   * Der Text im Kasten der Detailseite. Kommt von Jakob — nichts erfinden.
-   * Ohne Eintrag steht dort `TEXT_FOLGT`.
-   */
-  text?: string;
   /**
    * Überschrift je Bild aus Jakobs Liste, meist die Compagnie („Cie.
    * Dyptik"). Schlüssel wie bei `alt`. Die Beschriftung des Bildes wird dann
@@ -169,8 +179,8 @@ export type Film = {
 };
 
 /**
- * Die Fotoarbeiten. **Die Reihenfolge hier ist die Reihenfolge auf `/foto`**
- * (innerhalb ihrer Kategorie) und beim Blättern zwischen den Detailseiten.
+ * Die Fotoarbeiten. **Die Reihenfolge hier ist die Reihenfolge im Mosaik
+ * auf `/foto`** (innerhalb ihrer Kategorie).
  *
  * Seit dem 2026-10-14 nach Jakobs Bilderliste. Die Reihenfolge der Bilder
  * innerhalb einer Arbeit ist die Reihenfolge der Zeilen dort; die erste Zeile
@@ -274,19 +284,14 @@ export const FOTOS: Fotoarbeit[] = [
   },
 
   // ── journalismus ─────────────────────────────────────────────────────
-  {
-    id: "toedliches-gold",
-    kategorie: "journalismus",
-    titel: "Tödliches Gold",
-    kunde: "Y-Kollektiv/ARD",
-    /*
-     * ⚠️ **Platzhalter.** Die Bilder kommen später (Jan, 2026-10-14). Bis
-     * dahin steht hier ein gezeichneter Goldbarren — bewusst gezeichnet und
-     * kein Stockfoto: Auf der Seite eines Fotografen läse sich ein fremdes
-     * Foto als seine Arbeit. Erzeugt von scripts/goldbarren.mjs.
-     */
-    alt: { leitbild: "Platzhalter: ein gezeichneter Goldbarren auf dunklem Grund" },
-  },
+  /*
+   * ⚠️ **„Tödliches Gold" (Y-Kollektiv/ARD) am 2026-10-14 herausgenommen.**
+   * Bis dahin stand hier ein gezeichneter Goldbarren als Platzhalter — mit
+   * dem Umbau zu einem Mosaik ohne Detailseiten fiel er weg (Jan). Kommt
+   * zurück, sobald Jakob die drei Aufnahmen schickt: Eintrag mit
+   * `kategorie: "journalismus"` hier, Bilder nach `original/arbeiten/
+   * toedliches-gold/NN.jpg`.
+   */
   /*
    * ⚠️ **STRG_F (NDR/ARD für funk) und Tagesthemen (ARD/SWR) am 2026-10-14
    * offline genommen** — Jan: „nimm hier bitte schnell die personenbilder

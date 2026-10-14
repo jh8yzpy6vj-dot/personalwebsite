@@ -16,8 +16,8 @@ type Props = {
 const SOFORT = 3;
 
 /**
- * Das Mosaik auf der Detailseite (`/foto/<id>`, seit 2026-10-14; vorher über
- * alle Arbeiten auf `/foto`) und auf `/ueber`: die Bilder in Spalten, jedes
+ * Das Mosaik auf `/foto` (alle Arbeiten, nach Kategorie geordnet) und auf
+ * `/ueber`: die Bilder in Spalten, jedes
  * in seiner eigenen Form, **nichts beschnitten**, **keine Zwischenzeilen**.
  * Die Beschriftung erscheint erst beim Überfahren bzw. bei Tastaturfokus und
  * im Lichtkasten.
@@ -208,9 +208,9 @@ export default function Mosaik({ bilder }: Props) {
    * Mehrspaltensatz des Browsers (`column-count`) nicht.
    */
   /*
-   * Höchstens drei Spalten, aber nie mehr als Bilder: Seit es Detailseiten
-   * gibt (2026-10-14), haben manche Arbeiten nur ein oder zwei Bilder. In drei
-   * Spalten stünde ein einzelnes Bild dann links in einem Drittel und daneben
+   * Höchstens drei Spalten, aber nie mehr als Bilder. Bei nur einem oder zwei
+   * Bildern (so auf den Detailseiten vom 2026-10-14) stünde in drei Spalten
+   * ein einzelnes Bild links in einem Drittel und daneben
    * gähnende Leere. Weniger Spalten heißt hier auch: schmaler, sonst stünde
    * ein Hochformat 1600px breit und damit 2400px hoch da.
    */

@@ -21,7 +21,7 @@ Ersatzschriften). Wo ein älterer Abschnitt weiter unten dem widerspricht, gilt 
 | Bereich | Bisher | Nach dem Umbau | Schritt |
 |---------|--------|----------------|---------|
 | Routen | `/`, `/arbeiten`, `/arbeiten/[slug]`, `/leistungen/[slug]`, `/kontakt`, `/ueber`, Pflichtseiten | `/`, `/foto`, `/film`, `/ueber`, Pflichtseiten | 4, 5 |
-| Weiterleitungen | — | in `next.config.mjs`, dauerhaft (308): `/arbeiten` und `/arbeiten/:slug` → `/foto`, `/leistungen/:slug` → `/`, `/kontakt` → `/ueber` | 5 |
+| Weiterleitungen | — | in `next.config.mjs`, dauerhaft (308): `/arbeiten` und `/arbeiten/:slug` → `/foto`, `/leistungen/:slug` → `/`, `/kontakt` → `/ueber`; dazu vorläufig (307) `/foto/:id` → `/foto` für die Detailseiten, die am 2026-10-14 kurz live waren | 5 |
 | Inhalte | `WORKS`, `CATEGORIES`, `SERVICES`, `REFERENCES`, `CONTACT` | `FOTOS` (`id`, `titel`, `kunde`), `FILME` (dazu `link`), `ABOUT` | 2 |
 | Schriften | Bricolage Grotesque, Newsreader, Martian Mono über `next/font/google` | Druk Wide Bold und Avenir Next über `next/font/local` — siehe „Schriften" unten | 3 |
 | Kontaktformular | Route `app/api/anfrage`, `lib/anfrage.ts`, `lib/mailer.ts`, Resend, Turnstile | **entfällt ersatzlos.** Keine Worker-Secrets `RESEND_API_KEY`, `ANFRAGE_AN`, `ANFRAGE_VON`; kein AV-Vertrag nötig | 5 |
@@ -115,14 +115,15 @@ schreibt nichts.
 
 ### Wohin welche Datei
 
-> ✅ **Stand 2026-10-14 (Detailseiten):** `original/arbeiten/<id>.jpg` ist das **Startbild** —
-> Kachel auf `/foto` und erstes Bild im Hero der Detailseite. Dazu `original/arbeiten/<id>/01.jpg`,
+> ✅ **Stand 2026-10-14:** `original/arbeiten/<id>.jpg` ist das **Startbild** — im Mosaik das
+> erste Bild der Arbeit. Welche Bilder im Hero von `/foto` laufen, steht in `FOTO_HERO`
+> (`lib/content.ts`). Dazu `original/arbeiten/<id>/01.jpg`,
 > `02.jpg`, … in der Reihenfolge von Jakobs Liste und **`original/ueber/01.jpg`, …** für die
 > Bilder auf `/ueber` (Beschriftung in `UEBER_BILDER`, `lib/content.ts`). Hochgeladen mit
 > `npm run verkleinern -- <ordner> --arbeit <id> --leitbild <erste Datei> --original --hochladen`,
 > also in **voller Auflösung**, nur ohne Standort- und andere Metadaten. Ausgeliefert wird in
-> sieben Breiten bis **4000 px** (`BREITEN` in `lib/bilder-regeln.mjs`). Der Platzhalter für
-> „Tödliches Gold" entsteht mit `node scripts/goldbarren.mjs <ziel.jpg>`.
+> sieben Breiten bis **4000 px** (`BREITEN` in `lib/bilder-regeln.mjs`). (Der Goldbarren-Platzhalter
+> und `scripts/goldbarren.mjs` sind am 2026-10-14 abends entfallen.)
 >
 > Der folgende Hinweis vom 2026-10-08 ist damit in einem Punkt überholt: Das Leitbild entfällt
 > **nicht**.

@@ -6,6 +6,54 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-14 (abends) — `/foto` umgebaut: Hero mit Blende + ein Mosaik, keine Detailseiten
+
+Jakobs Rückmeldung auf den Stand von mittags: **keine Detailseiten, keine Kategorie-Kacheln**,
+sondern oben ein Hero mit 6–8 der besten Bilder und der Blende, darunter **ein** Mosaik mit
+allen Bildern — nach Kategorien sortiert, aber ohne sichtbare Grenzen. Jan hat freigegeben und
+„direkt live" gesagt. Vertrag zuerst (UI-SPEC: Abschnitt „Übersicht und Detailseite" ersetzt
+durch „/foto"; E4 und E8 gelten wieder), dann der Code.
+
+Davor, am selben Nachmittag (zwei Commits `0ec3993`, `0a2dab8`): **STRG_F und Tagesthemen
+offline** — Personenbilder von Interviewpartnern, Bildrechte ungeklärt. Aus `FOTOS` und aus dem
+Bucket gelöscht.
+
+### Was jetzt steht
+- **`/foto`:** randloses Hero unter der Topbar (Höhen wie bisher auf der Detailseite), darin die
+  Blende über `FOTO_HERO` (8 Bilder, neu in `lib/content.ts`), Zähler + Pause-Knopf, kein Text
+  im Bild. Darunter das Mosaik mit **32 Bildern**, Reihenfolge festival → theater → paddeln →
+  journalismus (`fotosFuerMosaik` ordnet jetzt über `arbeitenMitBild`), keine
+  Zwischenüberschriften. Lichtkasten blättert über alle 32.
+- **Detailseiten gelöscht** (`app/foto/[id]/`). `/foto/:id` → `/foto` mit **307**, nicht 308 —
+  ein 308 merkt sich der Browser dauerhaft. Der Sonderfall `/arbeiten/wiwawo-53` →
+  `/foto/wiwawo-53` ist weg, die allgemeine `/arbeiten/:slug*`-Regel greift. Sitemap ohne
+  Detailseiten, Highlights auf `/` verlinken auf `/foto`.
+- **Weg:** Textkasten (`TEXT_FOLGT`, Feld `text`), Übersicht/Blättern (`uebersicht`,
+  `nachbarn`, `textDerArbeit`), `UEBERSICHT_SIZES`, `uebergang` an der Blende (Kachel → Hero gibt
+  es nicht mehr), Labels in `KATEGORIEN` (nur noch die Reihenfolge).
+- **Goldbarren raus:** „Tödliches Gold" aus `FOTOS` und aus dem Manifest, `scripts/goldbarren.mjs`
+  gelöscht. ⚠️ **Die Dateien liegen noch im Bucket** — in dieser Sitzung gab es keine
+  R2-Zugangsdaten. Steht bei Jan in `TODO.md`.
+- **Hero-Auswahl:** am Screenshot von Jakobs Ordner gewählt (Jan hat ihn mitten in der Arbeit
+  geschickt), nicht an den Originalen — `medien.jakobsax.de` ist aus der Sitzung nicht
+  erreichbar. Abwechselnd aus den Kategorien, nur Hochformate, deren Motiv auch im breiten Hero
+  trägt. Bei Jakob zur Bestätigung in `TODO.md`.
+
+### Geprüft
+`npm test` (69, neu: Hero hat 6–8 vorhandene Bilder; Mosaik nach Kategorie; Hero-Reihenfolge,
+fehlende Schlüssel fallen weg), Lint, Typecheck, `next build`, `cf:build`, im Worker
+(`wrangler dev`): `/`, `/foto`, `/film`, `/ueber` 200; `/foto/wiwawo-53` und
+`/foto/toedliches-gold` 307 → `/foto`; `/arbeiten/wiwawo-53` 308 → `/foto`; Unbekanntes 404;
+Sitemap mit vier Adressen. Im Browser bei 1440 und 375 px: kein waagerechter Überlauf, Hero 808
+bzw. 469 px hoch, Zähler „1 / 8", 32 Kacheln, keine Zwischenüberschrift, keine Skriptfehler.
+**Nicht geprüft:** wie die Bilder tatsächlich aussehen — die Medien-Domain war gesperrt, alle
+Bilder liefen ins Leere. Nach dem Livegang einmal selbst ansehen.
+
+⚠️ **Cloudflare-Cache** nach den Löschungen von heute leeren (*Purge Everything*), sonst liefert
+der Rand gelöschte Bilder weiter aus.
+
+---
+
 ## 2026-10-14 — Jakobs Bilder online: Übersicht nach Kategorien, Detailseiten, bis 4000 px
 
 Jakob hat einen Ordner mit 33 Fotos und einer Liste geschickt (`261012_jakobsax.de_WebsiteBilder.xlsx`:

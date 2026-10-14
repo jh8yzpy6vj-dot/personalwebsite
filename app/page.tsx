@@ -166,7 +166,7 @@ export default function Home() {
             {highlights.map((foto, i) => (
               <li key={HIGHLIGHTS[i] ?? `platz-${i}`}>
                 {foto ? (
-                  <a className={styles.highlight} href={`/foto/${foto.arbeit}`}>
+                  <a className={styles.highlight} href="/foto">
                     <Bild
                       className={styles.highlightBild}
                       quelle={foto.quelle}

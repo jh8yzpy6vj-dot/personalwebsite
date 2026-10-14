@@ -74,8 +74,7 @@ erledigt (`TODO.md`, Launch-Blocker).
 | Route | Job | Inhalt |
 |-------|-----|--------|
 | `/` | **Der erste Eindruck.** | Seit dem 2026-10-10 (Jans Entscheidung) wieder scrollend: Hero mit Positionierungszeile wie vor dem Umbau, Über-mich-Anriss, zwei Wege zu foto und film, vier Highlights, Footer. Details: UI-SPEC, „Startseite" |
-| `/foto` | **Die Fotos.** | Seit dem 2026-10-14 eine Übersicht: je Kategorie (festival · theater · paddeln · journalismus) die Arbeiten mit ihrem Startbild und „Titel – Kunde" |
-| `/foto/<id>` | **Eine Arbeit.** | Seit dem 2026-10-14 wieder da (Jans Entscheidung, nach dem Vorbild der alten `wiwawo-53`-Seite): Hero, in dem alle Bilder mit der Blende durchlaufen, ein Kasten mit etwas Text von Jakob, darunter das Mosaik mit Großansicht, vor/zurück zur nächsten Arbeit |
+| `/foto` | **Die Fotos.** | Seit dem 2026-10-14 abends (Jakobs Wunsch): oben ein Hero, in dem 6–8 der besten Bilder mit der Blende durchlaufen, darunter **ein** Mosaik mit allen Bildern und Großansicht — nach Kategorie sortiert, aber ohne sichtbare Grenzen. Keine Detailseiten |
 | `/film` | **Die Filme.** | Standbild und „Titel – Kunde" je Film; jeder führt nach außen (YouTube, Vimeo, Mediathek). Kein Film liegt auf der Seite selbst |
 | `/ueber` | **Wer.** | Bild seitlich, daneben 3–4 Zeilen, darunter E-Mail, Instagram, SWR-Autorenseite. Darunter die Bilder, die in Jakobs Liste unter „Über mich" stehen (Jakob bei der Arbeit) |
 | `/impressum`, `/datenschutz` | Pflicht | Nur im Footer verlinkt, nicht im Header |
@@ -86,14 +85,18 @@ Filmraster, Farbe, Schrift, Copy — stehen in [`design/UI-SPEC.md`](design/UI-S
 **Vorbild für die Startseite:** [bildmanufaktur.de](https://www.bildmanufaktur.de) — Video über
 die volle Fläche, der Name in der Mitte. Übernommen wird die Anmutung, nicht die Gestaltung.
 
-### Warum es keine Detailseiten mehr gab — und warum sie zurück sind
+### Warum es keine Detailseiten gibt
 
-> ↩ **Seit dem 2026-10-14 gibt es sie wieder.** Mit Jakobs Bilderliste (33 Fotos, elf Arbeiten,
+> ✅ **Stand 2026-10-14 abends: wieder keine.** Jakob hat die Übersicht mit Detailseiten gesehen
+> und will sie nicht: „Hero oben mit den besten Bildern und der Blende, darunter ein Mosaik mit
+> allen Bildern, nach Kategorien sortiert, aber ohne sichtbare Grenzen." Der Abschnitt darunter
+> gilt damit wieder. Gestaltung: UI-SPEC, „/foto".
+>
+> ~~↩ **Seit dem 2026-10-14 gibt es sie wieder.** Mit Jakobs Bilderliste (33 Fotos, elf Arbeiten,
 > vier Kategorien) trägt ein einziges Mosaik ohne Zuordnung nicht mehr; Jan: „ein startbild, dann
 > detailseite mit mehr bildern und animation, kasten für bisschen text und dann mosaik." Der
 > Einwand unten gilt weiter für den **Umfang**: kein Vorspann, keine Credits, keine
-> Aufnahmedaten — nur Titel, Kunde und ein kurzer Text von Jakob. Gestaltung: UI-SPEC,
-> „Übersicht und Detailseite".
+> Aufnahmedaten — nur Titel, Kunde und ein kurzer Text von Jakob.~~ (galt wenige Stunden)
 
 Bis zum Umbau hatte jede Arbeit eine eigene Seite mit Vorspann, Credits, Aufnahmedaten und Bildstrecke.
 Das ist fast alles Text, und Jakob will „möglichst wenig Text und Schrift". Die Fotos stehen im

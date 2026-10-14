@@ -40,10 +40,15 @@ const nextConfig = {
   async redirects() {
     return [
       { source: "/arbeiten", destination: "/foto", permanent: true },
-      /* Die einzige alte Detailseite, die es unter neuem Namen wieder gibt —
-         vor der allgemeinen Regel, sonst greift die zuerst. */
-      { source: "/arbeiten/wiwawo-53", destination: "/foto/wiwawo-53", permanent: true },
       { source: "/arbeiten/:slug*", destination: "/foto", permanent: true },
+      /*
+       * Die Detailseiten `/foto/<id>` waren am 2026-10-14 ein paar Stunden
+       * live und sind auf Jakobs Wunsch wieder weg — alles steht im Mosaik
+       * auf `/foto`. ⚠️ `permanent: false` (307), nicht 308: Ein 308 merkt
+       * sich der Browser dauerhaft, und sollten Detailseiten je zurückkommen,
+       * landeten Besucher trotzdem weiter auf `/foto`.
+       */
+      { source: "/foto/:id", destination: "/foto", permanent: false },
       { source: "/leistungen/:slug*", destination: "/", permanent: true },
       { source: "/kontakt", destination: "/ueber", permanent: true },
     ];

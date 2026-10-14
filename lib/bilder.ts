@@ -125,15 +125,6 @@ export const HERO_SIZES = "100vw";
 export const FILM_SIZES = "(max-width: 700px) 92vw, (max-width: 1400px) 46vw, 440px";
 
 /**
- * `sizes` für ein Startbild auf `/foto`.
- *
- * Einspaltig bis 700px, zweispaltig bis 1100px, darüber drei Spalten in
- * höchstens 1600px Seitenbreite — eine Kachel also höchstens rund 520px.
- * Dieselben Umbrüche stehen in `app/foto/foto.module.css`.
- */
-export const UEBERSICHT_SIZES = "(max-width: 700px) 92vw, (max-width: 1100px) 46vw, 520px";
-
-/**
  * `sizes` für ein Foto im Lichtkasten — **je Bild**, weil die Höhe begrenzt:
  * Ein Hochformat steht im Kasten höchstens so breit, wie die Fensterhöhe
  * (abzüglich Rand und Beschriftungszeile, rund 140px) mal Seitenverhältnis

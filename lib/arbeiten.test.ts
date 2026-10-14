@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { FILME, FOTOS, KATEGORIEN, type Fotoarbeit } from "./content";
+import { FILME, FOTO_HERO, FOTOS, KATEGORIEN, type Fotoarbeit } from "./content";
+import manifest from "./bilder-manifest.json";
 import { beschriftung, zielDesLinks } from "./arbeiten";
 
 describe("Inhalte", () => {
@@ -43,8 +44,24 @@ describe("Fotoarbeiten", () => {
   });
 
   it("gehört jede Arbeit zu einer bekannten Kategorie", () => {
-    const ids = new Set(KATEGORIEN.map((k) => k.id));
+    const ids = new Set<string>(KATEGORIEN);
     for (const a of FOTOS) expect(ids.has(a.kategorie), a.id).toBe(true);
+  });
+});
+
+describe("Hero auf /foto", () => {
+  it("hat sechs bis acht Bilder, jedes einmal", () => {
+    expect(FOTO_HERO.length).toBeGreaterThanOrEqual(6);
+    expect(FOTO_HERO.length).toBeLessThanOrEqual(8);
+    expect(new Set(FOTO_HERO).size).toBe(FOTO_HERO.length);
+  });
+
+  it("nennt nur Bilder, die es gibt und die zu einer Fotoarbeit gehören", () => {
+    const ids = new Set(FOTOS.map((a) => a.id));
+    for (const k of FOTO_HERO) {
+      expect(k in manifest, k).toBe(true);
+      expect(ids.has(k.split("/")[1]), k).toBe(true);
+    }
   });
 });
 
@@ -104,8 +121,8 @@ describe("Was kein Bild hat, erscheint nicht", () => {
     expect(fotoarbeitenOhneBild(fotos).map((a) => a.id)).toEqual(["a"]);
   });
 
-  it("ordnet die Übersicht nach Kategorie und blättert in derselben Reihenfolge", async () => {
-    const { uebersicht, nachbarn, arbeitenMitBild } = await mitManifest({
+  it("ordnet das Mosaik nach Kategorie, darin nach FOTOS", async () => {
+    const { fotosFuerMosaik, fotosFuerHero, arbeitenMitBild } = await mitManifest({
       "arbeiten/p": q,
       "arbeiten/f1": q,
       "arbeiten/f2/01": q,
@@ -120,15 +137,19 @@ describe("Was kein Bild hat, erscheint nicht", () => {
       { id: "t", kategorie: "theater", titel: "T" },
       { id: "f2", kategorie: "festival", titel: "F2" },
     ];
-    expect(uebersicht(fotos).map((k) => [k.id, k.arbeiten.map((a) => a.arbeit.id)])).toEqual([
-      ["festival", ["f1", "f2"]],
-      ["theater", ["t"]],
-      ["paddeln", ["p"]],
-    ]);
     expect(arbeitenMitBild(fotos).map((a) => a.id)).toEqual(["f1", "f2", "t", "p"]);
-    expect(nachbarn("f2", fotos)).toMatchObject({ vorher: { id: "f1" }, nachher: { id: "t" } });
-    expect(nachbarn("f1", fotos).vorher).toBeNull();
-    expect(nachbarn("leer", fotos)).toEqual({ vorher: null, nachher: null });
+    expect(fotosFuerMosaik(fotos).map((b) => b.schluessel)).toEqual([
+      "arbeiten/f1",
+      "arbeiten/f2/01",
+      "arbeiten/t",
+      "arbeiten/p",
+    ]);
+    /* Das Hero hält die eigene Reihenfolge und lässt Fehlendes weg. */
+    expect(
+      fotosFuerHero(["arbeiten/t", "arbeiten/gibtsnicht", "arbeiten/f1"], fotos).map(
+        (b) => b.schluessel,
+      ),
+    ).toEqual(["arbeiten/t", "arbeiten/f1"]);
   });
 
   it("beschriftet ein Bild mit seinem eigenen Titel, wenn Jakobs Liste einen nennt", async () => {

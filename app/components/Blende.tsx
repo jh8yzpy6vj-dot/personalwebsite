@@ -72,12 +72,11 @@ type Props = {
   /** Leitbild zuerst, danach die Strecke. Mindestens ein Bild. */
   bilder: Heroquelle[];
   alt: string;
-  /** `view-transition-name` für das erste Bild — siehe Bild.tsx. */
-  uebergang?: string;
 };
 
 /**
- * Das Hero der Detailseite als Folge statt als Standbild.
+ * Das Hero von `/foto` als Folge statt als Standbild (bis 2026-10-14 abends
+ * das Hero der Detailseiten).
  *
  * ⚠️ **Am 2026-09-13 neu gebaut**, nachdem Jan die erste Fassung live sah:
  * „die hero animation ist krass am hängen, das sieht aus wie Pixelfehler
@@ -112,7 +111,7 @@ type Props = {
  * unter `prefers-reduced-motion` sowie ohne JavaScript bleibt es beim
  * Leitbild.
  */
-export default function Blende({ bilder, alt, uebergang }: Props) {
+export default function Blende({ bilder, alt }: Props) {
   const [index, setIndex] = useState(0);
   /*
    * ⚠️ **`bereit` ist kein Zierschritt, sondern der Grund, warum die
@@ -292,7 +291,6 @@ export default function Blende({ bilder, alt, uebergang }: Props) {
               alt={i === index ? (bilder[i].alt ?? alt) : ""}
               sizes={HERO_SIZES}
               vorrang={i === 0}
-              uebergang={i === 0 ? uebergang : undefined}
             />
           </div>
         );

@@ -21,12 +21,11 @@ reviewed_at: —
 > `AGENT-LOG.md`). Ausnahme: die Schriften — bis die Lizenzdateien da sind, laufen Ersatzschriften
 > (`TECH-STACK.md`, „Schriften"). Live ist der Umbau erst nach dem Merge nach `main`.
 >
-> **2026-10-14, Jans Entscheidung:** `/foto` wird eine Übersicht nach Kategorien, jede
-> Fotoarbeit bekommt wieder eine **Detailseite** (Hero mit Blende → Textkasten → Mosaik), nach
-> dem Vorbild der alten `wiwawo-53`-Seite. Das hebt **E4** (ein Mosaik über alles) und **E8**
-> (keine Detailseiten) auf, ebenso für die Detailseite „keine Beschreibung" und „keine Blende,
-> kein Ken Burns". Grundlage ist Jakobs Bilderliste vom 2026-10-12. Siehe *Übersicht und
-> Detailseite*.
+> **2026-10-14, Jans Entscheidung (mittags):** `/foto` wurde eine Übersicht nach Kategorien mit
+> Detailseiten je Arbeit. **Am selben Abend auf Jakobs Rückmeldung zurückgenommen:** `/foto` ist
+> jetzt **Hero mit Blende über 6–8 Bilder → ein Mosaik aus allen Bildern**, nach Kategorie
+> sortiert, ohne sichtbare Grenzen. Damit gilt **E4** (ein Mosaik) wieder und **E8** (keine
+> Detailseiten) ebenso; neu ist allein die Blende oben. Siehe *`/foto`*.
 
 ---
 
@@ -41,8 +40,8 @@ Daraus folgen drei Regeln, an denen sich jede Entscheidung unten messen lassen m
 1. **Das Material ist die Gestaltung.** Eine Fläche, eine Schriftfarbe, eine einzige Akzentfarbe
    für die eigene Marke. Alles, was nicht Foto, Film oder Navigation ist, muss sich rechtfertigen.
 2. **Pro Arbeit genau zwei Angaben: Titel und Kunde.** Keine Rolle, kein Ort, kein Jahr als eigene
-   Angabe, keine Aufnahmedaten. Einzige Ausnahme seit dem 2026-10-14: der **Textkasten** auf der
-   Detailseite — ein kurzer Text von Jakob, sonst nichts.
+   Angabe, keine Aufnahmedaten. (Der Textkasten der Detailseiten vom 2026-10-14 ist mit ihnen
+   entfallen.)
 3. **Keine Aufforderung.** Kein Knopf, kein Preis, kein Formular, kein „Anfrage stellen". Wer
    Jakob erreichen will, findet eine Zeile auf `/ueber`.
 
@@ -53,8 +52,7 @@ Daraus folgen drei Regeln, an denen sich jede Entscheidung unten messen lassen m
 | Route | Aufbau | Sichtbarer Text |
 |-------|--------|-----------------|
 | `/` | **Seit dem 2026-10-10 (Jans Entscheidung) wieder eine scrollende Startseite**, siehe *Startseite* unten: Hero → Über-mich-Anriss → zwei Wege (foto, film) → Highlights → Footer | Positionierungszeile und Orte im Hero, „jakob." mit zwei Sätzen, Beschriftung der Wege |
-| `/foto` | **Seit 2026-10-14 eine Übersicht:** je Kategorie (festival · theater · paddeln · journalismus) ein Raster aus Startbildern, eins je Arbeit; jede Kachel führt auf die Detailseite. Siehe *Übersicht und Detailseite* | Kategorie als Zwischenüberschrift, je Kachel „Titel – Kunde" |
-| `/foto/<id>` | **Detailseite** einer Arbeit: Hero mit Blende über alle Bilder → Textkasten → Mosaik mit Lichtkasten → vor/zurück | Kategorie, Titel und Kunde im Hero, der Textkasten, Bildbeschriftung beim Überfahren und im Lichtkasten |
+| `/foto` | **Seit 2026-10-14 abends:** randloses Hero mit Blende über 6–8 ausgewählte Bilder → **ein** Mosaik aus allen Bildern, nach Kategorie sortiert, ohne Zwischenüberschriften → Footer. Keine Detailseiten. Siehe *`/foto`* | Bildbeschriftung beim Überfahren und im Lichtkasten — sonst kein Text |
 | `/film` | Topbar, darunter ein Raster aus Standbildern; jede Kachel ist ein Link nach außen | je Film „Titel – Kunde" unter dem Standbild |
 | `/ueber` | Topbar, darunter zweispaltig: Bild links, rechts 3–4 Zeilen und eine Kontaktzeile. Darunter seit 2026-10-14 ein Mosaik aus den Bildern der Kategorie „Über mich" aus Jakobs Liste (`original/ueber/NN`) | 3–4 Zeilen, Kontaktzeile |
 | `/impressum`, `/datenschutz` | Topbar, Lesespalte | Pflichttext |
@@ -75,43 +73,28 @@ erreichbar" sein (§ 5 DDG).
 | **Hero** | Wie vor dem Umbau: Medium in voller Fensterhöhe (Video → Standbild → `HERO_ERSATZ` → Verlauf), unten links als `<h1>` die Positionierungszeile „fotografie für kultur & theater im öffentlichen raum", darunter ●-Punkt und „rastatt · stuttgart". Pause-Knopf unten rechts, sobald ein Video läuft | dunkel, Verlauf unter dem Text deckend 0.80 |
 | **Über-mich-Anriss** | Wie vor dem Umbau: Porträt links (420px, ohne Zuschnitt), rechts „jakob.", die zwei Sätze aus `ABOUT.zeilen`, darunter „→ mehr erfahren" nach `/ueber`. Fehlt das Porträt: Platzhalter „Porträt folgt" | **hell** (`--schrift` als Fläche, `--grund` als Schrift) |
 | **Wege** | Zwei große Bild-Buttons nebeneinander (untereinander ≤ 700px): „foto" und „film", je mit einem Bild als Grund und „→". Bild für foto: `WEGE.foto` aus `lib/content.ts`; für film das Standbild des ersten Films, sonst eine dunkle Fläche mit ▶ | dunkel |
-| **Highlights** | Überschrift „highlights.", darunter vier Fotos im Hochformat 4:5 nebeneinander (2×2 bis 900px). Welche, steht in `HIGHLIGHTS` in `lib/content.ts`; fehlt ein Bild, steht dort ein Platzhalter „Highlight folgt". Jede Kachel führt auf die Detailseite ihrer Arbeit (seit 2026-10-14; vorher nach `/foto`) | dunkel |
+| **Highlights** | Überschrift „highlights.", darunter vier Fotos im Hochformat 4:5 nebeneinander (2×2 bis 900px). Welche, steht in `HIGHLIGHTS` in `lib/content.ts`; fehlt ein Bild, steht dort ein Platzhalter „Highlight folgt". Jede Kachel führt nach `/foto` (am 2026-10-14 ein paar Stunden lang auf die Detailseite) | dunkel |
 | **Footer** | `SiteFooter` wie auf allen Seiten | dunkel |
 
-### Übersicht und Detailseite
+### /foto
 
-> **Entscheidung von Jan am 2026-10-14**, nach dem Vorbild der alten `wiwawo-53`-Seite: „ein
-> startbild, dann detailseite mit mehr bildern und animation, kasten für bisschen text und dann
-> mosaik." Grundlage ist Jakobs Bilderliste (Dateiname · Überschrift · Untertitel · Kategorie).
-
-**Übersicht `/foto`**
-
-| Element | Regel |
-|---------|-------|
-| Gliederung | Je Kategorie ein Block, in der Reihenfolge von `KATEGORIEN` in `lib/content.ts`: **festival · theater · paddeln · journalismus**. Darin die Arbeiten in der Reihenfolge von `FOTOS`. Kategorien ohne Arbeit mit Bild fallen weg |
-| Kategorie | `<h2>`, Druk Wide Bold 18px, klein geschrieben wie die Navigation, 24px Abstand zum Raster, 64px zwischen zwei Blöcken |
-| Raster | einspaltig bis 700px, zwei Spalten bis 1100px, darüber drei; Abstand 32px senkrecht, 24px waagerecht |
-| Kachel | Das **Startbild** der Arbeit (das Bild ohne Nummer, `original/arbeiten/<id>.jpg`) im Hochformat **4:5**, `object-fit: cover` mit dem Ausschnitt aus `lib/bildausschnitte.ts`. Darunter „Titel – Kunde" (14px) und ein „→" in `--leise`. Die ganze Kachel ist der Link |
-
-**Detailseite `/foto/<id>`**
+> **Jakobs Rückmeldung vom 2026-10-14 (abends), freigegeben von Jan:** keine Detailseiten, keine
+> Kategorie-Kacheln. Oben die besten Bilder mit der Blende, darunter **ein einziges Mosaik** mit
+> allen Bildern — nach Kategorien sortiert, aber ohne sichtbare Grenzen. Löst die Übersicht mit
+> Detailseiten ab, die am selben Tag ein paar Stunden live war (Abschnitt „Übersicht und
+> Detailseite" im Git-Verlauf, Stand `0a2dab8`).
 
 | Block | Regel |
 |-------|-------|
-| **Hero** | Unter der deckenden Topbar, Höhe `calc(100svh - var(--topbar-h))`, mindestens 420px; am Telefon (≤ 700px) höchstens 4:5 (`125vw`), damit der Textkasten in Reichweite bleibt. Darin die **Blende** über alle Bilder der Arbeit (siehe *Motion*), jedes mit seinem Ausschnitt. Oben rechts der Zähler „n / m" mit Strichen (aktiver Strich `--schrift`, die anderen weiß mit 0.32 — **nicht** Rot). Unten links auf dem Verlauf (deckend 0.80): Kategorie (14px, `--leise`), Titel als `<h1>` (Druk Wide Bold 36px), Kunde (14px) |
-| **Textkasten** | Lesespalte bis 720px, 1px Rahmen in `--leise`, `--radius-bild`, Innenabstand 24/32px (am Telefon 16/24px), Body 18px. Inhalt: `text` der Arbeit, sonst `TEXT_FOLGT` |
-| **Mosaik** | Alle Bilder der Arbeit, Startbild zuerst, unbeschnitten — Regeln wie unter *Bildbehandlung*. **Höchstens so viele Spalten wie Bilder:** ein Bild steht in einer Spalte bis 720px Breite, zwei in zwei Spalten bis 1100px |
-| **vor / zurück** | Über einer 1px-Linie in `--leise`: links „← vorherige" + Titel, rechts „nächste →" + Titel (Label 14px `--leise`, Titel Druk Wide 18px). Reihenfolge wie auf `/foto`. Darunter „← alle fotos" |
-| Nur mit Bild | Eine Arbeit ohne Bild hat keine Seite (404) und keine Kachel |
+| **Hero** | Randlos unter der deckenden Topbar, Höhe `calc(100svh - var(--topbar-h))`, mindestens 420px; am Telefon (≤ 700px) höchstens 4:5 (`125vw`), damit das Mosaik in Reichweite beginnt. Darin die **Blende** (siehe *Motion*) über **sechs bis acht** Bilder aus `FOTO_HERO` in `lib/content.ts`, jedes mit seinem Ausschnitt. Oben rechts der Zähler „n / m" mit Strichen (aktiver Strich `--schrift`, die anderen weiß mit 0.32 — **nicht** Rot) und der Pause-Knopf. **Kein Text im Bild** — kein Titel, keine Beschriftung |
+| **Mosaik** | 48px (`--space-2xl`) unter dem Hero, in der Inhaltsbreite von `/foto`. **Alle** Bilder aller Fotoarbeiten, unbeschnitten — Regeln wie unter *Bildbehandlung*. Geordnet nach Kategorie (`KATEGORIEN`: festival · theater · paddeln · journalismus), darin nach `FOTOS`, darin Startbild zuerst. **Keine Zwischenüberschriften, keine Abstände zwischen Kategorien** — die Ordnung ist da, aber man sieht keine Grenze. Die Bilder des Heros stehen hier noch einmal |
+| Detailseiten | **Gibt es nicht.** `/foto/<id>` leitet mit 307 auf `/foto` (nicht 308, damit der Weg frei bleibt, falls sie je zurückkommen) |
+| Nur mit Bild | Eine Arbeit ohne Bild erscheint nicht. **Keine Platzhalter** — der gezeichnete Goldbarren für „Tödliches Gold" ist mit dem Umbau entfallen; die Arbeit kommt, sobald die Fotos da sind |
 
 **Beschriftung je Bild:** Nennt Jakobs Liste für ein Bild eine eigene Überschrift (meist die
 Compagnie), heißt es „{Bildtitel} – {Titel}", z. B. „Cie. Dyptik – at.tension"; sonst trägt es
 „Titel – Kunde" der Arbeit. Hat eine Arbeit keinen Kunden (Festivals, für die Jakob keinen
 genannt hat), steht nur der Titel da — ohne Strich.
-
-**Platzhalter „Tödliches Gold":** Ausnahme von *Was kein Bild hat, erscheint nicht*, auf Jans
-Ansage: Bis die Bilder kommen, trägt ein **gezeichneter** Goldbarren die Arbeit
-(`scripts/goldbarren.mjs`). Gezeichnet, nicht als Stockfoto — auf der Seite eines Fotografen läse
-sich ein fremdes Foto als seine Arbeit.
 
 **Navigation:** foto · film · über mich — in dieser Reihenfolge, an **einer** Stelle definiert
 (`lib/nav.ts`), aus der Topbar und Footer lesen. Rechtliches steht **nur** im Footer bzw. auf `/`
@@ -162,26 +145,26 @@ Punkt wie im ●REC: hier wird gerade aufgenommen.
 | Hero ohne Video | Das Standbild allein, gleiche Regeln. **Das Standbild muss für sich tragen**: iPhones im Energiesparmodus spielen gar kein Video ab. |
 | Hero ohne beides | **Ein Foto aus `/foto` trägt das Hero** (`HERO_ERSATZ` in `lib/content.ts`), gleiche Regeln wie das Standbild. Begründung: Eine schwarze Fläche ist als erster Eindruck einer Seite, die durch Bilder überzeugen soll, das Schwächste, was es gibt. Querformat, möglichst ohne erkennbare Gesichter. Sobald `hero/standbild` im Bucket liegt, hat es Vorrang. |
 | Hero ohne alles | Fläche `--grund` mit Schriftzug. Gültiger Zustand, kein Fehler. |
-| **Mosaik** (Detailseite, `/ueber`; bis 2026-10-14 auf `/foto`) | Die Bilder in **drei ungleich breiten Spalten** (bei weniger als drei Bildern so viele Spalten wie Bilder, siehe *Detailseite*) (Gewichte 1.18 / 0.9 / 1.12), **reihum** verteilt (Bild 1 → Spalte 1, Bild 2 → Spalte 2, Bild 3 → Spalte 3, Bild 4 → Spalte 1). **Kein Bild wird beschnitten** — jedes steht in seiner eigenen Form. Unter 860px eine Spalte, die Bilder tragen dann `order`, damit die Reihenfolge stimmt. Kein JavaScript im Layout. |
-| Mosaik — Reihenfolge | Innerhalb einer Arbeit: Startbild, dann nach Dateiname (`01`, `02`, …) — beim Hochladen in der Reihenfolge von Jakobs Liste vergeben. **Keine Sortierung nach Jahr** — die Abfolge ist Jakobs Kuration. |
-| **Hero der Detailseite** | `object-fit: cover`, Ausschnitt je Bild aus `lib/bildausschnitte.ts`, sonst mittig. `sizes="100vw"`, erstes Bild `fetchpriority="high"`. Die weiteren Bilder hängen erst eine Standzeit vor ihrem Auftritt im Dokument, nie die ganze Folge auf einmal. |
+| **Mosaik** (`/foto`, `/ueber`) | Die Bilder in **drei ungleich breiten Spalten** (bei weniger als drei Bildern so viele Spalten wie Bilder) (Gewichte 1.18 / 0.9 / 1.12), **reihum** verteilt (Bild 1 → Spalte 1, Bild 2 → Spalte 2, Bild 3 → Spalte 3, Bild 4 → Spalte 1). **Kein Bild wird beschnitten** — jedes steht in seiner eigenen Form. Unter 860px eine Spalte, die Bilder tragen dann `order`, damit die Reihenfolge stimmt. Kein JavaScript im Layout. |
+| Mosaik — Reihenfolge | Auf `/foto` nach Kategorie, darin nach `FOTOS` (siehe *`/foto`*). Innerhalb einer Arbeit: Startbild, dann nach Dateiname (`01`, `02`, …) — beim Hochladen in der Reihenfolge von Jakobs Liste vergeben. **Keine Sortierung nach Jahr** — die Abfolge ist Jakobs Kuration. |
+| **Hero von `/foto`** | `object-fit: cover`, Ausschnitt je Bild aus `lib/bildausschnitte.ts`, sonst mittig. `sizes="100vw"`, erstes Bild `fetchpriority="high"`. Die weiteren Bilder hängen erst eine Standzeit vor ihrem Auftritt im Dokument, nie die ganze Folge auf einmal. |
 | Mosaik — warum so | ⚠️ Die ungleichen Breiten sind der Hebel, nicht Zierde: Gleich breite Spalten stellen Hochformate zwangsläufig gleich hoch nebeneinander. ⚠️ Reihum, nicht spaltenweise (`column-count` kann das nicht) — sonst läse sich die obere Reihe 1-3-5. Zwei gescheiterte Vorstufen (Flanken, Zeilensatz) sind im alten Vertrag dokumentiert. |
 | **Beschriftung im Mosaik** | Die Beschriftung des Bildes (siehe *Beschriftung je Bild*) erscheint **beim Überfahren mit der Maus und bei Tastaturfokus**, unten im Bild auf einem Verlauf (siehe *Text über Fotos*). Nur unter `@media (hover: hover) and (pointer: fine)` für das Überfahren; auf Touch gibt es kein Überfahren, dort ist der Lichtkasten der Weg. Sonst ist die Fläche textfrei. |
 | **Lichtkasten** | Jede Mosaikkachel öffnet groß: Klick oder `Enter`; `←`/`→` blättert **über alle Bilder der Seite**; `Esc` und ein Klick neben das Bild schließen. Bild `contain` auf `--grund`, darunter die Beschriftung. `sizes` **je Bild** aus der Fensterhöhe und dem Seitenverhältnis (`kastenSizes` in `lib/bilder.ts`) — sonst lüde ein Hochformat die größte Stufe, um sie auf ein Drittel zu verkleinern. ⚠️ **`position: fixed`, nie `absolute`** — sonst springt die Seite beim Öffnen an den Anfang und man steht nach dem Schließen oben. ⚠️ Beim Schließen geht der Fokus **auf die Kachel zurück**, von der er kam. Ohne Skript ist jede Kachel ein gewöhnlicher Link auf die Bilddatei. **Öffnen und Schließen:** Das Foto wächst aus seiner Kachel in den Lichtkasten und kehrt beim Schließen in die Kachel des **zuletzt gezeigten** Bildes zurück — wie in einer Foto-App (siehe *Motion*). Geht der Fokus nach dem Blättern auf diese Kachel statt auf die ursprüngliche, ist das Absicht: Man steht dort, wo man zuletzt hingesehen hat. |
 | **Film-Standbild** (`/film`) | Festes Seitenverhältnis **16:9**, `object-fit: cover`. Ausschnitt je Bild aus `lib/bildausschnitte.ts` (Schlüssel `film/<id>`), sonst mittig. Die **ganze Kachel** — Standbild und Beschriftung — ist der Link. |
 | Film-Standbild — Quelle | **Liegt bei uns** (`original/film/<id>.jpg` im Bucket). ⚠️ Keine Vorschaubilder von YouTube, Vimeo oder der Mediathek nachladen: Das wäre bei jedem Seitenaufruf eine Anfrage an Dritte und gehörte in die Datenschutzerklärung. **Keine eingebetteten Player.** |
 | **Porträt** (`/ueber`) | **Ohne Zuschnitt** — das Bild bringt seine Form mit. Begrenzt wird die **Höhe** (`max-height: 80svh`), sonst schiebt ein Hochformat den Text unter die Falz. |
-| Ecken | **Genau ein Radius** (`--radius-bild`, 12px) für Mosaikkacheln, Startbilder auf `/foto`, Film-Standbilder, Porträt und Textkasten. Das Hero-Video und das Hero der Detailseite sind randlos und haben keinen. |
-| **Was kein Bild hat, erscheint nicht** | Eine Fotoarbeit ohne Bilder und ein Film ohne Standbild werden **nicht** angezeigt — keine Platzhalterkachel. Eine Seite, die nur aus Bildern besteht, darf keine grauen Flächen zeigen. `npm run medien` nennt, was fehlt. Einzige Ausnahme: der gezeichnete Goldbarren für „Tödliches Gold" (siehe *Detailseite*). |
+| Ecken | **Genau ein Radius** (`--radius-bild`, 12px) für Mosaikkacheln, Film-Standbilder und Porträt. Das Hero-Video und das Hero von `/foto` sind randlos und haben keinen. |
+| **Was kein Bild hat, erscheint nicht** | Eine Fotoarbeit ohne Bilder und ein Film ohne Standbild werden **nicht** angezeigt — keine Platzhalterkachel. Eine Seite, die nur aus Bildern besteht, darf keine grauen Flächen zeigen. `npm run medien` nennt, was fehlt. Keine Ausnahme mehr — der Goldbarren-Platzhalter für „Tödliches Gold" ist am 2026-10-14 entfallen. |
 | Auslieferung | WebP **und** AVIF mit `srcset` in bis zu **sieben** Breiten (480–4000, seit 2026-10-14; vorher bis 2400), JPEG als Rückfall, `width`/`height` am `img` gegen Layoutsprünge. Erzeugt von `npm run medien`, nicht im Deploy. ⚠️ Beide Formate müssen **dieselben** Breiten abdecken — sonst greift der Browser still zur kleineren Stufe und rechnet hoch. |
 | Breite der Quelle | Eine Quelle liefert nur die Breiten, die sie hat; es wird nie hochskaliert. Die **Breite** entscheidet über die Schärfe, nicht die Pixelzahl. |
 | Ladezustand | Ein 16px breites Vorschaubildchen als Datei-URI im HTML füllt die Fläche, bis das Foto da ist. Kein Skript, keine zusätzliche Anfrage. |
-| Laden | Hero-Standbild `fetchpriority="high"`. Auf `/foto` die ersten drei Startbilder sofort, alle weiteren `loading="lazy"`; im Mosaik ebenso die ersten drei. Auf `/film` die ersten zwei sofort. |
+| Laden | Hero-Standbild und erstes Bild der Blende `fetchpriority="high"`. Im Mosaik die ersten drei sofort, alle weiteren `loading="lazy"`. Auf `/film` die ersten zwei sofort. |
 | Originale | Liegen in **voller Auflösung** im Bucket (nur Standort- und andere Metadaten entfernt, `npm run verkleinern -- … --original`). ⚠️ Der Bucket ist öffentlich — wer die Adresse kennt, kann das volle Original laden. So gewollt (Jan, 2026-10-14). |
 
 **Wenn die Bilder gut sind, ist jedes erklärende Wort davor ein Verlust.** Deshalb keine
 Überschrift über dem Mosaik, keine Einleitung über dem Filmraster. (Ausgenommen: die Startseite
-seit dem 2026-10-10 und der Textkasten der Detailseite seit dem 2026-10-14.)
+seit dem 2026-10-10.)
 
 ---
 
@@ -323,8 +306,7 @@ neu messen — sonst werden alle abhängigen Stellen still falsch.
 | Pause-Knopf | sichtbar ein Symbol; `aria-label` „Video anhalten" bzw. „Video abspielen" |
 | Lichtkasten | Beschriftung des Bildes darunter; Knöpfe mit `aria-label` „Schließen", „Vorheriges Bild", „Nächstes Bild" |
 | Kategorien | „festival", „theater", „paddeln", „journalismus" — klein, ohne Punkt. „journalismus" heißt in Jakobs Liste „SWR"; umbenannt, weil STRG_F vom NDR ist |
-| Detailseite | Kategorie · Titel · Kunde im Hero; „← vorherige", „nächste →", „← alle fotos"; Zähler „n / m" |
-| **Textkasten** | Jakobs Text je Arbeit (`text` in `lib/content.ts`). Bis er da ist: **„Lass dir was einfallen und schicks mir"** — Jans Wortlaut, an Jakob gerichtet und **bewusst live sichtbar** (Jan, 2026-10-14). Das ist die einzige Ausnahme von „keine internen Notizen im gerenderten Text" und fällt weg, sobald die Texte da sind |
+| Hero auf `/foto` | Nur der Zähler „n / m" und der Pause-Knopf (Screenreader: „Bilder anhalten" / „Bilder abspielen") |
 | 404 | „Hier ist nichts." — darunter „foto" und „film" als Wege. Führt weiter, statt sich zu entschuldigen |
 | Leerzustand `/foto`, `/film` | „Fotos folgen." bzw. „Filme folgen." in `--leise`. Soll live nie erscheinen (siehe *Zustände*) |
 | Visuell verborgene `<h1>` | „Fotos von Jakob Sax", „Filme von Jakob Sax", „Über Jakob Sax" |
@@ -354,11 +336,9 @@ und unvergessliche Momente. Zielregister: präzise, konkret, unangestrengt.
 | Wege und Highlights auf `/` | Beim Überfahren (nur `hover: hover` und `pointer: fine`) wird das Bild um 3 % größer und der Pfeil rückt 8px nach rechts — 400ms, `transform`. Unter `reduce` nichts. |
 | **Lichtkasten öffnen/schließen** | View Transition: Das Foto bewegt sich aus der Kachel an seinen Platz im Kasten (300ms, `cubic-bezier(0.2, 0, 0, 1)`), der Grund blendet über. Nur `transform` und `opacity`. Unter `reduce` und in Browsern ohne View Transitions öffnet er sofort. |
 | Seitenwechsel | `@view-transition` blendet über. Unter `reduce` aus (`navigation: none` — die globale `animation-duration`-Regel greift bei View Transitions nicht). |
-| **Blende im Hero der Detailseite** (seit 2026-10-14 zurück) | Die Bilder der Arbeit wechseln nacheinander: **Standzeit 4 s, Blende 1,2 s** — drei ungleiche, versetzte Flächen decken das nächste Bild in Ausschnitten auf (je 520 ms, überlappend), dann deckt es ganz auf (420 ms). Dazu eine langsame Fahrt des laufenden Bildes (`scale` 1 → 1.07 über Standzeit plus Blende), **nur eine Richtung**. Geblendet wird nur in ein fertig geladenes Bild; die Folge steht, solange das Hero zu weniger als 25 % sichtbar ist. Unter `reduce`, ohne Skript und bei einem Bild steht das Startbild. Die Zahlen stehen **nur** in `Blende.tsx`. Warum so und welche drei Fehler die erste Fassung hatte: `AGENT-LOG.md`, 2026-09-13 |
+| **Blende im Hero von `/foto`** (seit 2026-10-14) | Die Bilder aus `FOTO_HERO` wechseln nacheinander: **Standzeit 4 s, Blende 1,2 s** — drei ungleiche, versetzte Flächen decken das nächste Bild in Ausschnitten auf (je 520 ms, überlappend), dann deckt es ganz auf (420 ms). Dazu eine langsame Fahrt des laufenden Bildes (`scale` 1 → 1.07 über Standzeit plus Blende), **nur eine Richtung**. Geblendet wird nur in ein fertig geladenes Bild; die Folge steht, solange das Hero zu weniger als 25 % sichtbar ist. Unter `reduce`, ohne Skript und bei einem Bild steht das Startbild. Die Zahlen stehen **nur** in `Blende.tsx`. Warum so und welche drei Fehler die erste Fassung hatte: `AGENT-LOG.md`, 2026-09-13 |
 | Blende — WCAG 2.2.2 | Die Folge bewegt sich länger als fünf Sekunden von selbst, deshalb ein **Pause-Knopf** unter dem Zähler oben rechts — gleiche Form wie am Hero-Video (44×44px, `--schrift` auf `--grund` mit 0.60), `aria-label` „Bilder anhalten" bzw. „Bilder abspielen". Angehalten steht auch die Fahrt. Der Knopf erscheint nur, wenn die Folge wirklich läuft (nicht unter `reduce`, nicht bei einem Bild). |
-| Startbild → Hero | Beim Klick auf eine Kachel in `/foto` wächst das Startbild per View Transition in das Hero der Detailseite (300ms, `cubic-bezier(0.2, 0, 0, 1)`, beide Fassungen `cover`). Browser ohne Unterstützung blenden über |
-| Kacheln auf `/foto` | Wie Wege und Highlights: 3 % größer, Pfeil rückt 8px nach rechts, 400ms, nur `hover: hover` und `pointer: fine` |
-| **Sonst nichts.** | Kein Aufsteigen beim Scrollen, kein Fortschrittsbalken, kein Parallax, keine Filter über Fotos. Blende und Fahrt **nur** im Hero der Detailseite. Bei guten Fotos ist jeder weitere Effekt ein Abzug. |
+| **Sonst nichts.** | Kein Aufsteigen beim Scrollen, kein Fortschrittsbalken, kein Parallax, keine Filter über Fotos. Blende und Fahrt **nur** im Hero von `/foto`. Bei guten Fotos ist jeder weitere Effekt ein Abzug. |
 
 **Nur `opacity` und `transform`.** Alles andere zwingt den Browser zu neuem Layout und ruckelt auf
 dem Telefon.
@@ -436,7 +416,7 @@ nur, was entfallen ist und warum — damit niemand es aus Versehen zurückholt:
 | Primary CTA „Anfrage stellen", `buchbar.`, drei Türen, Preisanker, Anfrageformular | Die Seite verkauft nichts |
 | Positionierungszeile und Orte im Hero | Mittig steht nur der Schriftzug |
 | Porträt auf der Startseite (`jakob.`) | „Nicht durch meine Fresse" — das Porträt steht nur noch auf `/ueber` |
-| Kachelraster mit Kategoriefilter, Detailseiten, Blende im Hero, Kontaktbogen, EXIF-Zeile | Pro Arbeit nur noch Titel und Kunde; Fotos stehen im Mosaik. ↩ **Detailseiten, Blende und Kategorien sind seit dem 2026-10-14 zurück** (ohne Filter, ohne Kontaktbogen, ohne EXIF-Zeile), siehe *Übersicht und Detailseite* |
+| Kachelraster mit Kategoriefilter, Detailseiten, Blende im Hero, Kontaktbogen, EXIF-Zeile | Pro Arbeit nur noch Titel und Kunde; Fotos stehen im Mosaik. ↩ Am 2026-10-14 kamen Detailseiten und Kategorien für ein paar Stunden zurück und wurden am Abend wieder entfernt. **Geblieben ist allein die Blende** — im Hero von `/foto`, siehe *`/foto`* |
 | Bricolage Grotesque, Newsreader, Martian Mono | Ersetzt durch Druk Wide und Avenir Next (Jakobs Vorgabe) |
 | Punkt-Schreibweise (`arbeiten.`) | Nicht in Jakobs Konzept (E7) |
 | Scrollgetriebene Bewegung, roter Fortschrittsbalken, Menü-Dialog | Reduktion; drei Navigationsziele brauchen kein Menü |

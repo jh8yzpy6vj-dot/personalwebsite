@@ -1,12 +1,11 @@
 import {
   FILME,
+  FOTO_HERO,
   FOTOS,
   KATEGORIEN,
-  TEXT_FOLGT,
   UEBER_BILDER,
   type Film,
   type Fotoarbeit,
-  type Kategorie,
 } from "./content";
 import {
   ausschnittAus,
@@ -25,8 +24,7 @@ import {
  *
  * Zwei Regeln aus dem UI-SPEC stecken hier:
  *
- * 1. **Beschriftung „Titel – Kunde"** — `beschriftung()`. Seit dem 2026-10-14
- *    kommt auf der Detailseite der Textkasten dazu (`textDerArbeit()`).
+ * 1. **Beschriftung „Titel – Kunde"** — `beschriftung()`.
  * 2. **Was kein Bild hat, erscheint nicht.** Eine Seite, die nur aus Bildern
  *    besteht, darf keine grauen Platzhalterkacheln zeigen. Was fehlt, meldet
  *    `npm run medien`.
@@ -50,7 +48,7 @@ export type Mosaikbild = Streckenbild & {
    * Überschrift gibt (meist die Compagnie).
    */
   beschriftung: string;
-  /** Zu welcher Arbeit das Bild gehört — für Verweise auf die Detailseite. */
+  /** Zu welcher Arbeit das Bild gehört. */
   arbeit: string;
   /**
    * Alt-Text: die Szenenbeschreibung aus `content.ts`, gefolgt von der
@@ -95,64 +93,13 @@ export function bilderDerArbeit(arbeit: Fotoarbeit): Mosaikbild[] {
   });
 }
 
-/** Eine Fotoarbeit über ihre `id`, oder `null`. */
-export function arbeitNach(id: string, fotos: Fotoarbeit[] = FOTOS): Fotoarbeit | null {
-  return fotos.find((a) => a.id === id) ?? null;
-}
-
 /**
- * Die Arbeiten, die eine Seite haben — also mindestens ein Bild. In der
- * Reihenfolge, in der `/foto` sie zeigt: nach Kategorie (`KATEGORIEN`),
- * darin nach `FOTOS`. Auf diese Reihenfolge stützt sich auch das Blättern
- * zwischen den Detailseiten, damit „nächste" dorthin führt, wo man es von
- * der Übersicht her erwartet.
+ * Die Arbeiten, die erscheinen — also mindestens ein Bild haben. Geordnet
+ * nach Kategorie (`KATEGORIEN`), darin nach `FOTOS`.
  */
 export function arbeitenMitBild(fotos: Fotoarbeit[] = FOTOS): Fotoarbeit[] {
   const mitBild = fotos.filter((a) => bilderDerArbeit(a).length > 0);
-  return KATEGORIEN.flatMap((k) => mitBild.filter((a) => a.kategorie === k.id));
-}
-
-/** Eine Kategorie auf `/foto` mit ihren Arbeiten und deren Startbild. */
-export type Kategorieblock = {
-  id: Kategorie;
-  label: string;
-  arbeiten: { arbeit: Fotoarbeit; beschriftung: string; startbild: Mosaikbild }[];
-};
-
-/**
- * Die Übersicht auf `/foto`: je Kategorie die Arbeiten mit ihrem
- * **Startbild** — dem ersten Bild der Arbeit. Kategorien ohne Arbeit mit
- * Bild fallen weg.
- */
-export function uebersicht(fotos: Fotoarbeit[] = FOTOS): Kategorieblock[] {
-  const arbeiten = arbeitenMitBild(fotos);
-  return KATEGORIEN.map((k) => ({
-    id: k.id,
-    label: k.label,
-    arbeiten: arbeiten
-      .filter((a) => a.kategorie === k.id)
-      .map((arbeit) => ({
-        arbeit,
-        beschriftung: beschriftung(arbeit),
-        startbild: bilderDerArbeit(arbeit)[0],
-      })),
-  })).filter((k) => k.arbeiten.length > 0);
-}
-
-/** Vorige und nächste Arbeit — in der Reihenfolge von `arbeitenMitBild`. */
-export function nachbarn(
-  id: string,
-  fotos: Fotoarbeit[] = FOTOS,
-): { vorher: Fotoarbeit | null; nachher: Fotoarbeit | null } {
-  const liste = arbeitenMitBild(fotos);
-  const i = liste.findIndex((a) => a.id === id);
-  if (i < 0) return { vorher: null, nachher: null };
-  return { vorher: liste[i - 1] ?? null, nachher: liste[i + 1] ?? null };
-}
-
-/** Der Text im Kasten der Detailseite — Jakobs Text oder `TEXT_FOLGT`. */
-export function textDerArbeit(arbeit: Fotoarbeit): string {
-  return arbeit.text ?? TEXT_FOLGT;
+  return KATEGORIEN.flatMap((k) => mitBild.filter((a) => a.kategorie === k));
 }
 
 /**
@@ -168,11 +115,25 @@ export function bilderFuerUeber(): Mosaikbild[] {
 }
 
 /**
- * Das ganze Mosaik: alle Fotoarbeiten **in der Reihenfolge von `FOTOS`**,
- * jede mit ihren Bildern. Arbeiten ohne Bild fallen dabei von selbst heraus.
+ * Das ganze Mosaik auf `/foto`: alle Fotoarbeiten **nach Kategorie**
+ * (`KATEGORIEN`), darin in der Reihenfolge von `FOTOS`, jede mit ihren
+ * Bildern. Arbeiten ohne Bild fallen dabei von selbst heraus. Die
+ * Kategorien stehen nirgends dran — Jakob: ein Mosaik, keine Grenzen.
  */
 export function fotosFuerMosaik(fotos: Fotoarbeit[] = FOTOS): Mosaikbild[] {
-  return fotos.flatMap(bilderDerArbeit);
+  return arbeitenMitBild(fotos).flatMap(bilderDerArbeit);
+}
+
+/**
+ * Die Bilder im Hero von `/foto`, in der Reihenfolge von `FOTO_HERO`.
+ * Schlüssel ohne Bild fallen weg, statt eine Lücke in die Folge zu reißen.
+ */
+export function fotosFuerHero(
+  schluessel: string[] = FOTO_HERO,
+  fotos: Fotoarbeit[] = FOTOS,
+): Mosaikbild[] {
+  const alle = fotosFuerMosaik(fotos);
+  return schluessel.flatMap((k) => alle.find((b) => b.schluessel === k) ?? []);
 }
 
 /** Fotoarbeiten, zu denen es kein einziges Bild gibt — für Warnungen. */
