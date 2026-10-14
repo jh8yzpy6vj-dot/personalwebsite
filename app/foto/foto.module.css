@@ -1,0 +1,100 @@
+/*
+ * Übersicht auf `/foto` (UI-SPEC, „Übersicht"): je Kategorie ein Raster aus
+ * Startbildern im Hochformat 4:5. Einspaltig bis 700px, zwei Spalten bis
+ * 1100px, darüber drei. Dieselben Umbrüche stehen in `UEBERSICHT_SIZES`
+ * (lib/bilder.ts) — laufen sie auseinander, lädt der Browser still die
+ * falsche Stufe.
+ */
+
+.block + .block {
+  margin-top: var(--space-3xl);
+}
+
+/* Rolle *Wortmarke*: Druk Wide Bold 18px, klein geschrieben wie die
+   Navigation. */
+.kategorie {
+  margin: 0 0 var(--space-lg);
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 700;
+  font-size: var(--text-body);
+  line-height: var(--leading-titel);
+}
+
+.raster {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-xl) var(--space-lg);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 701px) {
+  .raster {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1101px) {
+  .raster {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Die ganze Kachel ist der Link — Startbild und Beschriftung. */
+.kachel {
+  display: block;
+  color: var(--schrift);
+  text-decoration: none;
+}
+
+.rahmen {
+  display: block;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: var(--radius-bild);
+}
+
+.bild {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 400ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.zeile {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  hyphens: auto;
+  overflow-wrap: anywhere;
+}
+
+.pfeil {
+  flex: none;
+  color: var(--leise);
+  transition: transform 400ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Wie die Wege und Highlights auf `/` (UI-SPEC, „Motion"): 3 % größer,
+   der Pfeil rückt nach — nur mit echtem Zeigegerät. */
+@media (hover: hover) and (pointer: fine) {
+  .kachel:hover .bild {
+    transform: scale(1.03);
+  }
+  .kachel:hover .pfeil {
+    transform: translateX(var(--space-sm));
+  }
+}
+
+.kachel:focus-visible {
+  outline: 2px solid var(--schrift);
+  outline-offset: 4px;
+  border-radius: var(--radius-bild);
+}

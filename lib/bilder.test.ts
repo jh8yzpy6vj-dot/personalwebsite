@@ -17,7 +17,9 @@ import {
 
 describe("breitenFuer", () => {
   it("liefert alle Stufen, die ins Original passen", () => {
-    expect(breitenFuer(3000)).toEqual(BREITEN);
+    // Ein typisches Kameraoriginal (7008 px) bekommt jede Stufe bis 4000.
+    expect(breitenFuer(7008)).toEqual(BREITEN);
+    expect(breitenFuer(3000)).toEqual([480, 800, 1200, 1600, 2400]);
     expect(breitenFuer(2400)).toEqual([480, 800, 1200, 1600, 2400]);
   });
 

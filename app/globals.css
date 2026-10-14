@@ -276,6 +276,23 @@ button {
   animation-duration: 300ms;
 }
 
+/*
+ * Startbild auf `/foto` → erstes Bild im Hero der Detailseite (seit
+ * 2026-10-14). Kachel (4:5) und Hero (quer) haben verschiedene Formate;
+ * ohne `cover` würde das Foto unterwegs gestaucht. Browser ohne
+ * `view-transition-class` blenden einfach über.
+ */
+::view-transition-group(*.foto) {
+  animation-duration: 300ms;
+  animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+::view-transition-old(*.foto),
+::view-transition-new(*.foto) {
+  height: 100%;
+  object-fit: cover;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

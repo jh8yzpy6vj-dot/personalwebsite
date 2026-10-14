@@ -40,6 +40,9 @@ const nextConfig = {
   async redirects() {
     return [
       { source: "/arbeiten", destination: "/foto", permanent: true },
+      /* Die einzige alte Detailseite, die es unter neuem Namen wieder gibt —
+         vor der allgemeinen Regel, sonst greift die zuerst. */
+      { source: "/arbeiten/wiwawo-53", destination: "/foto/wiwawo-53", permanent: true },
       { source: "/arbeiten/:slug*", destination: "/foto", permanent: true },
       { source: "/leistungen/:slug*", destination: "/", permanent: true },
       { source: "/kontakt", destination: "/ueber", permanent: true },

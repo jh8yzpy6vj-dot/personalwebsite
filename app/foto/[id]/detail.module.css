@@ -1,0 +1,174 @@
+/*
+ * Detailseite einer Fotoarbeit (UI-SPEC, „Detailseite"). Alle Werte aus den
+ * Tokens in globals.css — keine neuen Größen, keine neuen Farben.
+ */
+
+.seite {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100svh;
+  background: var(--grund);
+}
+
+.main {
+  flex: 1;
+}
+
+.main:focus {
+  outline: none;
+}
+
+/*
+ * Das Hero füllt das Fenster **unter** der deckenden Topbar. ⚠️ `svh`, nicht
+ * `vh` — mit `vh` ragt es auf dem Telefon unter der Browserleiste heraus.
+ */
+.hero {
+  position: relative;
+  height: calc(100svh - var(--topbar-h));
+  min-height: 420px;
+  overflow: hidden;
+  background: var(--grund);
+}
+
+/*
+ * Titel unten links auf einem Verlauf: deckend 0.80, solange Text darauf
+ * steht, ausblendend nur oberhalb (UI-SPEC, „Text über Fotos").
+ */
+.heroFuss {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 3;
+  padding: var(--space-3xl) var(--rand) var(--space-xl);
+  background: linear-gradient(
+    to top,
+    rgba(14, 14, 16, 0.8) calc(100% - var(--space-3xl)),
+    rgba(14, 14, 16, 0) 100%
+  );
+}
+
+.kategorie,
+.kunde {
+  margin: 0;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+.kategorie {
+  margin-bottom: var(--space-sm);
+  color: var(--leise);
+}
+
+/* Rolle *Heading*: Druk Wide Bold 36px. */
+.titel {
+  margin: 0 0 var(--space-sm);
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 700;
+  font-size: var(--text-heading);
+  line-height: var(--leading-titel);
+  overflow-wrap: anywhere;
+}
+
+.inhalt {
+  width: 100%;
+  max-width: calc(1600px + 2 * var(--rand));
+  margin: 0 auto;
+  padding: var(--space-2xl) var(--rand) 0;
+}
+
+/* Der Textkasten: eine Lesespalte mit Rahmen in `--leise`. */
+.kasten {
+  max-width: 720px;
+  margin: 0 0 var(--space-2xl);
+  padding: var(--space-lg) var(--space-xl);
+  border: 1px solid var(--leise);
+  border-radius: var(--radius-bild);
+}
+
+.kasten p {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+/* ── vor / zurück ───────────────────────────────────────────────────── */
+
+.blaettern {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  margin-top: var(--space-3xl);
+  padding-top: var(--space-xl);
+  border-top: 1px solid var(--leise);
+}
+
+.vorher,
+.nachher {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-height: 44px;
+  max-width: 50%;
+  color: var(--schrift);
+  text-decoration: none;
+}
+
+.nachher {
+  margin-left: auto;
+  text-align: right;
+  align-items: flex-end;
+}
+
+.blaetternLabel {
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--leise);
+}
+
+.blaetternTitel {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 700;
+  font-size: var(--text-body);
+  line-height: var(--leading-titel);
+  overflow-wrap: anywhere;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .vorher:hover .blaetternTitel,
+  .nachher:hover .blaetternTitel {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+}
+
+.zurueck {
+  margin: var(--space-xl) 0 0;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+.zurueck a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--schrift);
+  text-underline-offset: 4px;
+}
+
+/*
+ * Telefon: Das Hero ist höchstens 4:5 hoch statt fensterfüllend — die
+ * meisten Fotos sind Hochformate, und so steht der Textkasten noch in
+ * Reichweite.
+ */
+@media (max-width: 700px) {
+  .hero {
+    height: min(calc(100svh - var(--topbar-h)), 125vw);
+    min-height: 0;
+  }
+
+  .kasten {
+    padding: var(--space-md) var(--space-lg);
+  }
+}

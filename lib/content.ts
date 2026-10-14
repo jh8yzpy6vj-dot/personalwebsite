@@ -2,9 +2,9 @@
  * Single source of truth für alle Inhalte der Seite.
  *
  * Seit dem Umbau vom 2026-10-08 („Präsenz statt Verkauf", siehe SITE-PLAN.md)
- * stehen hier nur noch drei Dinge: die Fotoarbeiten, die Filme und die
- * Zeilen für `/ueber`. Pro Arbeit gibt es genau zwei Angaben — Titel und
- * Kunde. Mehr zeigt die Seite nicht.
+ * stehen hier vor allem die Fotoarbeiten, die Filme und die Zeilen für
+ * `/ueber`. Seit dem 2026-10-14 hat jede Fotoarbeit eine Detailseite mit
+ * Kategorie und Textkasten (UI-SPEC, „Detailseite").
  *
  * ⚠️ WICHTIG: Nichts hier ist von Jakob freigegeben, solange er es nicht
  * ausdrücklich bestätigt hat (siehe TODO.md, Launch-Blocker). Nichts
@@ -84,28 +84,68 @@ export const WEGE: { foto: string | null; film: string | null } = {
  * ⚠️ Vorauswahl von Claude aus dem, was im Bucket liegt — Jakob entscheidet.
  */
 export const HIGHLIGHTS: (string | null)[] = [
+  "arbeiten/tete-a-tete/03",
+  "arbeiten/welttheater-der-strasse",
   "arbeiten/wiwawo-53/01",
-  "arbeiten/wiwawo-53/04",
-  "arbeiten/wiwawo-53/02",
-  "arbeiten/wiwawo-53/03",
+  "arbeiten/at-tension",
 ];
 
 /**
+ * Die Kategorien auf `/foto`, **in dieser Reihenfolge**. Seit dem
+ * 2026-10-14 aus Jakobs Bilderliste (`261012_jakobsax.de_WebsiteBilder.xlsx`);
+ * „Theater" auf Jans Ansage als eigene Kategorie. „Journalismus" heißt in der
+ * Liste „SWR" — umbenannt, weil STRG_F vom NDR ist.
+ */
+export const KATEGORIEN = [
+  { id: "festival", label: "festival" },
+  { id: "theater", label: "theater" },
+  { id: "paddeln", label: "paddeln" },
+  { id: "journalismus", label: "journalismus" },
+] as const;
+
+export type Kategorie = (typeof KATEGORIEN)[number]["id"];
+
+/**
+ * Was im Textkasten einer Detailseite steht, solange eine Arbeit keinen
+ * eigenen `text` hat. ⚠️ Wortlaut von Jan (2026-10-14), gerichtet an Jakob:
+ * Er schreibt die Texte. Sichtbar auf der Live-Seite — bewusst so.
+ */
+export const TEXT_FOLGT = "Lass dir was einfallen und schicks mir";
+
+/**
  * Eine Fotoarbeit. Ihre Bilder liegen im Bucket unter
- * `original/arbeiten/<id>.jpg` (optional, erscheint als erstes) und
- * `original/arbeiten/<id>/01.jpg`, `02.jpg`, … — die `id` ist der Ordnername.
- * Kein Bildfeld: Konvention statt Konfiguration, siehe TECH-STACK.md.
+ * `original/arbeiten/<id>.jpg` (das **Startbild**: Kachel auf `/foto` und
+ * erstes Bild im Hero der Detailseite) und `original/arbeiten/<id>/01.jpg`,
+ * `02.jpg`, … — die `id` ist der Ordnername und die Adresse
+ * (`/foto/<id>`). Kein Bildfeld: Konvention statt Konfiguration, siehe
+ * TECH-STACK.md.
  */
 export type Fotoarbeit = {
-  /** Ordnername im Bucket. Nicht umbenennen, ohne den Ordner mitzunehmen. */
+  /** Ordnername im Bucket und Adresse. Nicht umbenennen, ohne den Ordner mitzunehmen. */
   id: string;
+  kategorie: Kategorie;
   /** So, wie Jakob ihn schreibt. Gehört das Jahr dazu, steht es hier. */
   titel: string;
-  /** Ohne Rechtsformzusatz (kein „e.V.", keine „GmbH") — UI-SPEC, E10. */
-  kunde: string;
+  /**
+   * Ohne Rechtsformzusatz (kein „e.V.", keine „GmbH") — UI-SPEC, E10.
+   * Fehlt bei Festivals, für die Jakob keinen Auftraggeber genannt hat;
+   * dann steht nur der Titel da.
+   */
+  kunde?: string;
+  /**
+   * Der Text im Kasten der Detailseite. Kommt von Jakob — nichts erfinden.
+   * Ohne Eintrag steht dort `TEXT_FOLGT`.
+   */
+  text?: string;
+  /**
+   * Überschrift je Bild aus Jakobs Liste, meist die Compagnie („Cie.
+   * Dyptik"). Schlüssel wie bei `alt`. Die Beschriftung des Bildes wird dann
+   * „{Bildtitel} – {Titel}", sonst die der Arbeit.
+   */
+  bildtitel?: Record<string, string>;
   /**
    * Szenenbeschreibung je Bild, Schlüssel ist der Dateiname ohne Endung
-   * (`"01"`, `"02"`, …; das Bild ohne Nummer heißt `"leitbild"`). Fehlt ein
+   * (`"01"`, `"02"`, …; das Startbild heißt `"leitbild"`). Fehlt ein
    * Eintrag, setzt die Seite „Titel – Kunde, Bild n" ein — korrekt, aber
    * ohne Information über das Motiv.
    */
@@ -129,20 +169,82 @@ export type Film = {
 };
 
 /**
- * Die Fotoarbeiten. **Die Reihenfolge hier ist die Reihenfolge im Mosaik.**
+ * Die Fotoarbeiten. **Die Reihenfolge hier ist die Reihenfolge auf `/foto`**
+ * (innerhalb ihrer Kategorie) und beim Blättern zwischen den Detailseiten.
+ *
+ * Seit dem 2026-10-14 nach Jakobs Bilderliste. Die Reihenfolge der Bilder
+ * innerhalb einer Arbeit ist die Reihenfolge der Zeilen dort; die erste Zeile
+ * ist das Startbild. ⚠️ Gegengelesen ist nur, was in seiner Liste steht.
  *
  * Bewusst NICHT enthalten: die Onetake-Arbeiten (Rechte ungeklärt, siehe
  * TODO.md, Langfristig).
  */
 export const FOTOS: Fotoarbeit[] = [
+  // ── festival ─────────────────────────────────────────────────────────
+  {
+    id: "tete-a-tete",
+    kategorie: "festival",
+    titel: "tête-à-tête",
+    bildtitel: {
+      leitbild: "Cie. Pau Palaus",
+      "01": "SPPI",
+      "02": "GOGO home",
+      "03": "Chloe Loftus",
+      "04": "Roi Borallas",
+      "05": "Niels Seidel",
+    },
+  },
+  {
+    id: "stamp",
+    kategorie: "festival",
+    titel: "STAMP",
+    /* In der Liste einmal „altonale GmbH", ohne Rechtsform (E10). */
+    kunde: "altonale",
+    /*
+     * ⚠️ Das Bild „Cie. Sept fois la langue" (ONE09024 in Jakobs Liste) lag
+     * nicht im Ordner. Das dort liegende ONE09173 zeigt eine Moderation vor
+     * einem SWR-Logo und steht deshalb unter `ueber/`, nicht hier.
+     */
+  },
+  {
+    id: "at-tension",
+    kategorie: "festival",
+    titel: "at.tension",
+    bildtitel: { leitbild: "Cie. Dyptik", "01": "Cie. Pol & Freddy" },
+  },
+  {
+    id: "stadtfest-karlsruhe",
+    kategorie: "festival",
+    /* In Jakobs Liste ohne Überschrift; „Stadtfest" aus dem Dateinamen. */
+    titel: "Stadtfest",
+    kunde: "Karlsruhe Marketing & Event",
+  },
+
+  // ── theater ──────────────────────────────────────────────────────────
+  {
+    id: "welttheater-der-strasse",
+    kategorie: "theater",
+    titel: "Welttheater der Strasse",
+    bildtitel: {
+      leitbild: "Commando Percu",
+      "01": "Commando Percu",
+      "02": "Collectif Malunés",
+      "03": "Commando Percu",
+      "04": "Collectif Malunés",
+      "05": "Circumstances",
+      "06": "SPPI",
+      "07": "SPPI",
+    },
+  },
+
+  // ── paddeln ──────────────────────────────────────────────────────────
   {
     id: "wiwawo-53",
-    /*
-     * Titel und Kunde wie in Jakobs Konzept vom 2026-10-08, der Kunde ohne
-     * „e.V." (E10). Die 53. Jugend-Wildwasserwoche fand 2026 statt.
-     */
+    kategorie: "paddeln",
+    /* Die 53. Jugend-Wildwasserwoche fand 2026 statt. Kunde so, wie Jakob
+       ihn in seiner Liste schreibt. */
     titel: "WiWaWo 2026",
-    kunde: "Bayerischer Kanuverband",
+    kunde: "Bayerischer Kanu-Verband",
     /*
      * ⚠️ Von den Bildern abgeleitet, **nicht von Jakob freigegeben** — wie
      * alles hier gegenlesen lassen.
@@ -158,7 +260,59 @@ export const FOTOS: Fotoarbeit[] = [
       "06": "Weißer Kleinbus mit Kajaks auf dem Dach an einer Bergstraße, im Tal liegt Nebel",
     },
   },
+  {
+    id: "wiwawo-52",
+    kategorie: "paddeln",
+    titel: "WiWaWo 2025",
+    kunde: "Bayerischer Kanu-Verband",
+  },
+  {
+    id: "kanu-freestyle-untertuerkheim",
+    kategorie: "paddeln",
+    titel: "Indoor Kanu Freestyle",
+    kunde: "Untertürkheim",
+  },
+
+  // ── journalismus ─────────────────────────────────────────────────────
+  {
+    id: "toedliches-gold",
+    kategorie: "journalismus",
+    titel: "Tödliches Gold",
+    kunde: "Y-Kollektiv/ARD",
+    /*
+     * ⚠️ **Platzhalter.** Die Bilder kommen später (Jan, 2026-10-14). Bis
+     * dahin steht hier ein gezeichneter Goldbarren — bewusst gezeichnet und
+     * kein Stockfoto: Auf der Seite eines Fotografen läse sich ein fremdes
+     * Foto als seine Arbeit. Erzeugt von scripts/goldbarren.mjs.
+     */
+    alt: { leitbild: "Platzhalter: ein gezeichneter Goldbarren auf dunklem Grund" },
+  },
+  {
+    id: "strg-f",
+    kategorie: "journalismus",
+    titel: "STRG_F",
+    kunde: "NDR/ARD für funk",
+  },
+  {
+    id: "tagesthemen",
+    kategorie: "journalismus",
+    titel: "Tagesthemen",
+    kunde: "ARD/SWR",
+  },
 ];
+
+/**
+ * Bilder für `/ueber` (`original/ueber/01.jpg`, …): laut Jakobs Liste „nicht
+ * unter Fotos & Startseite anzeigen". Beschriftung je Bild aus der Liste.
+ * Ohne Eintrag erscheint das Bild mit „Jakob Sax" als Beschriftung.
+ */
+export const UEBER_BILDER: Record<string, string> = {
+  "01": "Tödliches Gold – Y-Kollektiv/ARD",
+  "02": "STRG_F – NDR für funk",
+  "03": "Maimarkt Mannheim LIVE – SWR",
+  "04": "Maimarkt Mannheim LIVE – SWR",
+  /* "05" ist ONE09173, nicht in Jakobs Liste — Moderation vor einem SWR-Logo. */
+};
 
 /**
  * Die Filme. **Die Reihenfolge hier ist die Reihenfolge auf `/film`.**

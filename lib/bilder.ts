@@ -124,6 +124,30 @@ export const HERO_SIZES = "100vw";
  */
 export const FILM_SIZES = "(max-width: 700px) 92vw, (max-width: 1400px) 46vw, 440px";
 
+/**
+ * `sizes` für ein Startbild auf `/foto`.
+ *
+ * Einspaltig bis 700px, zweispaltig bis 1100px, darüber drei Spalten in
+ * höchstens 1600px Seitenbreite — eine Kachel also höchstens rund 520px.
+ * Dieselben Umbrüche stehen in `app/foto/foto.module.css`.
+ */
+export const UEBERSICHT_SIZES = "(max-width: 700px) 92vw, (max-width: 1100px) 46vw, 520px";
+
+/**
+ * `sizes` für ein Foto im Lichtkasten — **je Bild**, weil die Höhe begrenzt:
+ * Ein Hochformat steht im Kasten höchstens so breit, wie die Fensterhöhe
+ * (abzüglich Rand und Beschriftungszeile, rund 140px) mal Seitenverhältnis
+ * hergibt. Mit pauschal `100vw` lüde ein Hochformat auf einem breiten
+ * Bildschirm die 4000er-Stufe, um sie dann auf ein Drittel zu verkleinern.
+ *
+ * Kennt ein Browser `min()` in `sizes` nicht, gilt der Wert als ungültig
+ * und er rechnet mit `100vw` — genau dem, was vorher hier stand.
+ */
+export function kastenSizes(quelle: Bildquelle): string {
+  const verhaeltnis = (quelle.breite / quelle.hoehe).toFixed(3);
+  return `min(100vw, calc((100vh - 140px) * ${verhaeltnis}))`;
+}
+
 export const BILDER: Record<string, Bildquelle> = manifest as Record<
   string,
   Bildquelle
@@ -218,4 +242,9 @@ function ordnerInhalt(praefix: string): Streckenbild[] {
  */
 export function bildstreckeZurArbeit(id: string): Streckenbild[] {
   return ordnerInhalt(`arbeiten/${id}/`);
+}
+
+/** Alle Bilder eines Ordners direkt unter `original/`, z. B. `ueber`. */
+export function bilderImOrdner(ordner: string): Streckenbild[] {
+  return ordnerInhalt(`${ordner}/`);
 }

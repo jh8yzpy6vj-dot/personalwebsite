@@ -58,6 +58,11 @@
 .spalte:nth-child(2) { flex: 0.9 1 0; }
 .spalte:nth-child(3) { flex: 1.12 1 0; }
 
+/* Weniger Bilder, weniger Breite (Mosaik.tsx): ein Bild in einer
+   Lesespalte, zwei nebeneinander in der Breite von `/ueber`. */
+.eineSpalte { max-width: 720px; }
+.zweiSpalten { max-width: 1100px; }
+
 .figur {
   margin: 0;
 }

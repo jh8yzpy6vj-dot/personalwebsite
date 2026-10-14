@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { FILME, FOTOS } from "./content";
+import { FILME, FOTOS, KATEGORIEN, type Fotoarbeit } from "./content";
 import { beschriftung, zielDesLinks } from "./arbeiten";
 
 describe("Inhalte", () => {
@@ -16,7 +16,7 @@ describe("Inhalte", () => {
 
   it("schreibt Kunden ohne Rechtsformzusatz (E10)", () => {
     for (const a of [...FOTOS, ...FILME]) {
-      expect(a.kunde, a.id).not.toMatch(/\b(e\.\s?V\.|gGmbH|GmbH|UG)\b/);
+      expect(a.kunde ?? "", a.id).not.toMatch(/\b(e\.\s?V\.|gGmbH|GmbH|UG)\b/);
     }
   });
 });
@@ -26,6 +26,25 @@ describe("beschriftung", () => {
     expect(beschriftung({ titel: "WiWaWo 2026", kunde: "Bayerischer Kanuverband" })).toBe(
       "WiWaWo 2026 – Bayerischer Kanuverband",
     );
+  });
+
+  it("zeigt ohne Kunde nur den Titel, ohne hängenden Strich", () => {
+    expect(beschriftung({ titel: "tête-à-tête" })).toBe("tête-à-tête");
+  });
+});
+
+describe("Fotoarbeiten", () => {
+  it("nennt Bildtitel nur für Bilder, die es nach dem Schema gibt", () => {
+    for (const a of FOTOS) {
+      for (const name of Object.keys(a.bildtitel ?? {})) {
+        expect(name, a.id).toMatch(/^(leitbild|\d{2})$/);
+      }
+    }
+  });
+
+  it("gehört jede Arbeit zu einer bekannten Kategorie", () => {
+    const ids = new Set(KATEGORIEN.map((k) => k.id));
+    for (const a of FOTOS) expect(ids.has(a.kategorie), a.id).toBe(true);
   });
 });
 
@@ -68,10 +87,10 @@ describe("Was kein Bild hat, erscheint nicht", () => {
       "arbeiten/b": q,
       "arbeiten/c/01": q,
     });
-    const fotos = [
-      { id: "a", titel: "A", kunde: "K" },
-      { id: "b", titel: "B", kunde: "K", alt: { "01": "Szene" } },
-      { id: "c", titel: "C", kunde: "K" },
+    const fotos: Fotoarbeit[] = [
+      { id: "a", kategorie: "festival", titel: "A", kunde: "K" },
+      { id: "b", kategorie: "festival", titel: "B", kunde: "K", alt: { "01": "Szene" } },
+      { id: "c", kategorie: "festival", titel: "C", kunde: "K" },
     ];
     const bilder = fotosFuerMosaik(fotos);
     expect(bilder.map((b) => b.schluessel)).toEqual([
@@ -83,6 +102,44 @@ describe("Was kein Bild hat, erscheint nicht", () => {
     expect(bilder[1].alt).toBe("Szene – B – K");
     expect(bilder[2].alt).toBe("B – K, Bild 3");
     expect(fotoarbeitenOhneBild(fotos).map((a) => a.id)).toEqual(["a"]);
+  });
+
+  it("ordnet die Übersicht nach Kategorie und blättert in derselben Reihenfolge", async () => {
+    const { uebersicht, nachbarn, arbeitenMitBild } = await mitManifest({
+      "arbeiten/p": q,
+      "arbeiten/f1": q,
+      "arbeiten/f2/01": q,
+      "arbeiten/t": q,
+    });
+    /* Absichtlich durcheinander: Die Reihenfolge der Kategorien kommt aus
+       KATEGORIEN, nicht aus der Liste. */
+    const fotos: Fotoarbeit[] = [
+      { id: "p", kategorie: "paddeln", titel: "P" },
+      { id: "leer", kategorie: "festival", titel: "Leer" },
+      { id: "f1", kategorie: "festival", titel: "F1" },
+      { id: "t", kategorie: "theater", titel: "T" },
+      { id: "f2", kategorie: "festival", titel: "F2" },
+    ];
+    expect(uebersicht(fotos).map((k) => [k.id, k.arbeiten.map((a) => a.arbeit.id)])).toEqual([
+      ["festival", ["f1", "f2"]],
+      ["theater", ["t"]],
+      ["paddeln", ["p"]],
+    ]);
+    expect(arbeitenMitBild(fotos).map((a) => a.id)).toEqual(["f1", "f2", "t", "p"]);
+    expect(nachbarn("f2", fotos)).toMatchObject({ vorher: { id: "f1" }, nachher: { id: "t" } });
+    expect(nachbarn("f1", fotos).vorher).toBeNull();
+    expect(nachbarn("leer", fotos)).toEqual({ vorher: null, nachher: null });
+  });
+
+  it("beschriftet ein Bild mit seinem eigenen Titel, wenn Jakobs Liste einen nennt", async () => {
+    const { bilderDerArbeit } = await mitManifest({ "arbeiten/x": q, "arbeiten/x/01": q });
+    const bilder = bilderDerArbeit({
+      id: "x",
+      kategorie: "festival",
+      titel: "at.tension",
+      bildtitel: { leitbild: "Cie. Dyptik" },
+    });
+    expect(bilder.map((b) => b.beschriftung)).toEqual(["Cie. Dyptik – at.tension", "at.tension"]);
   });
 
   it("lässt Filme ohne Standbild weg", async () => {

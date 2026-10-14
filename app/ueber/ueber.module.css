@@ -55,3 +55,8 @@
   color: var(--schrift);
   text-underline-offset: 4px;
 }
+
+/* Die Bilder aus Jakobs Liste, Kategorie „Über mich" (seit 2026-10-14). */
+.bilder {
+  margin-top: var(--space-3xl);
+}

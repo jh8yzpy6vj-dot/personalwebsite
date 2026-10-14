@@ -115,6 +115,18 @@ schreibt nichts.
 
 ### Wohin welche Datei
 
+> ✅ **Stand 2026-10-14 (Detailseiten):** `original/arbeiten/<id>.jpg` ist das **Startbild** —
+> Kachel auf `/foto` und erstes Bild im Hero der Detailseite. Dazu `original/arbeiten/<id>/01.jpg`,
+> `02.jpg`, … in der Reihenfolge von Jakobs Liste und **`original/ueber/01.jpg`, …** für die
+> Bilder auf `/ueber` (Beschriftung in `UEBER_BILDER`, `lib/content.ts`). Hochgeladen mit
+> `npm run verkleinern -- <ordner> --arbeit <id> --leitbild <erste Datei> --original --hochladen`,
+> also in **voller Auflösung**, nur ohne Standort- und andere Metadaten. Ausgeliefert wird in
+> sieben Breiten bis **4000 px** (`BREITEN` in `lib/bilder-regeln.mjs`). Der Platzhalter für
+> „Tödliches Gold" entsteht mit `node scripts/goldbarren.mjs <ziel.jpg>`.
+>
+> Der folgende Hinweis vom 2026-10-08 ist damit in einem Punkt überholt: Das Leitbild entfällt
+> **nicht**.
+>
 > ⏳ **Ändert sich mit dem Umbau (Schritt 2), siehe oben.** Es bleiben: `original/arbeiten/<id>/`
 > mit `01.jpg`, `02.jpg`, … (die Fotos im Mosaik auf `/foto`), Hero-Video, Hero-Standbild,
 > Porträt. Neu: **`original/film/<id>.jpg`** — das Standbild je Film, Querformat; `<id>` ist die

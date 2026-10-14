@@ -6,6 +6,79 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-14 — Jakobs Bilder online: Übersicht nach Kategorien, Detailseiten, bis 4000 px
+
+Jakob hat einen Ordner mit 33 Fotos und einer Liste geschickt (`261012_jakobsax.de_WebsiteBilder.xlsx`:
+Dateiname · Überschrift · Untertitel · Kategorie · „nicht unter Fotos & Startseite"). Jans
+Auftrag: „so hochauflösend wie möglich … in der logischen Zuordnung, so ähnlich wie bei wiwawo53:
+ein startbild, dann detailseite mit mehr bildern und animation, kasten für bisschen text und dann
+mosaik." Vertrag zuerst (UI-SPEC, neuer Abschnitt „Übersicht und Detailseite"), dann der Code.
+
+⚠️ **Vorab: Der lokale Ordner hing hinter `origin/main`** — er enthielt einen alten, nicht
+committeten Zwischenstand von UMBAU-Schritt 2, während der fertige Umbau (5 Commits bis
+`100621b`) längst live war. Den alten Stand als `git stash` gesichert („alter lokaler
+Umbau-Zwischenstand vor Pull 2026-10-14"), dann vorgespult. Nichts verworfen.
+
+### Was jetzt steht
+- **`/foto` ist eine Übersicht:** festival · theater · paddeln · journalismus, je Arbeit ein
+  Startbild (4:5) mit „Titel – Kunde". **`/foto/<id>`** je Arbeit: Hero mit der **Blende** über
+  alle Bilder (aus Git zurückgeholt, Takt unverändert 4 s / 1,2 s), Textkasten, Mosaik mit
+  Lichtkasten, vor/zurück. Das Startbild wächst per View Transition von der Kachel ins Hero.
+  Das hebt E4 und E8 auf (Jans Entscheidung).
+- **Elf Arbeiten** in `lib/content.ts`, Reihenfolge der Bilder = Zeilen der Liste, erste Zeile =
+  Startbild. Je Bild die Überschrift aus der Liste („Cie. Dyptik – at.tension"). Kunde optional —
+  Festivals ohne genannten Auftraggeber zeigen nur den Titel.
+- **Textkasten:** „Lass dir was einfallen und schicks mir" — Jans Wortlaut, bewusst live, bis
+  Jakob Texte schickt (`TEXT_FOLGT`).
+- **Tödliches Gold:** ein **gezeichneter** Goldbarren als Platzhalter (`scripts/goldbarren.mjs`),
+  kein Stockfoto — auf einer Fotografenseite läse sich ein fremdes Foto als seine Arbeit.
+- **`/ueber`:** darunter die fünf „Über mich"-Bilder als Mosaik (`original/ueber/NN`).
+- **Auflösung:** Originale in voller Größe im Bucket (`verkleinern --original`, nur die vier
+  Aufnahmewerte bleiben). Ausgeliefert in sieben Breiten bis **4000 px**, AVIF und WebP gleich
+  (`PIPELINE_VERSION` 7). Gemessen: AVIF 4000 eines Hochformats 548 kB / 11,5 s. Der
+  Lichtkasten rechnet `sizes` je Bild aus Fensterhöhe und Seitenverhältnis, sonst lüde ein
+  Hochformat die 4000er-Stufe für ein Drittel der Breite.
+- **Pause-Knopf an der Blende** (WCAG 2.2.2), gleiche Form wie am Hero-Video. Der aktive
+  Zählerstrich ist jetzt weiß statt rot — Rot gehört allein dem ●REC.
+- Highlights auf `/` neu gewählt (vier Arbeiten statt viermal WiWaWo) und verlinkt auf die
+  Detailseite. Bildausschnitte für neun Bilder am Kontaktbogen gewählt. Weiterleitung
+  `/arbeiten/wiwawo-53` → `/foto/wiwawo-53`. Sitemap mit allen Detailseiten.
+
+### Zuordnung — was nicht aus der Liste kam
+- **ONE09173** lag ohne Listeneintrag im Ordner. Annahme war „das ist ONE09024, Cie. Sept fois la
+  langue (STAMP)". **Der Kontaktbogen widerlegt das:** Das Bild zeigt eine Moderation vor einem
+  SWR-Logo. Steht deshalb unter `/ueber`; ONE09024 fehlt weiter.
+- Welttheater der Strasse komplett unter „theater" (Jan: „Theater ist ne eigene Kategorie, also
+  Welttheater"), auch die in der Liste als Festival geführten Bilder. „SWR" als Kategorie heißt
+  „journalismus", weil STRG_F vom NDR ist. KME-Stadtfest ohne Überschrift → „Stadtfest".
+- Alles davon steht in `TODO.md` bei Jakob zum Gegenlesen.
+
+### Fehler, die erst das Prüfen gefunden hat
+1. **🔴 Im Worker war jede Detailseite 404**, unter `next dev` lief alles. Ursache:
+   `dynamicParams = false` — ohne eingerichteten Inkrement-Cache findet der OpenNext-Adapter die
+   vorgerenderten Seiten nicht und darf sie dann auch nicht selbst rendern. Zeile entfernt,
+   unbekannte Adressen bleiben über `notFound()` 404. **Wäre live genauso gewesen** —
+   nur gefunden, weil nach `next build` noch `cf:build` + `wrangler dev` lief.
+2. `verkleinern.mjs` prüfte die `id` gegen `WORKS` — das gibt es seit dem Umbau nicht mehr; die
+   Prüfung lief still ins Leere. Jetzt gegen `FOTOS`.
+3. Jakobs Dateinamen mit `ê`/`à` sind Unicode-zerlegt (vom Mac) und ließen sich nicht per Namen
+   kopieren — beim Bereitstellen über die Bildnummer gelöst; im Bucket heißen sie ohnehin
+   `01.jpg`, `02.jpg`.
+
+### Geprüft
+`npm test` (67, neu: Übersicht/Blättern, Bildtitel, Beschriftung ohne Kunde, Kategorien), Lint,
+Typecheck, `next build`, `cf:build`, alle 18 Routen im Worker (11 Detailseiten 200, unbekannte
+404). Im Browser bei 1440 und 375 px: kein waagerechter Überlauf, Blende schaltet, Pause hält
+die Folge 7 s auf demselben Bild, Lichtkasten öffnet/blättert/schließt mit gleicher
+Scrollposition, keine Skriptfehler. **GPS:** vier öffentliche Originale aus dem Bucket
+nachgeladen — kein GPS, nur Orientierung und die vier Aufnahmewerte.
+
+**Nicht geändert:** die Schriften. Jakobs Wunsch (Druk Wide Bold, Avenir Next) steht im CSS an
+erster Stelle; die Lizenzdateien fehlen weiter, deshalb laufen außerhalb von Apple-Geräten die
+Ersatzschriften (`TECH-STACK.md`, „Schriften").
+
+---
+
 ## 2026-10-10 — Startseite wiederhergestellt und erweitert
 
 Jan: „Du hast die Startseite ja einfach getötet." Die reine Videoseite mit „jakob sax" in der

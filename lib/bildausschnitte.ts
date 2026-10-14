@@ -53,7 +53,20 @@
  */
 export const BILDAUSSCHNITTE: Record<string, string> = {
   /*
-   * Noch leer: Die Werte müssen von jemandem kommen, der die Fotos
-   * ansieht — geraten wären sie schlechter als der mittige Standard.
+   * Seit dem 2026-10-14 wirkt der Wert wieder im Hero der Detailseite, auf
+   * den Kacheln von `/foto` (4:5) und bei den Highlights auf `/`.
+   *
+   * ⚠️ Von Claude am Kontaktbogen gewählt, nur für Bilder, bei denen das
+   * Geschehen deutlich außerhalb der Mitte sitzt — alle anderen stehen
+   * mittig. Jakob kann jeden Wert mit dem Werkzeug oben nachstellen.
    */
+  "arbeiten/wiwawo-53/02": "50% 78%", // Lagerfeuer sitzt unten (2026-09-13)
+  "arbeiten/wiwawo-53/08": "50% 45%", // Kajak im Wasserfall
+  "arbeiten/wiwawo-52": "50% 65%", // Boot in der Walze, untere Bildhälfte
+  "arbeiten/kanu-freestyle-untertuerkheim": "50% 40%", // Boot über dem Becken
+  "arbeiten/at-tension": "50% 22%", // Flugfigur ganz oben
+  "arbeiten/stadtfest-karlsruhe": "50% 28%", // Tuchakrobatik oben am Kran
+  "arbeiten/tete-a-tete/03": "50% 38%", // Chloe Loftus am Gerüst
+  "arbeiten/welttheater-der-strasse/02": "50% 38%", // Malunés, Sprung über der Wippe
+  "arbeiten/welttheater-der-strasse/04": "50% 30%", // Malunés, Trapez hoch über dem Publikum
 };

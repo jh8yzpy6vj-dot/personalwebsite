@@ -326,6 +326,9 @@ async function pruefeZuordnung(namen, warnungen) {
     if (bekannt.has(name)) continue;
     const teile = name.split("/");
 
+    // ueber/01 — die Bilder auf /ueber (UEBER_BILDER in content.ts).
+    if (teile.length === 2 && teile[0] === "ueber") continue;
+
     // film/<id> — das Standbild eines Films aus FILME.
     if (teile.length === 2 && teile[0] === "film" && filmIds.has(teile[1])) continue;
 
@@ -341,7 +344,7 @@ async function pruefeZuordnung(namen, warnungen) {
             `(${[...fotoIds].slice(0, 3).join(", ")}, …).`
           : teile[0] === "film"
             ? `Erwartet wird eine id aus FILME in content.ts.`
-            : `Erlaubt sind \`arbeiten/<id>/NN\`, \`film/<id>\`, ` +
+            : `Erlaubt sind \`arbeiten/<id>/NN\`, \`film/<id>\`, \`ueber/NN\`, ` +
               `\`hero/standbild\`, \`hero/film\`, \`portrait\`.`),
     );
   }

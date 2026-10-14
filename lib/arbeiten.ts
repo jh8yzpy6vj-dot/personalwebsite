@@ -1,6 +1,16 @@
-import { FILME, FOTOS, type Film, type Fotoarbeit } from "./content";
+import {
+  FILME,
+  FOTOS,
+  KATEGORIEN,
+  TEXT_FOLGT,
+  UEBER_BILDER,
+  type Film,
+  type Fotoarbeit,
+  type Kategorie,
+} from "./content";
 import {
   ausschnittAus,
+  bilderImOrdner,
   bildstreckeZurArbeit,
   leitbildZurArbeit,
   standbildZumFilm,
@@ -15,7 +25,8 @@ import {
  *
  * Zwei Regeln aus dem UI-SPEC stecken hier:
  *
- * 1. **Pro Arbeit genau zwei Angaben: Titel und Kunde** — `beschriftung()`.
+ * 1. **Beschriftung „Titel – Kunde"** — `beschriftung()`. Seit dem 2026-10-14
+ *    kommt auf der Detailseite der Textkasten dazu (`textDerArbeit()`).
  * 2. **Was kein Bild hat, erscheint nicht.** Eine Seite, die nur aus Bildern
  *    besteht, darf keine grauen Platzhalterkacheln zeigen. Was fehlt, meldet
  *    `npm run medien`.
@@ -25,14 +36,22 @@ import {
  * „Titel – Kunde": Halbgeviertstrich (U+2013) mit je einem Leerzeichen.
  * Das ist die einzige Beschriftung, die eine Arbeit auf der Seite trägt.
  */
-export function beschriftung(a: { titel: string; kunde: string }): string {
-  return `${a.titel} – ${a.kunde}`;
+export function beschriftung(a: { titel: string; kunde?: string }): string {
+  /* Ohne Kunde (Festivals, für die Jakob keinen genannt hat) nur der Titel —
+     ein „tête-à-tête – " mit leerem Ende sähe nach Fehler aus. */
+  return a.kunde ? `${a.titel} – ${a.kunde}` : a.titel;
 }
 
-/** Ein Bild im Mosaik auf `/foto`, mit allem, was Kachel und Lichtkasten brauchen. */
+/** Ein Bild im Mosaik, mit allem, was Kachel und Lichtkasten brauchen. */
 export type Mosaikbild = Streckenbild & {
-  /** „Titel – Kunde" der Arbeit, zu der das Bild gehört. */
+  /**
+   * Was beim Überfahren und im Lichtkasten steht: „Titel – Kunde" der Arbeit,
+   * oder „{Bildtitel} – {Titel}", wenn Jakobs Liste dem Bild eine eigene
+   * Überschrift gibt (meist die Compagnie).
+   */
   beschriftung: string;
+  /** Zu welcher Arbeit das Bild gehört — für Verweise auf die Detailseite. */
+  arbeit: string;
   /**
    * Alt-Text: die Szenenbeschreibung aus `content.ts`, gefolgt von der
    * Beschriftung — oder, wenn es keine gibt, „Titel – Kunde, Bild n".
@@ -65,11 +84,86 @@ export function bilderDerArbeit(arbeit: Fotoarbeit): Mosaikbild[] {
 
   return liste.map(({ name, bild }, i) => {
     const szene = arbeit.alt?.[name];
+    const titel = arbeit.bildtitel?.[name];
+    const zeile = titel ? `${titel} – ${arbeit.titel}` : text;
     return {
       ...bild,
-      beschriftung: text,
-      alt: szene ? `${szene} – ${text}` : `${text}, Bild ${i + 1}`,
+      beschriftung: zeile,
+      arbeit: arbeit.id,
+      alt: szene ? `${szene} – ${zeile}` : `${zeile}, Bild ${i + 1}`,
     };
+  });
+}
+
+/** Eine Fotoarbeit über ihre `id`, oder `null`. */
+export function arbeitNach(id: string, fotos: Fotoarbeit[] = FOTOS): Fotoarbeit | null {
+  return fotos.find((a) => a.id === id) ?? null;
+}
+
+/**
+ * Die Arbeiten, die eine Seite haben — also mindestens ein Bild. In der
+ * Reihenfolge, in der `/foto` sie zeigt: nach Kategorie (`KATEGORIEN`),
+ * darin nach `FOTOS`. Auf diese Reihenfolge stützt sich auch das Blättern
+ * zwischen den Detailseiten, damit „nächste" dorthin führt, wo man es von
+ * der Übersicht her erwartet.
+ */
+export function arbeitenMitBild(fotos: Fotoarbeit[] = FOTOS): Fotoarbeit[] {
+  const mitBild = fotos.filter((a) => bilderDerArbeit(a).length > 0);
+  return KATEGORIEN.flatMap((k) => mitBild.filter((a) => a.kategorie === k.id));
+}
+
+/** Eine Kategorie auf `/foto` mit ihren Arbeiten und deren Startbild. */
+export type Kategorieblock = {
+  id: Kategorie;
+  label: string;
+  arbeiten: { arbeit: Fotoarbeit; beschriftung: string; startbild: Mosaikbild }[];
+};
+
+/**
+ * Die Übersicht auf `/foto`: je Kategorie die Arbeiten mit ihrem
+ * **Startbild** — dem ersten Bild der Arbeit. Kategorien ohne Arbeit mit
+ * Bild fallen weg.
+ */
+export function uebersicht(fotos: Fotoarbeit[] = FOTOS): Kategorieblock[] {
+  const arbeiten = arbeitenMitBild(fotos);
+  return KATEGORIEN.map((k) => ({
+    id: k.id,
+    label: k.label,
+    arbeiten: arbeiten
+      .filter((a) => a.kategorie === k.id)
+      .map((arbeit) => ({
+        arbeit,
+        beschriftung: beschriftung(arbeit),
+        startbild: bilderDerArbeit(arbeit)[0],
+      })),
+  })).filter((k) => k.arbeiten.length > 0);
+}
+
+/** Vorige und nächste Arbeit — in der Reihenfolge von `arbeitenMitBild`. */
+export function nachbarn(
+  id: string,
+  fotos: Fotoarbeit[] = FOTOS,
+): { vorher: Fotoarbeit | null; nachher: Fotoarbeit | null } {
+  const liste = arbeitenMitBild(fotos);
+  const i = liste.findIndex((a) => a.id === id);
+  if (i < 0) return { vorher: null, nachher: null };
+  return { vorher: liste[i - 1] ?? null, nachher: liste[i + 1] ?? null };
+}
+
+/** Der Text im Kasten der Detailseite — Jakobs Text oder `TEXT_FOLGT`. */
+export function textDerArbeit(arbeit: Fotoarbeit): string {
+  return arbeit.text ?? TEXT_FOLGT;
+}
+
+/**
+ * Die Bilder auf `/ueber` (`original/ueber/01.jpg`, …), mit der Beschriftung
+ * aus `UEBER_BILDER`.
+ */
+export function bilderFuerUeber(): Mosaikbild[] {
+  return bilderImOrdner("ueber").map((b, i) => {
+    const nr = b.schluessel.slice(b.schluessel.lastIndexOf("/") + 1);
+    const zeile = UEBER_BILDER[nr] ?? "Jakob Sax";
+    return { ...b, beschriftung: zeile, arbeit: "ueber", alt: `Jakob Sax bei der Arbeit – ${zeile}, Bild ${i + 1}` };
   });
 }
 

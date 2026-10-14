@@ -98,11 +98,16 @@ export default function Bild({
         loading={vorrang ? "eager" : "lazy"}
         fetchPriority={vorrang ? "high" : undefined}
         decoding="async"
-        style={{
-          backgroundImage: `url("${quelle.lqip}")`,
-          ...(ausschnitt ? { objectPosition: ausschnitt } : {}),
-          ...(uebergang ? { viewTransitionName: uebergang } : {}),
-        }}
+        style={
+          {
+            backgroundImage: `url("${quelle.lqip}")`,
+            ...(ausschnitt ? { objectPosition: ausschnitt } : {}),
+            /* Die Klasse `foto` lässt globals.css beide Fassungen als
+               `cover` zeichnen — sonst verzerrt sich das Foto, wenn es von
+               einer 4:5-Kachel in ein Querformat-Hero wächst. */
+            ...(uebergang ? { viewTransitionName: uebergang, viewTransitionClass: "foto" } : {}),
+          } as React.CSSProperties
+        }
       />
     </picture>
   );

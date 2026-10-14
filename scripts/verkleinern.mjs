@@ -270,11 +270,13 @@ async function main() {
   const id = arbeit ?? serie;
   if (id) {
     try {
-      const { WORKS } = await import("../lib/content.ts");
-      if (!WORKS.some((w) => w.id === id)) {
+      /* Seit dem Umbau vom 2026-10-08 heißt die Liste `FOTOS`, nicht mehr
+         `WORKS` — vorher lief die Prüfung hier still ins Leere. */
+      const { FOTOS } = await import("../lib/content.ts");
+      if (!FOTOS.some((w) => w.id === id)) {
         abbruch(
           `„${id}" ist keine Arbeit aus lib/content.ts.\n` +
-            `Bekannt sind:\n  ${WORKS.map((w) => w.id).join("\n  ")}\n\n` +
+            `Bekannt sind:\n  ${FOTOS.map((w) => w.id).join("\n  ")}\n\n` +
             `Gibt es die Arbeit noch nicht, muss sie dort zuerst angelegt werden.`,
         );
       }

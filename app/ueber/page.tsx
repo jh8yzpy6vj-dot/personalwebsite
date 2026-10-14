@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Seite from "../components/Seite";
 import Bild from "../components/Bild";
+import Mosaik from "../components/Mosaik";
 import { bild } from "@/lib/bilder";
+import { bilderFuerUeber } from "@/lib/arbeiten";
 import { ABOUT } from "@/lib/content";
 import styles from "./ueber.module.css";
 
@@ -13,11 +15,14 @@ export const metadata: Metadata = {
 
 /**
  * `/ueber`: Bild links, rechts 3–4 Zeilen, darunter die Kontaktzeile
- * (E6, E12). Am Telefon untereinander, Bild zuerst. Das einzige Bild von
- * Jakob auf der ganzen Seite („nicht durch meine Fresse").
+ * (E6, E12). Am Telefon untereinander, Bild zuerst. Darunter seit dem
+ * 2026-10-14 die Bilder aus Jakobs Liste mit der Kategorie „Über mich".
+ * Bilder von Jakob stehen nur hier („nicht durch meine Fresse"), plus der
+ * Anriss auf `/`.
  */
 export default function Ueber() {
   const portrait = bild("portrait");
+  const bilder = bilderFuerUeber();
 
   return (
     <Seite titel="Über Jakob Sax" aktuell="/ueber" breite="ueber">
@@ -54,6 +59,14 @@ export default function Ueber() {
           </p>
         </div>
       </div>
+
+      {/* Die Bilder, die laut Jakobs Liste „nicht unter Fotos & Startseite"
+          stehen sollen — Jakob bei der Arbeit. */}
+      {bilder.length > 0 && (
+        <div className={styles.bilder}>
+          <Mosaik bilder={bilder} />
+        </div>
+      )}
     </Seite>
   );
 }

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import Bild from "./Bild";
-import { MOSAIK_SIZES } from "@/lib/bilder";
+import { MOSAIK_SIZES, kastenSizes } from "@/lib/bilder";
 import type { Mosaikbild } from "@/lib/arbeiten";
 import styles from "./Mosaik.module.css";
 
@@ -16,10 +16,11 @@ type Props = {
 const SOFORT = 3;
 
 /**
- * Das Mosaik auf `/foto`: alle Fotos aller Arbeiten in Spalten, jedes Bild
- * in seiner eigenen Form, **nichts beschnitten**, **keine Zwischenzeilen**
- * (E4). „Titel – Kunde" erscheint erst beim Überfahren bzw. bei
- * Tastaturfokus und im Lichtkasten.
+ * Das Mosaik auf der Detailseite (`/foto/<id>`, seit 2026-10-14; vorher über
+ * alle Arbeiten auf `/foto`) und auf `/ueber`: die Bilder in Spalten, jedes
+ * in seiner eigenen Form, **nichts beschnitten**, **keine Zwischenzeilen**.
+ * Die Beschriftung erscheint erst beim Überfahren bzw. bei Tastaturfokus und
+ * im Lichtkasten.
  *
  * ⚠️ **Der erste Anlauf war ein Zeilensatz und ist am 2026-09-13
  * gescheitert.** Ein Zeilensatz reiht die Bilder in Dateireihenfolge
@@ -206,8 +207,17 @@ export default function Mosaik({ bilder }: Props) {
    * sich die obere Reihe 1-2-3 statt 1-3-5. Genau das kann der
    * Mehrspaltensatz des Browsers (`column-count`) nicht.
    */
-  const spalten: { bild: Mosaikbild; i: number }[][] = [[], [], []];
+  /*
+   * Höchstens drei Spalten, aber nie mehr als Bilder: Seit es Detailseiten
+   * gibt (2026-10-14), haben manche Arbeiten nur ein oder zwei Bilder. In drei
+   * Spalten stünde ein einzelnes Bild dann links in einem Drittel und daneben
+   * gähnende Leere. Weniger Spalten heißt hier auch: schmaler, sonst stünde
+   * ein Hochformat 1600px breit und damit 2400px hoch da.
+   */
+  const zahl = Math.min(3, bilder.length);
+  const spalten: { bild: Mosaikbild; i: number }[][] = Array.from({ length: zahl }, () => []);
   bilder.forEach((bild, i) => spalten[i % spalten.length].push({ bild, i }));
+  const breite = zahl === 1 ? styles.eineSpalte : zahl === 2 ? styles.zweiSpalten : "";
 
   return (
     <>
@@ -218,7 +228,7 @@ export default function Mosaik({ bilder }: Props) {
         spaltenweise (1, 4, 7, 2, …) — jedes Bild nennt seine Arbeit im
         Alt-Text, deshalb bleibt die Zuordnung trotzdem klar.
       */}
-      <div className={styles.mosaik} role="list">
+      <div className={`${styles.mosaik} ${breite}`} role="list">
         {spalten.map((spalte, s) => (
           <div key={s} className={styles.spalte} role="presentation">
             {spalte.map(({ bild, i }) => (
@@ -295,7 +305,7 @@ export default function Mosaik({ bilder }: Props) {
               className={styles.kastenFoto}
               quelle={bildImKasten.quelle}
               alt={bildImKasten.alt}
-              sizes="100vw"
+              sizes={kastenSizes(bildImKasten.quelle)}
               vorrang
               uebergang={UEBERGANG}
             />
