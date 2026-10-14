@@ -111,30 +111,6 @@
     "fallback": "https://medien.jakobsax.de/b/arbeiten/stamp/03-1200.jpg?v=e4e0c3bc",
     "lqip": "data:image/webp;base64,UklGRrAAAABXRUJQVlA4IKQAAABwBACdASoQABgAPu1iqU2ppaOiMAgBMB2JagCdMoAC/IVgOs0iyHkz9Vs6gAD3sJj/bGzGCTfrZheVXNsorRN7DKiA58XVcnhmfpLiVt3gJQ6DBd+wU0/JBZz9AxUg2v+RNuUbvJP+hT+CvSEMEac0xsw7KNffzHa1aNmH6etvoqY4w4lulpotwiqoZvGCItWEqGFtWSfzYNYr38jmwTKylFYcAA=="
   },
-  "arbeiten/strg-f": {
-    "breite": 1920,
-    "hoehe": 1080,
-    "avif": "https://medien.jakobsax.de/b/arbeiten/strg-f-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/strg-f-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/strg-f-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/strg-f-1600.avif 1600w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/strg-f-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/strg-f-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/strg-f-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/strg-f-1600.webp 1600w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/strg-f-1200.jpg?v=8420fb7d",
-    "lqip": "data:image/webp;base64,UklGRkYAAABXRUJQVlA4IDoAAAAwAgCdASoQAAkAA4BaJZQC7AEPh6ExCLYcAAD+94NX6pJdb41HBrPTtILx7dy/UdsvywxkgtVkgAAA"
-  },
-  "arbeiten/strg-f/01": {
-    "breite": 1920,
-    "hoehe": 1080,
-    "avif": "https://medien.jakobsax.de/b/arbeiten/strg-f/01-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/strg-f/01-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/strg-f/01-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/strg-f/01-1600.avif 1600w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/strg-f/01-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/strg-f/01-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/strg-f/01-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/strg-f/01-1600.webp 1600w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/strg-f/01-1200.jpg?v=b34656fb",
-    "lqip": "data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAADwAQCdASoQAAkAA4BaJZwAA1ZAEnv7uAAA/vfBhZQsjdxJZXlRnTz7VxM2eBNzRtQTZ9RQw02O/q4glEWAAAAA"
-  },
-  "arbeiten/tagesthemen": {
-    "breite": 1920,
-    "hoehe": 1080,
-    "avif": "https://medien.jakobsax.de/b/arbeiten/tagesthemen-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/tagesthemen-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/tagesthemen-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/tagesthemen-1600.avif 1600w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/tagesthemen-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/tagesthemen-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/tagesthemen-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/tagesthemen-1600.webp 1600w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/tagesthemen-1200.jpg?v=08687279",
-    "lqip": "data:image/webp;base64,UklGRk4AAABXRUJQVlA4IEIAAAAQAgCdASoQAAkAA4BaJZQCw7EDXui9MxCAAP70wCD+dWqhN/T+AZFhrXj+J8+NTBjXIWTT/JC+QggVIMIorT8gAAA="
-  },
   "arbeiten/tete-a-tete": {
     "breite": 7008,
     "hoehe": 4672,
