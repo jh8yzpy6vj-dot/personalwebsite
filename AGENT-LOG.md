@@ -6,6 +6,33 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-15 — „Tödliches Gold", STRG_F und Tagesthemen im Bucket und online
+
+Lokal bei Jan (mit `.dev.vars`) die beiden offenen Upload-Punkte aus `TODO.md` erledigt, alle
+mit `npm run verkleinern -- … --original --hochladen`:
+
+- **`toedliches-gold`** aus den drei Originalen (7008×4672, Downloads-Ordner vom 2026-10-15).
+  Leitbild = Schmelzer (`…JPG01882.JPG`, Hochformat über EXIF-Orientierung 8 — bleibt erhalten).
+  ⚠️ Nach Dateiname käme das Porträt (`…00855`) **vor** der Pumpe (`…02517`), die Alt-Texte in
+  `lib/content.ts` erwarten es andersherum. Deshalb umbenannte Kopien (`a_schmelzer`, `b_pumpe`,
+  `c_portraet`) im Scratch-Ordner hochgeladen: `01` = Pumpe, `02` = Porträt. Der alte Goldbarren
+  ist damit überschrieben.
+- **`strg-f`** (`NDR_STRG_F_Frame1.jpg` Leitbild, `Frame2.jpg` → `01`) und **`tagesthemen`**
+  (`TT_RechtaufReparatur.jpg`), je 1920×1080, aus Jakobs Ordner vom 2026-10-14.
+- `npm run medien`: 6 Bilder neu, 38 unverändert. Manifest committet.
+
+### Geprüft
+Ausgelieferte 480er-Fassungen von `medien.jakobsax.de` geladen und angesehen: Schmelzer
+aufrecht, Reihenfolge Pumpe → Porträt, STRG_F zwei Bilder, Tagesthemen eins. `npm test`, Lint,
+Typecheck, `next build`.
+
+⚠️ **Cache:** `medien.jakobsax.de` antwortet mit `cf-cache-status: DYNAMIC` — der Cloudflare-Rand
+hält die Bilder gar nicht vor, *Purge Everything* bringt dafür wenig. Der Browser-Cache dagegen
+schon (`immutable`, ein Jahr): Wer den Goldbarren gesehen hat, sieht unter denselben Adressen
+weiter ihn. Steht bei Jan in `TODO.md`.
+
+---
+
 ## 2026-10-15 — „Tödliches Gold" wieder eingetragen
 
 Jan hat die drei fehlenden Y-Kollektiv-Aufnahmen geschickt (Ghana: Schmelzer mit Brenner,

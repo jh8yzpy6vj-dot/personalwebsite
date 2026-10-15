@@ -111,6 +111,30 @@
     "fallback": "https://medien.jakobsax.de/b/arbeiten/stamp/03-1200.jpg?v=e4e0c3bc",
     "lqip": "data:image/webp;base64,UklGRrAAAABXRUJQVlA4IKQAAABwBACdASoQABgAPu1iqU2ppaOiMAgBMB2JagCdMoAC/IVgOs0iyHkz9Vs6gAD3sJj/bGzGCTfrZheVXNsorRN7DKiA58XVcnhmfpLiVt3gJQ6DBd+wU0/JBZz9AxUg2v+RNuUbvJP+hT+CvSEMEac0xsw7KNffzHa1aNmH6etvoqY4w4lulpotwiqoZvGCItWEqGFtWSfzYNYr38jmwTKylFYcAA=="
   },
+  "arbeiten/strg-f": {
+    "breite": 1920,
+    "hoehe": 1080,
+    "avif": "https://medien.jakobsax.de/b/arbeiten/strg-f-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/strg-f-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/strg-f-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/strg-f-1600.avif 1600w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/strg-f-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/strg-f-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/strg-f-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/strg-f-1600.webp 1600w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/strg-f-1200.jpg?v=8420fb7d",
+    "lqip": "data:image/webp;base64,UklGRkYAAABXRUJQVlA4IDoAAAAwAgCdASoQAAkAA4BaJZQC7AEPh6ExCLYcAAD+94NX6pJdb41HBrPTtILx7dy/UdsvywxkgtVkgAAA"
+  },
+  "arbeiten/strg-f/01": {
+    "breite": 1920,
+    "hoehe": 1080,
+    "avif": "https://medien.jakobsax.de/b/arbeiten/strg-f/01-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/strg-f/01-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/strg-f/01-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/strg-f/01-1600.avif 1600w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/strg-f/01-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/strg-f/01-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/strg-f/01-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/strg-f/01-1600.webp 1600w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/strg-f/01-1200.jpg?v=b34656fb",
+    "lqip": "data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAADwAQCdASoQAAkAA4BaJZwAA1ZAEnv7uAAA/vfBhZQsjdxJZXlRnTz7VxM2eBNzRtQTZ9RQw02O/q4glEWAAAAA"
+  },
+  "arbeiten/tagesthemen": {
+    "breite": 1920,
+    "hoehe": 1080,
+    "avif": "https://medien.jakobsax.de/b/arbeiten/tagesthemen-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/tagesthemen-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/tagesthemen-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/tagesthemen-1600.avif 1600w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/tagesthemen-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/tagesthemen-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/tagesthemen-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/tagesthemen-1600.webp 1600w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/tagesthemen-1200.jpg?v=08687279",
+    "lqip": "data:image/webp;base64,UklGRk4AAABXRUJQVlA4IEIAAAAQAgCdASoQAAkAA4BaJZQCw7EDXui9MxCAAP70wCD+dWqhN/T+AZFhrXj+J8+NTBjXIWTT/JC+QggVIMIorT8gAAA="
+  },
   "arbeiten/tete-a-tete": {
     "breite": 7008,
     "hoehe": 4672,
@@ -194,6 +218,36 @@
     "webp": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-4000.webp 4000w",
     "fallback": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-1200.jpg?v=ef95ab34",
     "lqip": "data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAAAQAgCdASoQAAsAA4BaJZgCdAENeb1rIbzQAP61walLuXTqR4WCt3oMS5BXaV07dXHwTwU/9O8HfBqp4HakcPckU3YbXKdZeQsw4EWpVVTe1S6sps5lbbIbmYOAAA=="
+  },
+  "arbeiten/toedliches-gold": {
+    "breite": 4672,
+    "hoehe": 7008,
+    "exif": {
+      "zeit": "11:17:25",
+      "belichtung": 0.0025,
+      "blende": 1.6,
+      "iso": 800
+    },
+    "avif": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-4000.avif 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-4000.webp 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold-1200.jpg?v=a16c91a6",
+    "lqip": "data:image/webp;base64,UklGRqYAAABXRUJQVlA4IJoAAABQBACdASoQABgAPu1iqU2ppaOiMAgBMB2JZQDLLB0kUd3FveOzLSA89eUAAP7AkcJ4TMZ1O9yrRr2VGSdKMlmQCeXStAFpY+qnwGr9txzKBAynAi+SXU9Jq8fdl64hs4IkNFwNNno2LswlJC/Dv5aeeV4YVe6o7Z8pUp5KEuP94y1wIGza0MW1pgiU3can4v8b8MC0DBlx2AAA"
+  },
+  "arbeiten/toedliches-gold/01": {
+    "breite": 7008,
+    "hoehe": 4672,
+    "avif": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-4000.avif 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-4000.webp 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-1200.jpg?v=f98b952f",
+    "lqip": "data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAADQAQCdASoQAAsAA4BaJaAC7AEW+vucwAD+0NoGKIdWOh1rBOZqbyirSBIOlXNY2LSiGr8n3FqFEopnJif/g/xrO+CSTlQB9JdOGyu85xjBJQAA"
+  },
+  "arbeiten/toedliches-gold/02": {
+    "breite": 7008,
+    "hoehe": 4672,
+    "avif": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-4000.avif 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-4000.webp 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-1200.jpg?v=73220950",
+    "lqip": "data:image/webp;base64,UklGRloAAABXRUJQVlA4IE4AAADQAQCdASoQAAsAA4BaJaACdACyk+4OAAD+8XQtdVKYTsuzLLJPnN6PRhD4ixVHX2jS8l5Apgo4VQhrECnovYBv7ESbd2+85heS/4AAAAA="
   },
   "arbeiten/welttheater-der-strasse": {
     "breite": 4672,
