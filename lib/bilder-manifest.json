@@ -8,9 +8,9 @@
       "blende": 2.8,
       "iso": 400
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/at-tension-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/at-tension-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/at-tension-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/at-tension-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/at-tension-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/at-tension-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/at-tension-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/at-tension-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/at-tension-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/at-tension-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/at-tension-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/at-tension-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/at-tension-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/at-tension-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/at-tension-1200.jpg?v=b82a15c5",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/at-tension-480.avif?v=4659353f 480w, https://medien.jakobsax.de/b/arbeiten/at-tension-800.avif?v=4659353f 800w, https://medien.jakobsax.de/b/arbeiten/at-tension-1200.avif?v=4659353f 1200w, https://medien.jakobsax.de/b/arbeiten/at-tension-1600.avif?v=4659353f 1600w, https://medien.jakobsax.de/b/arbeiten/at-tension-2400.avif?v=4659353f 2400w, https://medien.jakobsax.de/b/arbeiten/at-tension-3200.avif?v=4659353f 3200w, https://medien.jakobsax.de/b/arbeiten/at-tension-4000.avif?v=4659353f 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/at-tension-480.webp?v=4659353f 480w, https://medien.jakobsax.de/b/arbeiten/at-tension-800.webp?v=4659353f 800w, https://medien.jakobsax.de/b/arbeiten/at-tension-1200.webp?v=4659353f 1200w, https://medien.jakobsax.de/b/arbeiten/at-tension-1600.webp?v=4659353f 1600w, https://medien.jakobsax.de/b/arbeiten/at-tension-2400.webp?v=4659353f 2400w, https://medien.jakobsax.de/b/arbeiten/at-tension-3200.webp?v=4659353f 3200w, https://medien.jakobsax.de/b/arbeiten/at-tension-4000.webp?v=4659353f 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/at-tension-1200.jpg?v=4659353f",
     "lqip": "data:image/webp;base64,UklGRroAAABXRUJQVlA4IK4AAABwBACdASoQABgAPu1iqU2ppaOiMAgBMB2JQBOgA9JBfmRvHRPH9Lq3i96CoAD2t4vO8kKvgsJgm1JzXAYETLwLh7H0MMc07zRmQd5GfIFYLlcRIFcSobc1aFf6lCIs7nGuzaL9KI/MSFtkvzZcOf4KY7Vfw9suRPBH6Y6hnZT1lh3jyvq1O6RQ30dTmkjmkBhl4mGM0SndSHRwBHOsLuAbMsBKUAjTpovdvdqgAAA="
   },
   "arbeiten/at-tension/01": {
@@ -22,9 +22,9 @@
       "blende": 2.8,
       "iso": 640
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/at-tension/01-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/at-tension/01-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/at-tension/01-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/at-tension/01-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/at-tension/01-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/at-tension/01-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/at-tension/01-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/at-tension/01-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/at-tension/01-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/at-tension/01-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/at-tension/01-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/at-tension/01-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/at-tension/01-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/at-tension/01-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/at-tension/01-1200.jpg?v=c9cbd89a",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/at-tension/01-480.avif?v=85034fbf 480w, https://medien.jakobsax.de/b/arbeiten/at-tension/01-800.avif?v=85034fbf 800w, https://medien.jakobsax.de/b/arbeiten/at-tension/01-1200.avif?v=85034fbf 1200w, https://medien.jakobsax.de/b/arbeiten/at-tension/01-1600.avif?v=85034fbf 1600w, https://medien.jakobsax.de/b/arbeiten/at-tension/01-2400.avif?v=85034fbf 2400w, https://medien.jakobsax.de/b/arbeiten/at-tension/01-3200.avif?v=85034fbf 3200w, https://medien.jakobsax.de/b/arbeiten/at-tension/01-4000.avif?v=85034fbf 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/at-tension/01-480.webp?v=85034fbf 480w, https://medien.jakobsax.de/b/arbeiten/at-tension/01-800.webp?v=85034fbf 800w, https://medien.jakobsax.de/b/arbeiten/at-tension/01-1200.webp?v=85034fbf 1200w, https://medien.jakobsax.de/b/arbeiten/at-tension/01-1600.webp?v=85034fbf 1600w, https://medien.jakobsax.de/b/arbeiten/at-tension/01-2400.webp?v=85034fbf 2400w, https://medien.jakobsax.de/b/arbeiten/at-tension/01-3200.webp?v=85034fbf 3200w, https://medien.jakobsax.de/b/arbeiten/at-tension/01-4000.webp?v=85034fbf 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/at-tension/01-1200.jpg?v=85034fbf",
     "lqip": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAAAQBACdASoQABgAPu1mq04ppaQiMAgBMB2JQBfnBDvs5EuxPsGBqjihYAD+8drYkxfzMQMXPVn/iggw4PAmpxCcbI4HE/4PQpRa66RwXm3v+xfSTfVhBJ6H2yDohd/q4KTMUKHEQAA="
   },
   "arbeiten/kanu-freestyle-untertuerkheim": {
@@ -36,9 +36,9 @@
       "blende": 1.4,
       "iso": 400
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-1200.jpg?v=0bb4469b",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-480.avif?v=8c1b751b 480w, https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-800.avif?v=8c1b751b 800w, https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-1200.avif?v=8c1b751b 1200w, https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-1600.avif?v=8c1b751b 1600w, https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-2400.avif?v=8c1b751b 2400w, https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-3200.avif?v=8c1b751b 3200w, https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-4000.avif?v=8c1b751b 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-480.webp?v=8c1b751b 480w, https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-800.webp?v=8c1b751b 800w, https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-1200.webp?v=8c1b751b 1200w, https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-1600.webp?v=8c1b751b 1600w, https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-2400.webp?v=8c1b751b 2400w, https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-3200.webp?v=8c1b751b 3200w, https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-4000.webp?v=8c1b751b 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/kanu-freestyle-untertuerkheim-1200.jpg?v=8c1b751b",
     "lqip": "data:image/webp;base64,UklGRqIAAABXRUJQVlA4IJYAAABQBACdASoQABgAPu1iqU2ppaOiMAgBMB2JZACdMoACs+lzGDonQUkT31EAAPhV5N5CrhYounUtsx7wdqZ7k23PdviRNjHroMKlqZuwkd2ISkpYJfykitQUiua0XE7GbJgXoR8lpHCe7iG/aGciYseIjdcSTUf0Ik+evFTWWafnZofTHXuCB9ccK11M4Xvstu1y1BliQAA="
   },
   "arbeiten/stadtfest-karlsruhe": {
@@ -50,9 +50,9 @@
       "blende": 2.8,
       "iso": 500
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-1200.jpg?v=611ab001",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-480.avif?v=a3324e8b 480w, https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-800.avif?v=a3324e8b 800w, https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-1200.avif?v=a3324e8b 1200w, https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-1600.avif?v=a3324e8b 1600w, https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-2400.avif?v=a3324e8b 2400w, https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-3200.avif?v=a3324e8b 3200w, https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-4000.avif?v=a3324e8b 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-480.webp?v=a3324e8b 480w, https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-800.webp?v=a3324e8b 800w, https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-1200.webp?v=a3324e8b 1200w, https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-1600.webp?v=a3324e8b 1600w, https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-2400.webp?v=a3324e8b 2400w, https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-3200.webp?v=a3324e8b 3200w, https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-4000.webp?v=a3324e8b 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/stadtfest-karlsruhe-1200.jpg?v=a3324e8b",
     "lqip": "data:image/webp;base64,UklGRpwAAABXRUJQVlA4IJAAAAAQBACdASoQABgAPu1iqU2ppaOiMAgBMB2JYwAD43oOAWDs5emIOPIz4AD+7ZZOCKygdXoBwMmrwa8AXkM6Ju4kQDLqte14WkQYME2kXyUrm7rxEOc4CniyRNNyXgpfbtHhG2sMJUMnEoejcvtXEms8wkGdALZGOo2drqeGwZxgeBzE1BG11t6DK4/yQrOAAAA="
   },
   "arbeiten/stamp": {
@@ -64,9 +64,9 @@
       "blende": 2.8,
       "iso": 1250
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/stamp-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/stamp-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/stamp-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/stamp-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/stamp-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/stamp-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/stamp-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/stamp-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/stamp-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/stamp-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/stamp-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/stamp-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/stamp-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/stamp-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/stamp-1200.jpg?v=39b4b6bf",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/stamp-480.avif?v=d4a64971 480w, https://medien.jakobsax.de/b/arbeiten/stamp-800.avif?v=d4a64971 800w, https://medien.jakobsax.de/b/arbeiten/stamp-1200.avif?v=d4a64971 1200w, https://medien.jakobsax.de/b/arbeiten/stamp-1600.avif?v=d4a64971 1600w, https://medien.jakobsax.de/b/arbeiten/stamp-2400.avif?v=d4a64971 2400w, https://medien.jakobsax.de/b/arbeiten/stamp-3200.avif?v=d4a64971 3200w, https://medien.jakobsax.de/b/arbeiten/stamp-4000.avif?v=d4a64971 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/stamp-480.webp?v=d4a64971 480w, https://medien.jakobsax.de/b/arbeiten/stamp-800.webp?v=d4a64971 800w, https://medien.jakobsax.de/b/arbeiten/stamp-1200.webp?v=d4a64971 1200w, https://medien.jakobsax.de/b/arbeiten/stamp-1600.webp?v=d4a64971 1600w, https://medien.jakobsax.de/b/arbeiten/stamp-2400.webp?v=d4a64971 2400w, https://medien.jakobsax.de/b/arbeiten/stamp-3200.webp?v=d4a64971 3200w, https://medien.jakobsax.de/b/arbeiten/stamp-4000.webp?v=d4a64971 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/stamp-1200.jpg?v=d4a64971",
     "lqip": "data:image/webp;base64,UklGRoAAAABXRUJQVlA4IHQAAADwAwCdASoQABgAPu1iqU2ppaOiMAgBMB2JZgC7AB6VuC2tlB/Co2ogAP7x+YIlE4bsicx6mqFE8AS/SUoIoUwLmXCXsrVTOgkiWJtQMqMF56dyJKDQeNt3SuWOuj+HwO6fI4FctZFxgL5RrwfPQre8j0AAAA=="
   },
   "arbeiten/stamp/01": {
@@ -78,9 +78,9 @@
       "blende": 1.4,
       "iso": 400
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/stamp/01-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/stamp/01-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/stamp/01-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/stamp/01-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/stamp/01-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/stamp/01-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/stamp/01-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/stamp/01-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/stamp/01-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/stamp/01-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/stamp/01-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/stamp/01-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/stamp/01-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/stamp/01-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/stamp/01-1200.jpg?v=956d78f0",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/stamp/01-480.avif?v=9c606c8b 480w, https://medien.jakobsax.de/b/arbeiten/stamp/01-800.avif?v=9c606c8b 800w, https://medien.jakobsax.de/b/arbeiten/stamp/01-1200.avif?v=9c606c8b 1200w, https://medien.jakobsax.de/b/arbeiten/stamp/01-1600.avif?v=9c606c8b 1600w, https://medien.jakobsax.de/b/arbeiten/stamp/01-2400.avif?v=9c606c8b 2400w, https://medien.jakobsax.de/b/arbeiten/stamp/01-3200.avif?v=9c606c8b 3200w, https://medien.jakobsax.de/b/arbeiten/stamp/01-4000.avif?v=9c606c8b 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/stamp/01-480.webp?v=9c606c8b 480w, https://medien.jakobsax.de/b/arbeiten/stamp/01-800.webp?v=9c606c8b 800w, https://medien.jakobsax.de/b/arbeiten/stamp/01-1200.webp?v=9c606c8b 1200w, https://medien.jakobsax.de/b/arbeiten/stamp/01-1600.webp?v=9c606c8b 1600w, https://medien.jakobsax.de/b/arbeiten/stamp/01-2400.webp?v=9c606c8b 2400w, https://medien.jakobsax.de/b/arbeiten/stamp/01-3200.webp?v=9c606c8b 3200w, https://medien.jakobsax.de/b/arbeiten/stamp/01-4000.webp?v=9c606c8b 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/stamp/01-1200.jpg?v=9c606c8b",
     "lqip": "data:image/webp;base64,UklGRnAAAABXRUJQVlA4IGQAAABwAgCdASoQAAsAA4BaJZACdAYwn2W/Z5O5ZeAAAM41tD9b6hnsgUMVSIwOPlsuLAyN40PqrUCzONhPG0BGE+Dx7hrCif66gR/ak+o5bxNYErc2XJ6bDVXdbYJuyYFcHFoanTgA"
   },
   "arbeiten/stamp/02": {
@@ -92,9 +92,9 @@
       "blende": 1.4,
       "iso": 400
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/stamp/02-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/stamp/02-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/stamp/02-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/stamp/02-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/stamp/02-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/stamp/02-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/stamp/02-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/stamp/02-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/stamp/02-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/stamp/02-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/stamp/02-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/stamp/02-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/stamp/02-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/stamp/02-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/stamp/02-1200.jpg?v=72a3a1bc",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/stamp/02-480.avif?v=7f3583e1 480w, https://medien.jakobsax.de/b/arbeiten/stamp/02-800.avif?v=7f3583e1 800w, https://medien.jakobsax.de/b/arbeiten/stamp/02-1200.avif?v=7f3583e1 1200w, https://medien.jakobsax.de/b/arbeiten/stamp/02-1600.avif?v=7f3583e1 1600w, https://medien.jakobsax.de/b/arbeiten/stamp/02-2400.avif?v=7f3583e1 2400w, https://medien.jakobsax.de/b/arbeiten/stamp/02-3200.avif?v=7f3583e1 3200w, https://medien.jakobsax.de/b/arbeiten/stamp/02-4000.avif?v=7f3583e1 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/stamp/02-480.webp?v=7f3583e1 480w, https://medien.jakobsax.de/b/arbeiten/stamp/02-800.webp?v=7f3583e1 800w, https://medien.jakobsax.de/b/arbeiten/stamp/02-1200.webp?v=7f3583e1 1200w, https://medien.jakobsax.de/b/arbeiten/stamp/02-1600.webp?v=7f3583e1 1600w, https://medien.jakobsax.de/b/arbeiten/stamp/02-2400.webp?v=7f3583e1 2400w, https://medien.jakobsax.de/b/arbeiten/stamp/02-3200.webp?v=7f3583e1 3200w, https://medien.jakobsax.de/b/arbeiten/stamp/02-4000.webp?v=7f3583e1 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/stamp/02-1200.jpg?v=7f3583e1",
     "lqip": "data:image/webp;base64,UklGRrQAAABXRUJQVlA4IKgAAABwBACdASoQABgAPu1iqU2ppaOiMAgBMB2JbAAGaAIOVKFm3kY4iNUjPRndAAD97+G9JkC44o31Hox7V7WDcwvAJ1MauB/jKFpa3GM+Z7qwvKvaDcPuVIqbn5Au1sT8/aOPJitWCyQS/Q9rocKv2bXQjPZpFRXsI+Xlr82LtiJosFMRt0s9Qf9grGh4Aie9xfTypgjvL80x05NMzBvn31jsCusHyMvZAAA="
   },
   "arbeiten/stamp/03": {
@@ -106,33 +106,33 @@
       "blende": 2.8,
       "iso": 320
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/stamp/03-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/stamp/03-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/stamp/03-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/stamp/03-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/stamp/03-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/stamp/03-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/stamp/03-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/stamp/03-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/stamp/03-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/stamp/03-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/stamp/03-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/stamp/03-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/stamp/03-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/stamp/03-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/stamp/03-1200.jpg?v=e4e0c3bc",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/stamp/03-480.avif?v=8cf77083 480w, https://medien.jakobsax.de/b/arbeiten/stamp/03-800.avif?v=8cf77083 800w, https://medien.jakobsax.de/b/arbeiten/stamp/03-1200.avif?v=8cf77083 1200w, https://medien.jakobsax.de/b/arbeiten/stamp/03-1600.avif?v=8cf77083 1600w, https://medien.jakobsax.de/b/arbeiten/stamp/03-2400.avif?v=8cf77083 2400w, https://medien.jakobsax.de/b/arbeiten/stamp/03-3200.avif?v=8cf77083 3200w, https://medien.jakobsax.de/b/arbeiten/stamp/03-4000.avif?v=8cf77083 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/stamp/03-480.webp?v=8cf77083 480w, https://medien.jakobsax.de/b/arbeiten/stamp/03-800.webp?v=8cf77083 800w, https://medien.jakobsax.de/b/arbeiten/stamp/03-1200.webp?v=8cf77083 1200w, https://medien.jakobsax.de/b/arbeiten/stamp/03-1600.webp?v=8cf77083 1600w, https://medien.jakobsax.de/b/arbeiten/stamp/03-2400.webp?v=8cf77083 2400w, https://medien.jakobsax.de/b/arbeiten/stamp/03-3200.webp?v=8cf77083 3200w, https://medien.jakobsax.de/b/arbeiten/stamp/03-4000.webp?v=8cf77083 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/stamp/03-1200.jpg?v=8cf77083",
     "lqip": "data:image/webp;base64,UklGRrAAAABXRUJQVlA4IKQAAABwBACdASoQABgAPu1iqU2ppaOiMAgBMB2JagCdMoAC/IVgOs0iyHkz9Vs6gAD3sJj/bGzGCTfrZheVXNsorRN7DKiA58XVcnhmfpLiVt3gJQ6DBd+wU0/JBZz9AxUg2v+RNuUbvJP+hT+CvSEMEac0xsw7KNffzHa1aNmH6etvoqY4w4lulpotwiqoZvGCItWEqGFtWSfzYNYr38jmwTKylFYcAA=="
   },
   "arbeiten/strg-f": {
     "breite": 1920,
     "hoehe": 1080,
-    "avif": "https://medien.jakobsax.de/b/arbeiten/strg-f-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/strg-f-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/strg-f-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/strg-f-1600.avif 1600w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/strg-f-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/strg-f-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/strg-f-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/strg-f-1600.webp 1600w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/strg-f-1200.jpg?v=8420fb7d",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/strg-f-480.avif?v=37f96310 480w, https://medien.jakobsax.de/b/arbeiten/strg-f-800.avif?v=37f96310 800w, https://medien.jakobsax.de/b/arbeiten/strg-f-1200.avif?v=37f96310 1200w, https://medien.jakobsax.de/b/arbeiten/strg-f-1600.avif?v=37f96310 1600w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/strg-f-480.webp?v=37f96310 480w, https://medien.jakobsax.de/b/arbeiten/strg-f-800.webp?v=37f96310 800w, https://medien.jakobsax.de/b/arbeiten/strg-f-1200.webp?v=37f96310 1200w, https://medien.jakobsax.de/b/arbeiten/strg-f-1600.webp?v=37f96310 1600w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/strg-f-1200.jpg?v=37f96310",
     "lqip": "data:image/webp;base64,UklGRkYAAABXRUJQVlA4IDoAAAAwAgCdASoQAAkAA4BaJZQC7AEPh6ExCLYcAAD+94NX6pJdb41HBrPTtILx7dy/UdsvywxkgtVkgAAA"
   },
   "arbeiten/strg-f/01": {
     "breite": 1920,
     "hoehe": 1080,
-    "avif": "https://medien.jakobsax.de/b/arbeiten/strg-f/01-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/strg-f/01-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/strg-f/01-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/strg-f/01-1600.avif 1600w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/strg-f/01-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/strg-f/01-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/strg-f/01-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/strg-f/01-1600.webp 1600w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/strg-f/01-1200.jpg?v=b34656fb",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/strg-f/01-480.avif?v=eaa3bbc2 480w, https://medien.jakobsax.de/b/arbeiten/strg-f/01-800.avif?v=eaa3bbc2 800w, https://medien.jakobsax.de/b/arbeiten/strg-f/01-1200.avif?v=eaa3bbc2 1200w, https://medien.jakobsax.de/b/arbeiten/strg-f/01-1600.avif?v=eaa3bbc2 1600w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/strg-f/01-480.webp?v=eaa3bbc2 480w, https://medien.jakobsax.de/b/arbeiten/strg-f/01-800.webp?v=eaa3bbc2 800w, https://medien.jakobsax.de/b/arbeiten/strg-f/01-1200.webp?v=eaa3bbc2 1200w, https://medien.jakobsax.de/b/arbeiten/strg-f/01-1600.webp?v=eaa3bbc2 1600w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/strg-f/01-1200.jpg?v=eaa3bbc2",
     "lqip": "data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAADwAQCdASoQAAkAA4BaJZwAA1ZAEnv7uAAA/vfBhZQsjdxJZXlRnTz7VxM2eBNzRtQTZ9RQw02O/q4glEWAAAAA"
   },
   "arbeiten/tagesthemen": {
     "breite": 1920,
     "hoehe": 1080,
-    "avif": "https://medien.jakobsax.de/b/arbeiten/tagesthemen-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/tagesthemen-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/tagesthemen-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/tagesthemen-1600.avif 1600w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/tagesthemen-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/tagesthemen-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/tagesthemen-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/tagesthemen-1600.webp 1600w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/tagesthemen-1200.jpg?v=08687279",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/tagesthemen-480.avif?v=74ca78aa 480w, https://medien.jakobsax.de/b/arbeiten/tagesthemen-800.avif?v=74ca78aa 800w, https://medien.jakobsax.de/b/arbeiten/tagesthemen-1200.avif?v=74ca78aa 1200w, https://medien.jakobsax.de/b/arbeiten/tagesthemen-1600.avif?v=74ca78aa 1600w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/tagesthemen-480.webp?v=74ca78aa 480w, https://medien.jakobsax.de/b/arbeiten/tagesthemen-800.webp?v=74ca78aa 800w, https://medien.jakobsax.de/b/arbeiten/tagesthemen-1200.webp?v=74ca78aa 1200w, https://medien.jakobsax.de/b/arbeiten/tagesthemen-1600.webp?v=74ca78aa 1600w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/tagesthemen-1200.jpg?v=74ca78aa",
     "lqip": "data:image/webp;base64,UklGRk4AAABXRUJQVlA4IEIAAAAQAgCdASoQAAkAA4BaJZQCw7EDXui9MxCAAP70wCD+dWqhN/T+AZFhrXj+J8+NTBjXIWTT/JC+QggVIMIorT8gAAA="
   },
   "arbeiten/tete-a-tete": {
@@ -144,9 +144,9 @@
       "blende": 1.4,
       "iso": 320
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete-1200.jpg?v=304949af",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete-480.avif?v=3564deec 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete-800.avif?v=3564deec 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete-1200.avif?v=3564deec 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete-1600.avif?v=3564deec 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete-2400.avif?v=3564deec 2400w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete-3200.avif?v=3564deec 3200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete-4000.avif?v=3564deec 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete-480.webp?v=3564deec 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete-800.webp?v=3564deec 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete-1200.webp?v=3564deec 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete-1600.webp?v=3564deec 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete-2400.webp?v=3564deec 2400w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete-3200.webp?v=3564deec 3200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete-4000.webp?v=3564deec 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete-1200.jpg?v=3564deec",
     "lqip": "data:image/webp;base64,UklGRlQAAABXRUJQVlA4IEgAAAAQAgCdASoQAAsAA4BaJQBOgB0mI6mmgT4AAPisLYXAqO0OFN3pEm43eZr9a9oWbAypRvpiUrkBbeF0THlY5n5yGr1ZqkWgAAA="
   },
   "arbeiten/tete-a-tete/01": {
@@ -158,9 +158,9 @@
       "blende": 1.4,
       "iso": 500
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-1200.jpg?v=5047afa6",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-480.avif?v=477d3533 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-800.avif?v=477d3533 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-1200.avif?v=477d3533 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-1600.avif?v=477d3533 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-2400.avif?v=477d3533 2400w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-3200.avif?v=477d3533 3200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-4000.avif?v=477d3533 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-480.webp?v=477d3533 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-800.webp?v=477d3533 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-1200.webp?v=477d3533 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-1600.webp?v=477d3533 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-2400.webp?v=477d3533 2400w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-3200.webp?v=477d3533 3200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-4000.webp?v=477d3533 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/01-1200.jpg?v=477d3533",
     "lqip": "data:image/webp;base64,UklGRj4AAABXRUJQVlA4IDIAAADQAQCdASoQAAsAA4BaJZwAAuQoHElcAAD++RLveqX3Jb1rnVn7hMiZ2Z/RQIkAHgAAAA=="
   },
   "arbeiten/tete-a-tete/02": {
@@ -172,9 +172,9 @@
       "blende": 1.4,
       "iso": 800
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/02-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/02-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/02-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/02-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/02-2400.avif 2400w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/02-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/02-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/02-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/02-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/02-2400.webp 2400w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/02-1200.jpg?v=9a16555f",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/02-480.avif?v=6f1307df 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/02-800.avif?v=6f1307df 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/02-1200.avif?v=6f1307df 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/02-1600.avif?v=6f1307df 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/02-2400.avif?v=6f1307df 2400w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/02-480.webp?v=6f1307df 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/02-800.webp?v=6f1307df 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/02-1200.webp?v=6f1307df 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/02-1600.webp?v=6f1307df 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/02-2400.webp?v=6f1307df 2400w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/02-1200.jpg?v=6f1307df",
     "lqip": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4IHIAAADQAwCdASoQABgAPu1iqU2ppaOiMAgBMB2JYwCsAGt7tNMDpYVHoAAA/vu4CKty9T2Vv7NazXd17GWDWngiTktgtgFpWnpp3gPsIphKrq+oF/AseamNrcsDIOmnKo7TYthpiDuZeXW1ZvbW2LbDqyigAAA="
   },
   "arbeiten/tete-a-tete/03": {
@@ -186,9 +186,9 @@
       "blende": 2.8,
       "iso": 400
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-1200.jpg?v=882b52c0",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-480.avif?v=4e832400 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-800.avif?v=4e832400 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-1200.avif?v=4e832400 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-1600.avif?v=4e832400 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-2400.avif?v=4e832400 2400w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-3200.avif?v=4e832400 3200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-4000.avif?v=4e832400 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-480.webp?v=4e832400 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-800.webp?v=4e832400 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-1200.webp?v=4e832400 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-1600.webp?v=4e832400 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-2400.webp?v=4e832400 2400w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-3200.webp?v=4e832400 3200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-4000.webp?v=4e832400 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/03-1200.jpg?v=4e832400",
     "lqip": "data:image/webp;base64,UklGRoAAAABXRUJQVlA4IHQAAABQBACdASoQABYAPu1iqU2ppaOiMAgBMB2JQBdl4AAq1Cd9Z3IFB+aCnygAAP6wDfdv4Rqit3pmKi5nGWY88fp5vEvbLo8tIG23EqysdXM/iio+xqGAnyPUp8b+GS8EjgB+HMOye1EcVRjijhiVXPxaxqfAAA=="
   },
   "arbeiten/tete-a-tete/04": {
@@ -200,9 +200,9 @@
       "blende": 1.4,
       "iso": 500
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-1200.jpg?v=45e8e16c",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-480.avif?v=5a3c4e3a 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-800.avif?v=5a3c4e3a 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-1200.avif?v=5a3c4e3a 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-1600.avif?v=5a3c4e3a 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-2400.avif?v=5a3c4e3a 2400w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-3200.avif?v=5a3c4e3a 3200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-4000.avif?v=5a3c4e3a 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-480.webp?v=5a3c4e3a 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-800.webp?v=5a3c4e3a 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-1200.webp?v=5a3c4e3a 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-1600.webp?v=5a3c4e3a 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-2400.webp?v=5a3c4e3a 2400w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-3200.webp?v=5a3c4e3a 3200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-4000.webp?v=5a3c4e3a 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/04-1200.jpg?v=5a3c4e3a",
     "lqip": "data:image/webp;base64,UklGRmAAAABXRUJQVlA4IFQAAAAQAgCdASoQAAsAA4BaJQBOg7QANXcHHwoAAP70wBKkPimv6qssUO4XHSgA9nHpeDV/R21CgKPgPylUEMNNhjW2pv6+mFRof5iGDzhB00k5vGO8AAA="
   },
   "arbeiten/tete-a-tete/05": {
@@ -214,9 +214,9 @@
       "blende": 1.4,
       "iso": 320
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-1200.jpg?v=ef95ab34",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-480.avif?v=8a90958a 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-800.avif?v=8a90958a 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-1200.avif?v=8a90958a 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-1600.avif?v=8a90958a 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-2400.avif?v=8a90958a 2400w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-3200.avif?v=8a90958a 3200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-4000.avif?v=8a90958a 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-480.webp?v=8a90958a 480w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-800.webp?v=8a90958a 800w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-1200.webp?v=8a90958a 1200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-1600.webp?v=8a90958a 1600w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-2400.webp?v=8a90958a 2400w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-3200.webp?v=8a90958a 3200w, https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-4000.webp?v=8a90958a 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/tete-a-tete/05-1200.jpg?v=8a90958a",
     "lqip": "data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAAAQAgCdASoQAAsAA4BaJZgCdAENeb1rIbzQAP61walLuXTqR4WCt3oMS5BXaV07dXHwTwU/9O8HfBqp4HakcPckU3YbXKdZeQsw4EWpVVTe1S6sps5lbbIbmYOAAA=="
   },
   "arbeiten/toedliches-gold": {
@@ -228,25 +228,25 @@
       "blende": 1.6,
       "iso": 800
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold-1200.jpg?v=a16c91a6",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold-480.avif?v=f7908aec 480w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-800.avif?v=f7908aec 800w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-1200.avif?v=f7908aec 1200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-1600.avif?v=f7908aec 1600w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-2400.avif?v=f7908aec 2400w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-3200.avif?v=f7908aec 3200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-4000.avif?v=f7908aec 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold-480.webp?v=f7908aec 480w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-800.webp?v=f7908aec 800w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-1200.webp?v=f7908aec 1200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-1600.webp?v=f7908aec 1600w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-2400.webp?v=f7908aec 2400w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-3200.webp?v=f7908aec 3200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold-4000.webp?v=f7908aec 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold-1200.jpg?v=f7908aec",
     "lqip": "data:image/webp;base64,UklGRqYAAABXRUJQVlA4IJoAAABQBACdASoQABgAPu1iqU2ppaOiMAgBMB2JZQDLLB0kUd3FveOzLSA89eUAAP7AkcJ4TMZ1O9yrRr2VGSdKMlmQCeXStAFpY+qnwGr9txzKBAynAi+SXU9Jq8fdl64hs4IkNFwNNno2LswlJC/Dv5aeeV4YVe6o7Z8pUp5KEuP94y1wIGza0MW1pgiU3can4v8b8MC0DBlx2AAA"
   },
   "arbeiten/toedliches-gold/01": {
     "breite": 7008,
     "hoehe": 4672,
-    "avif": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-1200.jpg?v=f98b952f",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-480.avif?v=79dfd34a 480w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-800.avif?v=79dfd34a 800w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-1200.avif?v=79dfd34a 1200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-1600.avif?v=79dfd34a 1600w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-2400.avif?v=79dfd34a 2400w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-3200.avif?v=79dfd34a 3200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-4000.avif?v=79dfd34a 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-480.webp?v=79dfd34a 480w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-800.webp?v=79dfd34a 800w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-1200.webp?v=79dfd34a 1200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-1600.webp?v=79dfd34a 1600w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-2400.webp?v=79dfd34a 2400w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-3200.webp?v=79dfd34a 3200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-4000.webp?v=79dfd34a 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold/01-1200.jpg?v=79dfd34a",
     "lqip": "data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAADQAQCdASoQAAsAA4BaJaAC7AEW+vucwAD+0NoGKIdWOh1rBOZqbyirSBIOlXNY2LSiGr8n3FqFEopnJif/g/xrO+CSTlQB9JdOGyu85xjBJQAA"
   },
   "arbeiten/toedliches-gold/02": {
     "breite": 7008,
     "hoehe": 4672,
-    "avif": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-1200.jpg?v=73220950",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-480.avif?v=686e7ec4 480w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-800.avif?v=686e7ec4 800w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-1200.avif?v=686e7ec4 1200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-1600.avif?v=686e7ec4 1600w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-2400.avif?v=686e7ec4 2400w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-3200.avif?v=686e7ec4 3200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-4000.avif?v=686e7ec4 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-480.webp?v=686e7ec4 480w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-800.webp?v=686e7ec4 800w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-1200.webp?v=686e7ec4 1200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-1600.webp?v=686e7ec4 1600w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-2400.webp?v=686e7ec4 2400w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-3200.webp?v=686e7ec4 3200w, https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-4000.webp?v=686e7ec4 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/toedliches-gold/02-1200.jpg?v=686e7ec4",
     "lqip": "data:image/webp;base64,UklGRloAAABXRUJQVlA4IE4AAADQAQCdASoQAAsAA4BaJaACdACyk+4OAAD+8XQtdVKYTsuzLLJPnN6PRhD4ixVHX2jS8l5Apgo4VQhrECnovYBv7ESbd2+85heS/4AAAAA="
   },
   "arbeiten/welttheater-der-strasse": {
@@ -258,9 +258,9 @@
       "blende": 1.4,
       "iso": 250
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-1200.jpg?v=e713c64b",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-480.avif?v=17d5b5df 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-800.avif?v=17d5b5df 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-1200.avif?v=17d5b5df 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-1600.avif?v=17d5b5df 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-2400.avif?v=17d5b5df 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-3200.avif?v=17d5b5df 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-4000.avif?v=17d5b5df 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-480.webp?v=17d5b5df 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-800.webp?v=17d5b5df 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-1200.webp?v=17d5b5df 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-1600.webp?v=17d5b5df 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-2400.webp?v=17d5b5df 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-3200.webp?v=17d5b5df 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-4000.webp?v=17d5b5df 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse-1200.jpg?v=17d5b5df",
     "lqip": "data:image/webp;base64,UklGRpgAAABXRUJQVlA4IIwAAACwBACdASoQABgAPu1iqk4ppaQiMAgBMB2JbACdMoR4R8AAgE7fluBikIZks2wAAP7uoZbkRX4PmzQoeZulx4ICSSyfGHrX4rq69/tDBxBXseNQVp51/nBKlaTtpnraH7Vnrfaa7kmJ/mAeTROcC1jm2npSTpku/io7WQZOrLPlc/Om2cymo5tDmt+gAA=="
   },
   "arbeiten/welttheater-der-strasse/01": {
@@ -272,9 +272,9 @@
       "blende": 2.8,
       "iso": 2000
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-1200.jpg?v=c659f1f9",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-480.avif?v=72770cc6 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-800.avif?v=72770cc6 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-1200.avif?v=72770cc6 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-1600.avif?v=72770cc6 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-2400.avif?v=72770cc6 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-3200.avif?v=72770cc6 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-4000.avif?v=72770cc6 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-480.webp?v=72770cc6 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-800.webp?v=72770cc6 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-1200.webp?v=72770cc6 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-1600.webp?v=72770cc6 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-2400.webp?v=72770cc6 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-3200.webp?v=72770cc6 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-4000.webp?v=72770cc6 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/01-1200.jpg?v=72770cc6",
     "lqip": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4IGoAAAAQBACdASoQABgAPu1mqk4ppaOiMAgBMB2JbAC7AGlgAJU8E/C4JaRWAAD+/m3VoGJvqlnLszU6rJ9Qfh2VKdyXkyTnWZgBzz+Jtp7XD+g5Aev6DdX9xJwdzyBRSCEH/0Vl9b06zfVOAAAA"
   },
   "arbeiten/welttheater-der-strasse/02": {
@@ -286,9 +286,9 @@
       "blende": 2.8,
       "iso": 1250
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-1200.jpg?v=f284b1a5",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-480.avif?v=50fc9930 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-800.avif?v=50fc9930 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-1200.avif?v=50fc9930 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-1600.avif?v=50fc9930 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-2400.avif?v=50fc9930 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-3200.avif?v=50fc9930 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-4000.avif?v=50fc9930 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-480.webp?v=50fc9930 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-800.webp?v=50fc9930 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-1200.webp?v=50fc9930 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-1600.webp?v=50fc9930 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-2400.webp?v=50fc9930 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-3200.webp?v=50fc9930 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-4000.webp?v=50fc9930 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/02-1200.jpg?v=50fc9930",
     "lqip": "data:image/webp;base64,UklGRoIAAABXRUJQVlA4IHYAAAAQBACdASoQABgAPu1iqk2ppaQiMAgBMB2JQBhQBDsNxUrrjYE3wY4OwAD+kEQS9zhuvnSxeHcLiqEBCXu3BpNu7FvfI8FjoZynzUhCi/0XtC04jPavFrqC12TRt0z6EWPgbKbiVSv7L7g5AU5DgxM4TP7oAAAA"
   },
   "arbeiten/welttheater-der-strasse/03": {
@@ -300,9 +300,9 @@
       "blende": 1.4,
       "iso": 1000
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-1200.jpg?v=4dd62c65",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-480.avif?v=53e17695 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-800.avif?v=53e17695 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-1200.avif?v=53e17695 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-1600.avif?v=53e17695 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-2400.avif?v=53e17695 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-3200.avif?v=53e17695 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-4000.avif?v=53e17695 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-480.webp?v=53e17695 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-800.webp?v=53e17695 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-1200.webp?v=53e17695 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-1600.webp?v=53e17695 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-2400.webp?v=53e17695 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-3200.webp?v=53e17695 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-4000.webp?v=53e17695 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/03-1200.jpg?v=53e17695",
     "lqip": "data:image/webp;base64,UklGRqQAAABXRUJQVlA4IJgAAACQBACdASoQABgAPu1iqk2ppaQiMAgBMB2JbACdMoR4PoALY0L9KraOPDyIXYAA/v5uXfVlbhJ8dPgCj90l3RM3rdDWpVDDtQ7U0OU1R//NatHBeBdV/51t/I0tC4PKU0GAWHppGuNwcZIPRQXpecXPZnniin5gMpUzIFW9w+J6/qpX0LTS97sE6siFr44LVNfN1c/qIAAAAA=="
   },
   "arbeiten/welttheater-der-strasse/04": {
@@ -314,9 +314,9 @@
       "blende": 2.8,
       "iso": 400
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-1200.jpg?v=428db371",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-480.avif?v=744cf609 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-800.avif?v=744cf609 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-1200.avif?v=744cf609 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-1600.avif?v=744cf609 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-2400.avif?v=744cf609 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-3200.avif?v=744cf609 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-4000.avif?v=744cf609 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-480.webp?v=744cf609 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-800.webp?v=744cf609 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-1200.webp?v=744cf609 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-1600.webp?v=744cf609 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-2400.webp?v=744cf609 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-3200.webp?v=744cf609 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-4000.webp?v=744cf609 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/04-1200.jpg?v=744cf609",
     "lqip": "data:image/webp;base64,UklGRoIAAABXRUJQVlA4IHYAAABQBACdASoQABgAPu1kqk4ppaQiMAgBMB2JYwDChagE/4pl5grVBsaCFKQAAP7+L//Nr6wCXUY66XW5G1vzutjNd/GIMeUkLzfxZnegcigjM/BTyd1pUsGXIo9TVMPlY4oZGwqXIyvwWB9/Piptns7+VlhuAAAA"
   },
   "arbeiten/welttheater-der-strasse/05": {
@@ -328,9 +328,9 @@
       "blende": 1.4,
       "iso": 800
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-1200.jpg?v=c7785c1b",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-480.avif?v=bf45bdf3 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-800.avif?v=bf45bdf3 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-1200.avif?v=bf45bdf3 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-1600.avif?v=bf45bdf3 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-2400.avif?v=bf45bdf3 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-3200.avif?v=bf45bdf3 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-4000.avif?v=bf45bdf3 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-480.webp?v=bf45bdf3 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-800.webp?v=bf45bdf3 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-1200.webp?v=bf45bdf3 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-1600.webp?v=bf45bdf3 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-2400.webp?v=bf45bdf3 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-3200.webp?v=bf45bdf3 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-4000.webp?v=bf45bdf3 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/05-1200.jpg?v=bf45bdf3",
     "lqip": "data:image/webp;base64,UklGRrgAAABXRUJQVlA4IKwAAABQBACdASoQABgAPu1iqk2ppaQiMAgBMB2JQBOmUAS2ovTwEtxk/8gbXh2AAP7D2kr5WXx1RJ+JGutyV4lSgjetzb4HhlCwIya/u+Dc3ljaEa36zM4LbXM32o6Heqep1QZEZ5RMtp/BUs1HiXpkRZSf2KJ/hX3MEdlQ6Exw/1/abE5Kfj+FTKp4W7jNYZ9ER017XIGiPMAJUNQQKgD0CmnpwNfr94GuUU2yAAAA"
   },
   "arbeiten/welttheater-der-strasse/06": {
@@ -342,9 +342,9 @@
       "blende": 1.4,
       "iso": 160
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-1200.jpg?v=ff5fed40",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-480.avif?v=068fa5cc 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-800.avif?v=068fa5cc 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-1200.avif?v=068fa5cc 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-1600.avif?v=068fa5cc 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-2400.avif?v=068fa5cc 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-3200.avif?v=068fa5cc 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-4000.avif?v=068fa5cc 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-480.webp?v=068fa5cc 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-800.webp?v=068fa5cc 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-1200.webp?v=068fa5cc 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-1600.webp?v=068fa5cc 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-2400.webp?v=068fa5cc 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-3200.webp?v=068fa5cc 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-4000.webp?v=068fa5cc 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/06-1200.jpg?v=068fa5cc",
     "lqip": "data:image/webp;base64,UklGRmYAAABXRUJQVlA4IFoAAADQAwCdASoQABgAPu1iqU2ppaQiMAgBMB2JZQDG9CHEQ2ehxOtD9xgA/uxS8zkkvbytWzPkwVf4zLEGenPiZI6Bu4+WiVjERb4VUV0ZJyCeL0uWfudKtrO4AAA="
   },
   "arbeiten/welttheater-der-strasse/07": {
@@ -356,9 +356,9 @@
       "blende": 1.4,
       "iso": 500
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-1200.jpg?v=f1481dd2",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-480.avif?v=250d81ea 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-800.avif?v=250d81ea 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-1200.avif?v=250d81ea 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-1600.avif?v=250d81ea 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-2400.avif?v=250d81ea 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-3200.avif?v=250d81ea 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-4000.avif?v=250d81ea 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-480.webp?v=250d81ea 480w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-800.webp?v=250d81ea 800w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-1200.webp?v=250d81ea 1200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-1600.webp?v=250d81ea 1600w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-2400.webp?v=250d81ea 2400w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-3200.webp?v=250d81ea 3200w, https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-4000.webp?v=250d81ea 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/welttheater-der-strasse/07-1200.jpg?v=250d81ea",
     "lqip": "data:image/webp;base64,UklGRm4AAABXRUJQVlA4IGIAAACQAwCdASoQABgAPu1qrU8ppiQiMAgBMB2JQAALfRaVXDdI6ZAAAP7yrLzdXziwqvYWTfSlZN7WqP98U115b99dwptp1ouOQ/2z45QPdREaep1QrFqFbS2/IfIZUYj1NAAAAA=="
   },
   "arbeiten/wiwawo-52": {
@@ -370,9 +370,9 @@
       "blende": 2.8,
       "iso": 200
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-52-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-52-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-52-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-52-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-52-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-52-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-52-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-52-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-52-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-52-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-52-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-52-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-52-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-52-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-52-1200.jpg?v=d1de4875",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-52-480.avif?v=480e9d19 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-52-800.avif?v=480e9d19 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-52-1200.avif?v=480e9d19 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-52-1600.avif?v=480e9d19 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-52-2400.avif?v=480e9d19 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-52-3200.avif?v=480e9d19 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-52-4000.avif?v=480e9d19 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-52-480.webp?v=480e9d19 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-52-800.webp?v=480e9d19 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-52-1200.webp?v=480e9d19 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-52-1600.webp?v=480e9d19 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-52-2400.webp?v=480e9d19 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-52-3200.webp?v=480e9d19 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-52-4000.webp?v=480e9d19 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-52-1200.jpg?v=480e9d19",
     "lqip": "data:image/webp;base64,UklGRqAAAABXRUJQVlA4IJQAAACQBACdASoQABgAPu1iqU2ppaOiMAgBMB2JQBdgMYxbilLtByCRM54EkmmS3gAA/vKj6mMWE4jvr8ahk2q7RmQ5Ebs4J4nVeeVep2nKwG6hZ8PVY9M479ouR/mnGwFjngJ3vxCfJP0P9eblCr3G6b7qZLyplFAmxK0i2ffkQ1tttvjLrfObcYbRdkf6LppkOXcy3bAA"
   },
   "arbeiten/wiwawo-53": {
@@ -384,9 +384,9 @@
       "blende": 2.8,
       "iso": 125
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53-1200.jpg?v=781f2a1f",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53-480.avif?v=0da4a6e9 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-800.avif?v=0da4a6e9 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-1200.avif?v=0da4a6e9 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-1600.avif?v=0da4a6e9 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-2400.avif?v=0da4a6e9 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-3200.avif?v=0da4a6e9 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-4000.avif?v=0da4a6e9 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53-480.webp?v=0da4a6e9 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-800.webp?v=0da4a6e9 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-1200.webp?v=0da4a6e9 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-1600.webp?v=0da4a6e9 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-2400.webp?v=0da4a6e9 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-3200.webp?v=0da4a6e9 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53-4000.webp?v=0da4a6e9 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53-1200.jpg?v=0da4a6e9",
     "lqip": "data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAABQAgCdASoQAAsAA4BaJZgCdAYw72wz9y/c6IAA/u5mZZVS+e//F+5nG9ru4wLp6pk8cvwuuQU2vvr430m9CE7I8RHYLaFs9hWVS0BTOW5AuJLW5vL5DdHEKr4AAA=="
   },
   "arbeiten/wiwawo-53/01": {
@@ -398,9 +398,9 @@
       "blende": 2.8,
       "iso": 400
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-1200.jpg?v=1496f24d",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-480.avif?v=478d75f1 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-800.avif?v=478d75f1 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-1200.avif?v=478d75f1 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-1600.avif?v=478d75f1 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-2400.avif?v=478d75f1 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-3200.avif?v=478d75f1 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-4000.avif?v=478d75f1 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-480.webp?v=478d75f1 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-800.webp?v=478d75f1 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-1200.webp?v=478d75f1 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-1600.webp?v=478d75f1 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-2400.webp?v=478d75f1 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-3200.webp?v=478d75f1 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-4000.webp?v=478d75f1 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/01-1200.jpg?v=478d75f1",
     "lqip": "data:image/webp;base64,UklGRogAAABXRUJQVlA4IHwAAABwBACdASoQABgAPu1iqU2ppaOiMAgBMB2JZQDCgB7A9rFeJ4UmsplKBwrDAAD+8N9QSwnz5PVy6yBGZE1TSqMD+Rel9NYCOc3y0l1DbJuypJCkUN8qObnyHKQhFU0LmECkJrF6JCWTLfXq9NMu9vCDe9UY6J7DC7+v/2AA"
   },
   "arbeiten/wiwawo-53/02": {
@@ -412,9 +412,9 @@
       "blende": 2.8,
       "iso": 12800
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-1200.jpg?v=921886a2",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-480.avif?v=6641ed8f 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-800.avif?v=6641ed8f 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-1200.avif?v=6641ed8f 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-1600.avif?v=6641ed8f 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-2400.avif?v=6641ed8f 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-3200.avif?v=6641ed8f 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-4000.avif?v=6641ed8f 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-480.webp?v=6641ed8f 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-800.webp?v=6641ed8f 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-1200.webp?v=6641ed8f 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-1600.webp?v=6641ed8f 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-2400.webp?v=6641ed8f 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-3200.webp?v=6641ed8f 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-4000.webp?v=6641ed8f 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/02-1200.jpg?v=6641ed8f",
     "lqip": "data:image/webp;base64,UklGRo4AAABXRUJQVlA4IIIAAADwAwCdASoQABgAPu1kqU2ppaQiMAgBMB2JbAAD4bZl9NjPPDKfwomAAP7+bV9/ZkE7eJgiaXTEfhMLTrXZ33FbLbIEiuU1xubC73USPUOZ19IZqRTc8PXPNPuuwLn/3sJlfbi5GD//5LH/ct/eINnyKi0OiwGC9Ib554xGYJg+BAAA"
   },
   "arbeiten/wiwawo-53/03": {
@@ -426,9 +426,9 @@
       "blende": 2.8,
       "iso": 100
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-1200.jpg?v=a790c391",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-480.avif?v=d7735862 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-800.avif?v=d7735862 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-1200.avif?v=d7735862 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-1600.avif?v=d7735862 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-2400.avif?v=d7735862 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-3200.avif?v=d7735862 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-4000.avif?v=d7735862 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-480.webp?v=d7735862 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-800.webp?v=d7735862 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-1200.webp?v=d7735862 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-1600.webp?v=d7735862 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-2400.webp?v=d7735862 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-3200.webp?v=d7735862 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-4000.webp?v=d7735862 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/03-1200.jpg?v=d7735862",
     "lqip": "data:image/webp;base64,UklGRoYAAABXRUJQVlA4IHoAAADwAwCdASoQABgAPu1oqk6ppiQiMAgBMB2JZQC/OCHDOKLGx72P082gAP6jfPzefIhk860yNhwgbikMfC3jQWnozmxEKJUSnba8LGBvGr0Gepuivu2Dh+LZxuEsCurGdBolUCDc5mASz2RQsq1QP+ZOoWRGVjUhofSAAA=="
   },
   "arbeiten/wiwawo-53/04": {
@@ -440,9 +440,9 @@
       "blende": 1.4,
       "iso": 500
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-1200.jpg?v=24d37f8f",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-480.avif?v=7729443a 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-800.avif?v=7729443a 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-1200.avif?v=7729443a 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-1600.avif?v=7729443a 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-2400.avif?v=7729443a 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-3200.avif?v=7729443a 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-4000.avif?v=7729443a 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-480.webp?v=7729443a 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-800.webp?v=7729443a 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-1200.webp?v=7729443a 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-1600.webp?v=7729443a 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-2400.webp?v=7729443a 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-3200.webp?v=7729443a 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-4000.webp?v=7729443a 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/04-1200.jpg?v=7729443a",
     "lqip": "data:image/webp;base64,UklGRowAAABXRUJQVlA4IIAAAABQBACdASoQABgAPu1kqU2ppaOiMAgBMB2JQBdmUABp2jAq1uG5xgbgcSy4AP4cxqsJIoZ8FavXGr4p8lXj9tfpjxRQoUDWhH51yPNd6s9YygfL4vLwzV+5BiEIW/mgbMGpgkushj3GHxKW/Wx60zh5Kc9JOE/KjdaAqiiu2gAAAA=="
   },
   "arbeiten/wiwawo-53/05": {
@@ -454,9 +454,9 @@
       "blende": 2.8,
       "iso": 400
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-1200.jpg?v=c0075507",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-480.avif?v=2ae37f9f 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-800.avif?v=2ae37f9f 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-1200.avif?v=2ae37f9f 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-1600.avif?v=2ae37f9f 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-2400.avif?v=2ae37f9f 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-3200.avif?v=2ae37f9f 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-4000.avif?v=2ae37f9f 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-480.webp?v=2ae37f9f 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-800.webp?v=2ae37f9f 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-1200.webp?v=2ae37f9f 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-1600.webp?v=2ae37f9f 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-2400.webp?v=2ae37f9f 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-3200.webp?v=2ae37f9f 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-4000.webp?v=2ae37f9f 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/05-1200.jpg?v=2ae37f9f",
     "lqip": "data:image/webp;base64,UklGRoYAAABXRUJQVlA4IHoAAACwAwCdASoQABgAPu1iqU2ppaOiMAgBMB2JaAC06CHQ7bmiC/xG6AD+2krr+3k0z7+Pgo1p/o/j9UsE67TTtVbEt+/TOQCzhnfFtBfpFVD364uaPxz1LPW/as3K/kaThCp51YoMQ2fipk1koaNdL8DQSPNfB1EiOAAAAA=="
   },
   "arbeiten/wiwawo-53/06": {
@@ -468,9 +468,9 @@
       "blende": 1.4,
       "iso": 160
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-1200.jpg?v=290bce67",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-480.avif?v=9f760ea8 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-800.avif?v=9f760ea8 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-1200.avif?v=9f760ea8 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-1600.avif?v=9f760ea8 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-2400.avif?v=9f760ea8 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-3200.avif?v=9f760ea8 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-4000.avif?v=9f760ea8 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-480.webp?v=9f760ea8 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-800.webp?v=9f760ea8 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-1200.webp?v=9f760ea8 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-1600.webp?v=9f760ea8 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-2400.webp?v=9f760ea8 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-3200.webp?v=9f760ea8 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-4000.webp?v=9f760ea8 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/06-1200.jpg?v=9f760ea8",
     "lqip": "data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAADwAQCdASoQAAsAA4BaJZwAAu06mx2+PSwA/th7a0yXYGArh711g851t65JFh5PpxI5URAIbuJkDEPCDkJ9C8n0hnojjZ2FoySgrksmwwxTpHAA"
   },
   "arbeiten/wiwawo-53/07": {
@@ -482,9 +482,9 @@
       "blende": 2.8,
       "iso": 400
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-1200.jpg?v=5c3143cd",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-480.avif?v=f86b9319 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-800.avif?v=f86b9319 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-1200.avif?v=f86b9319 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-1600.avif?v=f86b9319 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-2400.avif?v=f86b9319 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-3200.avif?v=f86b9319 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-4000.avif?v=f86b9319 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-480.webp?v=f86b9319 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-800.webp?v=f86b9319 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-1200.webp?v=f86b9319 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-1600.webp?v=f86b9319 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-2400.webp?v=f86b9319 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-3200.webp?v=f86b9319 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-4000.webp?v=f86b9319 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/07-1200.jpg?v=f86b9319",
     "lqip": "data:image/webp;base64,UklGRrIAAABXRUJQVlA4IKYAAAAQBACdASoQABgAPu1iqU2ppaOiMAgBMB2JZgC7AYyKiJwu21oNGO8iRAD9T0JzZ9eHGLTKgfoxv4Ds1wgeGUUryFrkw1erRQ1qv/GFiiFq+rctztaWkTYs+qlqY7tstIvl428PPLCzVTxUkSAPx9rlZJJiwolOy8ml6uilqP/k/gFdyJo+ErF7lHJctrt6uBI1HSj6EhZbVXmfP2ENOL7nEwnlpAAA"
   },
   "arbeiten/wiwawo-53/08": {
@@ -496,17 +496,17 @@
       "blende": 2.8,
       "iso": 400
     },
-    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-480.avif 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-800.avif 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-1200.avif 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-1600.avif 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-2400.avif 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-3200.avif 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-480.webp 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-800.webp 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-1200.webp 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-1600.webp 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-2400.webp 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-3200.webp 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-1200.jpg?v=39cea8cb",
+    "avif": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-480.avif?v=c7b0c984 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-800.avif?v=c7b0c984 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-1200.avif?v=c7b0c984 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-1600.avif?v=c7b0c984 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-2400.avif?v=c7b0c984 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-3200.avif?v=c7b0c984 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-4000.avif?v=c7b0c984 4000w",
+    "webp": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-480.webp?v=c7b0c984 480w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-800.webp?v=c7b0c984 800w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-1200.webp?v=c7b0c984 1200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-1600.webp?v=c7b0c984 1600w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-2400.webp?v=c7b0c984 2400w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-3200.webp?v=c7b0c984 3200w, https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-4000.webp?v=c7b0c984 4000w",
+    "fallback": "https://medien.jakobsax.de/b/arbeiten/wiwawo-53/08-1200.jpg?v=c7b0c984",
     "lqip": "data:image/webp;base64,UklGRrIAAABXRUJQVlA4IKYAAABQBACdASoQABgAPu1iqU2ppaOiMAgBMB2JaAC7AYwS7aT2/Ul/3RSzpFewAP7d7ujW+iQCb/n8K++AMf3yBA40Fcc65vKALDrPXWncFLV+hJPX6zhl4KVfh1d4EhcEdAGswaBzeBqX1DnKCIKfefMMTX8GbbVBR8UBOTgx5kLz3cBjgXWpGKvYjOT4G09pP/wz7bBXSh/nWYDJ5f9aG65fBRG8zAAA"
   },
   "portrait": {
     "breite": 1440,
     "hoehe": 810,
-    "avif": "https://medien.jakobsax.de/b/portrait-480.avif 480w, https://medien.jakobsax.de/b/portrait-800.avif 800w, https://medien.jakobsax.de/b/portrait-1200.avif 1200w",
-    "webp": "https://medien.jakobsax.de/b/portrait-480.webp 480w, https://medien.jakobsax.de/b/portrait-800.webp 800w, https://medien.jakobsax.de/b/portrait-1200.webp 1200w",
-    "fallback": "https://medien.jakobsax.de/b/portrait-1200.jpg?v=2c658ae1",
+    "avif": "https://medien.jakobsax.de/b/portrait-480.avif?v=42138731 480w, https://medien.jakobsax.de/b/portrait-800.avif?v=42138731 800w, https://medien.jakobsax.de/b/portrait-1200.avif?v=42138731 1200w",
+    "webp": "https://medien.jakobsax.de/b/portrait-480.webp?v=42138731 480w, https://medien.jakobsax.de/b/portrait-800.webp?v=42138731 800w, https://medien.jakobsax.de/b/portrait-1200.webp?v=42138731 1200w",
+    "fallback": "https://medien.jakobsax.de/b/portrait-1200.jpg?v=42138731",
     "lqip": "data:image/webp;base64,UklGRloAAABXRUJQVlA4IE4AAADQAQCdASoQAAkAA4BaJQBOgB4bJlZu8AD+Zt9ZZ9goFwSt+PX3Lye2fjl3mYlTRznN4ePACzlxy3fAXE1/9jWLXhGxLwfFBBFjWkoAAAA="
   },
   "ueber/01": {
@@ -518,9 +518,9 @@
       "blende": 1.4,
       "iso": 640
     },
-    "avif": "https://medien.jakobsax.de/b/ueber/01-480.avif 480w, https://medien.jakobsax.de/b/ueber/01-800.avif 800w, https://medien.jakobsax.de/b/ueber/01-1200.avif 1200w, https://medien.jakobsax.de/b/ueber/01-1600.avif 1600w, https://medien.jakobsax.de/b/ueber/01-2400.avif 2400w, https://medien.jakobsax.de/b/ueber/01-3200.avif 3200w, https://medien.jakobsax.de/b/ueber/01-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/ueber/01-480.webp 480w, https://medien.jakobsax.de/b/ueber/01-800.webp 800w, https://medien.jakobsax.de/b/ueber/01-1200.webp 1200w, https://medien.jakobsax.de/b/ueber/01-1600.webp 1600w, https://medien.jakobsax.de/b/ueber/01-2400.webp 2400w, https://medien.jakobsax.de/b/ueber/01-3200.webp 3200w, https://medien.jakobsax.de/b/ueber/01-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/ueber/01-1200.jpg?v=552b928e",
+    "avif": "https://medien.jakobsax.de/b/ueber/01-480.avif?v=f2f4da40 480w, https://medien.jakobsax.de/b/ueber/01-800.avif?v=f2f4da40 800w, https://medien.jakobsax.de/b/ueber/01-1200.avif?v=f2f4da40 1200w, https://medien.jakobsax.de/b/ueber/01-1600.avif?v=f2f4da40 1600w, https://medien.jakobsax.de/b/ueber/01-2400.avif?v=f2f4da40 2400w, https://medien.jakobsax.de/b/ueber/01-3200.avif?v=f2f4da40 3200w, https://medien.jakobsax.de/b/ueber/01-4000.avif?v=f2f4da40 4000w",
+    "webp": "https://medien.jakobsax.de/b/ueber/01-480.webp?v=f2f4da40 480w, https://medien.jakobsax.de/b/ueber/01-800.webp?v=f2f4da40 800w, https://medien.jakobsax.de/b/ueber/01-1200.webp?v=f2f4da40 1200w, https://medien.jakobsax.de/b/ueber/01-1600.webp?v=f2f4da40 1600w, https://medien.jakobsax.de/b/ueber/01-2400.webp?v=f2f4da40 2400w, https://medien.jakobsax.de/b/ueber/01-3200.webp?v=f2f4da40 3200w, https://medien.jakobsax.de/b/ueber/01-4000.webp?v=f2f4da40 4000w",
+    "fallback": "https://medien.jakobsax.de/b/ueber/01-1200.jpg?v=f2f4da40",
     "lqip": "data:image/webp;base64,UklGRmwAAABXRUJQVlA4IGAAAAAwAgCdASoQAAsAA4BaJagC7AYstlWWy4LtmAD+8GRJo+zksCvtLKEBNnw9o2/ILtlKc5N+jALppO2yN4raYxNeQEHanuvyCBX4SB+YHzlYXnKdEe/wv91EeVkBvEFAAAA="
   },
   "ueber/02": {
@@ -532,9 +532,9 @@
       "blende": 2.8,
       "iso": 640
     },
-    "avif": "https://medien.jakobsax.de/b/ueber/02-480.avif 480w, https://medien.jakobsax.de/b/ueber/02-800.avif 800w, https://medien.jakobsax.de/b/ueber/02-1200.avif 1200w, https://medien.jakobsax.de/b/ueber/02-1600.avif 1600w, https://medien.jakobsax.de/b/ueber/02-2400.avif 2400w, https://medien.jakobsax.de/b/ueber/02-3200.avif 3200w, https://medien.jakobsax.de/b/ueber/02-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/ueber/02-480.webp 480w, https://medien.jakobsax.de/b/ueber/02-800.webp 800w, https://medien.jakobsax.de/b/ueber/02-1200.webp 1200w, https://medien.jakobsax.de/b/ueber/02-1600.webp 1600w, https://medien.jakobsax.de/b/ueber/02-2400.webp 2400w, https://medien.jakobsax.de/b/ueber/02-3200.webp 3200w, https://medien.jakobsax.de/b/ueber/02-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/ueber/02-1200.jpg?v=06a3e580",
+    "avif": "https://medien.jakobsax.de/b/ueber/02-480.avif?v=6dc4c340 480w, https://medien.jakobsax.de/b/ueber/02-800.avif?v=6dc4c340 800w, https://medien.jakobsax.de/b/ueber/02-1200.avif?v=6dc4c340 1200w, https://medien.jakobsax.de/b/ueber/02-1600.avif?v=6dc4c340 1600w, https://medien.jakobsax.de/b/ueber/02-2400.avif?v=6dc4c340 2400w, https://medien.jakobsax.de/b/ueber/02-3200.avif?v=6dc4c340 3200w, https://medien.jakobsax.de/b/ueber/02-4000.avif?v=6dc4c340 4000w",
+    "webp": "https://medien.jakobsax.de/b/ueber/02-480.webp?v=6dc4c340 480w, https://medien.jakobsax.de/b/ueber/02-800.webp?v=6dc4c340 800w, https://medien.jakobsax.de/b/ueber/02-1200.webp?v=6dc4c340 1200w, https://medien.jakobsax.de/b/ueber/02-1600.webp?v=6dc4c340 1600w, https://medien.jakobsax.de/b/ueber/02-2400.webp?v=6dc4c340 2400w, https://medien.jakobsax.de/b/ueber/02-3200.webp?v=6dc4c340 3200w, https://medien.jakobsax.de/b/ueber/02-4000.webp?v=6dc4c340 4000w",
+    "fallback": "https://medien.jakobsax.de/b/ueber/02-1200.jpg?v=6dc4c340",
     "lqip": "data:image/webp;base64,UklGRmwAAABXRUJQVlA4IGAAAACwAwCdASoQABgAPu1iqU2ppaOiMAgBMB2JYwCw7BtqN+V63e9TwAD+2V9qV9cWjfp9/2PuZiKrwoh7lyaZKnvJAI9WSYwDpnQrS5Uuh/DSdtKwp/xd4G7bJz+zpYwAAAA="
   },
   "ueber/03": {
@@ -546,9 +546,9 @@
       "blende": 2.8,
       "iso": 3200
     },
-    "avif": "https://medien.jakobsax.de/b/ueber/03-480.avif 480w, https://medien.jakobsax.de/b/ueber/03-800.avif 800w, https://medien.jakobsax.de/b/ueber/03-1200.avif 1200w, https://medien.jakobsax.de/b/ueber/03-1600.avif 1600w, https://medien.jakobsax.de/b/ueber/03-2400.avif 2400w, https://medien.jakobsax.de/b/ueber/03-3200.avif 3200w, https://medien.jakobsax.de/b/ueber/03-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/ueber/03-480.webp 480w, https://medien.jakobsax.de/b/ueber/03-800.webp 800w, https://medien.jakobsax.de/b/ueber/03-1200.webp 1200w, https://medien.jakobsax.de/b/ueber/03-1600.webp 1600w, https://medien.jakobsax.de/b/ueber/03-2400.webp 2400w, https://medien.jakobsax.de/b/ueber/03-3200.webp 3200w, https://medien.jakobsax.de/b/ueber/03-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/ueber/03-1200.jpg?v=898130f1",
+    "avif": "https://medien.jakobsax.de/b/ueber/03-480.avif?v=e851a2a3 480w, https://medien.jakobsax.de/b/ueber/03-800.avif?v=e851a2a3 800w, https://medien.jakobsax.de/b/ueber/03-1200.avif?v=e851a2a3 1200w, https://medien.jakobsax.de/b/ueber/03-1600.avif?v=e851a2a3 1600w, https://medien.jakobsax.de/b/ueber/03-2400.avif?v=e851a2a3 2400w, https://medien.jakobsax.de/b/ueber/03-3200.avif?v=e851a2a3 3200w, https://medien.jakobsax.de/b/ueber/03-4000.avif?v=e851a2a3 4000w",
+    "webp": "https://medien.jakobsax.de/b/ueber/03-480.webp?v=e851a2a3 480w, https://medien.jakobsax.de/b/ueber/03-800.webp?v=e851a2a3 800w, https://medien.jakobsax.de/b/ueber/03-1200.webp?v=e851a2a3 1200w, https://medien.jakobsax.de/b/ueber/03-1600.webp?v=e851a2a3 1600w, https://medien.jakobsax.de/b/ueber/03-2400.webp?v=e851a2a3 2400w, https://medien.jakobsax.de/b/ueber/03-3200.webp?v=e851a2a3 3200w, https://medien.jakobsax.de/b/ueber/03-4000.webp?v=e851a2a3 4000w",
+    "fallback": "https://medien.jakobsax.de/b/ueber/03-1200.jpg?v=e851a2a3",
     "lqip": "data:image/webp;base64,UklGRrgAAABXRUJQVlA4IKwAAAAQBACdASoQABgAPu1iqU2ppaOiMAgBMB2JagCdAywTnglsYoFeuJpawAD+Pcpfv4Z11yWLuhUd0wZRr5LTQHVJDfnqdwWJdbMVIDqezSjhI2WtiQfes5tXKFOW+IFY2+SfbcBuLjFhNXH2CAyyY+NlzItr192336exCYH5LFp+0a0s3+FeBXGK9Urmw/eGXSMG+PyUQypV7HLZNIqiEPy76LbCp5+JB9YAjgAA"
   },
   "ueber/04": {
@@ -560,9 +560,9 @@
       "blende": 2.8,
       "iso": 500
     },
-    "avif": "https://medien.jakobsax.de/b/ueber/04-480.avif 480w, https://medien.jakobsax.de/b/ueber/04-800.avif 800w, https://medien.jakobsax.de/b/ueber/04-1200.avif 1200w, https://medien.jakobsax.de/b/ueber/04-1600.avif 1600w, https://medien.jakobsax.de/b/ueber/04-2400.avif 2400w, https://medien.jakobsax.de/b/ueber/04-3200.avif 3200w, https://medien.jakobsax.de/b/ueber/04-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/ueber/04-480.webp 480w, https://medien.jakobsax.de/b/ueber/04-800.webp 800w, https://medien.jakobsax.de/b/ueber/04-1200.webp 1200w, https://medien.jakobsax.de/b/ueber/04-1600.webp 1600w, https://medien.jakobsax.de/b/ueber/04-2400.webp 2400w, https://medien.jakobsax.de/b/ueber/04-3200.webp 3200w, https://medien.jakobsax.de/b/ueber/04-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/ueber/04-1200.jpg?v=d19a1002",
+    "avif": "https://medien.jakobsax.de/b/ueber/04-480.avif?v=2b968a47 480w, https://medien.jakobsax.de/b/ueber/04-800.avif?v=2b968a47 800w, https://medien.jakobsax.de/b/ueber/04-1200.avif?v=2b968a47 1200w, https://medien.jakobsax.de/b/ueber/04-1600.avif?v=2b968a47 1600w, https://medien.jakobsax.de/b/ueber/04-2400.avif?v=2b968a47 2400w, https://medien.jakobsax.de/b/ueber/04-3200.avif?v=2b968a47 3200w, https://medien.jakobsax.de/b/ueber/04-4000.avif?v=2b968a47 4000w",
+    "webp": "https://medien.jakobsax.de/b/ueber/04-480.webp?v=2b968a47 480w, https://medien.jakobsax.de/b/ueber/04-800.webp?v=2b968a47 800w, https://medien.jakobsax.de/b/ueber/04-1200.webp?v=2b968a47 1200w, https://medien.jakobsax.de/b/ueber/04-1600.webp?v=2b968a47 1600w, https://medien.jakobsax.de/b/ueber/04-2400.webp?v=2b968a47 2400w, https://medien.jakobsax.de/b/ueber/04-3200.webp?v=2b968a47 3200w, https://medien.jakobsax.de/b/ueber/04-4000.webp?v=2b968a47 4000w",
+    "fallback": "https://medien.jakobsax.de/b/ueber/04-1200.jpg?v=2b968a47",
     "lqip": "data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAAAQAgCdASoQAAsAA4BaJZQC06EegdJ43SegAP3wfokwq9nun7YVz7UYiU3hGDL+pnJs03ZZVFrNMBHLAoFfptj2bru3amWB4Vz6/4E7pJZkpoAA"
   },
   "ueber/05": {
@@ -574,9 +574,9 @@
       "blende": 2.8,
       "iso": 250
     },
-    "avif": "https://medien.jakobsax.de/b/ueber/05-480.avif 480w, https://medien.jakobsax.de/b/ueber/05-800.avif 800w, https://medien.jakobsax.de/b/ueber/05-1200.avif 1200w, https://medien.jakobsax.de/b/ueber/05-1600.avif 1600w, https://medien.jakobsax.de/b/ueber/05-2400.avif 2400w, https://medien.jakobsax.de/b/ueber/05-3200.avif 3200w, https://medien.jakobsax.de/b/ueber/05-4000.avif 4000w",
-    "webp": "https://medien.jakobsax.de/b/ueber/05-480.webp 480w, https://medien.jakobsax.de/b/ueber/05-800.webp 800w, https://medien.jakobsax.de/b/ueber/05-1200.webp 1200w, https://medien.jakobsax.de/b/ueber/05-1600.webp 1600w, https://medien.jakobsax.de/b/ueber/05-2400.webp 2400w, https://medien.jakobsax.de/b/ueber/05-3200.webp 3200w, https://medien.jakobsax.de/b/ueber/05-4000.webp 4000w",
-    "fallback": "https://medien.jakobsax.de/b/ueber/05-1200.jpg?v=43296241",
+    "avif": "https://medien.jakobsax.de/b/ueber/05-480.avif?v=9f6043e4 480w, https://medien.jakobsax.de/b/ueber/05-800.avif?v=9f6043e4 800w, https://medien.jakobsax.de/b/ueber/05-1200.avif?v=9f6043e4 1200w, https://medien.jakobsax.de/b/ueber/05-1600.avif?v=9f6043e4 1600w, https://medien.jakobsax.de/b/ueber/05-2400.avif?v=9f6043e4 2400w, https://medien.jakobsax.de/b/ueber/05-3200.avif?v=9f6043e4 3200w, https://medien.jakobsax.de/b/ueber/05-4000.avif?v=9f6043e4 4000w",
+    "webp": "https://medien.jakobsax.de/b/ueber/05-480.webp?v=9f6043e4 480w, https://medien.jakobsax.de/b/ueber/05-800.webp?v=9f6043e4 800w, https://medien.jakobsax.de/b/ueber/05-1200.webp?v=9f6043e4 1200w, https://medien.jakobsax.de/b/ueber/05-1600.webp?v=9f6043e4 1600w, https://medien.jakobsax.de/b/ueber/05-2400.webp?v=9f6043e4 2400w, https://medien.jakobsax.de/b/ueber/05-3200.webp?v=9f6043e4 3200w, https://medien.jakobsax.de/b/ueber/05-4000.webp?v=9f6043e4 4000w",
+    "fallback": "https://medien.jakobsax.de/b/ueber/05-1200.jpg?v=9f6043e4",
     "lqip": "data:image/webp;base64,UklGRloAAABXRUJQVlA4IE4AAAAwAgCdASoQAAsAA4BaJQBOgMWlyYA8ozFeAAD+1zU3sFx/qG03aKobmV1wxNYuiBDNLtBl9AZSbEypRWjNp+VKLbZVNna8zN74L46wAAA="
   }
 }

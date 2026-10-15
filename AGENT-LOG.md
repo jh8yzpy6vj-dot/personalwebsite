@@ -6,6 +6,31 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-15 — Goldbarren noch sichtbar: Fingerabdruck jetzt auch im `srcset`
+
+Jan: „wo kann ich den cache clearen im r2, das goldbarren bild ist noch da".
+
+**Befund:** Im Bucket lag längst der Schmelzer (per S3-API geprüft), aber
+`medien.jakobsax.de/b/arbeiten/toedliches-gold-{800,1200,2400,4000}.avif` kam vom
+Cloudflare-Rand als `HIT` mit `age` ≈ 20 h — der Goldbarren. ⚠️ **Korrektur:** Früher am Tag
+stand hier und in `TODO.md`, der Rand halte die Bilder gar nicht vor. Das war falsch, gemessen
+mit `HEAD`, und das meldet Cloudflare als `DYNAMIC`. Echte Abrufe (`GET`) werden gecacht.
+
+**Ursache:** Der Fingerabdruck `?v=…` (seit 2026-09-12 gegen genau diesen Fehler) hing nur am
+JPEG-Rückfall. Die `srcset`-Adressen für AVIF und WebP — die der Browser tatsächlich lädt —
+blieben blank. Ein unter gleichem Namen ersetztes Bild blieb so ein Jahr lang alt (`immutable`).
+
+- `srcset()` (`lib/bilder-regeln.mjs`) nimmt den Fingerabdruck, `medien.mjs` reicht ihn durch.
+- `adresseAktuell` prüft Rückfall **und** beide `srcset` — ein alter Eintrag aus
+  `.medien-cache/stand.json` ohne Anhang wird neu gerechnet statt still übernommen.
+- `PIPELINE_VERSION` 7 → 8, `npm run medien` hat alle Bilder neu gerechnet und hochgeladen.
+- Test am eingecheckten Manifest verlangt den Anhang jetzt an **jedem** Eintrag (vorher
+  optional), neuer Test für `srcset()` mit Fingerabdruck.
+
+Cache leeren ist damit nicht mehr nötig: Alle Adressen sind neu.
+
+---
+
 ## 2026-10-15 — Hero am Handy unscharf: `sizes` je Bild statt `100vw`
 
 Jan: „das hero bild ist am handy irgendwie total unscharf, am pc aber scharf."

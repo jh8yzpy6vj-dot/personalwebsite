@@ -294,8 +294,8 @@ async function verarbeite(r2, name, quelldatei, basisUrl, warnungen, schluessel)
        * eben die Schleife gesteuert haben — so kann dort keine Datei
        * genannt werden, die nicht geschrieben wurde.
        */
-      avif: srcset(ableitungsBasis, urlName, avifBreiten, "avif"),
-      webp: srcset(ableitungsBasis, urlName, breiten, "webp"),
+      avif: srcset(ableitungsBasis, urlName, avifBreiten, "avif", fingerabdruck),
+      webp: srcset(ableitungsBasis, urlName, breiten, "webp", fingerabdruck),
       fallback: fallbackUrl,
       lqip: `data:image/webp;base64,${lqip.toString("base64")}`,
     },
@@ -455,7 +455,12 @@ async function main() {
      * Form der Adressen künftig ändert und die Version vergisst, bekommt
      * eine Neuberechnung statt eines stillen Fehlers.
      */
-    const adresseAktuell = alt?.eintrag?.fallback?.includes(`?v=${schluessel.slice(0, 8)}`);
+    /* Alle drei Adressfelder — am 2026-10-15 fehlte der Fingerabdruck im
+       `srcset`, während der Rückfall ihn trug. */
+    const v = `?v=${schluessel.slice(0, 8)}`;
+    const adresseAktuell = ["fallback", "avif", "webp"].every((feld) =>
+      alt?.eintrag?.[feld]?.includes(v),
+    );
 
     if (alt?.schluessel === schluessel && adresseAktuell && alt.dateien.every((d) => imBucket.has(d))) {
       bilder[name] = alt.eintrag;

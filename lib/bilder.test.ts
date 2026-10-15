@@ -66,6 +66,12 @@ describe("srcset", () => {
     );
   });
 
+  it("hängt den Fingerabdruck an jede Adresse", () => {
+    expect(srcset("/b", "x", [480, 800], "avif", "ab12cd34")).toBe(
+      "/b/x-480.avif?v=ab12cd34 480w, /b/x-800.avif?v=ab12cd34 800w",
+    );
+  });
+
   it("enthält für jede Breite genau einen Eintrag", () => {
     const breiten = breitenFuer(3000);
     const eintraege = srcset("/b", "x", breiten, "webp").split(", ");
@@ -306,8 +312,12 @@ describe("das eingecheckte Manifest", () => {
     for (const [schluessel, e] of Object.entries(BILDER)) {
       expect(e.breite, schluessel).toBeGreaterThan(0);
       expect(e.hoehe, schluessel).toBeGreaterThan(0);
-      expect(e.avif, schluessel).toMatch(/\.avif(\?v=[0-9a-f]{8})? \d+w/);
-      expect(e.webp, schluessel).toMatch(/\.webp(\?v=[0-9a-f]{8})? \d+w/);
+      /* Jeder Eintrag im `srcset` mit Fingerabdruck — das sind die Adressen,
+         die der Browser tatsächlich lädt. Fehlte bis 2026-10-15: Der
+         Goldbarren kam unter gleicher Adresse vom Rand weiter. */
+      for (const eintrag of [...e.avif.split(", "), ...e.webp.split(", ")]) {
+        expect(eintrag, schluessel).toMatch(/\.(avif|webp)\?v=[0-9a-f]{8} \d+w$/);
+      }
       /*
        * ⚠️ Der Fingerabdruck `?v=…` gehört dazu und darf hier nicht
        * wegassertiert werden: Die Adressen werden mit
@@ -319,7 +329,7 @@ describe("das eingecheckte Manifest", () => {
        * Der Test hing bisher an Manifesten ohne Anhang und fiel deshalb
        * erst auf, als ein frisch erzeugtes Manifest dazukam.
        */
-      expect(e.fallback, schluessel).toMatch(/\.jpg(\?v=[0-9a-f]{8})?$/);
+      expect(e.fallback, schluessel).toMatch(/\.jpg\?v=[0-9a-f]{8}$/);
       expect(e.lqip, schluessel).toMatch(/^data:image\/webp;base64,/);
       // AVIF und WebP müssen dieselben Stufen anbieten, sonst lädt ein
       // Browser je nach Format unterschiedlich große Bilder.
