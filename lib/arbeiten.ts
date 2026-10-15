@@ -80,7 +80,8 @@ export function bilderDerArbeit(arbeit: Fotoarbeit): Mosaikbild[] {
     liste.push({ name: b.schluessel.slice(b.schluessel.lastIndexOf("/") + 1), bild: b });
   }
 
-  return liste.map(({ name, bild }, i) => {
+  const aus = new Set(arbeit.ausblenden);
+  return liste.filter(({ name }) => !aus.has(name)).map(({ name, bild }, i) => {
     const szene = arbeit.alt?.[name];
     const titel = arbeit.bildtitel?.[name];
     const zeile = titel ? `${titel} – ${arbeit.titel}` : text;

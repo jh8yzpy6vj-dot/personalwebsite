@@ -108,8 +108,9 @@ hängt:
   und `WEGE.foto` in `lib/content.ts` sind eine Vorauswahl von Claude. Leere Plätze zeigen
   „Highlight folgt".
 - [ ] **Jakob: Foto für die Startseite bestätigen oder tauschen.** Bis ein Hero-Video da ist,
-  trägt `HERO_ERSATZ` in `lib/content.ts` (derzeit `arbeiten/wiwawo-53/06`, Bus im Nebel) die
-  Startseite. Von Claude gewählt, nicht von Jakob.
+  trägt `HERO_ERSATZ` in `lib/content.ts` (seit 2026-10-15 `arbeiten/tete-a-tete/01`, SPPI bei
+  Nacht — der Bus ist ausgeblendet) die Startseite. Von Claude gewählt, nicht von Jakob. Ebenso
+  das Bild der Kachel „foto" (`WEGE.foto`, jetzt `wiwawo-53/08`, Kajak im Wasserfall).
 - [ ] **Vorschaukarte mit Foto:** nach dem nächsten `npm run medien` einmal `npm run og` und
   `public/og/start.jpg` committen. In der Cloud-Sitzung war die Medien-Domain gesperrt.
 

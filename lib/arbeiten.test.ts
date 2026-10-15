@@ -1,7 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
-import { FILME, FOTO_HERO, FOTOS, KATEGORIEN, type Fotoarbeit } from "./content";
+import {
+  FILME,
+  FOTO_HERO,
+  FOTOS,
+  HERO_ERSATZ,
+  HIGHLIGHTS,
+  KATEGORIEN,
+  WEGE,
+  type Fotoarbeit,
+} from "./content";
 import manifest from "./bilder-manifest.json";
-import { beschriftung, zielDesLinks } from "./arbeiten";
+import { beschriftung, fotosFuerHero, fotosFuerMosaik, zielDesLinks } from "./arbeiten";
 
 describe("Inhalte", () => {
   it("vergibt jede id nur einmal", () => {
@@ -41,6 +50,25 @@ describe("Fotoarbeiten", () => {
         expect(name, a.id).toMatch(/^(leitbild|\d{2})$/);
       }
     }
+  });
+
+  it("blendet nur Bilder aus, die es nach dem Schema gibt", () => {
+    for (const a of FOTOS) {
+      for (const name of a.ausblenden ?? []) {
+        expect(name, a.id).toMatch(/^(leitbild|\d{2})$/);
+      }
+    }
+  });
+
+  it("verweist auf der Startseite und im Hero auf kein ausgeblendetes Bild", () => {
+    /* Ein ausgeblendetes Bild fiele dort still weg — im Startseiten-Hero
+       bliebe dann eine schwarze Fläche. */
+    const sichtbar = new Set(fotosFuerMosaik().map((b) => b.schluessel));
+    const genannt = [HERO_ERSATZ, WEGE.foto, WEGE.film, ...HIGHLIGHTS, ...FOTO_HERO];
+    for (const k of genannt) {
+      if (k && k in manifest) expect(sichtbar.has(k), k).toBe(true);
+    }
+    expect(fotosFuerHero().length).toBe(FOTO_HERO.length);
   });
 
   it("gehört jede Arbeit zu einer bekannten Kategorie", () => {
@@ -150,6 +178,28 @@ describe("Was kein Bild hat, erscheint nicht", () => {
         (b) => b.schluessel,
       ),
     ).toEqual(["arbeiten/t", "arbeiten/f1"]);
+  });
+
+  it("lässt ausgeblendete Bilder weg, das erste übrige wird Startbild", async () => {
+    const { bilderDerArbeit, fotoarbeitenOhneBild } = await mitManifest({
+      "arbeiten/x": q,
+      "arbeiten/x/01": q,
+      "arbeiten/x/02": q,
+      "arbeiten/x/03": q,
+      "arbeiten/y": q,
+    });
+    const x: Fotoarbeit = {
+      id: "x",
+      kategorie: "paddeln",
+      titel: "X",
+      ausblenden: ["leitbild", "02"],
+    };
+    const bilder = bilderDerArbeit(x);
+    expect(bilder.map((b) => b.schluessel)).toEqual(["arbeiten/x/01", "arbeiten/x/03"]);
+    /* Gezählt wird, was zu sehen ist. */
+    expect(bilder[1].alt).toBe("X, Bild 2");
+    const y: Fotoarbeit = { id: "y", kategorie: "paddeln", titel: "Y", ausblenden: ["leitbild"] };
+    expect(fotoarbeitenOhneBild([x, y]).map((a) => a.id)).toEqual(["y"]);
   });
 
   it("beschriftet ein Bild mit seinem eigenen Titel, wenn Jakobs Liste einen nennt", async () => {

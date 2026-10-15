@@ -6,6 +6,33 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-15 — Sechs Bilder von WiWaWo 2026 ausgeblendet, neues Startseiten-Bild
+
+Jakob (Screenshots über Jan): „kannst du bitte noch die 4 Bilder rausschmeißen", dazu „das hier
+auch" und „das auch". Am Kontaktbogen zugeordnet, alle aus `wiwawo-53`: Gruppenfoto
+(`leitbild`), Lagerfeuer (`02`), gelbes Boot in der Welle (`03`), grünes Boot senkrecht
+(`04`), grünes Boot am Kiesufer (`05`), Bus im Nebel (`06`). Es bleiben `01`, `07`, `08`, die
+drei Wasserfälle; Startbild der Arbeit ist jetzt `01`.
+
+- **Neues Feld `ausblenden`** an `Fotoarbeit` (`lib/content.ts`), ausgewertet in
+  `bilderDerArbeit()`. Die Dateien bleiben im Bucket, nichts gelöscht — so ist jedes Bild mit
+  einer Zeile wieder da, und die Nummern samt Alt-Texten verschieben sich nicht. In
+  `TECH-STACK.md` als Ausnahme zu „kein Bildfeld" begründet.
+- **Folgen auf der Startseite:** Der Bus war `HERO_ERSATZ` und der grüne Kajak `WEGE.foto` —
+  beide wären still weggefallen, das Hero wäre schwarz geblieben. Ersatz (Claudes Wahl, steht
+  bei Jakob in `TODO.md`): Hero = `tete-a-tete/01` (SPPI bei Nacht; Querformat, keine
+  erkennbaren Gesichter), Kachel „foto" = `wiwawo-53/08`. Vorschaukarte `public/og/start.jpg`
+  neu erzeugt (zeigte den Bus).
+- **`/foto`-Hero:** Bus raus, jetzt sieben statt acht Bilder.
+
+### Geprüft
+`npm test` (72, neu: `ausblenden` greift und zählt „Bild n" nach dem Sichtbaren; Startseite und
+Hero zeigen auf kein ausgeblendetes Bild; nur gültige Namen), Lint, Typecheck, `next build`.
+Im Dev-Server: Startseite zeigt SPPI im Hero und den Wasserfall in der Kachel, `/foto` enthält
+von `wiwawo-53` nur noch 01/07/08, keine Skriptfehler.
+
+---
+
 ## 2026-10-15 — „Tödliches Gold", STRG_F und Tagesthemen im Bucket und online
 
 Lokal bei Jan (mit `.dev.vars`) die beiden offenen Upload-Punkte aus `TODO.md` erledigt, alle

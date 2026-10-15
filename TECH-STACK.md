@@ -158,6 +158,12 @@ Es gibt **kein Bildfeld in `content.ts`** — Konvention statt Konfiguration. Ei
 `image` wäre eine zweite Stelle mit demselben Namen und damit eine Stelle, an der er falsch
 stehen kann.
 
+**Ausnahme: `ausblenden`** (seit 2026-10-15). Soll ein Bild nicht mehr auf die Seite, aber im
+Bucket bleiben, kommt sein Name (`"leitbild"`, `"01"`, …) in `ausblenden` der Arbeit. Fehlt
+dadurch das Leitbild, wird das erste übrige Bild zum Startbild. Grund: Löschen im Bucket ist
+endgültig, und Umbenennen verschiebt alle Nummern samt Alt-Texten. Ein Test stellt sicher, dass
+Startseite und Hero auf kein ausgeblendetes Bild zeigen.
+
 ⚠️ **Führende Null nicht vergessen** (`01`, nicht `1`). Sortiert wird nach Dateiname; ohne sie
 stünde `10` vor `2`.
 

@@ -44,14 +44,16 @@ export const HERO_ALT: string | null = null;
  * Eine schwarze Fläche ist als erster Eindruck einer Seite, die durch Bilder
  * überzeugen soll, das Schwächste, was es gibt. Gewählt nach drei Regeln
  * (UI-SPEC, „Bildbehandlung"): Querformat, keine erkennbaren Gesichter, trägt
- * auch hinter dem Schriftzug. Bei `wiwawo-53` erfüllt das nur Bild 06 (Bus an
- * der Bergstraße, Nebel im Tal).
+ * auch hinter dem Schriftzug. Bis 2026-10-15 war das der Bus an der
+ * Bergstraße (`wiwawo-53/06`) — den hat Jakob ausgeblendet. Seitdem SPPI bei
+ * Nacht: Querformat, dunkel, die Figuren klein und ohne erkennbare Gesichter.
  *
  * ⚠️ Eine Wahl von Claude, **nicht von Jakob** — er entscheidet. Sobald
  * `hero/standbild` im Bucket liegt, hat das Vorrang, und dieser Wert ist
- * wirkungslos. `null` schaltet den Ersatz ab.
+ * wirkungslos. `null` schaltet den Ersatz ab. Ein ausgeblendetes Bild
+ * (`ausblenden`) wirkt hier nicht — dann bliebe die Startseite schwarz.
  */
-export const HERO_ERSATZ: string | null = "arbeiten/wiwawo-53/06";
+export const HERO_ERSATZ: string | null = "arbeiten/tete-a-tete/01";
 
 export const SITE = {
   /** Schriftzug und Wortmarke — bewusst kleingeschrieben (UI-SPEC, E7). */
@@ -72,7 +74,8 @@ export const SITE = {
  * zeigt eine dunkle Fläche mit ▶.
  */
 export const WEGE: { foto: string | null; film: string | null } = {
-  foto: "arbeiten/wiwawo-53/05",
+  /* Bis 2026-10-15 `wiwawo-53/05` (grünes Boot) — von Jakob ausgeblendet. */
+  foto: "arbeiten/wiwawo-53/08",
   film: null,
 };
 
@@ -108,7 +111,6 @@ export const HIGHLIGHTS: (string | null)[] = [
 export const FOTO_HERO: string[] = [
   "arbeiten/at-tension", // Cie. Dyptik — Körper fliegen über dem Publikum
   "arbeiten/welttheater-der-strasse", // Commando Percu — rotes Feuer
-  "arbeiten/wiwawo-53/06", // Bus an der Bergstraße, Nebel im Tal
   "arbeiten/tete-a-tete/01", // SPPI — Bühne bei Nacht, Querformat
   "arbeiten/welttheater-der-strasse/04", // Collectif Malunés — Trapez im Gegenlicht
   "arbeiten/wiwawo-52", // Boot in der Walze
@@ -160,6 +162,13 @@ export type Fotoarbeit = {
    * ohne Information über das Motiv.
    */
   alt?: Record<string, string>;
+  /**
+   * Bilder, die im Bucket liegen, aber **nicht auf die Seite** sollen —
+   * Namen wie bei `alt` (`"leitbild"`, `"01"`, …). Fehlt das Leitbild, wird
+   * das erste übrige Bild zum Startbild der Arbeit. Zum Wieder-Einblenden
+   * den Namen streichen; die Datei bleibt dafür im Bucket.
+   */
+  ausblenden?: string[];
 };
 
 /**
@@ -269,6 +278,10 @@ export const FOTOS: Fotoarbeit[] = [
       "05": "Kajakfahrer im grünen Boot mit rotem Paddel auf einem Fluss mit Kiesufer",
       "06": "Weißer Kleinbus mit Kajaks auf dem Dach an einer Bergstraße, im Tal liegt Nebel",
     },
+    /* Jakob am 2026-10-15 (über Jan): Gruppenfoto, Lagerfeuer, die drei
+       Boote im Wildwasser und den Bus „rausschmeißen". Bleiben 01, 07, 08;
+       Startbild ist damit der Wasserfall (01). */
+    ausblenden: ["leitbild", "02", "03", "04", "05", "06"],
   },
   {
     id: "wiwawo-52",
