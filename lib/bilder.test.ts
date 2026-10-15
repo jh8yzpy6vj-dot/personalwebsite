@@ -283,11 +283,19 @@ describe("Mosaik", () => {
     expect(tsx).toContain("ziel.focus({ preventScroll: true })");
   });
 
-  it("das Hero fordert die volle Fensterbreite an", async () => {
-    const { HERO_SIZES } = await import("./bilder");
-    // Randlos mit `cover` — hier ist `100vw` die richtige Angabe und kein
-    // vergessener Standardwert.
-    expect(HERO_SIZES).toBe("100vw");
+  it("das Hero rechnet die Breite aus Höhe und Seitenverhältnis", async () => {
+    const { heroSizes } = await import("./bilder");
+    const quer = { breite: 7008, hoehe: 4672 } as Parameters<typeof heroSizes>[0];
+    // Randlos mit `cover`: mindestens Fensterbreite, im hohen Hero aber
+    // Höhe × 1.5 — mit pauschal `100vw` war ein Querformat am Telefon
+    // unscharf (2026-10-15).
+    expect(heroSizes(quer, "start")).toBe(
+      "max(100vw, calc(100vh * 1.500), calc(420px * 1.500))",
+    );
+    // `/foto` ist am Telefon höchstens 125vw hoch.
+    expect(heroSizes(quer, "foto")).toMatch(
+      /^\(max-width: 700px\) max\(100vw, calc\(min\(100vh, 125vw\) \* 1\.500\)\), max\(100vw, /,
+    );
   });
 });
 

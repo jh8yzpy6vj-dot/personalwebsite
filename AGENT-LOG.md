@@ -6,6 +6,30 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-15 — Hero am Handy unscharf: `sizes` je Bild statt `100vw`
+
+Jan: „das hero bild ist am handy irgendwie total unscharf, am pc aber scharf."
+
+**Ursache:** Beide Heros sind randlos und hoch, das Bild füllt sie mit `cover`. Ein
+3:2-Querformat im 812px hohen Start-Hero wird am Telefon ~1220 CSS-px breit — bei 375px
+Bildschirm. `sizes="100vw"` sagte dem Browser aber „375px", er lud bei 2× die 800er-Stufe und zog
+sie dreifach hoch. Am PC ist das Fenster breiter als Höhe × 1,5, da stimmte `100vw`. Betraf
+schon den Bus, fiel beim dunklen SPPI-Bild nur stärker auf.
+
+- **`heroSizes(quelle, "start" | "foto")`** in `lib/bilder.ts` ersetzt `HERO_SIZES`:
+  `max(100vw, Höhe × Seitenverhältnis)`, Höhen wie im CSS (Start: `100vh`, mind. 420px;
+  `/foto` am Telefon höchstens `125vw`). Wie bei `kastenSizes`: Kennt ein Browser `max()` in
+  `sizes` nicht, rechnet er mit `100vw`, dem alten Stand.
+- Hochformate ändern sich praktisch nicht (Breite bleibt `100vw`), es wird nichts verschwendet.
+- UI-SPEC („Hero von `/foto`") zuerst angepasst, Test auf die neue Formel umgestellt.
+
+### Geprüft
+Im Dev-Server bei 375×812, 2×: Start-Hero lädt `01-3200.avif` (126 kB) statt der 800er, Bild
+sichtbar scharf; `/foto` mit Hochformat vorn weiter die 800er. `npm test` (72), Lint,
+Typecheck, `next build`. **Nicht geprüft:** auf einem echten Telefon nach dem Deploy.
+
+---
+
 ## 2026-10-15 — Sechs Bilder von WiWaWo 2026 ausgeblendet, neues Startseiten-Bild
 
 Jakob (Screenshots über Jan): „kannst du bitte noch die 4 Bilder rausschmeißen", dazu „das hier

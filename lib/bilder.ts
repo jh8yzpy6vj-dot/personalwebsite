@@ -108,18 +108,30 @@ export const MOSAIK_SIZES = "(max-width: 860px) 92vw, (max-width: 1660px) 38vw, 
 export const MOSAIK_SIZES_VIER = "(max-width: 860px) 92vw, (max-width: 1660px) 29vw, 460px";
 
 /**
- * `sizes` für das Hero-Standbild der Startseite.
+ * `sizes` für ein Hero — **je Bild**, auf der Startseite (`"start"`) und
+ * auf `/foto` (`"foto"`).
  *
- * Randlos über die volle Fensterbreite, mit `object-fit: cover` über
- * `100svh`. Die gerenderte Breite ist die Fensterbreite, deshalb reicht hier
- * tatsächlich `100vw`.
+ * Beide Heros sind randlos und hoch, das Bild füllt sie mit `object-fit:
+ * cover`. Gerendert wird es deshalb so breit wie das **Größere** aus
+ * Fensterbreite und Hero-Höhe mal Seitenverhältnis. Bis 2026-10-15 stand hier
+ * pauschal `100vw` — am PC richtig, am Telefon nicht: Ein 3:2-Querformat im
+ * 844px hohen Start-Hero ist rund 1270px breit, auf einem 390px-Bildschirm.
+ * Mit `100vw` lud der Browser die 1200er-Stufe für 3800 Gerätepixel, und das
+ * Bild war unscharf.
  *
- * ⚠️ Das ist kein Rückfall auf den Standardwert, sondern die richtige Angabe
- * für ein randloses Bild. Auf einem Retina-Schirm fordert der Browser damit
- * über 2400px an — die Quelle muss also breit genug sein, siehe die Zeile
- * „Breite der Quelle" in design/UI-SPEC.md.
+ * Höhen wie im CSS (`page.module.css`, `foto.module.css`), mit `vh` statt
+ * `svh` und ohne Topbar-Abzug — das schätzt leicht nach oben, nie nach unten.
+ * Kennt ein Browser `max()` in `sizes` nicht, gilt der Wert als ungültig und
+ * er rechnet mit `100vw`, dem alten Stand.
  */
-export const HERO_SIZES = "100vw";
+export function heroSizes(quelle: Bildquelle, ort: "start" | "foto"): string {
+  const r = (quelle.breite / quelle.hoehe).toFixed(3);
+  /* Hero mindestens 420px hoch (`min-height` in beiden Dateien). */
+  const fensterhoch = `max(100vw, calc(100vh * ${r}), calc(420px * ${r}))`;
+  if (ort === "start") return fensterhoch;
+  /* `/foto` am Telefon: höchstens 4:5, also 125vw hoch. */
+  return `(max-width: 700px) max(100vw, calc(min(100vh, 125vw) * ${r})), ${fensterhoch}`;
+}
 
 /**
  * `sizes` für ein Film-Standbild auf `/film`.

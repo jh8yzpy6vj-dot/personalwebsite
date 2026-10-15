@@ -12,7 +12,7 @@ import {
   SITE,
   WEGE,
 } from "@/lib/content";
-import { HERO_SIZES, ausschnittAus, bild } from "@/lib/bilder";
+import { ausschnittAus, bild, heroSizes } from "@/lib/bilder";
 import { heroVideo } from "@/lib/video";
 import { filmeMitStandbild, fotosFuerMosaik } from "@/lib/arbeiten";
 
@@ -67,7 +67,7 @@ export default function Home() {
               className={styles.heroMedium}
               quelle={standbild}
               alt={HERO_ALT ?? ""}
-              sizes={HERO_SIZES}
+              sizes={heroSizes(standbild, "start")}
               ausschnitt={ausschnittAus("hero/standbild")}
               vorrang
             />
@@ -76,7 +76,7 @@ export default function Home() {
               className={styles.heroMedium}
               quelle={ersatz.quelle}
               alt={ersatz.alt}
-              sizes={HERO_SIZES}
+              sizes={heroSizes(ersatz.quelle, "start")}
               ausschnitt={ersatz.ausschnitt}
               vorrang
             />

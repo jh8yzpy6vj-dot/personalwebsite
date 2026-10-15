@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Bild from "./Bild";
-import { HERO_SIZES, type Bildquelle } from "@/lib/bilder";
+import { heroSizes, type Bildquelle } from "@/lib/bilder";
 import styles from "./Blende.module.css";
 
 /**
@@ -289,7 +289,7 @@ export default function Blende({ bilder, alt }: Props) {
                  liegen unsichtbar darunter und wären als Wiederholung
                  desselben Alt-Textes nur Lärm im Screenreader. */
               alt={i === index ? (bilder[i].alt ?? alt) : ""}
-              sizes={HERO_SIZES}
+              sizes={heroSizes(bilder[i].quelle, "foto")}
               vorrang={i === 0}
             />
           </div>
@@ -333,7 +333,7 @@ export default function Blende({ bilder, alt }: Props) {
               <img
                 src={bilder[naechster].quelle.fallback}
                 srcSet={bilder[naechster].quelle.webp}
-                sizes={HERO_SIZES}
+                sizes={heroSizes(bilder[naechster].quelle, "foto")}
                 alt=""
                 style={{
                   width: `${(100 / b) * 100}%`,
