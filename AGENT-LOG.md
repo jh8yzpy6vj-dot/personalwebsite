@@ -6,6 +6,20 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-15 — „Tödliches Gold" wieder eingetragen
+
+Jan hat die drei fehlenden Y-Kollektiv-Aufnahmen geschickt (Ghana: Schmelzer mit Brenner,
+Arbeiter an der Pumpe, Porträt in der Grube). Eintrag `toedliches-gold` wieder in `FOTOS`
+(journalismus), Startbild = Schmelzer, Szenenbeschreibungen von Claude (nicht freigegeben).
+
+⚠️ **Noch nicht sichtbar:** kein R2-Zugang in der Sitzung, und die Bilder kamen per Chat auf
+2000 px verkleinert an — hochgeladen werden sollen die Originale. Anleitung bei Jan in `TODO.md`;
+der Upload überschreibt den alten Goldbarren unter demselben Namen, das separate Löschen entfällt.
+
+Geprüft: `npm test`, Lint, Typecheck.
+
+---
+
 ## 2026-10-15 — Mosaik auf `/foto` vierspaltig, STRG_F und Tagesthemen freigegeben
 
 Jakobs Rückmeldung auf den Umbau: „Die Foto seite ist richtig geil geworden" — und: „kannst du mal

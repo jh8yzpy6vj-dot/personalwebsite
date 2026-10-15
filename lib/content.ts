@@ -284,14 +284,27 @@ export const FOTOS: Fotoarbeit[] = [
   },
 
   // ── journalismus ─────────────────────────────────────────────────────
-  /*
-   * ⚠️ **„Tödliches Gold" (Y-Kollektiv/ARD) am 2026-10-14 herausgenommen.**
-   * Bis dahin stand hier ein gezeichneter Goldbarren als Platzhalter — mit
-   * dem Umbau zu einem Mosaik ohne Detailseiten fiel er weg (Jan). Kommt
-   * zurück, sobald Jakob die drei Aufnahmen schickt: Eintrag mit
-   * `kategorie: "journalismus"` hier, Bilder nach `original/arbeiten/
-   * toedliches-gold/NN.jpg`.
-   */
+  {
+    id: "toedliches-gold",
+    kategorie: "journalismus",
+    titel: "Tödliches Gold",
+    kunde: "Y-Kollektiv/ARD",
+    /*
+     * Die drei Aufnahmen aus Jakobs Liste (Ghana), am 2026-10-15 nachgereicht.
+     * Reihenfolge so, wie Jan sie geschickt hat: Schmelzer = Startbild, dann
+     * Arbeiter an der Pumpe, dann das Porträt. ⚠️ Erscheint erst, wenn die
+     * Bilder im Bucket liegen (TODO.md, Jan). Bis 2026-10-14 stand hier ein
+     * gezeichneter Goldbarren als Platzhalter.
+     *
+     * ⚠️ Szenenbeschreibungen von Claude, **nicht von Jakob freigegeben**.
+     */
+    alt: {
+      leitbild:
+        "Ein Mann mit Mundschutz und Sonnenbrille auf der Stirn schmilzt mit einem Brenner Gold in einer kleinen Schale, daneben ein dunkler Barren",
+      "01": "Ein Arbeiter in schlammverschmierter Kleidung steht von hinten gesehen, die Hände in den Hüften, neben einer Pumpe in einer aufgewühlten Lehmgrube",
+      "02": "Ein Arbeiter mit verschränkten Armen, Gesicht und Arme voller Staub, steht in einer Grube zwischen Erdwänden und orangefarbenen Rohren",
+    },
+  },
   /*
    * STRG_F und Tagesthemen: am 2026-10-14 offline genommen (Interviewpartner
    * im Bild, Rechte ungeklärt), am 2026-10-15 von Jakob freigegeben
