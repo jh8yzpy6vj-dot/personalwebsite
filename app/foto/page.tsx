@@ -54,7 +54,7 @@ export default function Foto() {
           {bilder.length > 0 ? (
             /* Alle Bilder, nach Kategorie geordnet, unbeschnitten; jedes
                öffnet groß. Keine Zwischenüberschriften. */
-            <Mosaik bilder={bilder} />
+            <Mosaik bilder={bilder} spaltenMax={4} />
           ) : (
             <p className={styles.leer}>Fotos folgen.</p>
           )}

@@ -3,13 +3,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import Bild from "./Bild";
-import { MOSAIK_SIZES, kastenSizes } from "@/lib/bilder";
+import { MOSAIK_SIZES, MOSAIK_SIZES_VIER, kastenSizes } from "@/lib/bilder";
 import type { Mosaikbild } from "@/lib/arbeiten";
 import styles from "./Mosaik.module.css";
 
 type Props = {
   /** Alle Bilder der Seite, in Anzeigereihenfolge (lib/arbeiten.ts). */
   bilder: Mosaikbild[];
+  /**
+   * Höchstens so viele Spalten. Standard drei; `/foto` nimmt seit dem
+   * 2026-10-15 vier — Jakob: „die Bilder noch nen Ticken kleiner". Unter
+   * 860px bleibt es in beiden Fällen bei einer Spalte.
+   */
+  spaltenMax?: 3 | 4;
 };
 
 /** Wie viele Bilder sofort laden — der Rest lädt, wenn er in die Nähe kommt. */
@@ -96,7 +102,7 @@ function entsperren(sperre: Sperre) {
   window.scrollTo(0, sperre.hoehe);
 }
 
-export default function Mosaik({ bilder }: Props) {
+export default function Mosaik({ bilder, spaltenMax = 3 }: Props) {
   const [offen, setOffen] = useState<number | null>(null);
   /* Alle Kacheln, nach Bildnummer — Ziel des Übergangs beim Schließen. */
   const kacheln = useRef<(HTMLAnchorElement | null)[]>([]);
@@ -208,13 +214,13 @@ export default function Mosaik({ bilder }: Props) {
    * Mehrspaltensatz des Browsers (`column-count`) nicht.
    */
   /*
-   * Höchstens drei Spalten, aber nie mehr als Bilder. Bei nur einem oder zwei
+   * Höchstens drei (oder vier) Spalten, aber nie mehr als Bilder. Bei nur einem oder zwei
    * Bildern (so auf den Detailseiten vom 2026-10-14) stünde in drei Spalten
    * ein einzelnes Bild links in einem Drittel und daneben
    * gähnende Leere. Weniger Spalten heißt hier auch: schmaler, sonst stünde
    * ein Hochformat 1600px breit und damit 2400px hoch da.
    */
-  const zahl = Math.min(3, bilder.length);
+  const zahl = Math.min(spaltenMax, bilder.length);
   const spalten: { bild: Mosaikbild; i: number }[][] = Array.from({ length: zahl }, () => []);
   bilder.forEach((bild, i) => spalten[i % spalten.length].push({ bild, i }));
   const breite = zahl === 1 ? styles.eineSpalte : zahl === 2 ? styles.zweiSpalten : "";
@@ -269,7 +275,7 @@ export default function Mosaik({ bilder }: Props) {
                     className={styles.bild}
                     quelle={bild.quelle}
                     alt={bild.alt}
-                    sizes={MOSAIK_SIZES}
+                    sizes={zahl === 4 ? MOSAIK_SIZES_VIER : MOSAIK_SIZES}
                     vorrang={i < SOFORT}
                   />
                   {/* Für Sehende beim Überfahren. Vorgelesen wird sie nicht —

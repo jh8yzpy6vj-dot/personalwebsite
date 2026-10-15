@@ -101,6 +101,13 @@ export function sparsamesSrcset(
 export const MOSAIK_SIZES = "(max-width: 860px) 92vw, (max-width: 1660px) 38vw, 600px";
 
 /**
+ * Dasselbe für vier Spalten (`/foto` seit 2026-10-15, Gewichte 1.18 / 0.9 /
+ * 1.12 / 0.96): Die breiteste ist 1.18 / 4.16 ≈ 28 % der Breite, also `29vw`,
+ * höchstens rund 460px. Umbruch bei 860px wie oben.
+ */
+export const MOSAIK_SIZES_VIER = "(max-width: 860px) 92vw, (max-width: 1660px) 29vw, 460px";
+
+/**
  * `sizes` für das Hero-Standbild der Startseite.
  *
  * Randlos über die volle Fensterbreite, mit `object-fit: cover` über

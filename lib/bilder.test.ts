@@ -246,8 +246,8 @@ describe("Mosaik", () => {
      */
     const gewichte = [...css.matchAll(/\.spalte:nth-child\(\d\)\s*\{\s*flex:\s*([\d.]+)/g)]
       .map((t) => Number(t[1]));
-    expect(gewichte).toHaveLength(3);
-    expect(new Set(gewichte).size, "alle drei Gewichte verschieden").toBe(3);
+    expect(gewichte).toHaveLength(4);
+    expect(new Set(gewichte).size, "alle Gewichte verschieden").toBe(4);
   });
 
   it("stellt die Dateireihenfolge her, wenn die Spalten fallen", async () => {
@@ -260,11 +260,12 @@ describe("Mosaik", () => {
   });
 
   it("hält sizes und den Spaltenumbruch auf derselben Breite", async () => {
-    const { MOSAIK_SIZES } = await import("./bilder");
+    const { MOSAIK_SIZES, MOSAIK_SIZES_VIER } = await import("./bilder");
     const css = await lies("../app/components/Mosaik.module.css");
     // Laufen sie auseinander, lädt der Browser stillschweigend die falsche
     // Stufe — niemand bekommt einen Fehler, es kostet nur Bytes oder Schärfe.
     expect(MOSAIK_SIZES).toContain("(max-width: 860px)");
+    expect(MOSAIK_SIZES_VIER).toContain("(max-width: 860px)");
     expect(css).toContain("@media (max-width: 860px)");
   });
 

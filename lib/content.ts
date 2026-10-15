@@ -293,12 +293,24 @@ export const FOTOS: Fotoarbeit[] = [
    * toedliches-gold/NN.jpg`.
    */
   /*
-   * ⚠️ **STRG_F (NDR/ARD für funk) und Tagesthemen (ARD/SWR) am 2026-10-14
-   * offline genommen** — Jan: „nimm hier bitte schnell die personenbilder
-   * offline". Beide zeigen Interviewpartner aus Beiträgen; ob die Bilder auf
-   * Jakobs Seite dürfen, ist ungeklärt. Auch aus dem Bucket gelöscht, die
-   * Kameradateien liegen bei Jakob. Zurück nur nach Klärung der Bildrechte.
+   * STRG_F und Tagesthemen: am 2026-10-14 offline genommen (Interviewpartner
+   * im Bild, Rechte ungeklärt), am 2026-10-15 von Jakob freigegeben
+   * („STRG_F geht klar … der andere … geht klar"). ⚠️ Die Bilder wurden aus
+   * dem Bucket gelöscht und müssen neu hochgeladen werden (TODO.md, Jan) —
+   * bis dahin erscheinen die beiden nicht (kein Bild, keine Kachel).
    */
+  {
+    id: "strg-f",
+    kategorie: "journalismus",
+    titel: "STRG_F",
+    kunde: "NDR/ARD für funk",
+  },
+  {
+    id: "tagesthemen",
+    kategorie: "journalismus",
+    titel: "Tagesthemen",
+    kunde: "ARD/SWR",
+  },
 ];
 
 /**

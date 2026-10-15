@@ -57,6 +57,8 @@
 .spalte:nth-child(1) { flex: 1.18 1 0; }
 .spalte:nth-child(2) { flex: 0.9 1 0; }
 .spalte:nth-child(3) { flex: 1.12 1 0; }
+/* Nur auf `/foto` (seit 2026-10-15): eine vierte, wieder anders breit. */
+.spalte:nth-child(4) { flex: 0.96 1 0; }
 
 /* Weniger Bilder, weniger Breite (Mosaik.tsx): ein Bild in einer
    Lesespalte, zwei nebeneinander in der Breite von `/ueber`. */

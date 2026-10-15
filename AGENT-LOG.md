@@ -6,6 +6,26 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-15 — Mosaik auf `/foto` vierspaltig, STRG_F und Tagesthemen freigegeben
+
+Jakobs Rückmeldung auf den Umbau: „Die Foto seite ist richtig geil geworden" — und: „kannst du mal
+versuchen die Bilder noch nen Ticken kleiner zu machen, aber nur wenn es kein riesen aufwand ist."
+Außerdem: „STRG_F geht klar und der andere [Tagesthemen] … geht klar."
+
+- **Vier statt drei Spalten auf `/foto`** (`spaltenMax={4}` am Mosaik, Gewicht der vierten 0.96,
+  eigenes `MOSAIK_SIZES_VIER`). `/ueber` bleibt bei drei. Gemessen bei 1440 px: Spalten 282–370 px
+  statt rund 380–500 px; bei 1000 px 187–245 px. **Unter 860 px unverändert eine Spalte** — am
+  Telefon werden die Bilder also nicht kleiner. Wenn Jakob das am Telefon meinte, wären zwei
+  Spalten dort der nächste Schritt (dann mit Layout-Wechsel nach dem Laden).
+- **STRG_F und Tagesthemen** wieder in `FOTOS`. Sie erscheinen erst, wenn die Bilder neu im Bucket
+  liegen — gelöscht am 2026-10-14, in dieser Sitzung weder Dateien noch R2-Zugang. Anleitung bei
+  Jan in `TODO.md`. Der Punkt „Bildrechte klären" ist damit erledigt.
+
+Geprüft: `npm test` (69), Lint, Typecheck, `next build`, `cf:build`, im Worker bei 1440/1000/375 px
+kein Überlauf, keine Skriptfehler, 32 Kacheln.
+
+---
+
 ## 2026-10-14 (abends) — `/foto` umgebaut: Hero mit Blende + ein Mosaik, keine Detailseiten
 
 Jakobs Rückmeldung auf den Stand von mittags: **keine Detailseiten, keine Kategorie-Kacheln**,
