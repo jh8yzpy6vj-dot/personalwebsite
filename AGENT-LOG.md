@@ -6,6 +6,28 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-16 — Hero von `/foto`: Pfeile am PC, Striche anklickbar
+
+Jan: „am pc will ich dass man links und rechts im hero bei fotos die möglichkeit hat weiter zu
+klicken mit pfeil und auch, das die balken für die einzelnen bilder unter 1/7 anklickbar sind".
+
+- **Erst der Vertrag** (`design/UI-SPEC.md`, *`/foto`* → Hero, und *Motion* → „Blende —
+  Wischen, Pfeile, Striche").
+- **Pfeile** ‹ › links und rechts in halber Höhe, in derselben Form wie im Lichtkasten. Es gibt
+  sie nur unter `(hover: hover) and (pointer: fine)`, und sie erscheinen beim Überfahren des Heros
+  oder bei Tastaturfokus. Auf Touch fehlen sie (`display: none`), dort wischt man.
+- **Striche** sind jetzt Knöpfe mit 24×24px Trefferfläche, der Strich darin bleibt 17×2px. Mit
+  negativen Rändern stehen Zähler und Pause-Knopf wie vorher. `aria-label` „Bild n von m“, der
+  aktive trägt `aria-current`. Die Striche wirken auch am Handy.
+- `Blende.tsx`: `wechsle(±1)` ruft jetzt `gehe(ziel)` auf. Das gilt für Wisch, Pfeil und Strich
+  gleich: Überblendung, laufende Blende bricht ab, Standzeit beginnt neu. Beim Überfahren werden
+  die Nachbarbilder geladen, beim Überfahren eines Strichs sein Bild.
+- Geprüft: Klick auf „zurück“ mitten in der Blende 7 → 1 ergibt 6 und bleibt dort, die alte
+  Blende ist also wirklich abgebrochen. Strich 5 springt auf 5/7. Am Handy-Viewport sind die
+  Pfeile ausgeblendet und die Striche antippbar.
+
+---
+
 ## 2026-10-16 — Hero von `/foto`: am Handy wischen
 
 Jan: „am handy soll man swipen können nach links und rechts in der hero section wenn mehrere

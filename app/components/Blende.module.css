@@ -203,17 +203,98 @@
   text-shadow: 0 1px 12px rgba(0, 0, 0, 0.9);
 }
 
+/*
+ * Jeder Strich ist ein Knopf (seit 2026-10-16): Trefferfläche 24×24px, der
+ * sichtbare Strich darin 17×2px. Die negativen Ränder nehmen die größere
+ * Fläche wieder aus dem Satz — Zähler und Pause-Knopf stehen wie vorher,
+ * die Striche bündig rechts.
+ */
 .striche {
   display: flex;
-  gap: 5px;
+  margin: -11px -3.5px;
 }
 
-.striche span {
-  display: block;
-  width: 17px;
+.strich {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.strich::before {
+  content: "";
+  position: absolute;
+  left: 3.5px;
+  right: 3.5px;
+  top: 11px;
   height: 2px;
   background: rgba(255, 255, 255, 0.32);
 }
+
+.strich:focus-visible {
+  outline: 2px solid var(--schrift);
+  outline-offset: -2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .strich:hover::before {
+    background: rgba(255, 255, 255, 0.7);
+  }
+}
+
+/*
+ * Zurück und weiter (seit 2026-10-16), Form wie im Lichtkasten. ⚠️ Nur mit
+ * echtem Zeigegerät — auf Touch wischt man, und dort gäbe es kein
+ * Überfahren, das sie wieder verschwinden ließe.
+ */
+.pfeil {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pfeil {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(14, 14, 16, 0.6);
+    color: var(--schrift);
+    font-family: var(--font-text);
+    font-size: var(--text-body);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 120ms ease;
+  }
+
+  .buehne:hover .pfeil,
+  .pfeil:focus-visible {
+    opacity: 1;
+  }
+
+  .pfeil:hover {
+    background: rgba(14, 14, 16, 0.85);
+  }
+
+  .pfeil:focus-visible {
+    outline: 2px solid var(--schrift);
+    outline-offset: 2px;
+  }
+}
+
+.zurueck { left: var(--space-lg); }
+.vor { right: var(--space-lg); }
 
 /* Anhalten (WCAG 2.2.2) — gleiche Form wie der Pause-Knopf am Hero-Video. */
 .knopf {
@@ -250,7 +331,7 @@
 
 /* Weiß, nicht Rot: Rot ist seit dem Umbau allein dem ●REC vorbehalten
    (UI-SPEC, „Farbe"). Vor dem 2026-10-08 stand hier `--rec`. */
-.striche .an {
+.strich.an::before {
   background: var(--schrift);
 }
 

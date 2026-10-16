@@ -275,39 +275,43 @@ export default function Blende({ bilder, alt }: Props) {
     };
   }, [anzahl, mehrere]);
 
+  /* Hängt Bilder ins Dokument, damit sie laden — sichtbar werden sie erst
+     über ihre Rolle. */
+  const hole = (...welche: number[]) =>
+    setGemountet((m) => {
+      const dazu = welche.filter((i, k) => !m.includes(i) && welche.indexOf(i) === k);
+      return dazu.length ? [...m, ...dazu] : m;
+    });
+
   /*
-   * Ein Wisch: sofort aufs Nachbarbild, das alte blendet darüber aus
-   * (`.geht`). Keine Blockblende — die zeigt immer das **nächste** Bild,
-   * und rückwärts müsste sie ein anderes aufdecken als das, auf das sie
-   * vorbereitet ist. Im Kreis wie der Takt.
+   * Ein Wisch, ein Pfeil oder ein Strich: sofort aufs Ziel, das alte Bild
+   * blendet darüber aus (`.geht`). Keine Blockblende — die zeigt immer das
+   * **nächste** Bild, und rückwärts oder beim Springen müsste sie ein
+   * anderes aufdecken als das, auf das sie vorbereitet ist.
    */
-  const wechsle = (schritt: 1 | -1) => {
+  const gehe = (ziel: number) => {
     const jetzt = stand.current.index;
-    const ziel = (jetzt + schritt + anzahl) % anzahl;
+    if (ziel === jetzt) return;
     /* Leeren, nicht ersetzen: Das Aufräumen des Effekts hält dasselbe Feld. */
     zeitgeber.current.splice(0).forEach(clearTimeout);
     setPhase("still");
     setVorher(jetzt);
     setIndex(ziel);
     /* Das Ziel und dessen Nachfolger — der Takt blendet als Nächstes dorthin. */
-    setGemountet((m) => {
-      const dazu = [ziel, (ziel + 1) % anzahl].filter((i) => !m.includes(i));
-      return dazu.length ? [...m, ...dazu] : m;
-    });
+    hole(ziel, (ziel + 1) % anzahl);
     zeitgeber.current.push(setTimeout(() => setVorher(null), AUFDECK_MS + 60));
     neuerTakt.current?.();
   };
 
-  /* Beide Nachbarn schon beim Aufsetzen des Fingers holen — so hat das
-     Bild die Dauer der Geste als Vorsprung. */
+  /* Vor oder zurück, im Kreis wie der Takt. */
+  const wechsle = (schritt: 1 | -1) =>
+    gehe((stand.current.index + schritt + anzahl) % anzahl);
+
+  /* Beide Nachbarn schon beim Aufsetzen des Fingers bzw. beim Überfahren
+     holen — so hat das Bild die Dauer der Geste als Vorsprung. */
   const holeNachbarn = () => {
     const jetzt = stand.current.index;
-    setGemountet((m) => {
-      const dazu = [(jetzt + 1) % anzahl, (jetzt - 1 + anzahl) % anzahl].filter(
-        (i) => !m.includes(i),
-      );
-      return dazu.length ? [...m, ...dazu] : m;
-    });
+    hole((jetzt + 1) % anzahl, (jetzt - 1 + anzahl) % anzahl);
   };
 
   /*
@@ -333,6 +337,7 @@ export default function Blende({ bilder, alt }: Props) {
        * senkrecht scrollt die Seite weiter, `touch-action` im CSS
        * überlässt uns nur die Waagerechte.
        */
+      onMouseEnter={mehrere ? holeNachbarn : undefined}
       onTouchStart={
         mehrere
           ? (e) => {
@@ -450,6 +455,30 @@ export default function Blende({ bilder, alt }: Props) {
         </div>
       )}
 
+      {/* Zurück und weiter mit der Maus. Das CSS zeigt sie nur mit echtem
+          Zeigegerät, beim Überfahren oder bei Tastaturfokus; auf Touch
+          wischt man. */}
+      {mehrere && (
+        <>
+          <button
+            type="button"
+            className={`${styles.pfeil} ${styles.zurueck}`}
+            onClick={() => wechsle(-1)}
+            aria-label="Vorheriges Bild"
+          >
+            <span aria-hidden="true">‹</span>
+          </button>
+          <button
+            type="button"
+            className={`${styles.pfeil} ${styles.vor}`}
+            onClick={() => wechsle(1)}
+            aria-label="Nächstes Bild"
+          >
+            <span aria-hidden="true">›</span>
+          </button>
+        </>
+      )}
+
       {/* Wo man in der Folge steht. Ohne das wirkt ein wechselndes Hero wie
           ein Fehler statt wie eine Strecke. */}
       {mehrere && (
@@ -457,9 +486,20 @@ export default function Blende({ bilder, alt }: Props) {
           <span className={styles.zaehlerText}>
             {index + 1} / {anzahl}
           </span>
-          <span className={styles.striche} aria-hidden="true">
+          {/* Jeder Strich springt zu seinem Bild (seit 2026-10-16). Die
+              Trefferfläche ist größer als der Strich — 17×2px trifft
+              niemand. */}
+          <span className={styles.striche}>
             {bilder.map((_, i) => (
-              <span key={i} className={i === index ? styles.an : undefined} />
+              <button
+                key={i}
+                type="button"
+                className={`${styles.strich}${i === index ? ` ${styles.an}` : ""}`}
+                onClick={() => gehe(i)}
+                onMouseEnter={() => hole(i)}
+                aria-label={`Bild ${i + 1} von ${anzahl}`}
+                aria-current={i === index ? "true" : undefined}
+              />
             ))}
           </span>
           {bewegt && (
