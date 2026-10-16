@@ -6,6 +6,33 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-16 — Mosaik verbuggt: Spalten endeten bis zu 1200px versetzt
+
+Jan: „schau dir die bilder anordnung selbst an. sie ist verbuggt".
+
+**Befund:** `/foto` bei 1440px. Die vier Spalten waren 3641 / 2788 / 4006 / 2929 px hoch.
+Spalte 3 lief also gut 1200px länger als Spalte 2, und unten stand sie mehrere Bilder lang
+allein neben leerer Fläche.
+
+**Ursache:** Die Verteilung lief stur reihum (Bild 4 → Spalte 1 usw.) und ignorierte die
+Bildformate. Wo sich die Hochformate zufällig in einer Spalte sammelten, wurde sie entsprechend
+länger.
+
+- **Erst der Vertrag** (`design/UI-SPEC.md`, „Mosaik" und „Mosaik — warum so"): jedes Bild
+  in die **jeweils kürzeste Spalte**, gerechnet beim Rendern aus Seitenverhältnis und
+  Spaltengewicht. Die erste Reihe liest sich weiter 1-2-3(-4), am Telefon gilt weiter `order`.
+- Neu: **`lib/mosaik.ts`** mit `verteile()` und `GEWICHTE`. Die Gewichte stehen jetzt dort statt
+  als `nth-child` im CSS, weil die Verteilung mit ihnen rechnet. `Mosaik.tsx` setzt sie je Spalte
+  als `flex`. Im Browser läuft dafür kein Skript.
+- Gemessen danach: 3335 / 3266 / 3280 / 3437 px bei 1440px (Abstand ~170px statt ~1200px),
+  bei 1100px und 900px ähnlich. `/ueber` unverändert sinnvoll. Am Telefon stimmt die
+  Reihenfolge aller 32 Bilder.
+- Tests: Die zwei Quelltext-Tests (reihum-Zeile, `nth-child`-Gewichte) sind durch
+  Verhaltenstests an `verteile()` ersetzt. Dazu ein neuer Test, der verlangt, dass die
+  Spaltenenden weniger als eine Hochformathöhe auseinanderliegen. Mit reihum schlägt er fehl.
+
+---
+
 ## 2026-10-15 — Goldbarren noch sichtbar: Fingerabdruck jetzt auch im `srcset`
 
 Jan: „wo kann ich den cache clearen im r2, das goldbarren bild ist noch da".

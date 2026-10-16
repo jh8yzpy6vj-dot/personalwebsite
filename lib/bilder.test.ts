@@ -237,23 +237,43 @@ describe("Mosaik", () => {
    * mischen von selbst. Wer hier auf `flex` zurückbaut, baut den Fehler
    * zurück.
    */
-  it("verteilt reihum, nicht spaltenweise", async () => {
-    const tsx = await lies("../app/components/Mosaik.tsx");
-    // Spaltenweise gefüllt läse sich die obere Reihe 1-3-5 statt 1-2-3.
-    expect(tsx).toContain("spalten[i % spalten.length].push");
+  it("verteilt reihenweise, nicht spaltenweise", async () => {
+    const { GEWICHTE, verteile } = await import("./mosaik");
+    const quer = { quelle: { breite: 3, hoehe: 2 } };
+    const spalten = verteile(Array(8).fill(quer), GEWICHTE);
+    // Spaltenweise gefüllt läse sich die obere Reihe 1-3-5 statt 1-2-3-4.
+    expect(spalten.map((s) => s[0].i)).toEqual([0, 1, 2, 3]);
+  });
+
+  it("hält die Spaltenenden beisammen", async () => {
+    const { GEWICHTE, verteile } = await import("./mosaik");
+    /*
+     * ⚠️ Bis 2026-10-16 stur reihum: Landeten die Hochformate zufällig in
+     * derselben Spalte, lief sie über 1000px länger als die Nachbarn. Hier
+     * jedes vierte Bild ein Hochformat — reihum kämen alle in Spalte 1.
+     */
+    const bilder = Array.from({ length: 24 }, (_, i) =>
+      i % 4 === 0 ? { quelle: { breite: 2, hoehe: 3 } } : { quelle: { breite: 3, hoehe: 2 } },
+    );
+    const summe = GEWICHTE.reduce((a, b) => a + b, 0);
+    const hoehen = verteile(bilder, GEWICHTE).map((s, k) =>
+      s.reduce((h, { bild }) => h + (GEWICHTE[k] / summe) * (bild.quelle.hoehe / bild.quelle.breite), 0),
+    );
+    const hochformat = (Math.max(...GEWICHTE) / summe) * 1.5;
+    expect(Math.max(...hoehen) - Math.min(...hoehen)).toBeLessThan(hochformat);
   });
 
   it("gibt den Spalten ungleiche Breiten", async () => {
-    const css = await lies("../app/components/Mosaik.module.css");
+    const { GEWICHTE } = await import("./mosaik");
+    const tsx = await lies("../app/components/Mosaik.tsx");
     /*
      * ⚠️ Der eigentliche Hebel. Bei gleich breiten Spalten stehen fünf
      * Hochformate wieder gleich hoch nebeneinander — ein Raster, nur
      * anders sortiert. Jan zur ersten Fassung: „das ist kein mosaik."
      */
-    const gewichte = [...css.matchAll(/\.spalte:nth-child\(\d\)\s*\{\s*flex:\s*([\d.]+)/g)]
-      .map((t) => Number(t[1]));
-    expect(gewichte).toHaveLength(4);
-    expect(new Set(gewichte).size, "alle Gewichte verschieden").toBe(4);
+    expect(GEWICHTE).toHaveLength(4);
+    expect(new Set(GEWICHTE).size, "alle Gewichte verschieden").toBe(4);
+    expect(tsx).toContain("flex: `${GEWICHTE[s]} 1 0`");
   });
 
   it("stellt die Dateireihenfolge her, wenn die Spalten fallen", async () => {

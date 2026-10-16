@@ -19,11 +19,11 @@
  * fünf Hochformate wieder gleich hoch nebeneinander; der erste Versuch
  * mit `column-count: 3` sah im Screenshot aus wie ein 3×2-Raster.
  *
- * Die Verteilung läuft **reihum** (Bild 1 in Spalte 1, Bild 2 in Spalte
- * 2, …), nicht spaltenweise. Damit liest sich die obere Reihe 1-2-3 statt
- * 1-3-5. Der Browser-eigene Mehrspaltensatz (`column-count`) kann das
- * nicht — er füllt Spalte für Spalte — und war der zweite Grund, hier auf
- * eigene Spalten umzustellen.
+ * Die Verteilung läuft reihenweise in die jeweils kürzeste Spalte
+ * (`verteile` in Mosaik.tsx), nicht spaltenweise. Damit liest sich die
+ * obere Reihe 1-2-3 statt 1-3-5. Der Browser-eigene Mehrspaltensatz
+ * (`column-count`) kann das nicht — er füllt Spalte für Spalte — und war
+ * der zweite Grund, hier auf eigene Spalten umzustellen.
  */
 
 .mosaik {
@@ -54,11 +54,8 @@
   gap: var(--space-lg);
 }
 
-.spalte:nth-child(1) { flex: 1.18 1 0; }
-.spalte:nth-child(2) { flex: 0.9 1 0; }
-.spalte:nth-child(3) { flex: 1.12 1 0; }
-/* Nur auf `/foto` (seit 2026-10-15): eine vierte, wieder anders breit. */
-.spalte:nth-child(4) { flex: 0.96 1 0; }
+/* Die Gewichte (1.18 / 0.9 / 1.12, auf `/foto` dazu 0.96) setzt Mosaik.tsx
+   je Spalte als `flex` — dort rechnet auch die Verteilung mit ihnen. */
 
 /* Weniger Bilder, weniger Breite (Mosaik.tsx): ein Bild in einer
    Lesespalte, zwei nebeneinander in der Breite von `/ueber`. */

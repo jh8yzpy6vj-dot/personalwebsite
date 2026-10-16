@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import Bild from "./Bild";
 import { MOSAIK_SIZES, MOSAIK_SIZES_VIER, kastenSizes } from "@/lib/bilder";
+import { GEWICHTE, verteile } from "@/lib/mosaik";
 import type { Mosaikbild } from "@/lib/arbeiten";
 import styles from "./Mosaik.module.css";
 
@@ -208,12 +209,6 @@ export default function Mosaik({ bilder, spaltenMax = 3 }: Props) {
   const bildImKasten = offen === null ? null : bilder[offen];
 
   /*
-   * Reihum verteilt, nicht spaltenweise: Bild 1 in Spalte 1, Bild 2 in
-   * Spalte 2, Bild 3 in Spalte 3, Bild 4 wieder in Spalte 1. Damit liest
-   * sich die obere Reihe 1-2-3 statt 1-3-5. Genau das kann der
-   * Mehrspaltensatz des Browsers (`column-count`) nicht.
-   */
-  /*
    * Höchstens drei (oder vier) Spalten, aber nie mehr als Bilder. Bei nur einem oder zwei
    * Bildern (so auf den Detailseiten vom 2026-10-14) stünde in drei Spalten
    * ein einzelnes Bild links in einem Drittel und daneben
@@ -221,8 +216,7 @@ export default function Mosaik({ bilder, spaltenMax = 3 }: Props) {
    * ein Hochformat 1600px breit und damit 2400px hoch da.
    */
   const zahl = Math.min(spaltenMax, bilder.length);
-  const spalten: { bild: Mosaikbild; i: number }[][] = Array.from({ length: zahl }, () => []);
-  bilder.forEach((bild, i) => spalten[i % spalten.length].push({ bild, i }));
+  const spalten = verteile(bilder, GEWICHTE.slice(0, zahl));
   const breite = zahl === 1 ? styles.eineSpalte : zahl === 2 ? styles.zweiSpalten : "";
 
   return (
@@ -236,7 +230,12 @@ export default function Mosaik({ bilder, spaltenMax = 3 }: Props) {
       */}
       <div className={`${styles.mosaik} ${breite}`} role="list">
         {spalten.map((spalte, s) => (
-          <div key={s} className={styles.spalte} role="presentation">
+          <div
+            key={s}
+            className={styles.spalte}
+            role="presentation"
+            style={{ flex: `${GEWICHTE[s]} 1 0` }}
+          >
             {spalte.map(({ bild, i }) => (
               <div
                 role="listitem"
