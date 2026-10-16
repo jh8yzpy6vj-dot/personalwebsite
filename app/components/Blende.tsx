@@ -38,6 +38,15 @@ const AUFDECK_MS = 420;
 const DAUER_MS = BLOCK_MS + AUFDECK_MS;
 
 /**
+ * Wischen auf Touch (seit 2026-10-16, Jan: „am handy soll man swipen
+ * können"). Ab so vielen Pixeln waagerecht zählt es — und nur, wenn die
+ * Geste um diesen Faktor waagerechter als senkrecht ist. Sonst schaltete
+ * jedes etwas schräge Scrollen das Bild weiter.
+ */
+const WISCH_PX = 40;
+const WISCH_FAKTOR = 1.5;
+
+/**
  * Die drei Flächen der Blockblende, als Prozent des Heros:
  * `[links, oben, breite, höhe]`.
  *
@@ -148,10 +157,22 @@ export default function Blende({ bilder, alt }: Props) {
   const bewegt =
     useSyncExternalStore(abonniereBewegung, darfBewegen, () => false) && bilder.length > 1;
 
+  /* Das Bild, das nach einem Wisch über dem neuen ausblendet — `null`,
+     sobald es weg ist. */
+  const [vorher, setVorher] = useState<number | null>(null);
+
   const heroRef = useRef<HTMLDivElement>(null);
   /* Der Takt liest den Zustand, soll aber nicht bei jeder Änderung neu
      aufgesetzt werden — sonst beginnt die Standzeit jedes Mal von vorn. */
   const stand = useRef({ index: 0, geladen: [] as number[], angehalten: false });
+  /* Die Zeitgeber einer laufenden Blende. Hier statt im Effekt, damit ein
+     Wisch sie abbrechen kann — sonst schaltete die Blende danach noch auf
+     ihr altes Ziel um. */
+  const zeitgeber = useRef<ReturnType<typeof setTimeout>[]>([]);
+  /* Setzt den Takt neu auf, die Standzeit beginnt von vorn. Belegt nur,
+     solange die Folge von selbst läuft. */
+  const neuerTakt = useRef<(() => void) | null>(null);
+  const wischStart = useRef<{ x: number; y: number } | null>(null);
 
   const anzahl = bilder.length;
   const mehrere = anzahl > 1;
@@ -189,7 +210,11 @@ export default function Blende({ bilder, alt }: Props) {
     if (!hero) return;
 
     let takt: ReturnType<typeof setInterval> | undefined;
-    const zeitgeber: ReturnType<typeof setTimeout>[] = [];
+    let sichtbar = false;
+    const starte = () => {
+      clearInterval(takt);
+      if (sichtbar) takt = setInterval(schalte, STANDZEIT_MS + DAUER_MS);
+    };
 
     const schalte = () => {
       const jetzt = stand.current.index;
@@ -206,8 +231,8 @@ export default function Blende({ bilder, alt }: Props) {
       /* Flächen einhängen, noch unsichtbar. Weiter geht es im Effekt
          unten, einen Bildaufbau später. */
       setPhase("bereit");
-      zeitgeber.push(setTimeout(() => setPhase("fertig"), BLOCK_MS));
-      zeitgeber.push(
+      zeitgeber.current.push(setTimeout(() => setPhase("fertig"), BLOCK_MS));
+      zeitgeber.current.push(
         setTimeout(() => {
           setIndex(kommt);
           setPhase("still");
@@ -229,25 +254,61 @@ export default function Blende({ bilder, alt }: Props) {
 
     const beobachter = new IntersectionObserver(
       ([eintrag]) => {
-        clearInterval(takt);
-        if (eintrag.intersectionRatio > 0.25) {
-          takt = setInterval(schalte, STANDZEIT_MS + DAUER_MS);
-        }
+        sichtbar = eintrag.intersectionRatio > 0.25;
+        starte();
       },
       { threshold: [0, 0.25, 0.6] },
     );
     beobachter.observe(hero);
+    neuerTakt.current = starte;
 
     /* Das zweite Bild sofort ins Dokument, damit der erste Schritt nicht
        auf das Laden warten muss. */
     setGemountet((m) => (m.includes(1) ? m : [...m, 1]));
 
+    const laufende = zeitgeber.current;
     return () => {
       beobachter.disconnect();
       clearInterval(takt);
-      zeitgeber.forEach(clearTimeout);
+      laufende.forEach(clearTimeout);
+      neuerTakt.current = null;
     };
   }, [anzahl, mehrere]);
+
+  /*
+   * Ein Wisch: sofort aufs Nachbarbild, das alte blendet darüber aus
+   * (`.geht`). Keine Blockblende — die zeigt immer das **nächste** Bild,
+   * und rückwärts müsste sie ein anderes aufdecken als das, auf das sie
+   * vorbereitet ist. Im Kreis wie der Takt.
+   */
+  const wechsle = (schritt: 1 | -1) => {
+    const jetzt = stand.current.index;
+    const ziel = (jetzt + schritt + anzahl) % anzahl;
+    /* Leeren, nicht ersetzen: Das Aufräumen des Effekts hält dasselbe Feld. */
+    zeitgeber.current.splice(0).forEach(clearTimeout);
+    setPhase("still");
+    setVorher(jetzt);
+    setIndex(ziel);
+    /* Das Ziel und dessen Nachfolger — der Takt blendet als Nächstes dorthin. */
+    setGemountet((m) => {
+      const dazu = [ziel, (ziel + 1) % anzahl].filter((i) => !m.includes(i));
+      return dazu.length ? [...m, ...dazu] : m;
+    });
+    zeitgeber.current.push(setTimeout(() => setVorher(null), AUFDECK_MS + 60));
+    neuerTakt.current?.();
+  };
+
+  /* Beide Nachbarn schon beim Aufsetzen des Fingers holen — so hat das
+     Bild die Dauer der Geste als Vorsprung. */
+  const holeNachbarn = () => {
+    const jetzt = stand.current.index;
+    setGemountet((m) => {
+      const dazu = [(jetzt + 1) % anzahl, (jetzt - 1 + anzahl) % anzahl].filter(
+        (i) => !m.includes(i),
+      );
+      return dazu.length ? [...m, ...dazu] : m;
+    });
+  };
 
   /*
    * `load` steigt nicht auf, React kann es an einem Elternteil also nicht
@@ -266,6 +327,38 @@ export default function Blende({ bilder, alt }: Props) {
     <div
       className={`${styles.buehne} ${styles[phase]}${angehalten ? ` ${styles.angehalten}` : ""}`}
       ref={heroRef}
+      /*
+       * Touch-Ereignisse, keine Pointer-Ereignisse: Die Maus soll nicht
+       * ziehen (UI-SPEC, „Blende — Wischen"). Kein `preventDefault` —
+       * senkrecht scrollt die Seite weiter, `touch-action` im CSS
+       * überlässt uns nur die Waagerechte.
+       */
+      onTouchStart={
+        mehrere
+          ? (e) => {
+              const t = e.touches[0];
+              wischStart.current = e.touches.length === 1 ? { x: t.clientX, y: t.clientY } : null;
+              if (wischStart.current) holeNachbarn();
+            }
+          : undefined
+      }
+      onTouchEnd={
+        mehrere
+          ? (e) => {
+              const start = wischStart.current;
+              wischStart.current = null;
+              const t = e.changedTouches[0];
+              if (!start || !t) return;
+              const dx = t.clientX - start.x;
+              const dy = t.clientY - start.y;
+              if (Math.abs(dx) < WISCH_PX || Math.abs(dx) < WISCH_FAKTOR * Math.abs(dy)) return;
+              wechsle(dx < 0 ? 1 : -1);
+            }
+          : undefined
+      }
+      onTouchCancel={() => {
+        wischStart.current = null;
+      }}
       /* Die Zeiten stehen nur oben in dieser Datei und werden von dort ins
          Stylesheet gereicht — doppelt geführt liefen sie auseinander. */
       style={
@@ -278,7 +371,13 @@ export default function Blende({ bilder, alt }: Props) {
     >
       {gemountet.map((i) => {
         const rolle =
-          i === index ? styles.aktiv : i === naechster ? styles.kommt : styles.ruht;
+          i === index
+            ? styles.aktiv
+            : i === vorher
+              ? styles.geht
+              : i === naechster
+                ? styles.kommt
+                : styles.ruht;
         return (
           <div key={i} className={`${styles.lage} ${rolle}`} ref={meldeGeladen(i)}>
             <Bild

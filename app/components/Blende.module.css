@@ -20,6 +20,9 @@
 .buehne {
   position: absolute;
   inset: 0;
+  /* Waagerecht wischt man durch die Folge (Blende.tsx, `wechsle`);
+     senkrecht scrollt die Seite, Zoomen bleibt möglich. */
+  touch-action: pan-y pinch-zoom;
 }
 
 .lage {
@@ -73,6 +76,18 @@
 }
 
 /*
+ * Nach einem Wisch: das alte Bild, **über** dem neuen, blendet aus. So
+ * scheint nie der Grund durch, wie es bei zwei gegenläufigen Blenden
+ * passierte. Die Überblendung startet, weil die Lage eben noch `.aktiv`
+ * mit Deckkraft 1 war.
+ */
+.geht {
+  z-index: 2;
+  opacity: 0;
+  transition: opacity var(--takt-aufdecken) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/*
  * Die Fahrt während der Standzeit. Ein stehendes Foto wirkt nach zwei
  * Sekunden tot; die Fahrt bemerkt man nicht als Effekt, sondern nur
  * daran, dass das Bild lebt.
@@ -87,10 +102,18 @@
  * Blende, in der es noch darunter liegt, nicht plötzlich stehenbleibt.
  */
 @media (prefers-reduced-motion: no-preference) {
-  .aktiv .bild {
+  .aktiv .bild,
+  .geht .bild {
     /* Standzeit plus ganze Blende — der Wert kommt aus Blende.tsx, damit
        er nicht von den Taktzeiten abweichen kann. */
     animation: fahrt var(--takt-fahrt) linear both;
+  }
+
+  /* ⚠️ Dieselbe Animation, nur angehalten: Bei gleichem Namen läuft sie
+     weiter statt neu zu starten. Ohne `.geht` hier spränge das ausblendende
+     Bild auf `scale: 1` zurück. */
+  .geht .bild {
+    animation-play-state: paused;
   }
 
   @keyframes fahrt {
@@ -149,7 +172,8 @@
  */
 @media (prefers-reduced-motion: reduce) {
   .block,
-  .kommt {
+  .kommt,
+  .geht {
     transition: none;
   }
 }

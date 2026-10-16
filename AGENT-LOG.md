@@ -6,6 +6,30 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-16 — Hero von `/foto`: am Handy wischen
+
+Jan: „am handy soll man swipen können nach links und rechts in der hero section wenn mehrere
+bilder da sind".
+
+- **Erst der Vertrag** (`design/UI-SPEC.md`, *Motion*, neue Zeile „Blende — Wischen"): Nach links
+  wischen zeigt das nächste Bild, nach rechts das vorige, im Kreis. Eine Geste zählt ab 40px
+  waagerecht und nur, wenn sie 1,5-mal waagerechter als senkrecht ist. Nur Touch, die Maus zieht
+  nicht.
+- `Blende.tsx`: Touch-Ereignisse an der Bühne lösen `wechsle(±1)` aus. Eine laufende Blockblende
+  bricht ab (die Zeitgeber liegen dafür jetzt in einem Ref), die Standzeit beginnt von vorn
+  (`neuerTakt`). Beim Aufsetzen des Fingers werden beide Nachbarbilder ins Dokument gehängt.
+- **Keine Blockblende beim Wischen**, sondern eine Überblendung: Das alte Bild bekommt die Rolle
+  `.geht` und blendet **über** dem neuen aus (420 ms). Seine Fahrt bleibt dabei stehen, statt auf
+  `scale: 1` zurückzuspringen (gleicher Animationsname, `paused`). Die Blockblende zeigt immer
+  das nächste Bild, rückwärts passte sie nicht.
+- `touch-action: pan-y pinch-zoom`: Senkrecht scrollt die Seite weiter, Zoomen bleibt möglich.
+- Geprüft im Handy-Viewport mit nachgestellten Touch-Gesten: vor, zurück, über den Anfang auf 7/7.
+  Zu kurze und schräge Gesten werden ignoriert. 200 ms nach dem Wisch hat das alte Bild
+  Deckkraft 0,32, die Fahrt steht. Der nächste automatische Wechsel kommt nach den vollen 7,3 s.
+  **Nicht geprüft:** ein echtes Telefon.
+
+---
+
 ## 2026-10-16 — Mosaik verbuggt: Spalten endeten bis zu 1200px versetzt
 
 Jan: „schau dir die bilder anordnung selbst an. sie ist verbuggt".
