@@ -1,0 +1,1061 @@
+/*
+ * Die Verwaltung unter `/admin` — nur für Jakob, nicht öffentlich.
+ *
+ * Dieselben Tokens wie die Seite (app/globals.css): dunkle Fläche, eine
+ * Schriftfarbe, `--leise` für Zurückgenommenes, Schrift `--font-text`, nur
+ * die Größen 14 und 18. Flächen und Linien sind Mischungen aus `--schrift`
+ * und `--grund` statt neuer Farben.
+ *
+ * ⚠️ **Ausnahme vom UI-SPEC: `--rec` markiert hier Fehler.** Auf der
+ * öffentlichen Seite ist Rot dem ●REC vorbehalten; die Verwaltung sieht
+ * niemand außer Jakob, und ein Fehler, der Speichern blockiert, muss sofort
+ * auffallen. Sonst nirgends Rot — auch nicht für Löschen-Knöpfe.
+ *
+ * Trefferflächen mindestens 44px, nutzbar ab 375px Breite.
+ */
+
+.seite {
+  --flaeche: color-mix(in srgb, var(--schrift) 6%, var(--grund));
+  --flaeche-hoch: color-mix(in srgb, var(--schrift) 11%, var(--grund));
+  --linie: color-mix(in srgb, var(--schrift) 22%, var(--grund));
+
+  min-height: 100vh;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 var(--rand) 160px;
+  font-family: var(--font-text);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  /* Die Seite trennt nach Sprachregeln — in Eingabefeldern und Knöpfen
+     stört das nur. */
+  hyphens: manual;
+}
+
+/* ── Kopf ───────────────────────────────────────────────────────────── */
+
+.kopf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm) var(--space-md);
+  padding: var(--space-md) 0;
+}
+
+.titel {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 400;
+  line-height: var(--leading-titel);
+}
+
+.wer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm) var(--space-md);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--leise);
+}
+
+.wer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--schrift);
+}
+
+.band {
+  margin: 0 0 var(--space-md);
+  padding: var(--space-md);
+  border: 1px solid var(--linie);
+  border-radius: var(--space-sm);
+  background: var(--flaeche);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+.band p {
+  margin: 0;
+}
+
+.band p + p {
+  margin-top: var(--space-sm);
+}
+
+/* ── Reiter ─────────────────────────────────────────────────────────── */
+
+.reiter {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  gap: var(--space-xs);
+  margin: 0 calc(var(--rand) * -1) var(--space-lg);
+  padding: var(--space-sm) var(--rand);
+  overflow-x: auto;
+  background: var(--grund);
+  border-bottom: 1px solid var(--linie);
+  scrollbar-width: thin;
+}
+
+.reiterKnopf {
+  flex: none;
+  min-height: 44px;
+  padding: 0 var(--space-md);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: none;
+  color: var(--leise);
+  font: inherit;
+  font-size: var(--text-label);
+  cursor: pointer;
+}
+
+.reiterKnopf:hover {
+  color: var(--schrift);
+}
+
+.reiterKnopf[aria-selected="true"] {
+  border-color: var(--schrift);
+  color: var(--schrift);
+}
+
+.zaehler {
+  margin-left: var(--space-xs);
+  color: var(--leise);
+}
+
+/* ── Abschnitte ─────────────────────────────────────────────────────── */
+
+.abschnitt {
+  margin: 0 0 var(--space-2xl);
+}
+
+.abschnittKopf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.abschnittTitel {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 400;
+  line-height: var(--leading-titel);
+}
+
+.leise {
+  margin: 0;
+  color: var(--leise);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+.text {
+  margin: 0 0 var(--space-md);
+  max-width: 70ch;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+.fehlerText {
+  margin: 0;
+  color: var(--schrift);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  padding-left: var(--space-sm);
+  border-left: 3px solid var(--rec);
+}
+
+.knopfreihe {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* ── Knöpfe ─────────────────────────────────────────────────────────── */
+
+.knopf,
+.knopfLeise,
+.knopfHaupt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  min-height: 44px;
+  padding: 0 var(--space-md);
+  border: 1px solid var(--linie);
+  border-radius: var(--space-sm);
+  background: var(--flaeche);
+  color: var(--schrift);
+  font: inherit;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.knopf:hover,
+.knopfHaupt:hover,
+.knopfLeise:hover {
+  background: var(--flaeche-hoch);
+}
+
+.knopfLeise {
+  border-color: transparent;
+  background: none;
+}
+
+/* Der eine Knopf, auf den es ankommt (Speichern, Bestätigen): helle Fläche. */
+.knopfHaupt {
+  border-color: var(--schrift);
+  background: var(--schrift);
+  color: var(--grund);
+}
+
+.knopfHaupt:hover {
+  background: color-mix(in srgb, var(--schrift) 85%, var(--grund));
+}
+
+.knopf:disabled,
+.knopfLeise:disabled,
+.knopfHaupt:disabled,
+.knopfSymbol:disabled,
+.griff:disabled,
+.gesperrt {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.knopfHaupt:disabled:hover {
+  background: var(--schrift);
+}
+
+/* Das echte Datei-Feld im Dateiknopf ist unsichtbar — der Fokus muss am
+   sichtbaren Knopf erscheinen. */
+.knopf:focus-within,
+.knopfLeise:focus-within {
+  outline: 2px solid var(--schrift);
+  outline-offset: 2px;
+}
+
+.knopf:has(input:focus:not(:focus-visible)),
+.knopfLeise:has(input:focus:not(:focus-visible)) {
+  outline: none;
+}
+
+.knopfSymbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--space-sm);
+  background: none;
+  color: var(--schrift);
+  cursor: pointer;
+}
+
+.knopfSymbol:hover {
+  background: var(--flaeche-hoch);
+}
+
+.knopfSymbol[aria-pressed="true"] {
+  background: var(--flaeche-hoch);
+}
+
+.symbol {
+  flex: none;
+  display: block;
+}
+
+/* ── Felder ─────────────────────────────────────────────────────────── */
+
+.formular {
+  display: grid;
+  gap: var(--space-md);
+  max-width: 720px;
+}
+
+.formularZwei {
+  display: grid;
+  gap: var(--space-md);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+}
+
+.feld {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+.feldName {
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--leise);
+}
+
+.feldHinweis {
+  margin: 0;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--leise);
+}
+
+.eingabe {
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--linie);
+  border-radius: var(--space-sm);
+  background: var(--grund);
+  color: var(--schrift);
+  font: inherit;
+  font-size: var(--text-body);
+  line-height: var(--leading-label);
+}
+
+.eingabe[readonly] {
+  border-style: dashed;
+  color: var(--leise);
+}
+
+textarea.eingabe {
+  resize: vertical;
+}
+
+select.eingabe {
+  appearance: auto;
+}
+
+.eingabe:focus-visible {
+  outline: 2px solid var(--schrift);
+  outline-offset: 0;
+}
+
+/* ── Raster und Kacheln (Fotos, Über mich) ──────────────────────────── */
+
+.raster {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(46%, 180px), 1fr));
+  gap: var(--space-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reihen {
+  display: grid;
+  gap: var(--space-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kachel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: 1px solid var(--linie);
+  border-radius: var(--space-sm);
+  background: var(--flaeche);
+  overflow: hidden;
+}
+
+/* Ausgeblendet: gedimmt, aber erkennbar — es ist ja noch da. */
+.kachelAus .kachelBild {
+  opacity: 0.35;
+}
+
+.kachelBild {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  border: 0;
+  background: var(--grund);
+  cursor: pointer;
+}
+
+.kachelBild:focus-visible {
+  outline-offset: -4px;
+}
+
+.marken {
+  position: absolute;
+  top: var(--space-xs);
+  left: var(--space-xs);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  pointer-events: none;
+}
+
+.marke {
+  padding: 0 var(--space-sm);
+  border-radius: var(--space-xs);
+  background: var(--grund);
+  color: var(--schrift);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+.kachelName {
+  padding: var(--space-xs) var(--space-sm) 0;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kachelLeiste {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: var(--space-xs);
+}
+
+.kachelLeiste + .kachelLeiste {
+  padding-top: 0;
+}
+
+.kachelFeld {
+  padding: 0 var(--space-sm) var(--space-sm);
+}
+
+.daumenGanz,
+.daumenVoll {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.daumenGanz {
+  object-fit: contain;
+}
+
+.daumenVoll {
+  object-fit: cover;
+}
+
+.daumenLeer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--leise);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+.wartet {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  padding: var(--space-md);
+  border: 1px dashed var(--linie);
+  border-radius: var(--space-sm);
+  color: var(--leise);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  text-align: center;
+}
+
+/* ── Zeilen (Hero, Arbeiten, Filme, Papierkorb, Verlauf) ────────────── */
+
+.zeile {
+  border: 1px solid var(--linie);
+  border-radius: var(--space-sm);
+  background: var(--flaeche);
+}
+
+.zeileKopf {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs);
+  min-height: 56px;
+}
+
+.zeileBild {
+  flex: none;
+  width: 72px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--space-xs);
+  overflow: hidden;
+  background: var(--grund);
+  cursor: pointer;
+}
+
+.zeileName {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+.zeileName strong {
+  display: block;
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.zeileName span {
+  display: block;
+  color: var(--leise);
+}
+
+.zeileKnoepfe {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.zeileInhalt {
+  display: grid;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border-top: 1px solid var(--linie);
+}
+
+@media (max-width: 560px) {
+  .zeileKopf {
+    flex-wrap: wrap;
+  }
+
+  .zeileKnoepfe {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+.bildreihe {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bildreihe li {
+  width: 72px;
+  height: 72px;
+}
+
+.bildreihe .zeileBild {
+  width: 72px;
+  height: 72px;
+}
+
+/* ── Sortieren ──────────────────────────────────────────────────────── */
+
+/*
+ * ⚠️ `touch-action: none` **nur** am Griff: Dort gehört jede Bewegung dem
+ * Ziehen. Auf der restlichen Kachel muss die Seite am Telefon weiter
+ * scrollen — sonst käme man an keinem Raster vorbei.
+ */
+.griff {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--space-sm);
+  background: none;
+  color: var(--leise);
+  cursor: grab;
+  touch-action: none;
+}
+
+.griff:hover {
+  color: var(--schrift);
+  background: var(--flaeche-hoch);
+}
+
+.griff:active {
+  cursor: grabbing;
+}
+
+/* Der Platz, an dem das gezogene Element landen wird. */
+.platzhalter {
+  opacity: 0.3;
+}
+
+.geist {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  pointer-events: none;
+  border: 1px solid var(--schrift);
+  border-radius: var(--space-sm);
+  background: var(--flaeche-hoch);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  opacity: 0.92;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+.geist > span {
+  display: block;
+  padding: var(--space-sm);
+}
+
+/* ── Befunde ────────────────────────────────────────────────────────── */
+
+.befunde {
+  display: grid;
+  gap: var(--space-sm);
+  margin: 0 0 var(--space-lg);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+.befundGruppe {
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--linie);
+  border-radius: var(--space-sm);
+  background: var(--flaeche);
+}
+
+.befundFehler {
+  border-color: var(--rec);
+  border-left-width: 4px;
+}
+
+.befundGruppe summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.befundTitel {
+  margin: 0;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.befundListe {
+  margin: 0 0 var(--space-sm);
+  padding-left: var(--space-lg);
+}
+
+.befundListe li + li {
+  margin-top: var(--space-xs);
+}
+
+.ort {
+  color: var(--leise);
+}
+
+/* ── Speicherleiste ─────────────────────────────────────────────────── */
+
+.leiste {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 30;
+  border-top: 1px solid var(--linie);
+  background: var(--grund);
+  padding: var(--space-sm) var(--rand) calc(var(--space-sm) + env(safe-area-inset-bottom));
+}
+
+.leisteInnen {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm) var(--space-md);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.leisteStatus {
+  flex: 1 1 220px;
+  margin: 0;
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+.leisteNachricht {
+  flex: 3 1 260px;
+}
+
+.leisteNachricht .eingabe {
+  font-size: var(--text-label);
+}
+
+@media (max-width: 700px) {
+  .leisteNachricht,
+  .leisteStatus {
+    flex-basis: 100%;
+  }
+
+  .leiste .knopfHaupt {
+    flex: 1;
+  }
+}
+
+/* ── Hochladen ──────────────────────────────────────────────────────── */
+
+.auftraege {
+  display: grid;
+  gap: var(--space-sm);
+  margin: 0 0 var(--space-lg);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--linie);
+  border-radius: var(--space-sm);
+  background: var(--flaeche);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+.auftraege ul {
+  display: grid;
+  gap: var(--space-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.auftrag {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-xs) var(--space-md);
+}
+
+.auftrag span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fortschritt {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 4px;
+  appearance: none;
+  border: 0;
+  border-radius: 2px;
+  background: var(--linie);
+  color: var(--schrift);
+  overflow: hidden;
+}
+
+.fortschritt::-webkit-progress-bar {
+  background: var(--linie);
+}
+
+.fortschritt::-webkit-progress-value {
+  background: var(--schrift);
+}
+
+.fortschritt::-moz-progress-bar {
+  background: var(--schrift);
+}
+
+/* ── Dialoge ────────────────────────────────────────────────────────── */
+
+.dialog,
+.panel {
+  padding: 0;
+  border: 1px solid var(--linie);
+  background: var(--grund);
+  color: var(--schrift);
+  font-family: var(--font-text);
+}
+
+.dialog::backdrop,
+.panel::backdrop {
+  background: rgba(14, 14, 16, 0.75);
+}
+
+.dialog {
+  width: min(560px, calc(100vw - 2 * var(--space-md)));
+  max-height: calc(100dvh - 2 * var(--space-md));
+  border-radius: var(--space-sm);
+}
+
+/* Das Seitenpanel: rechts am PC, ganzflächig am Telefon. */
+.panel {
+  margin: 0 0 0 auto;
+  width: min(520px, 100vw);
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  border-width: 0 0 0 1px;
+}
+
+.dialogInnen {
+  display: grid;
+  gap: var(--space-md);
+  padding: var(--space-md);
+}
+
+.dialogKopf {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin: calc(var(--space-md) * -1) calc(var(--space-md) * -1) 0;
+  padding: var(--space-xs) var(--space-xs) var(--space-xs) var(--space-md);
+  background: var(--grund);
+  border-bottom: 1px solid var(--linie);
+}
+
+.dialogTitel {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 400;
+  line-height: var(--leading-titel);
+  overflow-wrap: anywhere;
+}
+
+.panelBild {
+  border-radius: var(--space-sm);
+  overflow: hidden;
+  background: var(--flaeche);
+  aspect-ratio: 3 / 2;
+}
+
+/* ── Bildausschnitt ─────────────────────────────────────────────────── */
+
+.ausschnitt {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+/* Die Fläche ist genau so groß wie das Bild, damit die Prozente stimmen. */
+.ausschnittFlaeche {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: crosshair;
+  line-height: 0;
+}
+
+.ausschnittFlaeche:focus-visible {
+  outline-offset: 2px;
+}
+
+.ausschnittBild {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 60vh;
+  object-fit: contain;
+  border-radius: var(--space-xs);
+}
+
+.ausschnittMarke {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  margin: -14px 0 0 -14px;
+  border: 2px solid var(--schrift);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 2px var(--grund),
+    inset 0 0 0 2px var(--grund);
+  pointer-events: none;
+}
+
+.ausschnittVorschau {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-md);
+}
+
+.ausschnittRahmen {
+  display: grid;
+  gap: var(--space-xs);
+  margin: 0;
+  width: 160px;
+}
+
+.ausschnittRahmen:first-child {
+  width: 220px;
+}
+
+.ausschnittFenster {
+  overflow: hidden;
+  border-radius: var(--space-xs);
+  background: var(--flaeche);
+}
+
+/* ── Bildwahl ───────────────────────────────────────────────────────── */
+
+.wahlRaster {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--space-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wahlKachel {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  min-height: 44px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: var(--space-sm);
+  overflow: hidden;
+  background: var(--flaeche);
+  cursor: pointer;
+}
+
+.wahlKachel[aria-pressed="true"] {
+  border-color: var(--schrift);
+}
+
+.wahlKachel:focus-visible {
+  outline-offset: -4px;
+}
+
+.platz {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.platzBild {
+  width: 96px;
+  height: 64px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--space-xs);
+  overflow: hidden;
+  background: var(--flaeche);
+  cursor: pointer;
+}
+
+.platzBild:disabled {
+  cursor: default;
+}
+
+/* ── Laden ──────────────────────────────────────────────────────────── */
+
+.mitte {
+  display: grid;
+  place-items: center;
+  min-height: 60vh;
+  text-align: center;
+}
+
+.mitte > div {
+  display: grid;
+  gap: var(--space-md);
+  justify-items: center;
+  max-width: 480px;
+}
+
+.vorschau {
+  margin-top: var(--space-md);
+}
+
+.auftragText {
+  grid-column: 1 / -1;
+}
+
+.unterTitel {
+  margin: var(--space-lg) 0 var(--space-md);
+}
+
+.nachtrag {
+  margin-top: var(--space-2xl);
+}
+
+.nachtrag > .abschnittTitel {
+  margin-bottom: var(--space-sm);
+}
+
+/* Ein Knopf neben einem Feld: unten bündig mit dem Eingabefeld. */
+.feldUnten {
+  justify-content: flex-end;
+}
+
+.zeileBild.kachelAus {
+  opacity: 0.35;
+}
+
+/* Ein Feld mit einem Knopf daneben (Absätze auf „Über mich"). */
+.zeileMitKnopf {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--space-sm);
+}
+
+/*
+ * ⚠️ Bilder in Kästen mit `aspect-ratio` liegen **absolut** darin. Sonst
+ * bringt das `<img>` über `width`/`height` seine eigene Höhe mit, und der
+ * Kasten wächst mit (die automatische Mindesthöhe schlägt das
+ * Seitenverhältnis) — ein Hochformat machte die Kachel doppelt so hoch.
+ */
+.kachelBild,
+.wahlKachel,
+.ausschnittFenster,
+.panelBild,
+.zeileBild,
+.platzBild {
+  position: relative;
+  overflow: hidden;
+}
+
+.kachelBild img,
+.wahlKachel img,
+.ausschnittFenster img,
+.panelBild img,
+.zeileBild img,
+.platzBild img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Ganz gezeigt ohne das unscharfe Vorschaubild drumherum: Jakob soll die
+   echte Form des Fotos sehen — sie bestimmt, wie das Mosaik fällt. */
+.daumenGanz {
+  background-image: none !important;
+}

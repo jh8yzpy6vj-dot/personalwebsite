@@ -5,9 +5,10 @@
  * Abhängigkeiten) statt mit dem AWS-SDK, das für ein Build-Skript ein
  * Vielfaches an Gewicht mitbrächte.
  *
- * ⚠️ **Dieses Modul läuft ausschließlich lokal**, nie im Cloudflare-Build und
- * nie im Worker. Der Build liest nur das eingecheckte Manifest; die
- * Zugangsdaten müssen deshalb nirgends außer auf euren Rechnern liegen.
+ * ⚠️ **Dieses Modul läuft lokal oder in der Medien-Action**
+ * (`.github/workflows/medien.yml`), nie im Cloudflare-Build und nie im
+ * Worker. Der Build liest nur das eingecheckte Manifest; die Zugangsdaten
+ * liegen deshalb nur auf euren Rechnern und als Secrets bei GitHub.
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -100,19 +101,31 @@ export function leseDevVars(text) {
  * ausgenommen) — **niemals aus einer eingecheckten Datei**.
  *
  * Die Werte stehen im Cloudflare-Dashboard unter R2 → „Manage API Tokens".
- * Nötig ist ein Token mit **Object Read & Write** für genau diesen Bucket.
+ * Nötig ist ein Token mit **Object Read & Write** für genau diesen Bucket
+ * (für die Medien-Action: für beide Buckets, siehe `zugangEingang`).
+ *
+ * Ohne Angabe ist es der öffentliche Bucket aus `R2_BUCKET` — so rufen es
+ * alle bisherigen Skripte auf. `bucket` wählt einen anderen mit denselben
+ * Zugangsdaten. `jurisdiktion` (auch `""` für „keine") ersetzt
+ * `R2_S3_ENDPOINT`/`R2_JURISDICTION`, für einen Bucket, der anders angelegt
+ * ist als der öffentliche.
+ *
+ * @param {{ bucket?: string; bucketName?: string; jurisdiktion?: string }} [optionen]
+ *   `bucketName` ist nur der Name der Variablen für die Fehlermeldung.
  */
-export function zugang() {
+export function zugang(optionen = {}) {
   ausDevVars();
 
-  const fehlend = [
-    "R2_ACCOUNT_ID",
-    "R2_ACCESS_KEY_ID",
-    "R2_SECRET_ACCESS_KEY",
-    "R2_BUCKET",
-  ].filter((k) => !process.env[k]);
+  const bucketName = optionen.bucketName ?? "R2_BUCKET";
+  const bucket = "bucket" in optionen ? optionen.bucket : process.env.R2_BUCKET;
+
+  const fehlend = ["R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY"].filter(
+    (k) => !process.env[k],
+  );
+  if (!bucket) fehlend.push(bucketName);
 
   if (fehlend.length > 0) {
+    // ⚠️ Nur die Namen, nie die Werte — die Meldung landet im Log der Action.
     throw new Error(
       `R2-Zugangsdaten fehlen: ${fehlend.join(", ")}.\n` +
         `    Lege sie in .dev.vars an (die Datei ist bereits von Git ausgenommen)\n` +
@@ -120,14 +133,13 @@ export function zugang() {
     );
   }
 
-  const {
-    R2_ACCOUNT_ID,
-    R2_ACCESS_KEY_ID,
-    R2_SECRET_ACCESS_KEY,
-    R2_BUCKET,
-    R2_S3_ENDPOINT,
-    R2_JURISDICTION,
-  } = process.env;
+  const { R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_S3_ENDPOINT, R2_JURISDICTION } =
+    process.env;
+
+  const eigene = optionen.jurisdiktion !== undefined;
+  const konto = eigene
+    ? endpunkt(R2_ACCOUNT_ID, undefined, optionen.jurisdiktion)
+    : endpunkt(R2_ACCOUNT_ID, R2_S3_ENDPOINT, R2_JURISDICTION);
 
   return {
     client: new AwsClient({
@@ -137,8 +149,40 @@ export function zugang() {
       region: "auto",
     }),
     /** Der S3-Endpunkt des Buckets. Nicht die öffentliche Adresse. */
-    basis: `${endpunkt(R2_ACCOUNT_ID, R2_S3_ENDPOINT, R2_JURISDICTION)}/${R2_BUCKET}`,
+    basis: `${konto}/${bucket}`,
   };
+}
+
+/**
+ * Ist der Eingangs-Bucket eingerichtet? Liest `.dev.vars` mit, damit lokal
+ * dieselbe Antwort kommt wie in der Action.
+ */
+export function eingangEingerichtet() {
+  ausDevVars();
+  return Boolean(process.env.EINGANG_BUCKET);
+}
+
+/**
+ * Der **private** Eingangs-Bucket (`EINGANG_BUCKET`), in den die Verwaltung
+ * hochgeladene Bilder legt — mit denselben Zugangsdaten wie der öffentliche.
+ *
+ * ⚠️ **Warum ein eigener, privater Bucket.** Eine frisch hochgeladene Datei
+ * trägt noch alle Metadaten der Kamera, oft mit GPS. Läge sie auch nur für
+ * Minuten im öffentlichen Bucket, wäre der Aufnahmeort über ihre Adresse
+ * abrufbar. Erst `scripts/eingang.mjs` säubert sie und legt sie nach
+ * `original/`.
+ *
+ * Liegt der Eingang in einer anderen Jurisdiction als der öffentliche
+ * Bucket, gibt `EINGANG_JURISDICTION` sie an (`eu`, oder leer für keine).
+ */
+export function zugangEingang() {
+  ausDevVars();
+  const { EINGANG_BUCKET, EINGANG_JURISDICTION } = process.env;
+  return zugang({
+    bucket: EINGANG_BUCKET,
+    bucketName: "EINGANG_BUCKET",
+    ...(EINGANG_JURISDICTION !== undefined ? { jurisdiktion: EINGANG_JURISDICTION } : {}),
+  });
 }
 
 /**
@@ -168,8 +212,9 @@ function endpunkt(konto, ausDashboard, jurisdiktion) {
     try {
       url = new URL(ausDashboard.trim());
     } catch {
+      // Ohne den Wert: Die Meldung kann im öffentlichen Log der Action landen.
       throw new Error(
-        `R2_S3_ENDPOINT ist keine gültige Adresse: „${ausDashboard}".\n` +
+        `R2_S3_ENDPOINT ist keine gültige Adresse.\n` +
           `    Erwartet wird die Zeile „S3 API" aus R2 → Bucket → Settings,\n` +
           `    also etwa https://<konto>.eu.r2.cloudflarestorage.com/<bucket>`,
       );
@@ -201,7 +246,7 @@ export async function liste(r2, praefix) {
 
     const antwort = await r2.client.fetch(u);
     if (!antwort.ok) {
-      throw new Error(`R2 auflisten fehlgeschlagen (${antwort.status}): ${await antwort.text()}`);
+      throw new Error(`R2 auflisten fehlgeschlagen (${antwort.status})${s3Grund(await antwort.text())}`);
     }
     const xml = await antwort.text();
 
@@ -211,11 +256,15 @@ export async function liste(r2, praefix) {
       const key = feld("Key");
       if (!key || key.endsWith("/")) continue; // Ordner-Platzhalter
       objekte.push({
-        key,
+        // ⚠️ S3 maskiert `&`, `<`, `>` im XML. Ohne Rückübersetzung käme
+        // „a&amp;b.jpg" als Schlüssel zurück, den es so nicht gibt.
+        key: xmlText(key),
         groesse: Number(feld("Size") ?? 0),
         // Die ETag ist bei einfachen Uploads die MD5-Summe. Reicht, um zu
         // erkennen, ob sich eine Datei geändert hat.
         etag: (feld("ETag") ?? "").replaceAll("&quot;", "").replaceAll('"', ""),
+        /** ISO-Zeitpunkt des letzten Schreibens — der Eingang nimmt das Neueste. */
+        geaendert: feld("LastModified") ?? "",
       });
     }
 
@@ -227,6 +276,35 @@ export async function liste(r2, praefix) {
   return objekte;
 }
 
+/**
+ * Aus einer S3-Fehlerantwort nur `<Code>` und `<Message>` — als
+ * `": Code – Message"` oder leer.
+ *
+ * ⚠️ **Nicht mehr den ganzen Rumpf.** Seit die Skripte auch in der
+ * Medien-Action laufen, steht jede Fehlermeldung im Log eines **öffentlichen**
+ * Repos. Das Fehler-XML von S3 nennt je nach Fehler die Access-Key-ID, die
+ * signierte Anfrage oder den kanonischen Request. GitHub maskiert zwar
+ * eingetragene Secrets im Log, aber nur exakt diese Zeichenketten — darauf
+ * baut eine Sicherheitsgrenze nicht.
+ */
+export function s3Grund(xml) {
+  const feld = (name) => xml.match(new RegExp(`<${name}>([^<]{0,200})</${name}>`))?.[1];
+  const code = feld("Code");
+  const nachricht = feld("Message");
+  if (!code && !nachricht) return "";
+  return `: ${[code, nachricht].filter(Boolean).map((t) => xmlText(t)).join(" – ")}`;
+}
+
+/** Die fünf XML-Entitäten zurück in Zeichen. `&amp;` zuletzt, sonst würde `&amp;lt;` zu `<`. */
+export function xmlText(text) {
+  return text
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&quot;", '"')
+    .replaceAll("&apos;", "'")
+    .replaceAll("&amp;", "&");
+}
+
 /** Ein Objekt als Buffer. */
 export async function hole(r2, key) {
   const antwort = await r2.client.fetch(`${r2.basis}/${encodeURI(key)}`);
@@ -236,8 +314,19 @@ export async function hole(r2, key) {
   return Buffer.from(await antwort.arrayBuffer());
 }
 
-/** Ein Objekt ablegen. `typ` ist der Content-Type, den R2 später ausliefert. */
-export async function lege(r2, key, daten, typ) {
+/**
+ * Für Originale: Sie werden **unter gleichem Namen ersetzt** (die
+ * Verwaltung tauscht ein Bild aus), tragen aber keinen Fingerabdruck in der
+ * Adresse. `immutable` hielte dort das alte Bild ein Jahr lang am Rand fest.
+ */
+export const KURZ_ZWISCHENSPEICHERN = "public, max-age=3600";
+
+/**
+ * Ein Objekt ablegen. `typ` ist der Content-Type, den R2 später ausliefert.
+ * `cache` ist der Cache-Control-Kopf; ohne Angabe ein Jahr unveränderlich —
+ * richtig nur für Varianten mit Fingerabdruck (Begründung unten).
+ */
+export async function lege(r2, key, daten, typ, cache = "public, max-age=31536000, immutable") {
   const antwort = await r2.client.fetch(`${r2.basis}/${encodeURI(key)}`, {
     method: "PUT",
     body: daten,
@@ -257,11 +346,13 @@ export async function lege(r2, key, daten, typ) {
        * Der Fingerabdruck macht die Zusage jetzt wahr: gleiche Adresse heißt
        * wirklich gleiches Bild.
        */
-      "cache-control": "public, max-age=31536000, immutable",
+      "cache-control": cache,
     },
   });
   if (!antwort.ok) {
-    throw new Error(`R2 ablegen fehlgeschlagen für ${key} (${antwort.status}): ${await antwort.text()}`);
+    throw new Error(
+      `R2 ablegen fehlgeschlagen für ${key} (${antwort.status})${s3Grund(await antwort.text())}`,
+    );
   }
 }
 

@@ -34,12 +34,11 @@ import { existsSync } from "node:fs";
 import { mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import exifr from "exifr";
 import sharp from "sharp";
 
-import { EXIF_FELDER } from "../lib/bilder-regeln.mjs";
-import { baueExifSegment, saeubereJpeg } from "./exif.mjs";
-import { lege, zugang } from "./r2.mjs";
+import { leseInhalt } from "./inhalt.mjs";
+import { KURZ_ZWISCHENSPEICHERN, lege, zugang } from "./r2.mjs";
+import { alsSharpExif, aufnahmeFelder, saeubere } from "./saeubern.mjs";
 
 const WURZEL = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 
@@ -75,38 +74,12 @@ function menschlich(bytes) {
  * `sharp` schreibt ohne `withExif` gar keine Metadaten und mit
  * `withMetadata()` **alle** inklusive GPS. Deshalb der Weg über eine
  * Positivliste: auslesen, was gebraucht wird, und genau das zurückschreiben.
+ * Welche Felder das sind, steht seit dem 2026-10-17 an **einer** Stelle,
+ * `scripts/saeubern.mjs` — die Medien-Action säubert Uploads aus der
+ * Verwaltung mit derselben Liste.
  */
 async function aufnahmedaten(quelle) {
-  let roh;
-  try {
-    roh = await exifr.parse(quelle, { pick: EXIF_FELDER, reviveValues: false });
-  } catch {
-    return null;
-  }
-  if (!roh) return null;
-
-  /*
-   * ⚠️ **`IFD2`, nicht `ExifIFD`** — und **`ISOSpeedRatings`, nicht `ISO`**.
-   * `withExif` reicht die Namen an libvips/exiv2 durch; unter `ExifIFD`
-   * geschriebene Felder verschwanden spurlos, und `ISO` wurde stillschweigend
-   * verworfen, während die drei anderen Werte ankamen. Beides gemessen, nicht
-   * vermutet.
-   */
-  const feld = {};
-  if (roh.DateTimeOriginal) feld.DateTimeOriginal = String(roh.DateTimeOriginal);
-  if (typeof roh.ExposureTime === "number" && roh.ExposureTime > 0) {
-    feld.ExposureTime =
-      roh.ExposureTime >= 1
-        ? `${Math.round(roh.ExposureTime * 100)}/100`
-        : `1/${Math.round(1 / roh.ExposureTime)}`;
-  }
-  if (typeof roh.FNumber === "number" && roh.FNumber > 0) {
-    feld.FNumber = `${Math.round(roh.FNumber * 10)}/10`;
-  }
-  const iso = roh.ISO ?? roh.ISOSpeedRatings;
-  if (typeof iso === "number" && iso > 0) feld.ISOSpeedRatings = String(iso);
-
-  return Object.keys(feld).length > 0 ? { IFD2: feld } : null;
+  return alsSharpExif(await aufnahmeFelder(quelle));
 }
 
 /**
@@ -140,24 +113,9 @@ async function uebernimm(quelle, zielName, meldungen) {
     );
   }
 
-  const roheWerte = await exifr
-    .parse(roh, { pick: EXIF_FELDER, reviveValues: false })
-    .catch(() => null);
-  const felder = { Orientation: meta.orientation ?? 1 };
-  if (roheWerte?.DateTimeOriginal) felder.DateTimeOriginal = String(roheWerte.DateTimeOriginal);
-  if (typeof roheWerte?.ExposureTime === "number" && roheWerte.ExposureTime > 0) {
-    felder.ExposureTime =
-      roheWerte.ExposureTime >= 1
-        ? [Math.round(roheWerte.ExposureTime * 100), 100]
-        : [1, Math.round(1 / roheWerte.ExposureTime)];
-  }
-  if (typeof roheWerte?.FNumber === "number" && roheWerte.FNumber > 0) {
-    felder.FNumber = [Math.round(roheWerte.FNumber * 10), 10];
-  }
-  const iso = roheWerte?.ISO ?? roheWerte?.ISOSpeedRatings;
-  if (typeof iso === "number" && iso > 0) felder.ISOSpeedRatings = iso;
-
-  const { datei, verworfen } = saeubereJpeg(roh, baueExifSegment(felder));
+  // Positivliste und Segmenttausch: `scripts/saeubern.mjs`, gemeinsam mit
+  // der Medien-Action. Für JPEG bleiben die Bilddaten byteweise gleich.
+  const { datei, verworfen } = await saeubere(roh);
   const ziel = path.join(ZIEL, zielName);
   await mkdir(path.dirname(ziel), { recursive: true });
   await writeFile(ziel, datei);
@@ -263,25 +221,25 @@ async function main() {
   if (!existsSync(quelle)) abbruch(`Gibt es nicht: ${quelle}`);
 
   /*
-   * Die `id` gegen content.ts prüfen — **bevor** gerechnet wird. Eine Datei
-   * unter einem Namen, den die Seite nicht kennt, erscheint nirgends; genau
-   * das ist beim ersten Anlauf zwölfmal passiert.
+   * Die `id` gegen lib/inhalt.json prüfen — **bevor** gerechnet wird. Eine
+   * Datei unter einem Namen, den die Seite nicht kennt, erscheint nirgends;
+   * genau das ist beim ersten Anlauf zwölfmal passiert.
+   *
+   * ⚠️ Seit dem 2026-10-17 aus der JSON-Datei, nicht mehr aus content.ts:
+   * Die importiert TypeScript ohne Endungen, und Node kann sie nicht mehr
+   * laden — die Prüfung wäre still entfallen, genau wie schon einmal beim
+   * Umbenennen von `WORKS` in `FOTOS`.
    */
   const id = arbeit ?? serie;
   if (id) {
-    try {
-      /* Seit dem Umbau vom 2026-10-08 heißt die Liste `FOTOS`, nicht mehr
-         `WORKS` — vorher lief die Prüfung hier still ins Leere. */
-      const { FOTOS } = await import("../lib/content.ts");
-      if (!FOTOS.some((w) => w.id === id)) {
-        abbruch(
-          `„${id}" ist keine Arbeit aus lib/content.ts.\n` +
-            `Bekannt sind:\n  ${FOTOS.map((w) => w.id).join("\n  ")}\n\n` +
-            `Gibt es die Arbeit noch nicht, muss sie dort zuerst angelegt werden.`,
-        );
-      }
-    } catch {
-      console.warn("  ! id nicht geprüft (Node kann lib/content.ts nicht lesen).");
+    const arbeiten = (await leseInhalt()).foto.arbeiten;
+    if (!arbeiten.some((w) => w.id === id)) {
+      abbruch(
+        `„${id}" ist keine Arbeit aus lib/inhalt.json.\n` +
+          `Bekannt sind:\n  ${arbeiten.map((w) => w.id).join("\n  ")}\n\n` +
+          `Gibt es die Arbeit noch nicht, muss sie zuerst angelegt werden\n` +
+          `(in der Verwaltung unter /admin oder von Hand in lib/inhalt.json).`,
+      );
     }
   }
 
@@ -363,7 +321,8 @@ async function main() {
   const r2 = zugang();
   for (const m of meldungen) {
     const daten = await readFile(path.join(ZIEL, m.zielName));
-    await lege(r2, m.zielName, daten, "image/jpeg");
+    // Originale werden unter gleichem Namen ersetzt — kein `immutable` (r2.mjs).
+    await lege(r2, m.zielName, daten, "image/jpeg", KURZ_ZWISCHENSPEICHERN);
     console.log(`  → ${m.zielName}`);
   }
   console.log(`\n${meldungen.length} Dateien im Bucket. Weiter mit: npm run medien`);

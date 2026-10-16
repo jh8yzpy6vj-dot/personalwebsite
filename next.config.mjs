@@ -1,5 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  /*
+   * Aus welchem Commit dieser Build stammt — fest eingesetzt, damit die
+   * Verwaltung (`/api/admin/live`) melden kann, wann eine Speicherung
+   * online ist. Workers Builds setzt `WORKERS_CI_COMMIT_SHA`, GitHub Actions
+   * `GITHUB_SHA`; lokal bleibt es leer (= „unbekannt").
+   */
+  env: {
+    BUILD_COMMIT: process.env.WORKERS_CI_COMMIT_SHA ?? process.env.GITHUB_SHA ?? "",
+  },
+
   async headers() {
     return [
       {
@@ -29,6 +39,23 @@ const nextConfig = {
           { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
         ],
       },
+      /*
+       * Die Verwaltung: nie zwischenspeichern, nie indexieren.
+       *
+       * ⚠️ **Muss NACH der Regel oben stehen.** Passen mehrere Regeln auf
+       * denselben Pfad und setzen denselben Header, gewinnt in Next.js die
+       * spätere. Stünde das hier davor, bekäme `/admin` wieder
+       * `public, must-revalidate` — und `public` erlaubt der Edge, Jakobs
+       * Daten für den Nächsten aufzuheben. Die Routen setzen `no-store`
+       * zusätzlich selbst (`lib/admin/antwort.ts`).
+       */
+      ...["/admin", "/admin/:path*", "/api/admin/:path*"].map((source) => ({
+        source,
+        headers: [
+          { key: "Cache-Control", value: "no-store" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      })),
     ];
   },
 

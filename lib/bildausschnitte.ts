@@ -1,3 +1,5 @@
+import { INHALT } from "./inhalt";
+
 /**
  * Wo der Bildausschnitt sitzt — je Bild, von Hand gewählt.
  *
@@ -33,7 +35,7 @@
  * Der Wert ist ein `object-position` wie in CSS: erst waagerecht, dann
  * senkrecht. `0% 0%` ist links oben, `100% 100%` rechts unten.
  *
- *     "arbeiten/wiwawo-53/02": "50% 78%",   // Lagerfeuer sitzt unten
+ *     "arbeiten/wiwawo-53/02": "50% 78%"    (Lagerfeuer sitzt unten)
  *
  * Der Schlüssel ist der Pfad unter `original/` ohne Endung — derselbe, der
  * auch in `lib/bilder-manifest.json` steht. Für das Leitbild einer Arbeit
@@ -43,30 +45,14 @@
  * existiert.** Sonst bliebe ein Eintrag nach einer Umbenennung still
  * liegen und niemand merkte, dass der Ausschnitt nicht mehr greift.
  *
- * ## Werte finden
+ * ## Werte finden und ändern
  *
- * Nicht schätzen. Es gibt ein Werkzeug dafür — Bild laden, Punkt ziehen,
- * fertige Zeile herauskopieren. Siehe `TODO.md`, Abschnitt „Medien“.
+ * Nicht schätzen. **Seit dem 2026-10-17 in der Verwaltung** (`/admin`): Bild
+ * öffnen, auf das Motiv klicken, speichern. Die Werte stehen seitdem in
+ * `lib/inhalt.json` unter `bildausschnitte` — diese Datei reicht sie nur
+ * weiter und behält die Begründung.
  *
  * Ohne Eintrag gilt mittig (`50% 50%`). Das ist bei keinem Motiv grob
  * falsch und deshalb der einzige vertretbare Standard.
  */
-export const BILDAUSSCHNITTE: Record<string, string> = {
-  /*
-   * Wirkt im Hero von `/foto` (seit 2026-10-14 abends; vorher im Hero der
-   * Detailseiten und auf den Kacheln) und bei den Highlights auf `/`.
-   *
-   * ⚠️ Von Claude am Kontaktbogen gewählt, nur für Bilder, bei denen das
-   * Geschehen deutlich außerhalb der Mitte sitzt — alle anderen stehen
-   * mittig. Jakob kann jeden Wert mit dem Werkzeug oben nachstellen.
-   */
-  "arbeiten/wiwawo-53/02": "50% 78%", // Lagerfeuer sitzt unten (2026-09-13)
-  "arbeiten/wiwawo-53/08": "50% 45%", // Kajak im Wasserfall
-  "arbeiten/wiwawo-52": "50% 65%", // Boot in der Walze, untere Bildhälfte
-  "arbeiten/kanu-freestyle-untertuerkheim": "50% 40%", // Boot über dem Becken
-  "arbeiten/at-tension": "50% 22%", // Flugfigur ganz oben
-  "arbeiten/stadtfest-karlsruhe": "50% 28%", // Tuchakrobatik oben am Kran
-  "arbeiten/tete-a-tete/03": "50% 38%", // Chloe Loftus am Gerüst
-  "arbeiten/welttheater-der-strasse/02": "50% 38%", // Malunés, Sprung über der Wippe
-  "arbeiten/welttheater-der-strasse/04": "50% 30%", // Malunés, Trapez hoch über dem Publikum
-};
+export const BILDAUSSCHNITTE: Record<string, string> = INHALT.bildausschnitte;

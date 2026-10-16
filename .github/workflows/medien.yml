@@ -1,0 +1,207 @@
+# Medien-Action — verarbeitet Bilder aus der Verwaltung (/admin) und räumt auf.
+#
+# Warum es das gibt: Die Bildverarbeitung (sharp) läuft im Cloudflare Worker
+# nicht. Jakob lädt in der Verwaltung hoch, der Worker legt die Datei in den
+# PRIVATEN Eingangs-Bucket, und diese Action macht den Rest:
+#
+#   1. npm run eingang     Eingang → Metadaten (GPS!) entfernen → original/ im
+#                          öffentlichen Bucket
+#   2. npm run papierkorb  Bilder, die länger als 30 Tage im Papierkorb liegen,
+#                          endgültig löschen (Original + Eintrag in inhalt.json)
+#   3. npm run medien      Varianten rechnen, verwaiste wegräumen, Manifest und
+#                          Vorschaukarte schreiben
+#   4. Committen, was sich geändert hat — Cloudflare baut daraufhin wie nach
+#      jedem Push auf main (1–2 Minuten), und die Seite zeigt die neuen Bilder.
+#
+# Ausgelöst von der Verwaltung („Bilder verarbeiten", POST /api/admin/verarbeiten
+# → workflow_dispatch) und einmal täglich, damit der Papierkorb auch ohne
+# Zutun leer wird.
+#
+# ⚠️ Das Repo ist ÖFFENTLICH, also auch jedes Log dieser Action. Die Skripte
+# geben deshalb nie Zugangsdaten oder ganze S3-Fehlerantworten aus
+# (scripts/r2.mjs, s3Grund), und die Secrets stehen nur an den Schritten, die
+# sie brauchen — nicht am Job, wo auch `npm ci` mit den Installationsskripten
+# fremder Pakete sie sähe.
+
+name: Medien
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Nachts, wenn niemand speichert; die krumme Minute, weil GitHub zur
+    # vollen Stunde überlastet ist und geplante Läufe dann verschiebt oder
+    # ausfallen lässt.
+    - cron: "17 3 * * *"
+
+# Nur das Recht, das der Commit am Ende braucht.
+permissions:
+  contents: write
+
+# Nie zwei Läufe gleichzeitig: Beide schrieben dasselbe Manifest, und der
+# zweite Push scheiterte. Aber auch nicht abbrechen — ein halber Lauf hätte
+# schon Originale verschoben oder gelöscht; ein wartender Lauf findet danach
+# einfach weniger zu tun.
+concurrency:
+  group: medien
+  cancel-in-progress: false
+
+jobs:
+  medien:
+    runs-on: ubuntu-latest
+    # Im Normalfall ein paar Minuten. Muss alles neu gerechnet werden
+    # (PIPELINE_VERSION erhöht, Domain gewechselt), rund 35 s je Bild.
+    timeout-minutes: 60
+
+    steps:
+      # Solange die Secrets fehlen, endet der Lauf hier GRÜN mit einem
+      # Hinweis. Sonst schlüge die Action jeden Morgen fehl, bis jemand die
+      # Einrichtung erledigt hat — und an rote Läufe gewöhnt man sich.
+      - name: Zugangsdaten prüfen
+        id: bereit
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          R2_PUBLIC_URL: ${{ secrets.R2_PUBLIC_URL }}
+        run: |
+          fehlend=""
+          for name in R2_ACCOUNT_ID R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY R2_BUCKET R2_PUBLIC_URL; do
+            # Nur die NAMEN fehlender Secrets ausgeben, nie Werte.
+            if [ -z "${!name}" ]; then fehlend="$fehlend $name"; fi
+          done
+          if [ -n "$fehlend" ]; then
+            echo "::notice title=Medien-Action nicht eingerichtet::Es fehlen die Repository-Secrets:$fehlend (Settings → Secrets and variables → Actions). Anleitung: TECH-STACK.md, Abschnitt Medien."
+            echo "bereit=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "bereit=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Repo holen
+        if: steps.bereit.outputs.bereit == 'true'
+        uses: actions/checkout@v4
+        with:
+          # Immer main, auch wenn jemand den Lauf von einem anderen Branch
+          # aus anstößt: Die Seite wird nur aus main gebaut.
+          ref: main
+
+      - name: Node einrichten
+        if: steps.bereit.outputs.bereit == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Abhängigkeiten installieren
+        if: steps.bereit.outputs.bereit == 'true'
+        run: npm ci
+
+      # continue-on-error: Ein kaputtes Bild im Eingang soll Papierkorb und
+      # Manifest nicht aufhalten. Ob es geklappt hat, prüft der letzte Schritt
+      # und färbt den Lauf dann doch rot — die Verwaltung zeigt das an.
+      - name: Eingang übernehmen
+        id: eingang
+        if: steps.bereit.outputs.bereit == 'true'
+        continue-on-error: true
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          R2_S3_ENDPOINT: ${{ secrets.R2_S3_ENDPOINT }}
+          R2_JURISDICTION: ${{ secrets.R2_JURISDICTION }}
+          # Fehlt er, meldet das Skript „nichts zu tun" und endet grün.
+          EINGANG_BUCKET: ${{ secrets.EINGANG_BUCKET }}
+        run: npm run eingang
+
+      - name: Papierkorb leeren
+        if: steps.bereit.outputs.bereit == 'true'
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          R2_S3_ENDPOINT: ${{ secrets.R2_S3_ENDPOINT }}
+          R2_JURISDICTION: ${{ secrets.R2_JURISDICTION }}
+        run: npm run papierkorb
+
+      # Inkrementell auch ohne .medien-cache: Unveränderte Bilder werden aus
+      # dem eingecheckten Manifest zurückgewonnen (scripts/medien.mjs,
+      # ausManifest), sonst rechnete jeder Lauf alle Bilder neu.
+      - name: Varianten rechnen
+        id: medien
+        if: steps.bereit.outputs.bereit == 'true'
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          R2_S3_ENDPOINT: ${{ secrets.R2_S3_ENDPOINT }}
+          R2_JURISDICTION: ${{ secrets.R2_JURISDICTION }}
+          R2_PUBLIC_URL: ${{ secrets.R2_PUBLIC_URL }}
+        run: npm run medien
+
+      # Auch nach einem Fehler in einem der Schritte davor (!cancelled()):
+      # Was bis dahin fertig ist, gehört ins Repo. Bricht etwa nur die
+      # Vorschaukarte ab, sind Manifest und Bilder trotzdem fertig — und ein
+      # bereits geleerter Papierkorb muss in inhalt.json ankommen, sonst zeigte
+      # die Datei auf gelöschte Originale (der nächste Lauf holte das nach).
+      - name: Änderungen committen
+        if: ${{ !cancelled() && steps.bereit.outputs.bereit == 'true' }}
+        run: |
+          pfade="lib/bilder-manifest.json lib/video-manifest.json lib/inhalt.json public/og"
+          git add -A -- $pfade
+          if git diff --cached --quiet; then
+            echo "Keine Änderungen — nichts zu committen."
+            exit 0
+          fi
+
+          # Die Nachricht sagt, WAS sich geändert hat — im Verlauf der
+          # Verwaltung soll ein Medien-Commit von einem Text-Commit zu
+          # unterscheiden sein.
+          teile=()
+          git diff --cached --quiet -- lib/bilder-manifest.json || teile+=("Bilder")
+          git diff --cached --quiet -- lib/video-manifest.json || teile+=("Videos")
+          git diff --cached --quiet -- public/og || teile+=("Vorschaukarte")
+          nachricht="Medien:"
+          if [ ${#teile[@]} -gt 0 ]; then
+            liste=$(printf '%s, ' "${teile[@]}")
+            nachricht="$nachricht ${liste%, } aktualisiert"
+          fi
+          if ! git diff --cached --quiet -- lib/inhalt.json; then
+            [ ${#teile[@]} -gt 0 ] && nachricht="$nachricht;"
+            nachricht="$nachricht Papierkorb geleert"
+          fi
+
+          # ⚠️ Als github-actions[bot] mit dessen noreply-Adresse: Das Repo
+          # ist öffentlich, und jede Adresse im Commit wäre für immer lesbar.
+          # Keine Mail von Jan oder Jakob, weder als Autor noch im Text.
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -q -m "$nachricht" \
+              -m "Lauf: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
+          # Während des Laufs kann Jakob gespeichert haben (die Verwaltung
+          # committet auf denselben Branch). Deshalb vor dem Push auf den
+          # neuesten Stand setzen — und bei einem Push-Fehler (jemand war
+          # genau dazwischen schneller) noch genau einmal.
+          for versuch in 1 2; do
+            if git pull -q --rebase --autostash origin main && git push -q origin HEAD:main; then
+              echo "Gepusht: $nachricht"
+              exit 0
+            fi
+            # Ein Konflikt hinterließe einen halben Rebase; aufräumen, damit
+            # der zweite Versuch sauber beginnt.
+            git rebase --abort 2>/dev/null || true
+            echo "::warning::Push fehlgeschlagen (Versuch $versuch)."
+          done
+          # Nichts geht verloren: Der nächste Lauf rechnet Manifest und
+          # Papierkorb aus dem Bucket neu und committet dann.
+          echo "::error::Push auf main zweimal fehlgeschlagen — vermutlich ein Konflikt in lib/inhalt.json. Der nächste Lauf holt es nach."
+          exit 1
+
+      - name: Ergebnis des Eingangs
+        if: ${{ !cancelled() && steps.eingang.outcome == 'failure' }}
+        run: |
+          echo "::error::Mindestens ein hochgeladenes Bild ließ sich nicht übernehmen (Log von „Eingang übernehmen“). Es liegt weiter im Eingang."
+          exit 1
