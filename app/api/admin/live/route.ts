@@ -13,7 +13,7 @@ import type { Live } from "@/lib/admin/vertrag";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request): Promise<Response> {
-  const email = await zugangOder404(request);
-  if (email instanceof Response) return email;
+  const ohneZugang = await zugangOder404(request);
+  if (ohneZugang) return ohneZugang;
   return json({ commit: process.env.BUILD_COMMIT || null } satisfies Live);
 }

@@ -18,9 +18,7 @@ import type { EingangKonfig } from "./eingang";
 
 /** Die Namen sind verbindlich; so stehen sie im Cloudflare-Dashboard. */
 const NAMEN = [
-  "ADMIN_ACCESS_TEAM",
-  "ADMIN_ACCESS_AUD",
-  "ADMIN_EMAILS",
+  "ADMIN_PASSWORT",
   "ADMIN_DEV",
   "GITHUB_TOKEN",
   "GITHUB_REPO",

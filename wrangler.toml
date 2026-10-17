@@ -3,11 +3,11 @@ main = ".open-next/worker.js"
 compatibility_date = "2025-03-01"
 compatibility_flags = ["nodejs_compat"]
 
-# ⚠️ Im Dashboard gesetzte Klartext-Variablen behalten (ADMIN_ACCESS_TEAM,
-# ADMIN_EMAILS, GITHUB_REPO …). Ohne diese Zeile ersetzt jeder Deploy die
-# Variablen durch das, was hier steht — also durch nichts —, und die
-# Verwaltung wäre nach dem nächsten Push still weg (404). Secrets
-# (GITHUB_TOKEN, EINGANG_SECRET_ACCESS_KEY …) bleiben ohnehin erhalten.
+# ⚠️ Im Dashboard gesetzte Klartext-Variablen behalten (GITHUB_REPO,
+# EINGANG_BUCKET …). Ohne diese Zeile ersetzt jeder Deploy die
+# Variablen durch das, was hier steht — also durch nichts —, und
+# Hochladen wäre nach dem nächsten Push still gesperrt. Secrets
+# (ADMIN_PASSWORT, GITHUB_TOKEN …) bleiben ohnehin erhalten.
 keep_vars = true
 
 [assets]

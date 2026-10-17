@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { BILDER } from "../bilder";
 import { INHALT } from "../inhalt";
 import { nachBase64 } from "./github";
-import { vergissSchluessel } from "./zugang";
+import { COOKIE } from "./zugang";
 import * as stand from "@/app/api/admin/stand/route";
 import * as speichern from "@/app/api/admin/speichern/route";
 import * as verlauf from "@/app/api/admin/verlauf/route";
@@ -11,12 +11,15 @@ import * as hochladen from "@/app/api/admin/hochladen/route";
 import * as verarbeiten from "@/app/api/admin/verarbeiten/route";
 import * as verarbeitung from "@/app/api/admin/verarbeitung/route";
 import * as live from "@/app/api/admin/live/route";
+import * as anmelden_ from "@/app/api/admin/anmelden/route";
+import * as abmelden_ from "@/app/api/admin/abmelden/route";
 
 /*
  * Die Routen als Ganzes: Zugang, Herkunft, Grenzen und das Zusammenspiel
  * mit GitHub und dem Eingang — beides über ein gefälschtes `fetch`.
  * Angemeldet wird über die Dev-Abkürzung (NODE_ENV=development +
- * ADMIN_DEV=1); das JWT selbst prüft `zugang.test.ts`.
+ * ADMIN_DEV=1); die Anmeldung mit Passwort steht unten unter „anmelden",
+ * Sitzung und Cookie im Einzelnen prüft `zugang.test.ts`.
  */
 
 const BASIS = "https://jakobsax.de/api/admin";
@@ -61,12 +64,9 @@ function mitEingang() {
 const eigene = { origin: "https://jakobsax.de" };
 
 beforeEach(() => {
-  vergissSchluessel();
   // Saubere Ausgangslage: nichts eingerichtet, egal, was in der Shell steht.
   for (const name of [
-    "ADMIN_ACCESS_TEAM",
-    "ADMIN_ACCESS_AUD",
-    "ADMIN_EMAILS",
+    "ADMIN_PASSWORT",
     "ADMIN_DEV",
     "GITHUB_TOKEN",
     "R2_ACCOUNT_ID",
@@ -113,7 +113,7 @@ describe("ohne Einrichtung", () => {
   });
 
   it("alle Routen sind dynamisch", () => {
-    for (const r of [stand, speichern, verlauf, zuruecksetzen, hochladen, verarbeiten, verarbeitung, live]) {
+    for (const r of [stand, speichern, verlauf, zuruecksetzen, hochladen, verarbeiten, verarbeitung, live, anmelden_, abmelden_]) {
       expect(r.dynamic).toBe("force-dynamic");
     }
   });
@@ -127,7 +127,6 @@ describe("stand", () => {
     const d = await a.json();
     expect(d.sha).toBe("");
     expect(d.inhalt).toEqual(INHALT);
-    expect(d.wer).toEqual({ email: "dev@localhost" });
     expect(d.konfiguration).toEqual({ github: false, eingang: false });
     expect(JSON.stringify(d)).not.toContain("GEHEIM");
   });
@@ -391,5 +390,55 @@ describe("verarbeiten, verarbeitung, live, verlauf", () => {
   it("verlauf ohne GitHub: leer", async () => {
     anmelden();
     expect(await (await verlauf.GET(new Request(`${BASIS}/verlauf`))).json()).toEqual({ eintraege: [] });
+  });
+});
+
+describe("anmelden", () => {
+  const PASSWORT = "lange-genug-und-geheim";
+  const formular = (passwort: string, headers: Record<string, string> = eigene) =>
+    new Request(`${BASIS}/anmelden`, {
+      method: "POST",
+      headers: { ...headers, "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ passwort }).toString(),
+    });
+
+  it("ohne Passwort in der Umgebung: 404", async () => {
+    expect((await anmelden_.POST(formular("irgendwas"))).status).toBe(404);
+  });
+
+  it("richtiges Passwort: Cookie, und damit kommt man rein", async () => {
+    vi.stubEnv("ADMIN_PASSWORT", PASSWORT);
+    const a = await anmelden_.POST(formular(PASSWORT));
+    expect(a.status).toBe(303);
+    expect(a.headers.get("location")).toBe("https://jakobsax.de/admin");
+    const cookie = a.headers.get("set-cookie") ?? "";
+    expect(cookie).toContain("HttpOnly");
+    const wert = cookie.split(";")[0];
+    expect(wert.startsWith(`${COOKIE}=`)).toBe(true);
+    expect(cookie).not.toContain(PASSWORT);
+
+    expect((await stand.GET(new Request(`${BASIS}/stand`))).status).toBe(404);
+    expect((await stand.GET(new Request(`${BASIS}/stand`, { headers: { cookie: wert } }))).status).toBe(200);
+  });
+
+  it("falsches Passwort: kein Cookie, zurück mit ?falsch=1", async () => {
+    vi.stubEnv("ADMIN_PASSWORT", PASSWORT);
+    const a = await anmelden_.POST(formular("daneben-daneben"));
+    expect(a.status).toBe(303);
+    expect(a.headers.get("location")).toBe("https://jakobsax.de/admin?falsch=1");
+    expect(a.headers.get("set-cookie")).toBeNull();
+  });
+
+  it("von einer fremden Seite: 403", async () => {
+    vi.stubEnv("ADMIN_PASSWORT", PASSWORT);
+    const a = await anmelden_.POST(formular(PASSWORT, { origin: "https://boese.example" }));
+    expect(a.status).toBe(403);
+    expect(a.headers.get("set-cookie")).toBeNull();
+  });
+
+  it("abmelden löscht das Cookie", async () => {
+    const a = await abmelden_.POST(new Request(`${BASIS}/abmelden`, { method: "POST", headers: eigene }));
+    expect(a.status).toBe(303);
+    expect(a.headers.get("set-cookie")).toContain("Max-Age=0");
   });
 });

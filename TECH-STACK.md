@@ -112,10 +112,11 @@ Fall die alte Fassung online.
 
 ```
 Browser (Jakob)
-  │  Cloudflare Access (Anmeldung per E-Mail-Code) vor /admin und /api/admin
+  │  Passwort (ADMIN_PASSWORT) → Sitzungs-Cookie, 30 Tage
   ▼
 Worker personalwebsite
-  ├─ /admin                  Oberfläche (app/admin/), prüft das Access-Token selbst noch einmal
+  ├─ /admin                  Anmeldung bzw. Oberfläche (app/admin/), prüft das Cookie
+  ├─ /api/admin/anmelden     Passwort prüfen, Cookie setzen   · /api/admin/abmelden  Cookie löschen
   ├─ /api/admin/stand        liest lib/inhalt.json + Bild-Manifest von main   ─┐
   ├─ /api/admin/speichern    prüft, committet lib/inhalt.json auf main        ├─ GitHub-API (GITHUB_TOKEN)
   ├─ /api/admin/verlauf      Commits, die lib/inhalt.json geändert haben      │
@@ -133,7 +134,7 @@ GitHub Action Medien (.github/workflows/medien.yml)
 |---|---|
 | Vertrag zwischen Oberfläche und Server (Typen, Routen, `ZIEL`, `MAX_UPLOAD_BYTES`, `BILDTYPEN`) | `lib/admin/vertrag.ts` — **zuerst lesen** |
 | Inhalte, Typen, Prüfung | `lib/inhalt.json`, `lib/inhalt.ts`, `lib/inhalt-pruefen.ts` |
-| Zugang (Access-JWT, Herkunft) | `lib/admin/zugang.ts` |
+| Zugang (Passwort, Sitzungs-Cookie, Herkunft) | `lib/admin/zugang.ts` |
 | Einstellungen aus der Worker-Umgebung | `lib/admin/umgebung.ts` |
 | GitHub-API, Eingangs-Bucket, gemeinsame Antworten | `lib/admin/github.ts`, `lib/admin/eingang.ts`, `lib/admin/antwort.ts` |
 | Routen | `app/api/admin/*/route.ts` |
@@ -223,13 +224,21 @@ Manifest noch im Eingang) — sonst rät die Oberfläche zum Ausblenden.
 
 ### Sicherheit
 
-- **Fail closed.** Fehlt `ADMIN_ACCESS_TEAM`, `ADMIN_ACCESS_AUD` oder `ADMIN_EMAILS`, antworten
-  `/admin` und alle `/api/admin/*` mit **404**. Die Verwaltung ist dann nicht da, statt offen.
-- **Zwei Schlösser.** Cloudflare Access steht vor den Pfaden und meldet an. Der Worker prüft das
-  Access-Token (`cf-access-jwt-assertion`) trotzdem **selbst**: Signatur (RS256, Schlüssel von
-  `https://<team>/cdn-cgi/access/certs`), Aussteller, Audience, Ablauf und die E-Mail gegen
-  `ADMIN_EMAILS`. So bleibt die Verwaltung auch dann zu, wenn Access falsch eingestellt ist oder
-  jemand den Worker über eine andere Adresse (z. B. `workers.dev`) erreicht.
+- **Fail closed.** Fehlt `ADMIN_PASSWORT` oder ist es kürzer als 12 Zeichen, antworten `/admin`
+  und alle `/api/admin/*` mit **404**. Die Verwaltung ist dann nicht da, statt offen.
+- **Anmeldung mit einem Passwort** (seit 2026-10-17, statt Cloudflare Access — das hätte nur
+  Jakob im Dashboard anlegen können). `/admin` zeigt ohne Anmeldung ein Passwortfeld. Stimmt das
+  Passwort, setzt `/api/admin/anmelden` das Cookie `__Host-verwaltung` (HttpOnly, Secure,
+  SameSite=Lax, 30 Tage): Ablaufzeit plus HMAC-SHA256-Signatur, **Schlüssel ist das Passwort
+  selbst**. Daraus folgt: **Passwort ändern = alle abmelden.** Das Passwort steht nirgends im
+  Cookie und lässt sich nicht daraus zurückrechnen. Alle `/api/admin/*` prüfen das Cookie bei
+  jeder Anfrage, ohne gültiges Cookie: 404.
+- ⚠️ **Keine Sperre nach Fehlversuchen** — der Worker hat keinen Speicher dafür. Jeder
+  Fehlversuch wartet 1,5 s, und die Mindestlänge ist 12 Zeichen. Den eigentlichen Schutz trägt
+  die Länge: **ein langes, zufälliges Passwort** wählen (z. B. vier, fünf zufällige Wörter), es
+  nirgends sonst verwenden und nur Jakob und Jan geben. Wer mehr will: in Cloudflare unter
+  Security → WAF → **Rate limiting rules** eine Regel für `/api/admin/anmelden` (z. B. 5 Anfragen
+  je Minute und IP) — optional.
 - **Mutierende Anfragen nur von derselben Seite** (`Origin` bzw. `Sec-Fetch-Site`), sonst 403.
 - **Bildschlüssel werden immer gegen `ZIEL` bzw. feste Muster geprüft**, Pfade und Refs gegen
   `..` und leere Abschnitte — kein Ausbruch aus `lib/inhalt.json` oder dem Eingang.
@@ -263,9 +272,7 @@ Laufzeit-Variablen, **nicht** die „Build variables"):
 
 | Name | Art | Pflicht | Zweck |
 |---|---|---|---|
-| `ADMIN_ACCESS_TEAM` | Text | ja | Teamdomain von Cloudflare Access, z. B. `jakobsax.cloudflareaccess.com` (ohne `https://`) |
-| `ADMIN_ACCESS_AUD` | Text | ja | „Application Audience (AUD) Tag" der Access-Application |
-| `ADMIN_EMAILS` | Text | ja | erlaubte E-Mail-Adressen, kommagetrennt. Groß-/Kleinschreibung egal |
+| `ADMIN_PASSWORT` | **Secret** | ja | das Passwort der Verwaltung, mindestens 12 Zeichen. Ändern meldet alle ab |
 | `GITHUB_TOKEN` | **Secret** | für Speichern, Verlauf, Verarbeitung | fine-grained Token, nur dieses Repo |
 | `GITHUB_REPO` | Text | nein | Standard `jh8yzpy6vj-dot/personalwebsite` |
 | `GITHUB_BRANCH` | Text | nein | Standard `main` |
@@ -276,7 +283,7 @@ Laufzeit-Variablen, **nicht** die „Build variables"):
 | `EINGANG_SECRET_ACCESS_KEY` | **Secret** | für Hochladen | dito |
 | `ADMIN_DEV` | — | **nie im Dashboard** | nur lokal, siehe „Lokale Entwicklung" |
 
-Fehlen die drei `ADMIN_*`-Werte: 404. Fehlt `GITHUB_TOKEN`: Verwaltung lesbar, Speichern
+Fehlt `ADMIN_PASSWORT` (oder ist zu kurz): 404. Fehlt `GITHUB_TOKEN`: Verwaltung lesbar, Speichern
 gesperrt (Hinweisband). Fehlt einer der vier Eingangs-Werte: Datei-Knöpfe gesperrt (Hinweisband).
 
 **Zur Build-Zeit:** `BUILD_COMMIT` setzt `next.config.mjs` aus `WORKERS_CI_COMMIT_SHA` (Workers
@@ -302,28 +309,18 @@ Fehlt eines der fünf Pflicht-Secrets, endet die Action **grün** mit einem Hinw
 
 ⚠️ **`keep_vars = true` in `wrangler.toml` nicht entfernen.** Ohne die Zeile ersetzt jeder Deploy
 die im Dashboard gesetzten Klartext-Variablen durch das, was in `wrangler.toml` steht — also durch
-nichts —, und die Verwaltung wäre nach dem nächsten Push still weg (404). Secrets bleiben
-ohnehin erhalten.
+nichts —, und z. B. Hochladen wäre nach dem nächsten Push still gesperrt. Secrets
+(`ADMIN_PASSWORT`, `GITHUB_TOKEN` …) bleiben ohnehin erhalten.
 
 ### Einrichtung — Schritt für Schritt
 
-Einmalig, im Dashboard; Claude kann das nicht. Reihenfolge einhalten: Erst Access, dann die
-Variablen — andersherum wäre die Verwaltung kurz ohne Anmeldung erreichbar. (Ist sie nicht, weil
-der Worker selbst prüft, aber die Reihenfolge kostet nichts.)
+Einmalig, im Dashboard; Claude kann das nicht. Cloudflare Zero Trust/Access wird nicht
+gebraucht.
 
-1. **Cloudflare Access.** Cloudflare-Dashboard → **Zero Trust** → Access → Applications → Add an
-   application → **Self-hosted**.
-   - Name z. B. „Verwaltung jakobsax.de". Vier Ziele (Application domain / Public hostname):
-     `jakobsax.de/admin`, `www.jakobsax.de/admin`, `jakobsax.de/api/admin`,
-     `www.jakobsax.de/api/admin`. ⚠️ **Alle vier** — fehlt `www`, sieht man dort direkt 404;
-     fehlt `/api/admin`, lädt die Seite, aber jede Aktion scheitert.
-   - Policy: Action **Allow**, Include → **Emails** → Jakobs Adresse (und Jans). Sonst niemand.
-   - Anmeldung: **One-time PIN** (Code per E-Mail) genügt.
-   - Session Duration großzügig, z. B. **24 Stunden**: Läuft die Sitzung mitten in der Arbeit ab,
-     scheitern die Anfragen, und ungespeicherte Änderungen gehen beim Neuladen verloren.
-   - Danach notieren: den **Application Audience (AUD) Tag** (in der Application unter
-     Overview/Basic information) und die **Teamdomain** (Zero Trust → Settings → Custom Pages,
-     `<team>.cloudflareaccess.com`).
+1. **Passwort festlegen.** Lang und zufällig, z. B. vier, fünf zufällige Wörter
+   (`kanu-nebel-trapez-walze-gold`), mindestens 12 Zeichen. Es kommt in Schritt 4 als Secret
+   `ADMIN_PASSWORT` in den Worker. Jakob bekommt es auf einem sicheren Weg (nicht in einen
+   Commit, nicht in ein Issue).
 2. **Eingangs-Bucket in R2.** R2 → Create bucket, z. B. `jakobsax-eingang`, **dieselbe
    Jurisdiction wie `websitebucket` (EU)**.
    - ⚠️ **Privat lassen:** kein Public Access, keine `r2.dev`-Adresse, keine Custom Domain.
@@ -344,8 +341,8 @@ der Worker selbst prüft, aber die Reihenfolge kostet nichts.)
      falsch". Erneuern = neuen Token erzeugen, im Worker `GITHUB_TOKEN` ersetzen, alten löschen.
    - Im selben Konto „Keep my email addresses private" einschalten (siehe „Datenschutz" oben).
 4. **Worker-Variablen.** Workers & Pages → personalwebsite → Settings → Variables and Secrets →
-   Add: die Werte aus der Tabelle oben, `GITHUB_TOKEN` und die beiden `EINGANG_*`-Schlüssel als
-   **Secret** (Typ „Secret", nicht „Text"). Alternativ von der Kommandozeile:
+   Add: die Werte aus der Tabelle oben, `ADMIN_PASSWORT`, `GITHUB_TOKEN` und die beiden
+   `EINGANG_*`-Schlüssel als **Secret** (Typ „Secret", nicht „Text"). Alternativ von der Kommandozeile:
    `npx wrangler secret put GITHUB_TOKEN` (fragt den Wert ab; nie als Argument übergeben, sonst
    steht er im Shell-Verlauf). Klartext-Variablen wirken ab dem nächsten Deploy bzw. sofort nach
    „Deploy" im Dashboard.
@@ -357,19 +354,19 @@ der Worker selbst prüft, aber die Reihenfolge kostet nichts.)
    rechnen" nachsehen: Erwartet ist „… unverändert (davon N aus dem Manifest)" und **nichts** neu
    gerechnet.
 6. **Testen.**
-   - `https://jakobsax.de/admin` und `https://www.jakobsax.de/admin` in einem privaten Fenster:
-     Es erscheint die **Access-Anmeldeseite**, nie die Verwaltung. Ohne Access-Application (oder
-     über `workers.dev`) kommt **404**.
-   - `https://jakobsax.de/api/admin/stand` ohne Anmeldung: ebenfalls Anmeldeseite bzw. 404.
-   - Mit Jakobs Adresse anmelden: Die Verwaltung lädt ohne Hinweisbänder.
+   - `https://jakobsax.de/admin` in einem privaten Fenster: Es erscheint das **Passwortfeld**,
+     nie die Verwaltung. Ein falsches Passwort → „Das Passwort stimmt nicht."
+   - `https://jakobsax.de/api/admin/stand` ohne Anmeldung: **404**.
+   - Mit dem richtigen Passwort anmelden: Die Verwaltung lädt ohne Hinweisbänder. „Abmelden"
+     oben rechts führt zurück zum Passwortfeld.
    - Eine kleine Textänderung speichern und warten, bis „Gespeichert und live" erscheint; im
      GitHub-Verlauf prüfen, dass der Commit mit `Verwaltung:` beginnt und **keine private
      Adresse** zeigt (`git log --format='%an <%ae>' -1`).
    - Ein Testbild hochladen, die Verarbeitung abwarten, das Bild danach wieder löschen.
 
 **Empfohlen:** Workers & Pages → personalwebsite → Settings → Domains & Routes die
-`workers.dev`-Adresse (und die Preview-URLs) abschalten. Die Verwaltung antwortet dort zwar mit
-404, aber eine zweite offene Adresse der Seite braucht niemand.
+`workers.dev`-Adresse (und die Preview-URLs) abschalten. Die Verwaltung ist dort genauso per
+Passwort geschützt, aber eine zweite offene Adresse der Seite braucht niemand.
 
 ### Lokale Entwicklung
 
@@ -394,9 +391,9 @@ gefahrlosen Ausprobieren `GITHUB_BRANCH` auf einen eigenen, vorhandenen Branch s
 
 | Was man sieht | Ursache | Abhilfe |
 |---|---|---|
-| `/admin` zeigt 404, **ohne** vorher eine Anmeldeseite | Access-Application fehlt oder deckt diesen Host/Pfad nicht ab (oft: `www` vergessen) | Schritt 1, alle vier Ziele |
-| Nach der Anmeldung 404 | Eine der `ADMIN_*`-Variablen fehlt oder ist falsch (AUD einer anderen Application, Teamdomain vertippt, Adresse nicht in `ADMIN_EMAILS`), oder sie steht unter „Build variables" statt unter „Variables and Secrets" | Werte prüfen. Den Grund (ohne Adresse) zeigen die Worker-Logs (Observability) |
-| Nach einem Push plötzlich wieder 404 | `keep_vars` entfernt, die Klartext-Variablen sind weg | Zeile in `wrangler.toml` zurück, Variablen neu setzen |
+| `/admin` zeigt 404 statt Passwortfeld | `ADMIN_PASSWORT` fehlt, ist kürzer als 12 Zeichen oder steht unter „Build variables" statt unter „Variables and Secrets" | Schritt 1 und 4. Den Grund zeigen die Worker-Logs (Observability) |
+| Richtiges Passwort, trotzdem wieder das Passwortfeld | Browser blockiert Cookies für die Seite, oder `/admin` über `http://` statt `https://` geöffnet (das Cookie ist `Secure`) | Über `https://jakobsax.de/admin` arbeiten, Cookies erlauben |
+| Nach einem Push plötzlich ein Band „… nicht eingerichtet" | `keep_vars` entfernt, die Klartext-Variablen sind weg (Secrets bleiben) | Zeile in `wrangler.toml` zurück, Variablen neu setzen |
 | Band „Speichern ist noch nicht eingerichtet" | `GITHUB_TOKEN` fehlt | Schritt 3 und 4 |
 | Band „Hochladen ist noch nicht eingerichtet" | Einer von `R2_ACCOUNT_ID`, `EINGANG_BUCKET`, `EINGANG_ACCESS_KEY_ID`, `EINGANG_SECRET_ACCESS_KEY` fehlt | Schritt 2 und 4 |
 | „… der Token ist abgelaufen oder falsch" | Token abgelaufen oder widerrufen (GitHub 401) | Token erneuern (Schritt 3) |
@@ -408,7 +405,7 @@ gefahrlosen Ausprobieren `GITHUB_BRANCH` auf einen eigenen, vorhandenen Branch s
 | „Verarbeitung starten" scheitert | Workflow-Datei heißt nicht `medien.yml`, Actions im Repo abgeschaltet, Token ohne Actions-Recht | Schritt 3 und 5 |
 | Hochladen: 413 / 415 | Datei über der Grenze aus `MAX_UPLOAD_BYTES`, oder kein JPEG/PNG/WebP/TIFF (z. B. HEIC vom iPhone) | Kleiner bzw. als JPEG exportieren |
 | Hochladen: 403 | Anfrage nicht von derselben Seite (z. B. Verwaltung über eine andere Adresse geöffnet) | Über `jakobsax.de/admin` arbeiten |
-| Mitten in der Arbeit scheitert jede Aktion, „Lade die Seite neu" | Access-Sitzung abgelaufen | Neu laden und anmelden; Session Duration erhöhen (Schritt 1) |
+| Mitten in der Arbeit scheitert jede Aktion, „Lade die Seite neu" | Sitzung abgelaufen (nach 30 Tagen) oder das Passwort wurde inzwischen geändert | Neu laden und anmelden |
 | Neues Bild verarbeitet, erscheint aber nicht | Sein Schlüssel steht noch in `ausgeblendet` oder `papierkorb` (z. B. gelöscht und dann unter demselben Platz neu hochgeladen) | In der Verwaltung einblenden bzw. aus dem Papierkorb wiederherstellen |
 
 ### Bekannte Grenzen

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { pruefeZugang } from "@/lib/admin/zugang";
+import Anmeldung from "./Anmeldung";
 import Verwaltung from "./Verwaltung";
 
 /**
@@ -10,10 +11,10 @@ import Verwaltung from "./Verwaltung";
  * (siehe `lib/admin/vertrag.ts`).
  *
  * Diese Seite ist eine Server-Komponente, damit der Zugang **vor** dem
- * ersten Byte geprüft wird: Ohne gültige Anmeldung — oder ohne vollständige
- * Einrichtung — gibt es eine schlichte 404, und von außen ist nicht zu
- * erkennen, dass hier etwas wäre. Die eigentliche Oberfläche ist die
- * Client-Komponente `Verwaltung`.
+ * ersten Byte geprüft wird: Ohne Einrichtung (`ADMIN_PASSWORT` fehlt) gibt
+ * es eine schlichte 404; eingerichtet, aber nicht angemeldet, die
+ * Anmeldung; angemeldet die eigentliche Oberfläche, die Client-Komponente
+ * `Verwaltung`.
  *
  * ⚠️ `lib/admin/zugang` (und `github`, `eingang`, `umgebung`) nur hier und in
  * den Routen importieren, **nie** in einer Client-Komponente: Alles, was die
@@ -26,10 +27,15 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function VerwaltungSeite() {
+export default async function VerwaltungSeite({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   /* Als echte `Headers` weitergereicht: `headers()` liefert eine
      schreibgeschützte Sonderform. */
   const z = await pruefeZugang(new Headers(await headers()));
-  if (!z.ok) notFound();
-  return <Verwaltung email={z.email} />;
+  if (z.ok) return <Verwaltung />;
+  if (!z.eingerichtet) notFound();
+  return <Anmeldung falsch={(await searchParams).falsch === "1"} />;
 }

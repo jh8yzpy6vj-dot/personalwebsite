@@ -21,7 +21,7 @@ import { INDEXABLE, SITE_URL } from "@/lib/site";
  * **Ausnahme seit 2026-10-17: `/admin` und `/api/`.** Dort gilt die
  * Überlegung oben nicht: Die Verwaltung war nie öffentlich und ist nirgends
  * verlinkt, es gibt also keinen Eintrag, der verschwinden müsste — und ohne
- * Anmeldung antwortet sie ohnehin mit 404 bzw. der Access-Anmeldung. Ein
+ * Anmeldung antwortet sie ohnehin mit 404 bzw. dem Passwortfeld. Ein
  * Crawler hat dort nichts verloren. Das `noindex` kommt trotzdem
  * zusätzlich als `X-Robots-Tag`-Header (next.config.mjs), falls doch
  * jemand einen Link irgendwohin kopiert.

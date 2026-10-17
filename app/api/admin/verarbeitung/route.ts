@@ -19,8 +19,8 @@ export const dynamic = "force-dynamic";
 const MEDIEN_WORKFLOW = "medien.yml";
 
 export async function GET(request: Request): Promise<Response> {
-  const email = await zugangOder404(request);
-  if (email instanceof Response) return email;
+  const ohneZugang = await zugangOder404(request);
+  if (ohneZugang) return ohneZugang;
 
   const u = await umgebung();
   const gh = githubZugang(u);

@@ -20,8 +20,8 @@ function abgelehnt(text: string, status: number): Response {
 }
 
 export async function PUT(request: Request): Promise<Response> {
-  const email = await zugangOder404(request);
-  if (email instanceof Response) return email;
+  const ohneZugang = await zugangOder404(request);
+  if (ohneZugang) return ohneZugang;
   const fremd = pruefeHerkunft(request);
   if (fremd) return fremd;
 

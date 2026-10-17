@@ -400,7 +400,7 @@ Umbaus abgehakt.
 
 ## Verwaltung (/admin)
 
-> Seit 2026-10-17. Nur für Jakob (und Jan), hinter Cloudflare Access, `noindex` und in
+> Seit 2026-10-17. Nur für Jakob (und Jan), hinter einem Passwort, `noindex` und in
 > `robots.txt` gesperrt. Technik, Secrets und Ablauf: `TECH-STACK.md`, „Verwaltung (/admin)".
 
 - **Dieselben Tokens wie die Seite:** dunkle Fläche `--grund`, eine Schriftfarbe `--schrift`,
@@ -410,7 +410,11 @@ Umbaus abgehakt.
 - ⚠️ **Einzige Ausnahme von der Farbregel: `--rec` markiert in der Verwaltung Fehler**, die das
   Speichern blockieren. Begründung: Die Verwaltung sieht kein Besucher, und ein solcher Fehler muss
   sofort auffallen. Sonst auch hier kein Rot — Löschen-Knöpfe bleiben farblos.
-- **Aufbau:** Kopf mit „Verwaltung", angemeldeter Person und Link zur Seite; darunter Reiter
+- **Anmeldung:** dieselbe Fläche, mittig „Verwaltung", ein Feld „Passwort" und der Hauptknopf
+  „Anmelden", höchstens 360px breit. Falsches Passwort: „Das Passwort stimmt nicht." als
+  Fehlertext (`--rec`, siehe oben).
+- **Aufbau:** Kopf mit „Verwaltung", Link zur Seite und „Abmelden" (fragt nach, wenn noch
+  Ungespeichertes da ist); darunter Reiter
   **Fotos · Hero · Arbeiten · Über mich · Filme · Startseite · Papierkorb · Verlauf**
   (Pfeiltasten wechseln den Reiter); unten eine feste Leiste mit Speicherstand, optionaler
   Nachricht und „Speichern".

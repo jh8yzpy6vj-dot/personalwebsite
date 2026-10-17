@@ -6,6 +6,34 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-17 — Verwaltung: Passwort statt Cloudflare Access
+
+Jan: „Ich will den zugang am liebsten nicht über cloudflare machen weil das nur Jakob anlegen
+kann. Kannst du einfach ne passwort Anfrage machen?"
+
+- **`lib/admin/zugang.ts` neu:** Worker-Secret `ADMIN_PASSWORT` (mind. 12 Zeichen, sonst 404 wie
+  bisher). `/admin` zeigt ohne Anmeldung ein Passwortfeld (`app/admin/Anmeldung.tsx`, reines
+  HTML-Formular). `POST /api/admin/anmelden` prüft das Passwort (Vergleich in fester Zeit) und
+  setzt `__Host-verwaltung` (HttpOnly, Secure, SameSite=Lax, 30 Tage): Ablaufzeit plus
+  HMAC-SHA256, Schlüssel ist das Passwort — **Passwort ändern meldet alle ab**. Fehlversuch:
+  1,5 s Pause, zurück mit „Das Passwort stimmt nicht." `POST /api/admin/abmelden` löscht das
+  Cookie; Knopf „Abmelden" im Kopf der Verwaltung (fragt bei Ungespeichertem nach).
+- **Entfällt:** die Prüfung des Access-JWT, `ADMIN_ACCESS_TEAM`, `ADMIN_ACCESS_AUD`,
+  `ADMIN_EMAILS`, das Feld `wer` im Stand. Die Herkunftsprüfung (CSRF) bleibt und gilt auch für
+  An- und Abmelden.
+- **Keine Sperre nach Fehlversuchen** (kein Speicher im Worker) — Schutz über Passwortlänge und
+  Pause; optional eine WAF-Rate-Limit-Regel, beschrieben in `TECH-STACK.md`.
+- **Doku:** `TECH-STACK.md` (Sicherheit, Variablen, Einrichtung Schritt 1, Test, Fehlerbilder),
+  `design/UI-SPEC.md` (Anmeldung, Abmelden), `TODO.md`, Kommentare in `wrangler.toml` und
+  `app/robots.ts`.
+- **Geprüft:** 270 Tests grün (neu: Sitzung, Ablauf, gefälschte Signatur, Passwortwechsel,
+  An-/Abmelden-Routen), `tsc` und ESLint ohne Befund, `next build`. Mit `next start` und
+  gesetztem Passwort durchgespielt: ohne Cookie Passwortfeld, falsch → `?falsch=1`, richtig →
+  Cookie und Verwaltung, `/api/admin/stand` ohne Cookie 404, fremde Origin 403. Anmeldung am PC
+  und bei 375px angesehen.
+
+---
+
 ## 2026-10-17 — Verwaltung `/admin`: Jakob ändert Inhalte selbst
 
 Jan: „kann ich ein tool haben für jakob damit er die bilder neu anordnen kann? so admin

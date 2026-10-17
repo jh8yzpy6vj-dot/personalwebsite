@@ -14,7 +14,7 @@ import type { Befund } from "../inhalt-pruefen";
  * Bildverarbeitung (`sharp`) im Worker nicht läuft.
  *
  * Alle Routen unter `/api/admin/` und die Seite `/admin` prüfen den Zugang
- * selbst (`lib/admin/zugang.ts`) — zusätzlich zu Cloudflare Access davor.
+ * selbst (`lib/admin/zugang.ts`, Passwort und Sitzungs-Cookie).
  * Ohne Einrichtung antworten sie mit 404: Der Admin ist dann schlicht nicht
  * da, statt offen.
  */
@@ -40,8 +40,6 @@ export type Stand = {
   sha: string;
   /** Das Bild-Manifest von `main` — frischer als das des laufenden Builds. */
   bilder: Record<string, Bildquelle>;
-  /** Wer angemeldet ist (aus Cloudflare Access). */
-  wer: { email: string };
   konfiguration: Konfiguration;
   /** Commit, aus dem die laufende Seite gebaut ist, oder `null`. */
   live: string | null;

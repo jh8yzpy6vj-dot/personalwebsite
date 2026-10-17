@@ -989,6 +989,18 @@ select.eingabe {
   max-width: 480px;
 }
 
+/* Anmeldung: dieselbe Mitte, das Formular linksbündig. */
+.anmeldung {
+  display: grid;
+  gap: var(--space-md);
+  width: min(100%, 360px);
+  text-align: left;
+}
+
+.anmeldung .titel {
+  text-align: center;
+}
+
 .vorschau {
   margin-top: var(--space-md);
 }

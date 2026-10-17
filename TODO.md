@@ -229,7 +229,7 @@ nur, wer was anstoßen muss. Alles, was nicht hier steht, kann Claude selbst erl
 
 | | Was | Warum es an ihm hängt |
 |---|---|---|
-| 🔲 | **Verwaltung `/admin` einrichten** (Access, Eingangs-Bucket, Worker-Variablen, GitHub-Token, Action-Secrets) | Nur im Cloudflare- bzw. GitHub-Dashboard möglich. Bis dahin antwortet `/admin` absichtlich mit 404. Anleitung: `TECH-STACK.md`, „Verwaltung (/admin)" → „Einrichtung — Schritt für Schritt" |
+| 🔲 | **Verwaltung `/admin` einrichten** (Passwort `ADMIN_PASSWORT`, Eingangs-Bucket, Worker-Variablen, GitHub-Token, Action-Secrets — kein Cloudflare Access mehr nötig) | Nur im Cloudflare- bzw. GitHub-Dashboard möglich. Bis dahin antwortet `/admin` absichtlich mit 404. Anleitung: `TECH-STACK.md`, „Verwaltung (/admin)" → „Einrichtung — Schritt für Schritt" |
 | 🔲 | **Patches einspielen und pushen** | Claude hat keinen Schreibzugriff |
 | 🔲 | **Schreibzugriff für Claude freischalten** | GitHub-App auf „Read and write", siehe unten |
 | 🔲 | **Cloudflare Web Analytics aktivieren** | Dashboard, nicht per Code |

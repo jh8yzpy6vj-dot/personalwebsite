@@ -108,7 +108,7 @@ type Auftrag = {
   text?: string;
 };
 
-export default function Verwaltung({ email }: { email: string }) {
+export default function Verwaltung() {
   const [geladen, setGeladen] = useState<Geladen | null>(null);
   const [ladefehler, setLadefehler] = useState<string | null>(null);
   const [reiter, setReiter] = useState<Reiter>("fotos");
@@ -470,10 +470,22 @@ export default function Verwaltung({ email }: { email: string }) {
         <header className={styles.kopf}>
           <h1 className={styles.titel}>Verwaltung</h1>
           <div className={styles.wer}>
-            <span>Angemeldet als {email}</span>
             <a href="/" target="_blank" rel="noopener">
               Seite ansehen ↗
             </a>
+            <form
+              method="post"
+              action="/api/admin/abmelden"
+              onSubmit={(e) => {
+                if (ungespeichert && !window.confirm("Ungespeicherte Änderungen gehen verloren. Trotzdem abmelden?")) {
+                  e.preventDefault();
+                }
+              }}
+            >
+              <button type="submit" className={styles.knopfLeise}>
+                Abmelden
+              </button>
+            </form>
           </div>
         </header>
 
