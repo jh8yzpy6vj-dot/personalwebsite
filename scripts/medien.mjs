@@ -1,5 +1,9 @@
 /**
- * Medienpipeline — **läuft lokal, nicht im Build.**
+ * Medienpipeline — **läuft lokal oder in der Medien-Action, nie im Build.**
+ *
+ * Seit dem 2026-10-17 läuft sie auch in `.github/workflows/medien.yml`
+ * (täglich und auf Knopfdruck aus der Verwaltung), dort ohne
+ * `.medien-cache` — siehe `ausManifest()`.
  *
  * Holt die Originale aus dem R2-Bucket, erzeugt daraus alle ausgelieferten
  * Bildvarianten, legt sie zurück nach R2 und schreibt die Manifeste, die
@@ -29,6 +33,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import exifr from "exifr";
 import sharp from "sharp";
+
+import { leseInhalt } from "./inhalt.mjs";
 
 import {
   AVIF_MAX_BREITE,
@@ -311,14 +317,15 @@ async function verarbeite(r2, name, quelldatei, basisUrl, warnungen, schluessel)
  * einmal klaglos verarbeitet und erschienen nirgends.
  */
 async function pruefeZuordnung(namen, warnungen) {
-  let FOTOS, FILME;
-  try {
-    ({ FOTOS, FILME } = await import("../lib/content.ts"));
-  } catch {
-    return; // Ohne content.ts (zu altes Node) entfällt die Prüfung.
-  }
-  const fotoIds = new Set(FOTOS.map((a) => a.id));
-  const filmIds = new Set(FILME.map((f) => f.id));
+  /*
+   * ⚠️ Aus `lib/inhalt.json`, nicht mehr aus `lib/content.ts` (seit dem
+   * 2026-10-17): Die importiert TypeScript ohne Endungen, das kann Node
+   * nicht laden — und hier stand ein `catch`, das die Prüfung dann still
+   * ausfallen ließ.
+   */
+  const inhalt = await leseInhalt();
+  const fotoIds = new Set(inhalt.foto.arbeiten.map((a) => a.id));
+  const filmIds = new Set(inhalt.filme.map((f) => f.id));
   const bekannt = new Set(["portrait", "hero/standbild", "hero/film"]);
   const vorhanden = new Set(namen);
 
@@ -326,13 +333,13 @@ async function pruefeZuordnung(namen, warnungen) {
     if (bekannt.has(name)) continue;
     const teile = name.split("/");
 
-    // ueber/01 — die Bilder auf /ueber (UEBER_BILDER in content.ts).
+    // ueber/01 — die Bilder auf /ueber (ueber.bilder in lib/inhalt.json).
     if (teile.length === 2 && teile[0] === "ueber") continue;
 
-    // film/<id> — das Standbild eines Films aus FILME.
+    // film/<id> — das Standbild eines Films aus `filme`.
     if (teile.length === 2 && teile[0] === "film" && filmIds.has(teile[1])) continue;
 
-    // arbeiten/<id> · arbeiten/<id>/01 — eine Fotoarbeit aus FOTOS.
+    // arbeiten/<id> · arbeiten/<id>/01 — eine Fotoarbeit aus foto.arbeiten.
     if (teile[0] === "arbeiten" && fotoIds.has(teile[1])) {
       if (teile.length === 2 || teile.length === 3) continue;
     }
@@ -340,17 +347,17 @@ async function pruefeZuordnung(namen, warnungen) {
     warnungen.push(
       `${name}: gehört zu nichts und erscheint nirgends auf der Seite. ` +
         (teile[0] === "arbeiten"
-          ? `Erwartet wird eine id aus FOTOS in content.ts ` +
+          ? `Erwartet wird eine id aus foto.arbeiten in lib/inhalt.json ` +
             `(${[...fotoIds].slice(0, 3).join(", ")}, …).`
           : teile[0] === "film"
-            ? `Erwartet wird eine id aus FILME in content.ts.`
+            ? `Erwartet wird eine id aus filme in lib/inhalt.json.`
             : `Erlaubt sind \`arbeiten/<id>/NN\`, \`film/<id>\`, \`ueber/NN\`, ` +
               `\`hero/standbild\`, \`hero/film\`, \`portrait\`.`),
     );
   }
 
-  /* Umgekehrt: Was in content.ts steht, aber kein Bild hat, erscheint nicht
-     (UI-SPEC) — das soll jemand erfahren, statt es auf der Seite zu suchen. */
+  /* Umgekehrt: Was in lib/inhalt.json steht, aber kein Bild hat, erscheint
+     nicht (UI-SPEC) — das soll jemand erfahren, statt es auf der Seite zu suchen. */
   for (const id of fotoIds) {
     const hat = [...vorhanden].some(
       (n) => n === `arbeiten/${id}` || n.startsWith(`arbeiten/${id}/`),
@@ -364,6 +371,108 @@ async function pruefeZuordnung(namen, warnungen) {
   }
 }
 
+/**
+ * Die Bucket-Schlüssel hinter den Adressen eines Manifesteintrags:
+ * `https://medien…/b/arbeiten/x%20y-480.avif?v=… 480w` → `b/arbeiten/x y-480.avif`.
+ * Gibt `null`, sobald eine Adresse nicht unter `basisUrl/b/` liegt.
+ *
+ * @param {{ avif?: string; webp?: string; fallback?: string }} eintrag
+ * @param {string} basisUrl ohne Schrägstrich am Ende
+ * @returns {string[] | null}
+ */
+export function variantenSchluessel(eintrag, basisUrl) {
+  const adressen = [];
+  for (const feld of ["avif", "webp"]) {
+    for (const teil of String(eintrag[feld] ?? "").split(",")) {
+      const adresse = teil.trim().split(/\s+/)[0];
+      if (adresse) adressen.push(adresse);
+    }
+  }
+  if (eintrag.fallback) adressen.push(eintrag.fallback);
+
+  const praefix = `${basisUrl}/`;
+  const schluessel = [];
+  for (const adresse of adressen) {
+    if (!adresse.startsWith(praefix)) return null; // andere Domain
+    const ohneAbfrage = adresse.slice(praefix.length).split("?")[0];
+    let roh;
+    try {
+      roh = decodeURIComponent(ohneAbfrage);
+    } catch {
+      return null; // kaputt kodiert
+    }
+    if (!roh.startsWith(R2_ABLEITUNG)) return null;
+    schluessel.push(roh);
+  }
+  return [...new Set(schluessel)];
+}
+
+/**
+ * Einen Eintrag des Zwischenspeichers **aus dem eingecheckten Manifest
+ * zurückgewinnen** — oder `null`, wenn das nicht sicher geht.
+ *
+ * ⚠️ **Warum es das gibt.** Die Medien-Action läuft auf einer frischen
+ * Maschine, `.medien-cache/stand.json` gibt es dort nie. Ohne diesen Weg
+ * hielte sie jedes Bild für neu und rechnete täglich alle Varianten aller
+ * Bilder — rund 35 s je Bild — und lüde sie erneut hoch. Das Manifest im
+ * Repo ist aber genau das Ergebnis des letzten Laufs.
+ *
+ * Es gilt nur, was diese Prüfung übersteht — dieselbe Strenge wie beim
+ * Zwischenspeicher:
+ *
+ * - Jede Adresse in `avif`, `webp` und `fallback` trägt den Fingerabdruck
+ *   **dieses** Laufs (`?v=` + die ersten acht Stellen von `schluessel`).
+ *   Der Schlüssel hängt an ETag, Pipelineversion und Bucket-Adresse;
+ *   ändert sich eins davon, ändert sich der Fingerabdruck, und das Bild
+ *   wird neu gerechnet. Ein ersetztes Original fällt also immer durch.
+ * - Jede daraus abgeleitete Datei liegt tatsächlich im Bucket (`imBucket`)
+ *   — wer unter `b/` aufgeräumt hat, bekommt eine Neuberechnung statt 404.
+ *
+ * @param {Record<string, unknown> | undefined} eintrag aus `lib/bilder-manifest.json`
+ * @param {string} schluessel der Cache-Schlüssel dieses Laufs (sha1, hex)
+ * @param {Set<string>} imBucket alle Schlüssel unter `b/`
+ * @param {string} basisUrl ohne Schrägstrich am Ende
+ * @returns {{ schluessel: string; eintrag: object; dateien: string[] } | null}
+ */
+export function ausManifest(eintrag, schluessel, imBucket, basisUrl) {
+  if (!eintrag || typeof eintrag !== "object") return null;
+  if (typeof eintrag.breite !== "number" || typeof eintrag.hoehe !== "number") return null;
+  if (typeof eintrag.lqip !== "string") return null;
+  for (const feld of ["avif", "webp", "fallback"]) {
+    if (typeof eintrag[feld] !== "string" || eintrag[feld].length === 0) return null;
+  }
+
+  const v = `?v=${schluessel.slice(0, 8)}`;
+  // Jede einzelne Adresse — am 2026-10-15 trug der Rückfall den
+  // Fingerabdruck und das `srcset` nicht.
+  const adressen = [
+    ...`${eintrag.avif},${eintrag.webp}`.split(",").map((t) => t.trim().split(/\s+/)[0]),
+    eintrag.fallback,
+  ].filter(Boolean);
+  if (!adressen.every((a) => a.endsWith(v))) return null;
+
+  const dateien = variantenSchluessel(eintrag, basisUrl);
+  if (!dateien || dateien.length === 0) return null;
+  if (!dateien.every((d) => imBucket.has(d))) return null;
+
+  return { schluessel, eintrag, dateien };
+}
+
+/**
+ * Gilt ein Eintrag aus dem Zwischenspeicher noch? Schlüssel, Adressen und
+ * Dateien im Bucket müssen stimmen — Begründungen in `main()`.
+ */
+function gilt(alt, schluessel, imBucket) {
+  if (alt?.schluessel !== schluessel) return false;
+  /* Alle drei Adressfelder — am 2026-10-15 fehlte der Fingerabdruck im
+     `srcset`, während der Rückfall ihn trug. */
+  const v = `?v=${schluessel.slice(0, 8)}`;
+  const adresseAktuell = ["fallback", "avif", "webp"].every((feld) =>
+    alt?.eintrag?.[feld]?.includes(v),
+  );
+  return adresseAktuell && Array.isArray(alt.dateien) && alt.dateien.every((d) => imBucket.has(d));
+}
+
 async function main() {
   const r2 = zugang();
   const basisUrl = oeffentlich();
@@ -372,6 +481,12 @@ async function main() {
   const stand = existsSync(CACHE_STAND)
     ? JSON.parse(await readFile(CACHE_STAND, "utf8"))
     : {};
+  /* Das eingecheckte Manifest, **bevor** dieser Lauf es überschreibt — der
+     Rückfall, wenn der Zwischenspeicher fehlt (siehe `ausManifest`). */
+  const altesManifest = existsSync(BILD_MANIFEST)
+    ? JSON.parse(await readFile(BILD_MANIFEST, "utf8"))
+    : {};
+  let ausDemManifest = 0;
 
   console.log(`R2: lese ${R2_ORIGINAL} und ${R2_ABLEITUNG}…`);
   const objekte = await liste(r2, R2_ORIGINAL);
@@ -437,8 +552,6 @@ async function main() {
       .update(String(PIPELINE_VERSION))
       .update(basisUrl)
       .digest("hex");
-    const alt = stand[name];
-
     /*
      * ⚠️ **Auch die Adresse muss stimmen, nicht nur der Schlüssel.**
      *
@@ -454,15 +567,19 @@ async function main() {
      * wenn seine Adresse die ist, die dieser Lauf erzeugen würde. Wer die
      * Form der Adressen künftig ändert und die Version vergisst, bekommt
      * eine Neuberechnung statt eines stillen Fehlers.
+     *
+     * Fehlt der Eintrag im Zwischenspeicher oder gilt er nicht (Medien-Action,
+     * frischer Klon, oder `stand.json` von einem älteren Lauf als das
+     * Manifest), wird er aus dem eingecheckten Manifest zurückgewonnen —
+     * mit denselben Prüfungen, siehe `ausManifest`.
      */
-    /* Alle drei Adressfelder — am 2026-10-15 fehlte der Fingerabdruck im
-       `srcset`, während der Rückfall ihn trug. */
-    const v = `?v=${schluessel.slice(0, 8)}`;
-    const adresseAktuell = ["fallback", "avif", "webp"].every((feld) =>
-      alt?.eintrag?.[feld]?.includes(v),
-    );
+    let alt = stand[name];
+    if (!gilt(alt, schluessel, imBucket)) {
+      alt = ausManifest(altesManifest[name], schluessel, imBucket, basisUrl);
+      if (alt) ausDemManifest += 1;
+    }
 
-    if (alt?.schluessel === schluessel && adresseAktuell && alt.dateien.every((d) => imBucket.has(d))) {
+    if (alt) {
       bilder[name] = alt.eintrag;
       neuerStand[name] = alt;
       alt.dateien.forEach((d) => behalten.add(d));
@@ -490,7 +607,8 @@ async function main() {
     for (const { name } of offen) console.log(`  + ${name} (würde erzeugt)`);
     console.log(
       `[Probelauf] ${offen.length} Bilder wären zu erzeugen, ` +
-        `${unveraendert} unverändert, ${Object.keys(videos).length} Videos verzeichnet.`,
+        `${unveraendert} unverändert (davon ${ausDemManifest} aus dem Manifest), ` +
+        `${Object.keys(videos).length} Videos verzeichnet.`,
     );
     console.log("Nichts geholt, nichts gerechnet, nichts geschrieben.");
     return;
@@ -544,7 +662,8 @@ async function main() {
   for (const w of warnungen.slice(bereitsGemeldet)) console.warn(`  ! ${w}`);
 
   console.log(
-    `Medien: ${offen.length} Bilder erzeugt, ${unveraendert} unverändert, ` +
+    `Medien: ${offen.length} Bilder erzeugt, ${unveraendert} unverändert ` +
+      `(davon ${ausDemManifest} aus dem Manifest), ` +
       `${Object.keys(videos).length} Videos verzeichnet` +
       (geloescht > 0 ? `, ${geloescht} verwaiste entfernt` : ""),
   );
@@ -588,7 +707,20 @@ async function karten() {
   });
 }
 
-main().catch((fehler) => {
-  console.error(`Medienpipeline abgebrochen: ${fehler.message}`);
-  process.exit(1);
-});
+/*
+ * Nur als Skript starten, nicht beim Import: Die Tests
+ * (`scripts/medien.test.mjs`) laden `ausManifest` aus dieser Datei, und ein
+ * `main()` beim Laden griffe dort nach dem Bucket. `import.meta.main` gibt es
+ * erst ab Node 22.18/24.2; davor der Vergleich der Pfade (ohne Groß- und
+ * Kleinschreibung, weil Windows den Laufwerksbuchstaben mal so, mal so liefert).
+ */
+const direkt =
+  import.meta.main ??
+  (process.argv[1] !== undefined &&
+    path.resolve(process.argv[1]).toLowerCase() === fileURLToPath(import.meta.url).toLowerCase());
+if (direkt) {
+  main().catch((fehler) => {
+    console.error(`Medienpipeline abgebrochen: ${fehler.message}`);
+    process.exit(1);
+  });
+}

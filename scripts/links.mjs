@@ -1,5 +1,5 @@
 /**
- * `npm run links` — prüft jeden Filmlink aus `FILME` in lib/content.ts.
+ * `npm run links` — prüft jeden Filmlink aus `filme` in lib/inhalt.json.
  *
  * Grund: ARD- und SWR-Mediathek depublizieren nach Ablauf der Verweildauer.
  * Ein toter Link auf einer Seite, die nur aus Links besteht, ist ein
@@ -8,9 +8,12 @@
  * **Bewusst nicht im Build:** Ein Deploy darf nicht davon abhängen, ob
  * YouTube gerade antwortet. Regelmäßig von Hand oder geplant laufen lassen.
  *
- * Braucht Node ≥ 22.18 (liest content.ts direkt).
+ * ⚠️ Liest seit dem 2026-10-17 `lib/inhalt.json` statt `lib/content.ts` —
+ * die importiert TypeScript ohne Endungen, und das kann Node nicht laden.
  */
-const { FILME } = await import("../lib/content.ts");
+import { leseInhalt } from "./inhalt.mjs";
+
+const { filme: FILME } = await leseInhalt();
 
 let fehler = 0;
 for (const film of FILME) {
@@ -32,7 +35,7 @@ for (const film of FILME) {
 
 console.log(
   FILME.length === 0
-    ? "Keine Filme in content.ts."
+    ? "Keine Filme in lib/inhalt.json."
     : `${FILME.length} Links geprüft, ${fehler} mit Problem.`,
 );
 process.exit(fehler > 0 ? 1 : 0);

@@ -22,7 +22,7 @@ Ersatzschriften). Wo ein älterer Abschnitt weiter unten dem widerspricht, gilt 
 |---------|--------|----------------|---------|
 | Routen | `/`, `/arbeiten`, `/arbeiten/[slug]`, `/leistungen/[slug]`, `/kontakt`, `/ueber`, Pflichtseiten | `/`, `/foto`, `/film`, `/ueber`, Pflichtseiten | 4, 5 |
 | Weiterleitungen | — | in `next.config.mjs`, dauerhaft (308): `/arbeiten` und `/arbeiten/:slug` → `/foto`, `/leistungen/:slug` → `/`, `/kontakt` → `/ueber`; dazu vorläufig (307) `/foto/:id` → `/foto` für die Detailseiten, die am 2026-10-14 kurz live waren | 5 |
-| Inhalte | `WORKS`, `CATEGORIES`, `SERVICES`, `REFERENCES`, `CONTACT` | `FOTOS` (`id`, `titel`, `kunde`), `FILME` (dazu `link`), `ABOUT` | 2 |
+| Inhalte | `WORKS`, `CATEGORIES`, `SERVICES`, `REFERENCES`, `CONTACT` | `FOTOS` (`id`, `titel`, `kunde`), `FILME` (dazu `link`), `ABOUT` — seit 2026-10-17 in `lib/inhalt.json`, siehe „Verwaltung (/admin)" | 2 |
 | Schriften | Bricolage Grotesque, Newsreader, Martian Mono über `next/font/google` | Druk Wide Bold und Avenir Next über `next/font/local` — siehe „Schriften" unten | 3 |
 | Kontaktformular | Route `app/api/anfrage`, `lib/anfrage.ts`, `lib/mailer.ts`, Resend, Turnstile | **entfällt ersatzlos.** Keine Worker-Secrets `RESEND_API_KEY`, `ANFRAGE_AN`, `ANFRAGE_VON`; kein AV-Vertrag nötig | 5 |
 | Filme | selbst ausgeliefert aus `original/video/<id>.mp4` | **verlinkt**, nicht gespeichert. Nur das Standbild liegt bei uns: `original/film/<id>.jpg` | 2, 4 |
@@ -86,6 +86,345 @@ Wide gibt es diesen Weg nicht — sie ist nirgends vorinstalliert.
 **Ablage:** `app/fonts/` (WOFF2 für die Seite), `assets/fonts/` (TTF/OTF für die
 Vorschaukarten). Beide Ordner **erst nach Punkt 2** befüllen.
 
+## Verwaltung (/admin)
+
+> **Gebaut am 2026-10-17.** ⏳ **Eingerichtet ist sie erst, wenn die Schritte unter
+> „Einrichtung" erledigt sind** (`TODO.md`, „🙋 Nur Jan & Jakob"). Bis dahin antwortet `/admin`
+> mit 404 — das ist Absicht, nicht ein Fehler.
+
+Unter `https://jakobsax.de/admin` bearbeitet Jakob die Seite selbst: Mosaik auf `/foto` frei
+anordnen, Hero-Auswahl, Bilder auf `/ueber`, Bilder ausblenden, löschen (Papierkorb), neu
+hochladen und ersetzen, Bildausschnitte setzen, Texte bearbeiten (Arbeiten, Bildtitel, Alt-Texte,
+Über mich, Filme, Startseite) und frühere Stände wiederherstellen.
+
+**Grundprinzip: Speichern ist ein Git-Commit.** Die Verwaltung schreibt genau eine Datei,
+`lib/inhalt.json`, über die GitHub-API auf `main`. Cloudflare baut daraufhin wie nach jedem Push
+(1–2 Minuten). Die öffentliche Seite bleibt **statisch gebaut** — es gibt keine Datenbank, keinen
+fremden Dienst und keinen Code, der für Besucher zur Laufzeit Inhalte holt.
+
+**Warum so und nicht mit einem fertigen CMS** (`CLAUDE.md`, „Konventionen"): Git bleibt die
+einzige Quelle. Jede Änderung steht im Verlauf, lässt sich zurücknehmen (auch in der Verwaltung,
+Reiter „Verlauf"), und ein kaputter Stand geht nie live, weil der Build ihn mit denselben Regeln
+prüft wie die Verwaltung (`lib/inhalt-pruefen.ts`) und dann abbricht — Cloudflare lässt in dem
+Fall die alte Fassung online.
+
+### Architektur
+
+```
+Browser (Jakob)
+  │  Cloudflare Access (Anmeldung per E-Mail-Code) vor /admin und /api/admin
+  ▼
+Worker personalwebsite
+  ├─ /admin                  Oberfläche (app/admin/), prüft das Access-Token selbst noch einmal
+  ├─ /api/admin/stand        liest lib/inhalt.json + Bild-Manifest von main   ─┐
+  ├─ /api/admin/speichern    prüft, committet lib/inhalt.json auf main        ├─ GitHub-API (GITHUB_TOKEN)
+  ├─ /api/admin/verlauf      Commits, die lib/inhalt.json geändert haben      │
+  ├─ /api/admin/zuruecksetzen Datei aus einem alten Commit als neuen Commit   │
+  ├─ /api/admin/verarbeiten  startet die Medien-Action (workflow_dispatch)    │
+  ├─ /api/admin/verarbeitung wartende Bilder + letzte Läufe der Action       ─┘
+  ├─ /api/admin/live         aus welchem Commit die laufende Seite gebaut ist (BUILD_COMMIT)
+  └─ /api/admin/hochladen    legt die Bilddatei in den PRIVATEN Eingangs-Bucket (R2, S3-API)
+                                       │
+GitHub Action Medien (.github/workflows/medien.yml)
+  eingang → papierkorb → medien → Commit „Medien: …" auf main  →  Cloudflare baut
+```
+
+| Teil | Dateien |
+|---|---|
+| Vertrag zwischen Oberfläche und Server (Typen, Routen, `ZIEL`, `MAX_UPLOAD_BYTES`, `BILDTYPEN`) | `lib/admin/vertrag.ts` — **zuerst lesen** |
+| Inhalte, Typen, Prüfung | `lib/inhalt.json`, `lib/inhalt.ts`, `lib/inhalt-pruefen.ts` |
+| Zugang (Access-JWT, Herkunft) | `lib/admin/zugang.ts` |
+| Einstellungen aus der Worker-Umgebung | `lib/admin/umgebung.ts` |
+| GitHub-API, Eingangs-Bucket, gemeinsame Antworten | `lib/admin/github.ts`, `lib/admin/eingang.ts`, `lib/admin/antwort.ts` |
+| Routen | `app/api/admin/*/route.ts` |
+| Oberfläche | `app/admin/` (Server-Seite `page.tsx`, Client-Wurzel `Verwaltung.tsx`, je Reiter eine Datei), reine Hilfsfunktionen in `lib/admin/werkzeuge.ts` |
+| Medien-Action und ihre Skripte | `.github/workflows/medien.yml`, `scripts/eingang.mjs`, `scripts/papierkorb.mjs`, `scripts/saeubern.mjs`, `scripts/inhalt.mjs`, `lib/inhalt-regeln.mjs` |
+
+⚠️ **`lib/content.ts` ist keine Inhaltsquelle mehr.** Es reicht `lib/inhalt.json` unter den alten
+Namen (`FOTOS`, `FOTO_HERO`, `ABOUT` …) an die Seiten weiter und prüft den Stand beim Build.
+**Node-Skripte können es nicht importieren** (es importiert TypeScript und JSON ohne Endung, das
+kann nur der Bündler) — sie lesen `lib/inhalt.json` über `scripts/inhalt.mjs`.
+
+### Abläufe
+
+**Laden.** `GET /api/admin/stand` holt `lib/inhalt.json` und `lib/bilder-manifest.json` frisch
+von `main` (nicht den Stand des laufenden Builds), dazu die Blob-SHA der Datei. Ohne GitHub-Zugang
+zeigt die Verwaltung den Stand des Builds, Speichern ist dann gesperrt.
+
+**Speichern.** Die Oberfläche prüft jede Änderung sofort mit `pruefeInhalt` und zeigt Fehler,
+Warnungen und Hinweise; Fehler sperren das Speichern. Beim Speichern prüft der Server noch einmal
+(422 bei Fehlern) und committet dann mit der SHA vom Laden. Hat sich die Datei inzwischen geändert
+(Jan im Code, ein zweiter Tab, die Medien-Action beim Leeren des Papierkorbs), lehnt GitHub ab:
+**409, nichts wird still überschrieben** — die Verwaltung bietet „Neu laden" an. Danach fragt sie
+alle 20 s `/api/admin/live`, bis die laufende Seite aus dem neuen Commit gebaut ist, und meldet
+„Gespeichert und live".
+
+**Commit-Nachricht:** `Verwaltung: <Betreff>` und darunter „Gespeichert über die Verwaltung
+(/admin)." Der Betreff ist eine Zusammenfassung dessen, *was* sich geändert hat, ohne Werte;
+E-Mail-Adressen werden auf beiden Seiten entfernt (`ohneEmail`, `betreffAus`). Kein `author`-Feld:
+Der Commit läuft auf den Inhaber des Tokens.
+
+**Verlauf und Zurücksetzen.** Der Reiter „Verlauf" zeigt die letzten Commits an `lib/inhalt.json`
+(Name oder Login, nie die Mail). „Diesen Stand wiederherstellen" schreibt die Datei aus dem alten
+Commit als **neuen** Commit (`Verwaltung: Stand vom TT.MM.JJJJ, HH:MM wiederhergestellt`) —
+dieselbe Prüfung wie beim Speichern, nichts wird aus der Geschichte gelöscht.
+
+**Hochladen und Ersetzen.**
+
+1. Die Oberfläche wählt das Ziel (den künftigen Bildschlüssel, z. B. `arbeiten/<id>/07`, `ueber/03`,
+   `film/<id>`, `portrait`) und prüft Größe, Typ und das Ziel gegen `ZIEL`. Ersetzen heißt: auf
+   denselben Schlüssel hochladen.
+2. `PUT /api/admin/hochladen?ziel=…` mit der Datei als rohem Rumpf. Der Worker prüft Ziel, Typ,
+   Größe und die ersten Bytes (ein PNG muss wie ein PNG anfangen) und legt die Datei als
+   `<ziel>.<endung>` in den **privaten Eingangs-Bucket**.
+3. Danach stößt die Verwaltung die Medien-Action an und zeigt, was noch wartet.
+
+⚠️ **Warum ein eigener, privater Bucket.** Eine frisch hochgeladene Datei trägt alle
+Kameradaten, oft mit GPS. Läge sie auch nur Minuten im öffentlichen Bucket, wäre der Aufnahmeort
+über ihre Adresse abrufbar. Erst die Action säubert sie. Und warum die Action und nicht der Worker:
+`sharp` läuft im Worker nicht.
+
+**Die Medien-Action** (`.github/workflows/medien.yml`, von Hand unter Actions → Medien → „Run
+workflow", von der Verwaltung per `workflow_dispatch` und täglich um 03:17 UTC):
+
+1. `npm run eingang` — je Ziel die neueste Datei aus dem Eingang holen, säubern
+   (`scripts/saeubern.mjs`: GPS und alles außer Ausrichtung, Aufnahmezeit, Belichtung, Blende und
+   ISO raus; PNG/WebP/TIFF werden JPEG), nach `original/<ziel>.jpg` legen, andere Endungen
+   desselben Schlüssels löschen, **erst dann** aus dem Eingang löschen. Ein kaputtes Bild hält die
+   anderen nicht auf, bleibt im Eingang liegen und färbt den Lauf am Ende rot.
+2. `npm run papierkorb` — siehe unten.
+3. `npm run medien` — Varianten rechnen, Verwaistes wegräumen, Manifest und Vorschaukarte
+   schreiben. Ohne `.medien-cache` trotzdem inkrementell: Unveränderte Bilder werden aus dem
+   eingecheckten Manifest zurückgewonnen.
+4. Was sich geändert hat (`lib/bilder-manifest.json`, `lib/video-manifest.json`,
+   `lib/inhalt.json`, `public/og`), committet sie als `github-actions[bot]` mit `Medien: …`,
+   holt vorher den neuesten Stand (`git pull --rebase`) und versucht den Push bei einem Fehler
+   genau ein zweites Mal.
+
+Sie läuft nie zweimal gleichzeitig und wird nie abgebrochen. Ein abgebrochener Lauf wird beim
+nächsten nachgeholt: Was nicht fertig wurde, liegt noch im Eingang bzw. Papierkorb.
+
+**Ausblenden.** Der Schlüssel kommt in `ausgeblendet`; die Datei bleibt im Bucket, das Bild
+behält seinen Platz in der Reihenfolge und kehrt beim Einblenden dorthin zurück.
+
+**Löschen = Papierkorb, 30 Tage.** Löschen trägt den Schlüssel mit dem heutigen Datum in
+`papierkorb` ein und nimmt ihn aus dem Hero; auf der Seite ist das Bild sofort weg, im Bucket
+liegt es noch. Bis zum Ablauf stellt der Reiter „Papierkorb" es mit einem Klick wieder her. Nach
+**mehr als 30 Tagen** löscht die tägliche Action das Original im öffentlichen Bucket (die
+Varianten räumt `npm run medien` direkt danach als verwaist weg) und entfernt den Schlüssel
+**restlos** aus `lib/inhalt.json` — aus Reihenfolge, Hero, Ausschnitten, Bildtiteln und Alt-Texten;
+Plätze auf der Startseite werden leer (`entferneSchluessel` in `lib/inhalt-regeln.mjs`).
+⚠️ **Der einzige Schritt, der sich nicht zurücknehmen lässt.** Deshalb gilt ein unlesbares Datum
+als nicht abgelaufen, und wurde nach dem Löschtag ein neues Bild unter demselben Schlüssel
+hochgeladen, bleibt die Datei stehen und nur der Papierkorbeintrag fällt weg.
+
+Eine **Arbeit** lässt sich in der Verwaltung nur löschen, solange sie keine Bilder hat (weder im
+Manifest noch im Eingang) — sonst rät die Oberfläche zum Ausblenden.
+
+### Sicherheit
+
+- **Fail closed.** Fehlt `ADMIN_ACCESS_TEAM`, `ADMIN_ACCESS_AUD` oder `ADMIN_EMAILS`, antworten
+  `/admin` und alle `/api/admin/*` mit **404**. Die Verwaltung ist dann nicht da, statt offen.
+- **Zwei Schlösser.** Cloudflare Access steht vor den Pfaden und meldet an. Der Worker prüft das
+  Access-Token (`cf-access-jwt-assertion`) trotzdem **selbst**: Signatur (RS256, Schlüssel von
+  `https://<team>/cdn-cgi/access/certs`), Aussteller, Audience, Ablauf und die E-Mail gegen
+  `ADMIN_EMAILS`. So bleibt die Verwaltung auch dann zu, wenn Access falsch eingestellt ist oder
+  jemand den Worker über eine andere Adresse (z. B. `workers.dev`) erreicht.
+- **Mutierende Anfragen nur von derselben Seite** (`Origin` bzw. `Sec-Fetch-Site`), sonst 403.
+- **Bildschlüssel werden immer gegen `ZIEL` bzw. feste Muster geprüft**, Pfade und Refs gegen
+  `..` und leere Abschnitte — kein Ausbruch aus `lib/inhalt.json` oder dem Eingang.
+- **Secrets gehen nie an den Browser, in Logs oder Fehlermeldungen.** Der Browser erfährt nur zwei
+  Wahrheitswerte (`konfiguration`: GitHub ja/nein, Eingang ja/nein). Fehlertexte von R2 werden
+  nicht durchgereicht (das S3-Fehler-XML nennt die Key-ID), die Logs der Action ebenso wenig
+  (`s3Grund` in `scripts/r2.mjs`).
+- **Nie zwischenspeichern, nie indexieren.** `next.config.mjs` setzt für `/admin` und
+  `/api/admin/*` `Cache-Control: no-store` und `X-Robots-Tag: noindex, nofollow` (nach der
+  `must-revalidate`-Regel, sonst gewönne die), die Routen setzen `no-store` zusätzlich.
+  `app/robots.ts` verbietet `/admin` und `/api/` — die **einzige** bewusste Ausnahme vom
+  Grundsatz unter „Indexierbarkeit" unten, weil es dort nie einen Index-Eintrag gab, der
+  verschwinden müsste.
+
+⚠️ **Datenschutz: Das Repo ist öffentlich** — jeder Commit, jede Commit-Nachricht und jedes Log
+der Action ist für immer lesbar.
+
+- Die Verwaltung setzt kein `author`-Feld und entfernt Adressen aus der Nachricht; die Action
+  committet als `github-actions[bot]` mit dessen noreply-Adresse.
+- **Aber:** Commits der Verwaltung laufen auf das GitHub-Konto, dem der Token gehört, mit der
+  Commit-Adresse aus dessen Kontoeinstellungen. Dort deshalb **GitHub → Settings → Emails → „Keep
+  my email addresses private"** einschalten (dann steht die `…@users.noreply.github.com`-Adresse im
+  Commit). Das liegt außerhalb des Codes.
+- `notiz`-Felder in `lib/inhalt.json` erscheinen nur in der Verwaltung, **stehen aber öffentlich
+  im Repo**. Nichts hineinschreiben, was nicht jeder lesen darf.
+
+### Variablen und Secrets
+
+**Im Worker** (Workers & Pages → personalwebsite → Settings → **Variables and Secrets** — die
+Laufzeit-Variablen, **nicht** die „Build variables"):
+
+| Name | Art | Pflicht | Zweck |
+|---|---|---|---|
+| `ADMIN_ACCESS_TEAM` | Text | ja | Teamdomain von Cloudflare Access, z. B. `jakobsax.cloudflareaccess.com` (ohne `https://`) |
+| `ADMIN_ACCESS_AUD` | Text | ja | „Application Audience (AUD) Tag" der Access-Application |
+| `ADMIN_EMAILS` | Text | ja | erlaubte E-Mail-Adressen, kommagetrennt. Groß-/Kleinschreibung egal |
+| `GITHUB_TOKEN` | **Secret** | für Speichern, Verlauf, Verarbeitung | fine-grained Token, nur dieses Repo |
+| `GITHUB_REPO` | Text | nein | Standard `jh8yzpy6vj-dot/personalwebsite` |
+| `GITHUB_BRANCH` | Text | nein | Standard `main` |
+| `R2_ACCOUNT_ID` | Text | für Hochladen | Konto-ID aus R2 |
+| `R2_JURISDICTION` | Text | wenn der Eingang eine hat | z. B. `eu` — ⚠️ der Bucket `websitebucket` liegt in der EU, ein Eingang daneben also auch |
+| `EINGANG_BUCKET` | Text | für Hochladen | Name des privaten Eingangs-Buckets |
+| `EINGANG_ACCESS_KEY_ID` | **Secret** | für Hochladen | R2-Token, Object Read & Write **nur** auf den Eingang |
+| `EINGANG_SECRET_ACCESS_KEY` | **Secret** | für Hochladen | dito |
+| `ADMIN_DEV` | — | **nie im Dashboard** | nur lokal, siehe „Lokale Entwicklung" |
+
+Fehlen die drei `ADMIN_*`-Werte: 404. Fehlt `GITHUB_TOKEN`: Verwaltung lesbar, Speichern
+gesperrt (Hinweisband). Fehlt einer der vier Eingangs-Werte: Datei-Knöpfe gesperrt (Hinweisband).
+
+**Zur Build-Zeit:** `BUILD_COMMIT` setzt `next.config.mjs` aus `WORKERS_CI_COMMIT_SHA` (Workers
+Builds) bzw. `GITHUB_SHA` fest ein. Daran erkennt `/api/admin/live`, ob ein gespeicherter Commit
+online ist. Nichts einzutragen — solange Workers Builds die Variable setzt.
+
+**In GitHub** (Repo → Settings → Secrets and variables → **Actions** → New repository secret), für
+die Medien-Action:
+
+| Name | Pflicht | Zweck |
+|---|---|---|
+| `R2_ACCOUNT_ID` | ja | wie lokal in `.dev.vars` |
+| `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | ja | R2-Token mit Object Read & Write auf **beide** Buckets (öffentlich und Eingang) |
+| `R2_BUCKET` | ja | der öffentliche Bucket (`websitebucket`) |
+| `R2_PUBLIC_URL` | ja | ⚠️ **exakt** wie lokal (z. B. `https://medien.jakobsax.de`) — sonst schreibt die Pipeline alle Manifest-Einträge neu |
+| `EINGANG_BUCKET` | für Hochladen | Name des Eingangs. Fehlt er, meldet `npm run eingang` „nichts zu tun" — und Hochgeladenes bliebe für immer liegen |
+| `R2_S3_ENDPOINT` oder `R2_JURISDICTION` | bei Jurisdiction | wie lokal (siehe „Medien" → „Zugangsdaten") |
+
+Fehlt eines der fünf Pflicht-Secrets, endet die Action **grün** mit einem Hinweis und tut nichts.
+⚠️ Die Action nimmt für den Eingang dieselbe Jurisdiction wie für den öffentlichen Bucket
+(`EINGANG_JURISDICTION` kennt nur `scripts/r2.mjs` lokal, der Workflow reicht es nicht durch).
+**Beide Buckets also in derselben Jurisdiction anlegen.**
+
+⚠️ **`keep_vars = true` in `wrangler.toml` nicht entfernen.** Ohne die Zeile ersetzt jeder Deploy
+die im Dashboard gesetzten Klartext-Variablen durch das, was in `wrangler.toml` steht — also durch
+nichts —, und die Verwaltung wäre nach dem nächsten Push still weg (404). Secrets bleiben
+ohnehin erhalten.
+
+### Einrichtung — Schritt für Schritt
+
+Einmalig, im Dashboard; Claude kann das nicht. Reihenfolge einhalten: Erst Access, dann die
+Variablen — andersherum wäre die Verwaltung kurz ohne Anmeldung erreichbar. (Ist sie nicht, weil
+der Worker selbst prüft, aber die Reihenfolge kostet nichts.)
+
+1. **Cloudflare Access.** Cloudflare-Dashboard → **Zero Trust** → Access → Applications → Add an
+   application → **Self-hosted**.
+   - Name z. B. „Verwaltung jakobsax.de". Vier Ziele (Application domain / Public hostname):
+     `jakobsax.de/admin`, `www.jakobsax.de/admin`, `jakobsax.de/api/admin`,
+     `www.jakobsax.de/api/admin`. ⚠️ **Alle vier** — fehlt `www`, sieht man dort direkt 404;
+     fehlt `/api/admin`, lädt die Seite, aber jede Aktion scheitert.
+   - Policy: Action **Allow**, Include → **Emails** → Jakobs Adresse (und Jans). Sonst niemand.
+   - Anmeldung: **One-time PIN** (Code per E-Mail) genügt.
+   - Session Duration großzügig, z. B. **24 Stunden**: Läuft die Sitzung mitten in der Arbeit ab,
+     scheitern die Anfragen, und ungespeicherte Änderungen gehen beim Neuladen verloren.
+   - Danach notieren: den **Application Audience (AUD) Tag** (in der Application unter
+     Overview/Basic information) und die **Teamdomain** (Zero Trust → Settings → Custom Pages,
+     `<team>.cloudflareaccess.com`).
+2. **Eingangs-Bucket in R2.** R2 → Create bucket, z. B. `jakobsax-eingang`, **dieselbe
+   Jurisdiction wie `websitebucket` (EU)**.
+   - ⚠️ **Privat lassen:** kein Public Access, keine `r2.dev`-Adresse, keine Custom Domain.
+   - R2 → Manage API Tokens: **ein Token für den Worker** mit Object Read & Write **nur auf den
+     Eingang** → `EINGANG_ACCESS_KEY_ID` / `EINGANG_SECRET_ACCESS_KEY`.
+   - **Ein Token für die Action** mit Object Read & Write auf **beide** Buckets (öffentlich und
+     Eingang) → `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` in GitHub. Der bisherige Token aus
+     `.dev.vars` darf meist nur `websitebucket`; erweitern oder einen neuen anlegen.
+   - Das Secret wird nur einmal angezeigt.
+3. **GitHub-Token.** GitHub → Settings → Developer settings → Personal access tokens →
+   **Fine-grained tokens** → Generate new token.
+   - Resource owner: das Konto, dem das Repo gehört. Repository access: **Only select
+     repositories** → `personalwebsite`.
+   - Repository permissions: **Contents: Read and write**, **Actions: Read and write**, Metadata:
+     Read (kommt automatisch). Nichts sonst.
+   - **Ablaufdatum setzen** (z. B. ein Jahr) und den Tag in den Kalender eintragen. Ist der Token
+     abgelaufen, meldet die Verwaltung „GitHub lehnt den Zugang ab — der Token ist abgelaufen oder
+     falsch". Erneuern = neuen Token erzeugen, im Worker `GITHUB_TOKEN` ersetzen, alten löschen.
+   - Im selben Konto „Keep my email addresses private" einschalten (siehe „Datenschutz" oben).
+4. **Worker-Variablen.** Workers & Pages → personalwebsite → Settings → Variables and Secrets →
+   Add: die Werte aus der Tabelle oben, `GITHUB_TOKEN` und die beiden `EINGANG_*`-Schlüssel als
+   **Secret** (Typ „Secret", nicht „Text"). Alternativ von der Kommandozeile:
+   `npx wrangler secret put GITHUB_TOKEN` (fragt den Wert ab; nie als Argument übergeben, sonst
+   steht er im Shell-Verlauf). Klartext-Variablen wirken ab dem nächsten Deploy bzw. sofort nach
+   „Deploy" im Dashboard.
+5. **GitHub-Actions-Secrets.** Repo → Settings → Secrets and variables → Actions: die Secrets aus
+   der zweiten Tabelle. Unter Settings → Actions → General müssen Actions erlaubt sein; die
+   Workflow-Rechte braucht man nicht zu ändern (der Workflow fordert `contents: write` selbst an).
+   Gibt es je eine Branch-Protection auf `main`, muss `github-actions[bot]` pushen dürfen.
+   Danach einmal von Hand starten (Actions → Medien → Run workflow) und im Log von „Varianten
+   rechnen" nachsehen: Erwartet ist „… unverändert (davon N aus dem Manifest)" und **nichts** neu
+   gerechnet.
+6. **Testen.**
+   - `https://jakobsax.de/admin` und `https://www.jakobsax.de/admin` in einem privaten Fenster:
+     Es erscheint die **Access-Anmeldeseite**, nie die Verwaltung. Ohne Access-Application (oder
+     über `workers.dev`) kommt **404**.
+   - `https://jakobsax.de/api/admin/stand` ohne Anmeldung: ebenfalls Anmeldeseite bzw. 404.
+   - Mit Jakobs Adresse anmelden: Die Verwaltung lädt ohne Hinweisbänder.
+   - Eine kleine Textänderung speichern und warten, bis „Gespeichert und live" erscheint; im
+     GitHub-Verlauf prüfen, dass der Commit mit `Verwaltung:` beginnt und **keine private
+     Adresse** zeigt (`git log --format='%an <%ae>' -1`).
+   - Ein Testbild hochladen, die Verarbeitung abwarten, das Bild danach wieder löschen.
+
+**Empfohlen:** Workers & Pages → personalwebsite → Settings → Domains & Routes die
+`workers.dev`-Adresse (und die Preview-URLs) abschalten. Die Verwaltung antwortet dort zwar mit
+404, aber eine zweite offene Adresse der Seite braucht niemand.
+
+### Lokale Entwicklung
+
+```
+# .env.development.local  (von Git ausgenommen, gilt nur für `next dev`)
+ADMIN_DEV=1
+```
+
+`npm run dev`, dann `http://localhost:3000/admin`. `ADMIN_DEV=1` schaltet die Anmeldung ab —
+**nur**, wenn zugleich `NODE_ENV` `development` ist, also ausschließlich unter `next dev`. Im
+Produktionsbuild setzt Next `NODE_ENV` fest auf `production`; dort öffnet `ADMIN_DEV` nichts,
+auch nicht versehentlich im Dashboard gesetzt.
+
+Ohne weitere Werte zeigt die Verwaltung den lokalen Stand von `lib/inhalt.json`, Speichern und
+Hochladen sind gesperrt — zum Ansehen und Bauen der Oberfläche reicht das. ⚠️ **Wer lokal
+`GITHUB_TOKEN` einträgt, committet beim Speichern auf das echte `main` — und das geht live.** Zum
+gefahrlosen Ausprobieren `GITHUB_BRANCH` auf einen eigenen, vorhandenen Branch setzen. Unter
+`next dev` gibt es keinen Cloudflare-Kontext; die Werte kommen aus `.env*.local` bzw. der Shell
+(`lib/admin/umgebung.ts`), nicht aus `.dev.vars`.
+
+### Fehlerbilder
+
+| Was man sieht | Ursache | Abhilfe |
+|---|---|---|
+| `/admin` zeigt 404, **ohne** vorher eine Anmeldeseite | Access-Application fehlt oder deckt diesen Host/Pfad nicht ab (oft: `www` vergessen) | Schritt 1, alle vier Ziele |
+| Nach der Anmeldung 404 | Eine der `ADMIN_*`-Variablen fehlt oder ist falsch (AUD einer anderen Application, Teamdomain vertippt, Adresse nicht in `ADMIN_EMAILS`), oder sie steht unter „Build variables" statt unter „Variables and Secrets" | Werte prüfen. Den Grund (ohne Adresse) zeigen die Worker-Logs (Observability) |
+| Nach einem Push plötzlich wieder 404 | `keep_vars` entfernt, die Klartext-Variablen sind weg | Zeile in `wrangler.toml` zurück, Variablen neu setzen |
+| Band „Speichern ist noch nicht eingerichtet" | `GITHUB_TOKEN` fehlt | Schritt 3 und 4 |
+| Band „Hochladen ist noch nicht eingerichtet" | Einer von `R2_ACCOUNT_ID`, `EINGANG_BUCKET`, `EINGANG_ACCESS_KEY_ID`, `EINGANG_SECRET_ACCESS_KEY` fehlt | Schritt 2 und 4 |
+| „… der Token ist abgelaufen oder falsch" | Token abgelaufen oder widerrufen (GitHub 401) | Token erneuern (Schritt 3) |
+| „… fehlende Rechte des Tokens oder zu viele Anfragen" / „nicht gefunden — Repo, Branch oder Rechte" | Token hat nicht Contents bzw. Actions „Read and write", gilt für ein anderes Repo, oder `GITHUB_REPO`/`GITHUB_BRANCH` falsch | Rechte des Tokens prüfen |
+| Dialog „Konflikt" beim Speichern | `lib/inhalt.json` hat sich seit dem Laden geändert (Jan, zweiter Tab, Medien-Action) | Neu laden, Änderung wiederholen — die eigenen ungespeicherten Änderungen gehen dabei verloren |
+| Speichern gesperrt, rote Befunde | `pruefeInhalt` findet einen Fehler (z. B. doppelte Kennung, Link ohne `https://`) | Befund lesen und beheben; der Build würde sonst abbrechen |
+| „Gespeichert, aber noch nicht live" | Cloudflare-Build gescheitert (Workers & Pages → Deployments), `BUILD_COMMIT` leer, oder die Medien-Action hat direkt danach committet und Cloudflare hat den späteren Commit gebaut | Build-Log ansehen; im letzten Fall ist alles online, nur die Meldung hinkt (bekannte Lücke) |
+| Bild bleibt auf „wartet" | Medien-Action nicht eingerichtet (läuft grün, tut nichts), `EINGANG_BUCKET` fehlt in GitHub, oder der Eingang ist gescheitert (Lauf rot) | Actions → Medien → letzten Lauf ansehen |
+| „Verarbeitung starten" scheitert | Workflow-Datei heißt nicht `medien.yml`, Actions im Repo abgeschaltet, Token ohne Actions-Recht | Schritt 3 und 5 |
+| Hochladen: 413 / 415 | Datei über der Grenze aus `MAX_UPLOAD_BYTES`, oder kein JPEG/PNG/WebP/TIFF (z. B. HEIC vom iPhone) | Kleiner bzw. als JPEG exportieren |
+| Hochladen: 403 | Anfrage nicht von derselben Seite (z. B. Verwaltung über eine andere Adresse geöffnet) | Über `jakobsax.de/admin` arbeiten |
+| Mitten in der Arbeit scheitert jede Aktion, „Lade die Seite neu" | Access-Sitzung abgelaufen | Neu laden und anmelden; Session Duration erhöhen (Schritt 1) |
+| Neues Bild verarbeitet, erscheint aber nicht | Sein Schlüssel steht noch in `ausgeblendet` oder `papierkorb` (z. B. gelöscht und dann unter demselben Platz neu hochgeladen) | In der Verwaltung einblenden bzw. aus dem Papierkorb wiederherstellen |
+
+### Bekannte Grenzen
+
+- Die Live-Meldung vergleicht den Commit exakt. Committet die Medien-Action kurz nach einer
+  Speicherung, meldet die Verwaltung nach 15 Minuten nur „noch nicht live", obwohl alles online
+  ist.
+- Ob Cloudflare Workers Builds auf Pushes der Action (Token `GITHUB_TOKEN` der Action) baut, zeigt
+  erst der erste echte Lauf. GitHub-Apps bekommen solche Push-Ereignisse normalerweise.
+- GitHub schaltet geplante Läufe in öffentlichen Repos nach 60 Tagen ohne Aktivität ab; Commits
+  aus der Verwaltung halten sie am Leben. Sonst unter Actions wieder einschalten.
+- Neue **Kategorien** gibt es nur von Hand in `lib/inhalt.json` (`foto.kategorien`); die
+  Verwaltung wählt nur aus.
+- Der Server prüft nicht, ob der Rumpf von `speichern` unbekannte Zusatzfelder enthält —
+  `pruefeInhalt` entscheidet, was durchgeht.
+
 ## Medien (Fotos und Videos) — sie liegen im R2-Bucket, nicht im Repo
 
 **Seit dem 2026-08-29 liegt kein einziges Foto und kein Video mehr im Git.** Beides liegt im
@@ -94,7 +433,25 @@ Manifestdateien. Warum, in einem Satz: Zwölf unbearbeitete Kameradateien hatten
 Git-Verlauf gebracht (dort bleiben sie für immer) und den Cloudflare-Build auf rund sechs
 Minuten getrieben, weil er sie bei **jedem** Deploy neu berechnete.
 
-### Wie es jetzt läuft
+### Der automatische Weg (seit 2026-10-17): über die Verwaltung
+
+```
+Verwaltung /admin  →  privater Eingangs-Bucket  →  Medien-Action  →  Commit „Medien: …"  →  Deploy
+  (Jakob lädt hoch)     (nur der Worker schreibt)   (GitHub, sharp)    (Manifest, ggf. inhalt.json)
+```
+
+**Für Jakob ist das der Normalfall.** Er lädt in der Verwaltung hoch; die GitHub Action
+`.github/workflows/medien.yml` entfernt die Metadaten (GPS!), legt das Original nach `original/`
+im öffentlichen Bucket, rechnet mit `npm run medien` die Varianten und committet das Manifest.
+Niemand muss etwas lokal laufen lassen. Ablauf, Secrets und Einrichtung: Abschnitt
+„Verwaltung (/admin)" oben.
+
+Der Weg von Hand unten bleibt gültig — für Jan, für Videos (die Verwaltung lädt nur Bilder) und
+für den Fall, dass die Action nicht eingerichtet ist. Beide Wege schreiben dieselben Dateien.
+⚠️ **Wer lokal `npm run medien` laufen lässt und committet, vorher `git pull`** — die Action
+committet dasselbe Manifest.
+
+### Der Weg von Hand
 
 ```
 Datei in den Bucket legen  →  npm run medien  →  Manifeste committen  →  Deploy
@@ -102,8 +459,9 @@ Datei in den Bucket legen  →  npm run medien  →  Manifeste committen  →  D
 ```
 
 1. **Ablegen** — im Cloudflare-Dashboard unter R2 → `<Bucket>` → `original/…`, oder per
-   `rclone`/S3-Werkzeug. Dafür braucht niemand Git und niemand einen Editor: **Jakob kann das
-   selbst.**
+   `rclone`/S3-Werkzeug, am besten mit `npm run verkleinern -- … --original --hochladen` (entfernt
+   die Standortdaten). ⚠️ Eine Datei, die direkt per Dashboard nach `original/` kommt, liegt mit
+   allen Metadaten öffentlich — für Jakob ist deshalb die Verwaltung der Weg, nicht das Dashboard.
 2. **`npm run medien`** — läuft **lokal auf einem eurer Rechner**, nie im Deploy. Holt neue und
    geänderte Originale, erzeugt alle Größen und Formate, legt sie unter `b/…` zurück in den
    Bucket, schreibt die Manifeste und danach die Vorschaukarten.
@@ -115,11 +473,18 @@ schreibt nichts.
 
 ### Wohin welche Datei
 
-> ✅ **Stand 2026-10-14:** `original/arbeiten/<id>.jpg` ist das **Startbild** — im Mosaik das
-> erste Bild der Arbeit. Welche Bilder im Hero von `/foto` laufen, steht in `FOTO_HERO`
-> (`lib/content.ts`). Dazu `original/arbeiten/<id>/01.jpg`,
+> ✅ **Stand 2026-10-17:** Inhalte, Reihenfolgen und Beschriftungen stehen in `lib/inhalt.json`
+> (siehe „Verwaltung (/admin)"); wo unten noch `lib/content.ts` als Ort für Inhalte steht, ist
+> `lib/inhalt.json` gemeint. Die **Reihenfolge im Mosaik** bestimmt seitdem `foto.reihenfolge`
+> (frei, in der Verwaltung gezogen), nicht mehr der Dateiname — Bilder ohne Platz dort kommen ans
+> Ende, in der natürlichen Ordnung (Kategorie → Arbeit → Dateiname).
+>
+> ✅ **Stand 2026-10-14:** `original/arbeiten/<id>.jpg` ist das **Startbild** — in der natürlichen
+> Ordnung das erste Bild der Arbeit. Welche Bilder im Hero von `/foto` laufen, steht in
+> `foto.hero` (`lib/inhalt.json`). Dazu `original/arbeiten/<id>/01.jpg`,
 > `02.jpg`, … in der Reihenfolge von Jakobs Liste und **`original/ueber/01.jpg`, …** für die
-> Bilder auf `/ueber` (Beschriftung in `UEBER_BILDER`, `lib/content.ts`). Hochgeladen mit
+> Bilder auf `/ueber` (Beschriftung in `ueber.bilder`, Reihenfolge in `ueber.reihenfolge`,
+> `lib/inhalt.json`). Hochgeladen mit
 > `npm run verkleinern -- <ordner> --arbeit <id> --leitbild <erste Datei> --original --hochladen`,
 > also in **voller Auflösung**, nur ohne Standort- und andere Metadaten. Ausgeliefert wird in
 > sieben Breiten bis **4000 px** (`BREITEN` in `lib/bilder-regeln.mjs`). (Der Goldbarren-Platzhalter
@@ -131,7 +496,7 @@ schreibt nichts.
 > ⏳ **Ändert sich mit dem Umbau (Schritt 2), siehe oben.** Es bleiben: `original/arbeiten/<id>/`
 > mit `01.jpg`, `02.jpg`, … (die Fotos im Mosaik auf `/foto`), Hero-Video, Hero-Standbild,
 > Porträt. Neu: **`original/film/<id>.jpg`** — das Standbild je Film, Querformat; `<id>` ist die
-> `id` aus `FILME` in `lib/content.ts`. Es entfallen: Leitbild `original/arbeiten/<id>.jpg`,
+> `id` aus `filme` in `lib/inhalt.json`. Es entfallen: Leitbild `original/arbeiten/<id>.jpg`,
 > Kontaktbogen `…/serie/`, Filme unter `original/video/`. Standbilder für Filme dürfen schon
 > jetzt abgelegt werden; bis Schritt 2 meldet die Pipeline sie als „gehört zu nichts", das ist
 > harmlos.
@@ -140,7 +505,7 @@ Alles unter dem Präfix `original/` im Bucket:
 
 | Was | Schlüssel im Bucket | Dateiname |
 |---|---|---|
-| Leitbild einer Arbeit | `original/arbeiten/` | genau die `id` der Arbeit aus `lib/content.ts`, z. B. `tete-a-tete-2026.jpg` |
+| Leitbild (Startbild) einer Arbeit | `original/arbeiten/` | genau die `id` der Arbeit aus `lib/inhalt.json`, z. B. `tete-a-tete-2026.jpg` |
 | **Bildstrecke** — die Folge, die im Hero läuft und darunter als Mosaik steht | `original/arbeiten/<id>/` | `01.jpg`, `02.jpg`, … |
 | **Kontaktbogen** — alle Frames derselben Aufnahmeserie | `original/arbeiten/<id>/serie/` | `01.jpg`, `02.jpg`, … und beim Treffer `03-gewaehlt.jpg` |
 | Film zu einer Arbeit (Aftermovie) | `original/video/` | `<id>.mp4` |
@@ -148,49 +513,58 @@ Alles unter dem Präfix `original/` im Bucket:
 | Hero-Video | `original/hero/` | `film.mp4` |
 | **Porträt von Jakob** | `original/` (direkt darin) | `portrait.jpg` |
 
-Die `id` steht in `lib/content.ts` bei jeder Arbeit ganz oben (`id: "..."`) und ist zugleich die
-Adresse der Seite: `jakobsax.de/arbeiten/tete-a-tete-2026`.
+Die `id` steht in `lib/inhalt.json` bei jeder Arbeit (`"id": "..."`, in der Verwaltung
+„Kennung", dort schreibgeschützt) und ist der Ordnername im Bucket. Detailseiten mit dieser
+Adresse gibt es seit dem Umbau nicht mehr. ⚠️ Umbenennen hieße, den Ordner im Bucket
+mitzunehmen.
 
 Erlaubte Endungen für Bilder: `.jpg`, `.jpeg`, `.png`, `.tif`, `.tiff`, `.webp`; für Videos
 `.mp4`, `.webm`, `.mov`. Groß-/Kleinschreibung zählt.
 
-Es gibt **kein Bildfeld in `content.ts`** — Konvention statt Konfiguration. Ein zusätzliches
-`image` wäre eine zweite Stelle mit demselben Namen und damit eine Stelle, an der er falsch
-stehen kann.
+Es gibt **kein Bildfeld bei einer Arbeit** — Konvention statt Konfiguration: Welches Bild zu
+welcher Arbeit gehört, steht im Dateipfad. Ein zusätzliches `image` wäre eine zweite Stelle mit
+demselben Namen und damit eine Stelle, an der er falsch stehen kann. Was `lib/inhalt.json` über
+Bilder weiß, sind Schlüssel (`arbeiten/<id>/01`) in Reihenfolgen, Hero, Ausschnitten und Listen.
 
-**Ausnahme: `ausblenden`** (seit 2026-10-15). Soll ein Bild nicht mehr auf die Seite, aber im
-Bucket bleiben, kommt sein Name (`"leitbild"`, `"01"`, …) in `ausblenden` der Arbeit. Fehlt
-dadurch das Leitbild, wird das erste übrige Bild zum Startbild. Grund: Löschen im Bucket ist
-endgültig, und Umbenennen verschiebt alle Nummern samt Alt-Texten. Ein Test stellt sicher, dass
-Startseite und Hero auf kein ausgeblendetes Bild zeigen.
+**Ausblenden und Löschen** (seit 2026-10-15, seit 2026-10-17 in der Verwaltung). Soll ein Bild
+nicht mehr auf die Seite, aber im Bucket bleiben, steht sein Schlüssel in `ausgeblendet`
+(`lib/inhalt.json`). Gelöschte Bilder stehen mit Datum in `papierkorb` und verschwinden nach 30
+Tagen endgültig (siehe „Verwaltung"). Fehlt dadurch das Startbild, wird das erste übrige Bild zum
+ersten der Arbeit. Grund für beides: Löschen im Bucket ist endgültig, und Umbenennen verschiebt
+alle Nummern samt Alt-Texten. Die Prüfung warnt, wenn Startseite oder Hero auf ein verborgenes
+Bild zeigen.
 
-⚠️ **Führende Null nicht vergessen** (`01`, nicht `1`). Sortiert wird nach Dateiname; ohne sie
-stünde `10` vor `2`.
+⚠️ **Führende Null nicht vergessen** (`01`, nicht `1`). Die natürliche Ordnung geht nach
+Dateiname; ohne sie stünde `10` vor `2`. Die Verwaltung vergibt die Nummern selbst.
 
-⚠️ **Der Bildausschnitt im Hero steht in `lib/bildausschnitte.ts`**, eine Zeile je Bild:
+⚠️ **Der Bildausschnitt steht in `lib/inhalt.json` unter `bildausschnitte`** (seit 2026-10-17;
+vorher als Code in `lib/bildausschnitte.ts`, das die Werte jetzt nur weiterreicht und die
+Begründung behält), eine Zeile je Bild:
 
-    "arbeiten/wiwawo-53/02": "50% 78%",   // Lagerfeuer sitzt unten
+    "arbeiten/wiwawo-53/02": "50% 78%"
 
 Der Schlüssel ist derselbe Pfad wie im Manifest (`arbeiten/<id>` fürs Leitbild,
 `arbeiten/<id>/01` für die Strecke), der Wert ein `object-position`: erst waagerecht, dann
 senkrecht. Ohne Eintrag steht das Bild mittig.
 
-**Nicht schätzen — es gibt ein Werkzeug dafür:** Bilder laden, Punkt auf dem Foto ziehen, der rote
-Rahmen zeigt, was im Hero übrig bleibt, unten fällt die fertige Datei heraus.
-→ <https://claude.ai/code/artifact/ca3af403-f535-4e52-97e6-633cd9414c34>
+**Nicht schätzen — seit dem 2026-10-17 in der Verwaltung:** Bild öffnen, auf das Motiv klicken,
+die Vorschau-Rahmen zeigen, was übrig bleibt, speichern. (Das ältere Werkzeug als Artifact,
+<https://claude.ai/code/artifact/ca3af403-f535-4e52-97e6-633cd9414c34>, schrieb noch eine Datei
+für `lib/bildausschnitte.ts` und ist damit überholt.)
 
 Warum das je Bild gewählt werden muss: Ein Hochformat (4672 × 7008) zeigt in einem
 1920 × 1080-Hero nur **37,5 % seiner Höhe** — bei jeder Einstellung. Welche 37,5 % die richtigen
 sind, weiß nur, wer das Bild kennt. Eine feste Regel liegt bei jedem zweiten Motiv daneben; genau
 das war am 2026-09-13 der Fall, als hier pauschal 38 % standen.
 
-⚠️ **Eine Änderung hier braucht weder Bucket-Zugriff noch `npm run medien`** — Datei bearbeiten,
-pushen, fertig. Eine Zwischenstufe mit Endungen am Dateinamen (`-oben`, `-unten`) ist am
+⚠️ **Eine Änderung hier braucht weder Bucket-Zugriff noch `npm run medien`** — in der Verwaltung
+speichern (oder `lib/inhalt.json` bearbeiten und pushen), fertig. Eine Zwischenstufe mit Endungen am Dateinamen (`-oben`, `-unten`) ist am
 2026-09-13 wieder verworfen worden: drei Stufen sind zu grob, und jede Änderung hätte Umbenennen
 im Bucket **und** einen neuen Medien-Lauf verlangt.
 
-**Das Mosaik unter dem Text ist davon nicht betroffen** — dort wird nichts beschnitten, jedes
-Bild steht in voller Form. Der Wert wirkt **ausschließlich** im Hero.
+**Das Mosaik ist davon nicht betroffen** — dort wird nichts beschnitten, jedes Bild steht in
+voller Form. Der Wert wirkt **nur, wo beschnitten wird**: im Hero von `/foto`, auf der Startseite
+(Hero, Wege, Highlights) und bei den Film-Standbildern.
 
 ⚠️ **`-gewaehlt` am Dateinamen** markiert im Kontaktbogen das Bild, das es geworden ist — es
 bekommt den roten Rahmen. Genau eins pro Serie. Ist keins markiert, gibt es keine Markierung.
@@ -203,19 +577,19 @@ kein Fehler. **Umgekehrt schon:** Eine Datei, deren Name zu keiner `id` passt, e
 nirgends. Die Pipeline sagt das ausdrücklich und **bevor** sie rechnet:
 
 ```
-! arbeiten/©JakobSax_WiWaWo26_JPG6785: gehört zu nichts und erscheint nirgends
-  auf der Seite. Erwartet wird eine id aus content.ts (tete-a-tete-2026, …).
+! arbeiten/©JakobSax_WiWaWo26_JPG6785: gehört zu nichts und erscheint nirgends auf der
+  Seite. Erwartet wird eine id aus foto.arbeiten in lib/inhalt.json (tete-a-tete, …).
 ```
 
 **Zwölf Fotos von einem Ereignis sind keine zwölf Leitbilder, sondern eine Bildstrecke** — die
-gehört nach `original/arbeiten/<id>/`. Und wenn es die Arbeit in `lib/content.ts` noch gar nicht
-gibt, muss sie dort zuerst angelegt werden.
+gehört nach `original/arbeiten/<id>/`. Und wenn es die Arbeit in `lib/inhalt.json` noch gar nicht
+gibt, muss sie dort zuerst angelegt werden (in der Verwaltung: Reiter „Arbeiten" → neue Arbeit).
 
 **Das Porträt** erscheint im Kurzanriss der Startseite und oben auf `/ueber`. **Es wird nicht
 zugeschnitten** — quer oder hochkant, beides geht, das Bild behält seine Form; auf `/ueber` ist
-nur seine Höhe auf 70 % des Bildschirms begrenzt. ⚠️ Die Bildbeschreibung dazu steht in
-`lib/content.ts` unter `ABOUT.portraitAlt` und beschreibt die **aktuelle** Aufnahme. Wer das
-Foto austauscht, muss sie mit austauschen.
+nur seine Höhe begrenzt (Wert im UI-SPEC). ⚠️ Die Bildbeschreibung dazu steht in
+`lib/inhalt.json` unter `ueber.portraitAlt` (Verwaltung → „Über mich") und beschreibt die
+**aktuelle** Aufnahme. Wer das Foto austauscht, muss sie mit austauschen.
 
 ### Zugangsdaten — sie gehören nicht ins Repo
 
@@ -261,19 +635,31 @@ Dauerbetrieb gedacht und hat eine Ratenbegrenzung.
 ⚠️ Die Adresse landet **fest in den Manifesten**. Ein Domainwechsel heißt: `npm run medien`
 einmal neu laufen lassen. Das merkt die Pipeline von selbst und schreibt alle Einträge neu.
 
-⚠️ **`scripts/r2.mjs` läuft ausschließlich lokal.** Es wird von keinem Worker-Code und von keinem
-Build-Schritt importiert. Wenn das jemals nötig scheint, ist etwas anderes falsch.
+⚠️ **`scripts/r2.mjs` läuft nur lokal und in der Medien-Action** — nie im Worker und in keinem
+Build-Schritt. Der Worker hat für den Eingangs-Bucket eine eigene, schmale Fassung
+(`lib/admin/eingang.ts`, nur Ablegen und Auflisten). Wenn es jemals nötig scheint, `r2.mjs` im
+Worker zu importieren, ist etwas anderes falsch.
+
+⚠️ **Fehlermeldungen von `r2.mjs` nennen nur Code und Meldung der S3-Antwort** (`s3Grund`), nie
+den ganzen Rumpf und nicht den Wert von `R2_S3_ENDPOINT`: Die Logs der Action sind öffentlich.
+
+**Zwischenspeicher-Kopfzeilen:** Die Varianten unter `b/` haben Fingerabdruck-Abfragen
+(`?v=…`) und laufen mit `immutable`. Originale unter `original/` bekommen seit dem 2026-10-17 nur
+`public, max-age=3600` (`KURZ_ZWISCHENSPEICHERN`), weil sie beim Ersetzen unter gleichem Namen
+überschrieben werden.
 
 ### Was die Pipeline erzeugt
 
 | | |
 |---|---|
+| Eingang und Papierkorb | `scripts/eingang.mjs` (`npm run eingang`, hochgeladene Bilder aus dem privaten Eingang säubern und nach `original/` legen) und `scripts/papierkorb.mjs` (`npm run papierkorb`, abgelaufene Löschungen vollziehen). Beide mit `-- --probe`, beide laufen in der Medien-Action vor `medien`. Gemeinsame Säuberung: `scripts/saeubern.mjs`; Regeln (Ziele, 30 Tage, Entfernen eines Schlüssels): `lib/inhalt-regeln.mjs` |
+| Inhalte lesen und schreiben | `scripts/inhalt.mjs` — `lib/inhalt.json`, im selben Format wie die Verwaltung. Die Skripte lesen **nicht** `lib/content.ts` (für Node nicht importierbar) |
 | Skripte | `scripts/medien.mjs` (Bilder und Videos); es startet am Ende selbst `scripts/og.mjs` (Vorschaukarten). ⚠️ **Nicht** als `medien.mjs && og.mjs` in `package.json` verketten — npm hängt die Argumente hinter die ganze Kette, `npm run medien -- --probe` liefe damit als echter Lauf |
 | Zugriff auf R2 | `scripts/r2.mjs`, signiert mit `aws4fetch` (88 kB, keine Abhängigkeiten) statt mit dem AWS-SDK |
 | Regeln | `lib/bilder-regeln.mjs` (Breiten, Qualitäten, Budget). ⚠️ Nach Änderungen dort `PIPELINE_VERSION` erhöhen, sonst hält der Zwischenspeicher alte Dateien für aktuell |
 | Ergebnis | `b/…` im Bucket, `lib/bilder-manifest.json`, `lib/video-manifest.json`, `public/og/*.jpg` |
-| Im Git | **die Manifeste und die Vorschaukarten** — sonst nichts. `.medien-cache/` ist ignoriert |
-| Zugriff im Code | `bildZurArbeit(id)` / `bild(schluessel)` aus `lib/bilder.ts`, `videoZurArbeit(id)` / `heroVideo()` aus `lib/video.ts` |
+| Im Git | **die Manifeste und die Vorschaukarten** — sonst nichts. `.medien-cache/` ist ignoriert und darf fehlen: Unveränderte Bilder gewinnt die Pipeline dann aus dem eingecheckten Manifest zurück (`ausManifest`), statt sie neu zu rechnen — so arbeitet die Action |
+| Zugriff im Code | `bild(schluessel)` / `leitbildZurArbeit(id)` aus `lib/bilder.ts`, `video(schluessel)` / `heroVideo()` aus `lib/video.ts`; welche Bilder wo und in welcher Reihenfolge erscheinen, leitet `lib/arbeiten.ts` aus `lib/inhalt.json` und dem Manifest ab (`fotosFuerMosaik`, `fotosFuerHero`, `bilderFuerUeber`, `filmeMitStandbild`) |
 
 Erzeugt werden **AVIF und WebP in bis zu fünf Breiten (480–2400)**, dazu ein JPEG als Rückfall
 und ein 16 px breites Vorschaubildchen, das als Datei-URI im Manifest und damit im HTML landet.
@@ -341,9 +727,9 @@ abrufbar. `sharp` kennt nur ganz oder gar nicht — ohne Angabe verschwindet jed
 mit `withMetadata()` bleibt auch GPS. Deshalb liest das Skript die fünf Felder aus `EXIF_FELDER`
 aus und schreibt genau die zurück. Kameramarke, Modell und Urheberzeile fallen dabei mit weg.
 
-⚠️ Die `id` wird **vor** dem Rechnen gegen `lib/content.ts` geprüft. Gibt es die Arbeit dort
-nicht, bricht das Skript ab und nennt die bekannten ids — statt zwölf Dateien zu verarbeiten,
-die nirgends erscheinen. Genau das ist beim ersten Upload passiert.
+⚠️ Die `id` wird **vor** dem Rechnen gegen `lib/inhalt.json` geprüft (bis 2026-10-17 gegen
+`lib/content.ts`). Gibt es die Arbeit dort nicht, bricht das Skript ab und nennt die bekannten
+ids — statt zwölf Dateien zu verarbeiten, die nirgends erscheinen. Genau das ist beim ersten Upload passiert.
 
 **Beim Export: Kameradaten drin lassen.** Unter dem Bild erscheint automatisch eine Zeile
 `22:14 uhr · 1/500 · f/2.8 · iso 6400`. Sie kommt aus dem EXIF — nichts einzutragen, nichts zu
@@ -359,8 +745,8 @@ landet in keiner ausgelieferten Datei und in keinem Manifest. Diese Liste ist ei
 kein Randthema. `sharp` schreibt darüber hinaus gar keine Metadaten mit, die EXIF-Ausrichtung
 wird vorher angewendet (`.rotate()`), sonst lägen Hochformate aus dem Telefon quer.
 
-⚠️ **Alt-Texte stehen nicht im Dateinamen**, sondern bei der Arbeit in `lib/content.ts` (Feld
-`alt`). Sie beschreiben die Szene, nicht das Bild: „Höhenartistik über dem Ehrenhof des Rastatter
+⚠️ **Alt-Texte stehen nicht im Dateinamen**, sondern bei der Arbeit in `lib/inhalt.json` (Feld
+`alt`, je Bildname; in der Verwaltung im Seitenpanel des Bildes). Sie beschreiben die Szene, nicht das Bild: „Höhenartistik über dem Ehrenhof des Rastatter
 Schlosses", nicht „Foto von einem Artisten". Fehlt der Text, setzt die Seite eine Notlösung aus
 Titel, Auftraggeber und Jahr ein — die ist korrekt, aber nichts wert.
 
@@ -411,7 +797,7 @@ Filme zu Arbeiten laufen **nicht** von selbst und laden nur ihre Metadaten vor. 
 `app/components/Film.tsx`; eine leere Spur wäre schlechter als keine, weil sie Barrierefreiheit
 vortäuscht. Siehe `TODO.md`.
 
-`HERO_VIDEO` in `lib/content.ts` ist der **Ausnahmeweg** für ein extern gehostetes Video (etwa
+`startseite.heroVideo` in `lib/inhalt.json` (im Code `HERO_VIDEO`) ist der **Ausnahmeweg** für ein extern gehostetes Video (etwa
 bei einem Streamingdienst) und hat Vorrang vor dem Bucket. Normalfall ist `null`.
 
 ### Vorschaukarten (OpenGraph)
@@ -430,11 +816,11 @@ sind, liegt das Foto dahinter, mit demselben Verlauf wie über den Kacheln.
 
 | | |
 |---|---|
-| Quelle des Fotos | der lokale Zwischenspeicher `.medien-cache/`, nicht der Bucket. Fehlt er, entsteht die Karte **ohne** Foto statt gar nicht |
+| Quelle des Fotos | zuerst der lokale Zwischenspeicher `.medien-cache/`; fehlt die Datei dort (in der Action immer), lädt das Skript die Rückfall-Fassung aus dem Manifest herunter. Ist das Foto gar nicht zu holen und gibt es schon eine Karte, bleibt die alte stehen, statt eine Karte ohne Foto zu committen |
 | Schriften | `assets/fonts/*.ttf` — nur lokal gelesen, **nicht** ausgeliefert. Warum doppelt: siehe `assets/fonts/README.md` |
 | Format | **JPEG, nicht PNG.** `ImageResponse` liefert PNG; mit Foto waren das ~970 kB je Karte. Über sharp als JPEG sind es ~35 kB. Budget: Warnung ab 250 kB |
 | Im Git | **ja** — rund zehn Dateien à 35 kB. So ist die Seite ohne den Bucket vollständig |
-| Node | **≥ 22.18**, weil das Skript `lib/content.ts` direkt liest (Typen-Stripping). Kann Node das nicht, bricht nichts ab: Warnung, keine Karten |
+| Texte | aus `lib/inhalt.json` (`seite.name`, Foto aus `startseite.heroErsatz`). ⚠️ Bis 2026-10-17 las das Skript `lib/content.ts` direkt (Node ≥ 22.18, Typen-Stripping); das geht seit dem Umzug der Inhalte nicht mehr, siehe „Verwaltung" |
 
 ⚠️ **Warum das nicht als `app/**/opengraph-image.tsx` gebaut ist**, obwohl Next genau das
 anbietet: Genau so stand es zuerst da, `next build` hat die Karten sauber vorgerendert — **und im
@@ -487,7 +873,8 @@ auf. Ein unter npm 11 erzeugtes Lockfile kann unter npm 10 unvollständig sein.
 ## Tests und Werkzeuge
 
 **Testläufer: Vitest** (`npm test`, `npm run test:watch`). Konfiguration in `vitest.config.mts`,
-Tests liegen neben dem Code als `lib/*.test.ts`.
+Tests liegen neben dem Code als `lib/*.test.ts`, `lib/admin/*.test.ts` (Zugang, GitHub, Eingang,
+Routen der Verwaltung) und `scripts/*.test.mjs` (Pipeline, Eingang, Papierkorb).
 
 **Getestet wird ausschließlich die reine Logik in `lib/`** — die Validierung des Anfrageformulars
 und die Ableitungen aus den Inhalten. (⏳ Die Formulartests entfallen mit dem Umbau, die
@@ -499,6 +886,11 @@ Ein Teil der Tests prüft **die Daten selbst** auf Zusagen, auf die sich der Cod
 Slugs eindeutig sind (sie werden URLs), dass jede Arbeit eine bekannte Kategorie und einen Credit
 trägt, und dass jede Leistung nur auf existierende Arbeiten verweist. Ein Tippfehler in
 `content.ts` ließe eine Arbeit sonst stillschweigend verschwinden.
+
+✅ **Seit dem 2026-10-17 prüft das `lib/inhalt-pruefen.ts`** (`pruefeInhalt`) — in den Tests,
+**beim Build** (`lib/content.ts` wirft bei Fehlern, der Deploy bricht ab und die alte Fassung
+bleibt online) und vor jedem Speichern in der Verwaltung. Wer eine neue Zusage an die Daten
+einführt, trägt sie dort ein, nicht nur in einem Test — sonst prüft die Verwaltung sie nicht.
 
 **Linting: ESLint mit Flat Config** (`npm run lint`, Konfiguration in `eslint.config.mjs`).
 
@@ -578,6 +970,7 @@ Live-Domain selbst, und alles mit echtem Bildmaterial. Nach einem Deploy mit sic
 - **Hosting**: Cloudflare Worker mit dem Namen `personalwebsite`.
 - **Domains**: `jakobsax.de` und `www.jakobsax.de`, beide als Custom Domain direkt am Worker gebunden (Workers & Pages → personalwebsite → Domains & Routes).
 - **Deploy-Trigger**: Push auf `main` im GitHub-Repo `jh8yzpy6vj-dot/personalwebsite` — Cloudflare baut und deployed automatisch. Es gibt keine Preview-/Staging-Umgebung; jeder Push geht direkt live (siehe `CLAUDE.md` für die Branch-Regel).
+- **Wer pusht auf `main`:** Jan und Jakob von Hand, seit dem 2026-10-17 außerdem die Verwaltung (Commits `Verwaltung: …`, über die GitHub-API) und die Medien-Action (Commits `Medien: …`, als `github-actions[bot]`). Jeder davon löst einen Build aus. Deshalb vor eigener Arbeit `git pull`.
 - **DNS**: Nameserver von `jakobsax.de` liegen bei Cloudflare (nicht IONOS). Details und Gefahren dazu stehen in `CLAUDE.md` unter "DNS / Domain".
 - **E-Mail**: läuft weiterhin über IONOS (MX-Records zeigen auf `mx00/mx01.ionos.de`). Hat nichts mit dem Website-Hosting zu tun, darf aber bei DNS-Änderungen nicht versehentlich mit gelöscht werden.
 
@@ -647,7 +1040,8 @@ Aufgaben selbst stehen in `TODO.md`.
   interpretiert. Im EXIF steht keine Zeitzone — ein `Date` daraus zu bauen hieße, die Zeitzone
   des Build-Rechners anzunehmen, und die Seite zeigte je nach Server eine andere Uhrzeit.
 - ⚠️ Kontext wie Wetter steht **nicht** im EXIF und müsste ein optionales Handfeld in
-  `lib/content.ts` werden — mit Copy-Freigabe.
+  `lib/inhalt.json` werden (Typ in `lib/inhalt.ts`, Regel in `lib/inhalt-pruefen.ts`) — mit
+  Copy-Freigabe.
 
 ### SEO-Technik
 
@@ -660,7 +1054,8 @@ Aufgaben selbst stehen in `TODO.md`.
 
 ### Indexierbarkeit — ein zentraler Schalter
 
-`lib/site.ts` hält zwei technische Werte, bewusst getrennt von den Inhalten in `content.ts`:
+`lib/site.ts` hält zwei technische Werte, bewusst getrennt von den Inhalten in `lib/inhalt.json`
+(und damit außer Reichweite der Verwaltung):
 
 - **`SITE_URL`** — die kanonische Basis-URL an genau einer Stelle. Die Domain-Entscheidung
   (`.de` vs. `.media`) ist offen, ein Wechsel ist dadurch ein Einzeiler.
@@ -669,7 +1064,9 @@ Aufgaben selbst stehen in `TODO.md`.
   uneingeschränkt indexierbar — mit erfundener E-Mail-Adresse, Preisen auf „noch festzulegen",
   ungeprüften Inhalten und **ohne Impressum**.
 
-⚠️ **Feinheit, die oft falsch gemacht wird:** `robots.txt` enthält bewusst **kein** `Disallow`.
+⚠️ **Feinheit, die oft falsch gemacht wird:** `robots.txt` enthält für die Seite bewusst **kein**
+`Disallow`. (Einzige Ausnahme seit 2026-10-17: `/admin` und `/api/` — Begründung unter
+„Verwaltung (/admin)" › „Sicherheit" und in `app/robots.ts`.)
 `Disallow` verbietet das *Crawlen*, nicht das *Indexieren* — wer beides kombiniert, erreicht das
 Gegenteil, weil der Crawler das `noindex` im HTML dann nie liest. Richtig ist: **Crawlen
 erlauben, Indexieren per `noindex` verbieten.** Das ist in `app/robots.ts` auskommentiert
@@ -689,4 +1086,4 @@ in Wissensfelder, wo sie schwerer zu korrigieren sind als auf der Seite.
 
 - Keine weiteren Frameworks/Build-Tools zusätzlich zum beschlossenen Next.js-Stack einführen, ohne dass es hier dokumentiert wird und beide (Jan & Jakob) das mittragen.
 - Sprache im Code/Kommentaren: Deutsch oder Englisch ist beides ok, Konsistenz innerhalb einer Datei anstreben.
-- Neue technische Entscheidungen (z.B. "wir nutzen jetzt ein CMS", "wir brauchen ein Kontaktformular mit Backend") hier ergänzen, sobald sie feststehen — nicht erst im Nachhinein.
+- Neue technische Entscheidungen (z.B. "wir nutzen jetzt ein CMS", "wir brauchen ein Kontaktformular mit Backend") hier ergänzen, sobald sie feststehen — nicht erst im Nachhinein. (Die eigene Verwaltung vom 2026-10-17 ist kein fremdes CMS; sie steht oben unter „Verwaltung (/admin)", die Begründung in `CLAUDE.md`, „Konventionen".)

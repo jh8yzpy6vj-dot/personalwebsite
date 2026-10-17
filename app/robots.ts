@@ -17,12 +17,21 @@ import { INDEXABLE, SITE_URL } from "@/lib/site";
  * Richtig ist deshalb: **Crawlen erlauben, Indexieren per `noindex` im
  * HTML verbieten** (siehe app/layout.tsx). So liest der Crawler die
  * Anweisung und nimmt die Seite wieder heraus.
+ *
+ * **Ausnahme seit 2026-10-17: `/admin` und `/api/`.** Dort gilt die
+ * Überlegung oben nicht: Die Verwaltung war nie öffentlich und ist nirgends
+ * verlinkt, es gibt also keinen Eintrag, der verschwinden müsste — und ohne
+ * Anmeldung antwortet sie ohnehin mit 404 bzw. der Access-Anmeldung. Ein
+ * Crawler hat dort nichts verloren. Das `noindex` kommt trotzdem
+ * zusätzlich als `X-Robots-Tag`-Header (next.config.mjs), falls doch
+ * jemand einen Link irgendwohin kopiert.
  */
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
       allow: "/",
+      disallow: ["/admin", "/api/"],
     },
     // Die Sitemap nur anmelden, wenn die Seite auch indexiert werden soll.
     sitemap: INDEXABLE ? `${SITE_URL}/sitemap.xml` : undefined,

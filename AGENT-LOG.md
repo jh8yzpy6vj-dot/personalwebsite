@@ -6,6 +6,37 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-17 — Verwaltung `/admin`: Jakob ändert Inhalte selbst
+
+Jan: „kann ich ein tool haben für jakob damit er die bilder neu anordnen kann? so admin
+oberfläche?" — dann: online über die Website, Git im Hintergrund; löschen, hinzufügen, Texte
+bearbeiten. „setze das genau so um. Alle schritte auf einmal."
+
+- **Inhalte aus dem Code gelöst:** Alles steht jetzt in `lib/inhalt.json` (Typen in
+  `lib/inhalt.ts`, Regeln in `lib/inhalt-regeln.mjs`, Prüfung beim Build in
+  `lib/inhalt-pruefen.ts`). `lib/content.ts` reicht den Stand nur noch unter den alten Namen
+  weiter.
+- **Oberfläche `app/admin/`:** Reiter Fotos · Hero · Arbeiten · Über mich · Filme · Startseite ·
+  Papierkorb · Verlauf. Ordnen per Ziehen und per Knopf, ausblenden, löschen (30 Tage
+  Papierkorb), hochladen, Texte und Bildausschnitte bearbeiten, Verlauf mit Zurücksetzen.
+- **Schnittstellen `app/api/admin/*`:** Stand lesen, speichern (Commit `Verwaltung: …` auf
+  `main`, Konflikterkennung über den SHA), hochladen in einen privaten Eingangs-Bucket,
+  Verarbeitung anstoßen, Live-Stand prüfen, Verlauf, Zurücksetzen.
+- **Zugang (`lib/admin/zugang.ts`):** Cloudflare Access, der Worker prüft das JWT selbst
+  zusätzlich gegen `ADMIN_EMAILS`. Fehlt etwas, ist `/admin` 404 (fail closed). `robots.txt`
+  sperrt `/admin`.
+- **Medien-Action `.github/workflows/medien.yml`:** holt Hochgeladenes aus dem Eingang,
+  verarbeitet es mit der bestehenden Pipeline, leert den Papierkorb; Commits `Medien: …`.
+- **Doku:** `TECH-STACK.md` (Abschnitt „Verwaltung (/admin)" mit Einrichtung und Secrets),
+  `CLAUDE.md` (Regeln für alle, die am Code arbeiten), neu `design/UI-SPEC.md`, Abschnitt
+  „Verwaltung (/admin)" — mit der begründeten Ausnahme, dass `--rec` dort Fehler markiert.
+- **Geprüft:** 273 Tests grün, `tsc` und ESLint ohne Befund, `next build` läuft; die
+  öffentlichen Seiten bleiben statisch.
+- **Offen (an Jan, `TODO.md`):** Einrichtung im Cloudflare- und GitHub-Dashboard. Bis dahin
+  antwortet `/admin` live mit 404.
+
+---
+
 ## 2026-10-16 — Hero von `/foto`: Pfeile am PC, Striche anklickbar
 
 Jan: „am pc will ich dass man links und rechts im hero bei fotos die möglichkeit hat weiter zu

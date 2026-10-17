@@ -398,6 +398,36 @@ Umbaus abgehakt.
 
 ---
 
+## Verwaltung (/admin)
+
+> Seit 2026-10-17. Nur für Jakob (und Jan), hinter Cloudflare Access, `noindex` und in
+> `robots.txt` gesperrt. Technik, Secrets und Ablauf: `TECH-STACK.md`, „Verwaltung (/admin)".
+
+- **Dieselben Tokens wie die Seite:** dunkle Fläche `--grund`, eine Schriftfarbe `--schrift`,
+  `--leise` für Zurückgenommenes, Schrift `--font-text`, nur die Größen **14px** (Label) und
+  **18px** (Text). Flächen und Linien sind Mischungen aus `--schrift` und `--grund`
+  (6 %, 11 %, 22 %), keine neuen Farben.
+- ⚠️ **Einzige Ausnahme von der Farbregel: `--rec` markiert in der Verwaltung Fehler**, die das
+  Speichern blockieren. Begründung: Die Verwaltung sieht kein Besucher, und ein solcher Fehler muss
+  sofort auffallen. Sonst auch hier kein Rot — Löschen-Knöpfe bleiben farblos.
+- **Aufbau:** Kopf mit „Verwaltung", angemeldeter Person und Link zur Seite; darunter Reiter
+  **Fotos · Hero · Arbeiten · Über mich · Filme · Startseite · Papierkorb · Verlauf**
+  (Pfeiltasten wechseln den Reiter); unten eine feste Leiste mit Speicherstand, optionaler
+  Nachricht und „Speichern".
+- **Ordnen** per Ziehen (Maus und Touch) und zusätzlich per Knöpfen „nach oben / nach unten"
+  für Tastatur und Screenreader. Ausblenden statt Löschen ist der Normalfall; Gelöschtes liegt
+  **30 Tage** im Papierkorb und lässt sich zurückholen.
+- **Hero:** dieselbe Spanne wie auf `/foto` (siehe *`/foto`* → Hero); außerhalb davon erscheint
+  ein Befund, der das Speichern sperrt.
+- **Speicherstand-Texte:** „Ungespeicherte Änderungen." · „Speichert …" · „Gespeichert. Wird
+  veröffentlicht … (1–2 Minuten)" · „Gespeichert und live." · „Alles gespeichert." ·
+  „Speichern ist noch nicht eingerichtet." Bei gleichzeitigem Speichern: Dialog „Inzwischen hat
+  jemand anderes gespeichert".
+- **Qualitätsuntergrenze wie oben:** Trefferflächen ≥ 44px, sichtbarer Fokus, nutzbar ab
+  **375px** Breite, `:hover` nur unter `(hover: hover) and (pointer: fine)`.
+
+---
+
 ## Registry Safety
 
 | Registry | Blocks Used | Safety Gate |

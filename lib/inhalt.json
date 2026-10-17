@@ -1,0 +1,234 @@
+{
+  "seite": {
+    "name": "jakob sax",
+    "positioning": "fotografie für kultur & theater im öffentlichen raum",
+    "locations": "rastatt · stuttgart"
+  },
+  "startseite": {
+    "heroVideo": null,
+    "heroAlt": null,
+    "heroErsatz": "arbeiten/tete-a-tete/01",
+    "wege": {
+      "foto": "arbeiten/wiwawo-53/08",
+      "film": null
+    },
+    "highlights": [
+      "arbeiten/tete-a-tete/03",
+      "arbeiten/welttheater-der-strasse",
+      "arbeiten/wiwawo-53/01",
+      "arbeiten/at-tension"
+    ]
+  },
+  "foto": {
+    "kategorien": [
+      "festival",
+      "theater",
+      "paddeln",
+      "journalismus"
+    ],
+    "arbeiten": [
+      {
+        "id": "tete-a-tete",
+        "kategorie": "festival",
+        "titel": "tête-à-tête",
+        "bildtitel": {
+          "leitbild": "Cie. Pau Palaus",
+          "01": "SPPI",
+          "02": "GOGO home",
+          "03": "Chloe Loftus",
+          "04": "Roi Borallas",
+          "05": "Niels Seidel"
+        }
+      },
+      {
+        "id": "stamp",
+        "kategorie": "festival",
+        "titel": "STAMP",
+        "kunde": "altonale",
+        "notiz": "In Jakobs Liste einmal „altonale GmbH“, hier ohne Rechtsform (Regel E10). Das Bild „Cie. Sept fois la langue“ (ONE09024) lag nicht im Ordner."
+      },
+      {
+        "id": "at-tension",
+        "kategorie": "festival",
+        "titel": "at.tension",
+        "bildtitel": {
+          "leitbild": "Cie. Dyptik",
+          "01": "Cie. Pol & Freddy"
+        }
+      },
+      {
+        "id": "stadtfest-karlsruhe",
+        "kategorie": "festival",
+        "titel": "Stadtfest",
+        "kunde": "Karlsruhe Marketing & Event",
+        "notiz": "In Jakobs Liste ohne Überschrift; „Stadtfest“ stammt aus dem Dateinamen."
+      },
+      {
+        "id": "welttheater-der-strasse",
+        "kategorie": "theater",
+        "titel": "Welttheater der Strasse",
+        "bildtitel": {
+          "leitbild": "Commando Percu",
+          "01": "Commando Percu",
+          "02": "Collectif Malunés",
+          "03": "Commando Percu",
+          "04": "Collectif Malunés",
+          "05": "Circumstances",
+          "06": "SPPI",
+          "07": "SPPI"
+        }
+      },
+      {
+        "id": "wiwawo-53",
+        "kategorie": "paddeln",
+        "titel": "WiWaWo 2026",
+        "kunde": "Bayerischer Kanu-Verband",
+        "alt": {
+          "leitbild": "Gruppenfoto der Teilnehmenden und Betreuenden unter einem offenen Holzdach, viele in hellgrünen T-Shirts",
+          "01": "Ein Kajak fährt einen weiß schäumenden Wasserfall in einer Felsschlucht hinab, oben auf den Felsen stehen Zuschauende",
+          "02": "Lagerfeuer bei Nacht",
+          "03": "Kajakfahrer mit blauem Helm im gelben Boot in einer brechenden Welle",
+          "04": "Kajakfahrerin mit rotem Helm stellt ihr grünes Boot im Wildwasser senkrecht",
+          "05": "Kajakfahrer im grünen Boot mit rotem Paddel auf einem Fluss mit Kiesufer",
+          "06": "Weißer Kleinbus mit Kajaks auf dem Dach an einer Bergstraße, im Tal liegt Nebel"
+        },
+        "notiz": "Die Bildbeschreibungen sind von den Bildern abgeleitet, nicht von Jakob freigegeben."
+      },
+      {
+        "id": "wiwawo-52",
+        "kategorie": "paddeln",
+        "titel": "WiWaWo 2025",
+        "kunde": "Bayerischer Kanu-Verband"
+      },
+      {
+        "id": "kanu-freestyle-untertuerkheim",
+        "kategorie": "paddeln",
+        "titel": "Indoor Kanu Freestyle",
+        "kunde": "Untertürkheim"
+      },
+      {
+        "id": "toedliches-gold",
+        "kategorie": "journalismus",
+        "titel": "Tödliches Gold",
+        "kunde": "Y-Kollektiv/ARD",
+        "alt": {
+          "leitbild": "Ein Mann mit Mundschutz und Sonnenbrille auf der Stirn schmilzt mit einem Brenner Gold in einer kleinen Schale, daneben ein dunkler Barren",
+          "01": "Ein Arbeiter in schlammverschmierter Kleidung steht von hinten gesehen, die Hände in den Hüften, neben einer Pumpe in einer aufgewühlten Lehmgrube",
+          "02": "Ein Arbeiter mit verschränkten Armen, Gesicht und Arme voller Staub, steht in einer Grube zwischen Erdwänden und orangefarbenen Rohren"
+        },
+        "notiz": "Die Bildbeschreibungen sind von Claude, nicht von Jakob freigegeben."
+      },
+      {
+        "id": "strg-f",
+        "kategorie": "journalismus",
+        "titel": "STRG_F",
+        "kunde": "NDR/ARD für funk"
+      },
+      {
+        "id": "tagesthemen",
+        "kategorie": "journalismus",
+        "titel": "Tagesthemen",
+        "kunde": "ARD/SWR"
+      }
+    ],
+    "reihenfolge": [
+      "arbeiten/tete-a-tete",
+      "arbeiten/tete-a-tete/01",
+      "arbeiten/tete-a-tete/02",
+      "arbeiten/tete-a-tete/03",
+      "arbeiten/tete-a-tete/04",
+      "arbeiten/tete-a-tete/05",
+      "arbeiten/stamp",
+      "arbeiten/stamp/01",
+      "arbeiten/stamp/02",
+      "arbeiten/stamp/03",
+      "arbeiten/at-tension",
+      "arbeiten/at-tension/01",
+      "arbeiten/stadtfest-karlsruhe",
+      "arbeiten/welttheater-der-strasse",
+      "arbeiten/welttheater-der-strasse/01",
+      "arbeiten/welttheater-der-strasse/02",
+      "arbeiten/welttheater-der-strasse/03",
+      "arbeiten/welttheater-der-strasse/04",
+      "arbeiten/welttheater-der-strasse/05",
+      "arbeiten/welttheater-der-strasse/06",
+      "arbeiten/welttheater-der-strasse/07",
+      "arbeiten/wiwawo-53",
+      "arbeiten/wiwawo-53/01",
+      "arbeiten/wiwawo-53/02",
+      "arbeiten/wiwawo-53/03",
+      "arbeiten/wiwawo-53/04",
+      "arbeiten/wiwawo-53/05",
+      "arbeiten/wiwawo-53/06",
+      "arbeiten/wiwawo-53/07",
+      "arbeiten/wiwawo-53/08",
+      "arbeiten/wiwawo-52",
+      "arbeiten/kanu-freestyle-untertuerkheim",
+      "arbeiten/toedliches-gold",
+      "arbeiten/toedliches-gold/01",
+      "arbeiten/toedliches-gold/02",
+      "arbeiten/strg-f",
+      "arbeiten/strg-f/01",
+      "arbeiten/tagesthemen"
+    ],
+    "hero": [
+      "arbeiten/at-tension",
+      "arbeiten/welttheater-der-strasse",
+      "arbeiten/tete-a-tete/01",
+      "arbeiten/welttheater-der-strasse/04",
+      "arbeiten/wiwawo-52",
+      "arbeiten/stadtfest-karlsruhe",
+      "arbeiten/tete-a-tete/03"
+    ]
+  },
+  "ueber": {
+    "zeilen": [
+      "Ich arbeite als Journalist beim SWR in Stuttgart, in der Klimaredaktion und in der Abteilung Wirtschaft und Umwelt.",
+      "Dieselbe Aufmerksamkeit bringe ich auf den Festivalplatz mit: antizipieren, warten, im richtigen Moment auslösen. Beim Straßentheater gibt es keinen zweiten Take."
+    ],
+    "portraitAlt": "Jakob Sax im Gegenlicht der untergehenden Sonne, dahinter unscharf Bäume und Dächer",
+    "email": "mail@jakobsax.de",
+    "instagram": {
+      "label": "Instagram",
+      "url": "https://www.instagram.com/jakobsax.media/"
+    },
+    "swr": {
+      "label": "SWR-Autorenseite",
+      "url": "https://www.swr.de/swraktuell/autor-jakob-sax-100.html"
+    },
+    "bilder": {
+      "ueber/01": "Tödliches Gold – Y-Kollektiv/ARD",
+      "ueber/02": "STRG_F – NDR für funk",
+      "ueber/03": "Maimarkt Mannheim LIVE – SWR",
+      "ueber/04": "Maimarkt Mannheim LIVE – SWR"
+    },
+    "reihenfolge": [
+      "ueber/01",
+      "ueber/02",
+      "ueber/03",
+      "ueber/04",
+      "ueber/05"
+    ]
+  },
+  "filme": [],
+  "ausgeblendet": [
+    "arbeiten/wiwawo-53",
+    "arbeiten/wiwawo-53/02",
+    "arbeiten/wiwawo-53/03",
+    "arbeiten/wiwawo-53/04",
+    "arbeiten/wiwawo-53/05",
+    "arbeiten/wiwawo-53/06"
+  ],
+  "papierkorb": {},
+  "bildausschnitte": {
+    "arbeiten/wiwawo-53/02": "50% 78%",
+    "arbeiten/wiwawo-53/08": "50% 45%",
+    "arbeiten/wiwawo-52": "50% 65%",
+    "arbeiten/kanu-freestyle-untertuerkheim": "50% 40%",
+    "arbeiten/at-tension": "50% 22%",
+    "arbeiten/stadtfest-karlsruhe": "50% 28%",
+    "arbeiten/tete-a-tete/03": "50% 38%",
+    "arbeiten/welttheater-der-strasse/02": "50% 38%",
+    "arbeiten/welttheater-der-strasse/04": "50% 30%"
+  }
+}

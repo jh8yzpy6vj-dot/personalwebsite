@@ -1,6 +1,7 @@
 /**
- * Vorschaukarten (OpenGraph) — **läuft lokal**, im Anschluss an
- * `scripts/medien.mjs` (`npm run medien` ruft beides nacheinander auf).
+ * Vorschaukarten (OpenGraph) — **läuft lokal oder in der Medien-Action**, im
+ * Anschluss an `scripts/medien.mjs` (`npm run medien` ruft beides
+ * nacheinander auf).
  *
  * Erzeugt **eine** Karte (`start.jpg`) für alle Seiten unter `public/og/`.
  * Seit dem Umbau vom 2026-10-08 gibt es keine Detailseiten mehr und damit
@@ -23,11 +24,13 @@
  * Als statische Datei aus der Pipeline ist das Problem strukturell weg: Die
  * Karten sind fertige PNGs am Rand des Netzes, im Worker läuft dafür nichts.
  *
- * ⚠️ Braucht **Node ≥ 22.18** (oder ≥ 22.6 mit `--experimental-strip-types`),
- * weil das Skript `lib/content.ts` direkt liest — so bleibt `content.ts` die
- * einzige Inhaltsquelle, statt die Titel ein zweites Mal zu pflegen. Kann
- * Node das nicht, bricht der Build **nicht** ab: Es gibt dann eine Warnung
- * und keine Karten.
+ * Die Texte kommen aus `lib/inhalt.json` — der einzigen Inhaltsquelle, statt
+ * sie ein zweites Mal zu pflegen.
+ *
+ * ⚠️ **Bis 2026-10-17 las das Skript `lib/content.ts`.** Die importiert seit
+ * dem Umzug der Inhalte TypeScript und JSON ohne Endung; das kann nur der
+ * Bündler, nicht Node. Der Import wäre gescheitert, das Skript hätte
+ * „übersprungen" gemeldet — und es gäbe still keine neuen Karten mehr.
  */
 
 import { existsSync } from "node:fs";
@@ -42,6 +45,7 @@ import { fileURLToPath } from "node:url";
 import { ImageResponse } from "next/og.js";
 import sharp from "sharp";
 
+import { leseInhalt } from "./inhalt.mjs";
 import { OG_GROESSE, ogKarte } from "./og-karte.mjs";
 
 const WURZEL = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
@@ -73,30 +77,52 @@ const fehlendeFotos = [];
 /**
  * Das Foto als Datei-URI — Satori kann keine Datei vom Dateisystem laden.
  *
- * ⚠️ Die Quelle ist der **lokale Zwischenspeicher** der Medienpipeline, nicht
- * der Bucket. `eintrag.fallback` ist eine vollständige Adresse
- * (`https://medien.…/b/arbeiten/x-1200.jpg`); dieselbe Datei liegt nach
+ * Zuerst aus dem **lokalen Zwischenspeicher** der Medienpipeline:
+ * `eintrag.fallback` ist eine vollständige Adresse
+ * (`https://medien.…/b/arbeiten/x-1200.jpg?v=…`); dieselbe Datei liegt nach
  * `npm run medien` unter `.medien-cache/b/arbeiten/x-1200.jpg`. Über den
  * Pfadanteil der Adresse ist das unabhängig davon, unter welcher Domain der
  * Bucket gerade erreichbar ist.
  *
- * Fehlt der Zwischenspeicher (frischer Klon), entsteht die Karte **ohne**
- * Foto statt gar nicht. Das ist die richtige Reihenfolge: Ein fehlendes Foto
- * ist ein schwächeres Vorschaubild, ein Abbruch wäre gar keins.
+ * ⚠️ **Sonst aus dem Bucket, über genau diese Adresse.** In der Medien-Action
+ * gibt es keinen Zwischenspeicher, der über den Lauf hinaus bleibt: Dort
+ * liegen nur die Bilder, die dieser Lauf neu gerechnet hat. Ohne den
+ * Download bekäme die Karte dort fast nie ein Foto — nämlich immer dann,
+ * wenn das Startbild unverändert ist.
+ *
+ * Klappt beides nicht, gibt es `null`; was dann geschieht, entscheidet
+ * `main()`.
  */
 async function foto(eintrag) {
   if (!eintrag?.fallback) return null;
-  let pfad;
+  let adresse;
   try {
-    pfad = new URL(eintrag.fallback).pathname;
+    adresse = new URL(eintrag.fallback);
   } catch {
     return null; // Kein absoluter Link — Manifest aus einer älteren Version.
   }
+  // Im Zwischenspeicher liegt der Bucket-Schlüssel roh, in der Adresse kodiert.
+  const pfad = decodeURIComponent(adresse.pathname);
   try {
     const datei = await readFile(path.join(CACHE, pfad));
     return `data:image/jpeg;base64,${datei.toString("base64")}`;
   } catch {
-    fehlendeFotos.push(pfad);
+    // Nicht im Zwischenspeicher — dann aus dem Bucket.
+  }
+  try {
+    const antwort = await fetch(adresse, { signal: AbortSignal.timeout(30_000) });
+    if (!antwort.ok) throw new Error(`HTTP ${antwort.status}`);
+    const datei = Buffer.from(await antwort.arrayBuffer());
+    /* Nur, was wirklich ein JPEG ist: Eine Fehlerseite mit Status 200 (etwa
+       von einer falsch eingerichteten Domain) ergäbe sonst eine kaputte Karte. */
+    const format = await sharp(datei)
+      .metadata()
+      .then((m) => m.format)
+      .catch(() => undefined);
+    if (format !== "jpeg") throw new Error("kein JPEG");
+    return `data:image/jpeg;base64,${datei.toString("base64")}`;
+  } catch (fehler) {
+    fehlendeFotos.push(`${pfad} (${fehler.name === "TimeoutError" ? "Zeitüberschreitung" : fehler.message})`);
     return null;
   }
 }
@@ -123,19 +149,7 @@ async function schreibe(name, element, fonts) {
 }
 
 async function main() {
-  let inhalt;
-  try {
-    inhalt = await import("../lib/content.ts");
-  } catch (fehler) {
-    console.warn(
-      `  ! Vorschaukarten übersprungen: ${fehler.message}\n` +
-        `    Node ${process.versions.node} kann lib/content.ts nicht lesen. ` +
-        `Ab Node 22.18 geht das von selbst.`,
-    );
-    return;
-  }
-
-  const { SITE, HERO_ERSATZ } = inhalt;
+  const inhalt = await leseInhalt();
   const manifest = existsSync(MANIFEST)
     ? JSON.parse(await readFile(MANIFEST, "utf8"))
     : {};
@@ -149,24 +163,40 @@ async function main() {
     if (bytes > OG_BUDGET) gross.push(`${name} (${Math.round(bytes / 1024)} kB)`);
   };
 
-  pruefe(
-    "start",
-    await schreibe(
-      "start",
-      ogKarte({
-        marke: SITE.name,
-        /* Keine Positionierungszeile (UI-SPEC) — nur, was es hier gibt. */
-        titel: "foto · film",
-        /* Dasselbe Bild wie auf der Startseite: das Hero-Standbild, sonst das
-           Ersatzfoto aus content.ts. */
-        foto: await foto(
-          manifest["hero/standbild"] ?? (HERO_ERSATZ ? manifest[HERO_ERSATZ] : null),
-        ),
-      }),
-      fonts,
-    ),
-  );
+  /* Dasselbe Bild wie auf der Startseite: das Hero-Standbild, sonst das
+     Ersatzfoto aus lib/inhalt.json. */
+  const heroErsatz = inhalt.startseite?.heroErsatz;
+  const startbild = manifest["hero/standbild"] ?? (heroErsatz ? manifest[heroErsatz] : null);
+  const startfoto = await foto(startbild);
   behalten.add("start.jpg");
+
+  /*
+   * ⚠️ **War das Foto nur gerade nicht zu holen, bleibt die alte Karte
+   * stehen.** Sonst entstünde eine Karte ohne Foto, die Medien-Action
+   * committete sie — und am nächsten Tag, wenn der Bucket wieder antwortet,
+   * wieder die mit Foto: zwei Commits und zwei Deploys für nichts, dazwischen
+   * eine graue Vorschau. Ohne vorhandene Karte (frischer Klon) gilt weiter:
+   * lieber ohne Foto als gar keine.
+   */
+  let erzeugt = 0;
+  if (startbild && !startfoto && existsSync(path.join(ZIEL, "start.jpg"))) {
+    console.warn("  ! start.jpg nicht neu erzeugt: Das Foto war nicht zu holen, die alte Karte bleibt.");
+  } else {
+    pruefe(
+      "start",
+      await schreibe(
+        "start",
+        ogKarte({
+          marke: inhalt.seite.name,
+          /* Keine Positionierungszeile (UI-SPEC) — nur, was es hier gibt. */
+          titel: "foto · film",
+          foto: startfoto,
+        }),
+        fonts,
+      ),
+    );
+    erzeugt += 1;
+  }
 
   // Karten zu gelöschten Arbeiten wegräumen — sonst bleibt eine Vorschau für
   // eine URL liegen, die es nicht mehr gibt.
@@ -183,14 +213,13 @@ async function main() {
   }
   if (fehlendeFotos.length > 0) {
     console.warn(
-      `  ! ${fehlendeFotos.length} Karte(n) ohne Foto — die Dateien fehlen im\n` +
-        `    Zwischenspeicher (${path.relative(WURZEL, CACHE)}). Einmal ` +
-        `\`npm run medien\` laufen lassen,\n    dann sind sie da. Beispiel: ` +
-        `${fehlendeFotos[0]}`,
+      `  ! ${fehlendeFotos.length} Foto(s) weder im Zwischenspeicher ` +
+        `(${path.relative(WURZEL, CACHE)}) noch aus dem Bucket zu holen.\n` +
+        `    Beispiel: ${fehlendeFotos[0]}`,
     );
   }
   console.log(
-    `Vorschaukarten: ${behalten.size} erzeugt` +
+    `Vorschaukarten: ${erzeugt} erzeugt` +
       (geloescht > 0 ? `, ${geloescht} verwaiste gelöscht` : ""),
   );
 }
