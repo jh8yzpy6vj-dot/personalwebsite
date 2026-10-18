@@ -20,7 +20,23 @@ import * as abmelden_ from "@/app/api/admin/abmelden/route";
  * Angemeldet wird über die Dev-Abkürzung (NODE_ENV=development +
  * ADMIN_DEV=1); die Anmeldung mit Passwort steht unten unter „anmelden",
  * Sitzung und Cookie im Einzelnen prüft `zugang.test.ts`.
+ *
+ * Der Cloudflare-Kontext ist gefälscht und trägt **nur** die Anmeldebremse
+ * (`ANMELDUNG`) — alle Einstellungen kommen damit weiter aus `process.env`.
  */
+const bremse = vi.hoisted(() => ({ erlaubt: true, schluessel: [] as string[] }));
+vi.mock("@opennextjs/cloudflare", () => ({
+  getCloudflareContext: async () => ({
+    env: {
+      ANMELDUNG: {
+        limit: async ({ key }: { key: string }) => {
+          bremse.schluessel.push(key);
+          return { success: bremse.erlaubt };
+        },
+      },
+    },
+  }),
+}));
 
 const BASIS = "https://jakobsax.de/api/admin";
 const SHA = "a".repeat(40);
@@ -50,15 +66,24 @@ function anmelden() {
   vi.stubEnv("ADMIN_DEV", "1");
 }
 
+/** Mit Token — und mit der Freigabe, die `next dev` zum Schreiben verlangt. */
 function mitGithub() {
   vi.stubEnv("GITHUB_TOKEN", "ghp_GEHEIM");
+  vi.stubEnv("ADMIN_DEV_SCHREIBEN", "1");
 }
 
-function mitEingang() {
+/** Die vier Eingangs-Werte, wie aus der Shell geerbt — noch ohne Schreibfreigabe. */
+function eingangsWerte() {
   vi.stubEnv("R2_ACCOUNT_ID", "abc123");
   vi.stubEnv("EINGANG_BUCKET", "eingang");
   vi.stubEnv("EINGANG_ACCESS_KEY_ID", "KEYID");
   vi.stubEnv("EINGANG_SECRET_ACCESS_KEY", "GEHEIM");
+}
+
+/** Mit Eingang — und mit der Freigabe, die `next dev` zum Schreiben verlangt. */
+function mitEingang() {
+  eingangsWerte();
+  vi.stubEnv("ADMIN_DEV_SCHREIBEN", "1");
 }
 
 const eigene = { origin: "https://jakobsax.de" };
@@ -68,6 +93,7 @@ beforeEach(() => {
   for (const name of [
     "ADMIN_PASSWORT",
     "ADMIN_DEV",
+    "ADMIN_DEV_SCHREIBEN",
     "GITHUB_TOKEN",
     "R2_ACCOUNT_ID",
     "EINGANG_BUCKET",
@@ -79,6 +105,8 @@ beforeEach(() => {
   fakeFetch(() => {
     throw new Error("unerwarteter Abruf");
   });
+  bremse.erlaubt = true;
+  bremse.schluessel = [];
   vi.spyOn(console, "warn").mockImplementation(() => {});
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
@@ -145,6 +173,68 @@ describe("stand", () => {
     expect(d.bilder).toEqual({});
     expect(d.konfiguration.github).toBe(true);
     expect(JSON.stringify(d)).not.toContain("GEHEIM");
+  });
+});
+
+describe("Entwicklungsserver mit Token", () => {
+  it("schreibt ohne ausdrückliche Freigabe nicht — kein versehentlicher Commit auf main", async () => {
+    anmelden();
+    vi.stubEnv("GITHUB_TOKEN", "ghp_GEHEIM"); // wie aus der Shell geerbt
+    const d = await (await stand.GET(new Request(`${BASIS}/stand`))).json();
+    expect(d.konfiguration).toEqual({ github: false, eingang: false });
+
+    const a = await speichern.POST(
+      new Request(`${BASIS}/speichern`, {
+        method: "POST",
+        headers: { ...eigene, "content-type": "application/json" },
+        body: JSON.stringify({ inhalt: INHALT, sha: SHA, nachricht: "x" }),
+      }),
+    );
+    expect(a.status).toBe(503);
+    expect(aufrufe).toEqual([]);
+  });
+
+  it("lädt ohne Freigabe auch nichts in den Eingang — die nächste Medien-Action machte es live", async () => {
+    anmelden();
+    eingangsWerte();
+    fakeFetch(() => new Response(null, { status: 200 }));
+    const d = await (await stand.GET(new Request(`${BASIS}/stand`))).json();
+    expect(d.konfiguration).toEqual({ github: false, eingang: false });
+
+    const a = await hochladen.PUT(
+      new Request(`${BASIS}/hochladen?ziel=portrait`, {
+        method: "PUT",
+        headers: { ...eigene, "content-type": "image/jpeg" },
+        body: new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3]),
+      }),
+    );
+    expect(a.status).toBe(503);
+    expect(aufrufe).toEqual([]);
+  });
+
+  it("mit Freigabe nennt er, wohin Speichern schreibt", async () => {
+    anmelden();
+    mitGithub();
+    vi.stubEnv("GITHUB_BRANCH", "test-zweig");
+    fakeFetch(() => datei(JSON.stringify(INHALT)));
+    const d = await (await stand.GET(new Request(`${BASIS}/stand`))).json();
+    expect(d.konfiguration).toMatchObject({ github: true, entwicklung: "jh8yzpy6vj-dot/personalwebsite@test-zweig" });
+  });
+
+  it("außerhalb von next dev gibt es weder Sperre noch Repo-Angabe", async () => {
+    vi.stubEnv("ADMIN_PASSWORT", "lange-genug-und-geheim");
+    vi.stubEnv("GITHUB_TOKEN", "ghp_GEHEIM"); // NODE_ENV bleibt "test", keine Freigabe
+    const anmeldung = await anmelden_.POST(
+      new Request(`${BASIS}/anmelden`, {
+        method: "POST",
+        headers: { ...eigene, "content-type": "application/x-www-form-urlencoded" },
+        body: "passwort=lange-genug-und-geheim",
+      }),
+    );
+    const cookie = (anmeldung.headers.get("set-cookie") ?? "").split(";")[0];
+    fakeFetch(() => datei(JSON.stringify(INHALT)));
+    const d = await (await stand.GET(new Request(`${BASIS}/stand`, { headers: { cookie } }))).json();
+    expect(d.konfiguration).toEqual({ github: true, eingang: false });
   });
 });
 
@@ -427,6 +517,30 @@ describe("anmelden", () => {
     expect(a.status).toBe(303);
     expect(a.headers.get("location")).toBe("https://jakobsax.de/admin?falsch=1");
     expect(a.headers.get("set-cookie")).toBeNull();
+  });
+
+  it("nach zu vielen Versuchen: zurück mit ?gesperrt=1, ohne das Passwort zu prüfen", async () => {
+    vi.stubEnv("ADMIN_PASSWORT", PASSWORT);
+    bremse.erlaubt = false;
+    const vorher = Date.now();
+    // Sogar das richtige Passwort kommt nicht durch — geprüft wird gar nicht erst.
+    const a = await anmelden_.POST(formular(PASSWORT, { ...eigene, "cf-connecting-ip": "203.0.113.7" }));
+    expect(a.status).toBe(303);
+    expect(a.headers.get("location")).toBe("https://jakobsax.de/admin?gesperrt=1");
+    expect(a.headers.get("set-cookie")).toBeNull();
+    expect(bremse.schluessel).toEqual(["203.0.113.7"]);
+    // Ein falsches Passwort wartete 1,5 s — hier wird sofort geantwortet.
+    const b = await anmelden_.POST(formular("daneben-daneben"));
+    expect(b.headers.get("location")).toBe("https://jakobsax.de/admin?gesperrt=1");
+    expect(Date.now() - vorher).toBeLessThan(1000);
+  });
+
+  it("die Bremse zählt jeden Versuch je IP (IPv6 je /64)", async () => {
+    vi.stubEnv("ADMIN_PASSWORT", PASSWORT);
+    await anmelden_.POST(formular(PASSWORT, { ...eigene, "cf-connecting-ip": "198.51.100.1" }));
+    await anmelden_.POST(formular(PASSWORT, { ...eigene, "cf-connecting-ip": "2001:db8:aa:1:dead:beef:0:7" }));
+    await anmelden_.POST(formular(PASSWORT));
+    expect(bremse.schluessel).toEqual(["198.51.100.1", "2001:db8:aa:1::/64", "unbekannt"]);
   });
 
   it("von einer fremden Seite: 403", async () => {

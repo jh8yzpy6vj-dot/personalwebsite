@@ -107,7 +107,7 @@ async function main() {
     const ziel = originalSchluessel(d.ziel);
     try {
       const roh = await hole(eingang, d.key);
-      const { datei, format, neuKodiert, verworfen, breite, hoehe } = await saeubere(roh);
+      const { datei, format, neuKodiert, verworfen, anhang, breite, hoehe } = await saeubere(roh);
 
       await lege(oeffentlich, ziel, datei, "image/jpeg", KURZ_ZWISCHENSPEICHERN);
 
@@ -133,7 +133,8 @@ async function main() {
             ? `, ${format.toUpperCase()} als JPEG neu kodiert`
             : verworfen.length > 0
               ? `, ${verworfen.length} Metadatenblock/-blöcke entfernt`
-              : ""),
+              : "") +
+          (anhang > 0 ? `, Anhang hinter dem Bildende (${anhang} Bytes) entfernt` : ""),
       );
       uebernommen += 1;
     } catch (e) {

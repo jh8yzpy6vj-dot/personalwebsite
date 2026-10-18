@@ -134,7 +134,7 @@ GitHub Action Medien (.github/workflows/medien.yml)
 |---|---|
 | Vertrag zwischen Oberfläche und Server (Typen, Routen, `ZIEL`, `MAX_UPLOAD_BYTES`, `BILDTYPEN`) | `lib/admin/vertrag.ts` — **zuerst lesen** |
 | Inhalte, Typen, Prüfung | `lib/inhalt.json`, `lib/inhalt.ts`, `lib/inhalt-pruefen.ts` |
-| Zugang (Passwort, Sitzungs-Cookie, Herkunft) | `lib/admin/zugang.ts` |
+| Zugang (Passwort, Sitzungs-Cookie, Herkunft, Anmeldebremse) | `lib/admin/zugang.ts`, Bindung `ANMELDUNG` in `wrangler.toml` |
 | Einstellungen aus der Worker-Umgebung | `lib/admin/umgebung.ts` |
 | GitHub-API, Eingangs-Bucket, gemeinsame Antworten | `lib/admin/github.ts`, `lib/admin/eingang.ts`, `lib/admin/antwort.ts` |
 | Routen | `app/api/admin/*/route.ts` |
@@ -193,6 +193,15 @@ workflow", von der Verwaltung per `workflow_dispatch` und täglich um 03:17 UTC)
    ISO raus; PNG/WebP/TIFF werden JPEG), nach `original/<ziel>.jpg` legen, andere Endungen
    desselben Schlüssels löschen, **erst dann** aus dem Eingang löschen. Ein kaputtes Bild hält die
    anderen nicht auf, bleibt im Eingang liegen und färbt den Lauf am Ende rot.
+   ⚠️ **Seit 2026-10-20 schneidet das Säubern JPEGs an ihrem echten Bildende (`EOI`) ab**
+   (`jpegEnde` in `scripts/exif.mjs`). Dahinter hängen bei Kamera-JPEGs mit MPF weitere
+   Vorschaubilder und bei „Motion Photos" vom Handy ein ganzes Video — jedes mit eigener
+   Ortsangabe, die vorher im öffentlichen Original stehen blieb. Das Log nennt es als „Anhang
+   hinter dem Bildende (n Bytes) entfernt". Endet das Ergebnis nicht sauber oder steckt noch ein
+   zweites JPEG darin, bricht das Säubern ab („Säubern unvollständig"), statt hochzuladen.
+   Ebenfalls seit dann: `APPn`- und `COM`-Blöcke **zwischen den Scans** progressiver JPEGs fallen
+   weg (dort hätte ein eingeschobener EXIF-Block an der Positivliste vorbeigeführt), und ein
+   JFIF-Kopf wird ohne Vorschaubild neu geschrieben; `JFXX` mit eingebettetem JPEG fällt ganz weg.
 2. `npm run papierkorb` — siehe unten.
 3. `npm run medien` — Varianten rechnen, Verwaistes wegräumen, Manifest und Vorschaukarte
    schreiben. Ohne `.medien-cache` trotzdem inkrementell: Unveränderte Bilder werden aus dem
@@ -201,6 +210,16 @@ workflow", von der Verwaltung per `workflow_dispatch` und täglich um 03:17 UTC)
    `lib/inhalt.json`, `public/og`), committet sie als `github-actions[bot]` mit `Medien: …`,
    holt vorher den neuesten Stand (`git pull --rebase`) und versucht den Push bei einem Fehler
    genau ein zweites Mal.
+   ⚠️ **Den schreibberechtigten Token hat nur dieser letzte Schritt** (seit 2026-10-20): Der
+   Checkout legt ihn nicht in `.git/config` ab (`persist-credentials: false`), und pull und push
+   bekommen ihn über einen Credential-Helper aus der Umgebung des Schritts — nicht in der
+   Adresse, die stünde sonst im Reflog (`.git/logs`) und in `FETCH_HEAD`. Vorher konnte jedes
+   Installationsskript von `npm ci` ihn einfach aus `.git/config` lesen und auf `main` pushen —
+   und `main` geht live. Ganz dicht ist es nicht: Ein Prozess, den ein Paket bei `npm ci` im
+   Hintergrund weiterlaufen ließe, könnte die Umgebung des Commit-Schritts theoretisch auslesen.
+   Die Git-Identität (`github-actions[bot]`) setzt der Schritt per `git config`, weil auch der
+   Rebase sie braucht. Wer den Workflow ändert: kein weiterer Schritt mit `git fetch`/`pull`/
+   `push`, ohne den Token genauso nur dort zu übergeben.
 
 Sie läuft nie zweimal gleichzeitig und wird nie abgebrochen. Ein abgebrochener Lauf wird beim
 nächsten nachgeholt: Was nicht fertig wurde, liegt noch im Eingang bzw. Papierkorb.
@@ -233,19 +252,36 @@ Manifest noch im Eingang) — sonst rät die Oberfläche zum Ausblenden.
   selbst**. Daraus folgt: **Passwort ändern = alle abmelden.** Das Passwort steht nirgends im
   Cookie und lässt sich nicht daraus zurückrechnen. Alle `/api/admin/*` prüfen das Cookie bei
   jeder Anfrage, ohne gültiges Cookie: 404.
-- ⚠️ **Keine Sperre nach Fehlversuchen** — der Worker hat keinen Speicher dafür. Jeder
-  Fehlversuch wartet 1,5 s, und die Mindestlänge ist 12 Zeichen. Den eigentlichen Schutz trägt
-  die Länge: **ein langes, zufälliges Passwort** wählen (z. B. vier, fünf zufällige Wörter), es
-  nirgends sonst verwenden und nur Jakob und Jan geben. Wer mehr will: in Cloudflare unter
-  Security → WAF → **Rate limiting rules** eine Regel für `/api/admin/anmelden` (z. B. 5 Anfragen
-  je Minute und IP) — optional.
+- **Anmeldebremse** (seit 2026-10-20): höchstens **5 Anmeldeversuche je Minute und IP**, bei
+  IPv6 je `/64`. Gezählt wird über die Bindung `ANMELDUNG` (Workers Rate Limiting, `[[ratelimits]]`
+  in `wrangler.toml`, `anmeldungErlaubt` in `lib/admin/zugang.ts`) — sie braucht keinen eigenen
+  Speicher und nichts im Dashboard, der Deploy legt sie an. Ab dem sechsten Versuch antwortet
+  `/api/admin/anmelden` sofort mit `/admin?gesperrt=1` („Zu viele Versuche …"), **ohne das
+  Passwort zu prüfen**. Die Zählung ist je Cloudflare-Rechenzentrum und ungefähr — eine Bremse,
+  keine Sperre. Bewusst keine gemeinsame Grenze für alle IPs: die könnte jeder ausschöpfen und
+  Jakob damit aussperren. Fehlt die Bindung, geht die Anmeldung ungebremst durch und das Log
+  meldet „Anmeldebremse nicht verfügbar". Zusätzlich wartet jeder Fehlversuch 1,5 s.
+- ⚠️ **Pflicht bei der Einrichtung: die WAF-Regel** (Schritt 6 unten). Sie hält Massenanfragen
+  schon am Rand auf, bevor der Worker überhaupt läuft, und gilt auch dann, wenn die Bindung
+  einmal fehlt. Den eigentlichen Schutz trägt trotzdem die Länge: **ein langes, zufälliges
+  Passwort** wählen (z. B. vier, fünf zufällige Wörter), es nirgends sonst verwenden und nur
+  Jakob und Jan geben.
+- **Links landen maskiert im Code jeder Seite.** Die Adressen von „Über mich" (SWR, Instagram)
+  stehen im JSON-LD (`app/StructuredData.tsx`) jeder Seite, auch auf `/admin`. Seit 2026-10-20
+  doppelt gesichert: `pruefeInhalt` nimmt als Adresse (Links, Filmlinks, Hero-Video) nur
+  `https://` mit Host und ohne Leerraum, spitze Klammern, Anführungszeichen, Backtick und
+  Backslash an — beim Speichern wie beim Build —, und `alsJsonLd` (`lib/site.ts`) maskiert
+  `<`, `>` und `&` trotzdem. Vorher hätte ein Link wie `https://x/</script><script>…` als Code
+  auf jeder Seite laufen können. ⚠️ **Wer ein
+  weiteres `<script>` mit Daten einbaut: immer über `alsJsonLd`, nie `JSON.stringify` allein.**
 - **Mutierende Anfragen nur von derselben Seite** (`Origin` bzw. `Sec-Fetch-Site`), sonst 403.
 - **Bildschlüssel werden immer gegen `ZIEL` bzw. feste Muster geprüft**, Pfade und Refs gegen
   `..` und leere Abschnitte — kein Ausbruch aus `lib/inhalt.json` oder dem Eingang.
 - **Secrets gehen nie an den Browser, in Logs oder Fehlermeldungen.** Der Browser erfährt nur zwei
-  Wahrheitswerte (`konfiguration`: GitHub ja/nein, Eingang ja/nein). Fehlertexte von R2 werden
-  nicht durchgereicht (das S3-Fehler-XML nennt die Key-ID), die Logs der Action ebenso wenig
-  (`s3Grund` in `scripts/r2.mjs`).
+  Wahrheitswerte (`konfiguration`: GitHub ja/nein, Eingang ja/nein) — und nur unter `next dev`
+  mit Schreibfreigabe zusätzlich Repo und Branch (`entwicklung`, siehe „Lokale Entwicklung"),
+  beides kein Geheimnis. Fehlertexte von R2 werden nicht durchgereicht (das S3-Fehler-XML nennt
+  die Key-ID), die Logs der Action ebenso wenig (`s3Grund` in `scripts/r2.mjs`).
 - **Nie zwischenspeichern, nie indexieren.** `next.config.mjs` setzt für `/admin` und
   `/api/admin/*` `Cache-Control: no-store` und `X-Robots-Tag: noindex, nofollow` (nach der
   `must-revalidate`-Regel, sonst gewönne die), die Routen setzen `no-store` zusätzlich.
@@ -282,6 +318,10 @@ Laufzeit-Variablen, **nicht** die „Build variables"):
 | `EINGANG_ACCESS_KEY_ID` | **Secret** | für Hochladen | R2-Token, Object Read & Write **nur** auf den Eingang |
 | `EINGANG_SECRET_ACCESS_KEY` | **Secret** | für Hochladen | dito |
 | `ADMIN_DEV` | — | **nie im Dashboard** | nur lokal, siehe „Lokale Entwicklung" |
+| `ADMIN_DEV_SCHREIBEN` | — | **nie im Dashboard** (wirkt dort nicht) | nur lokal: erlaubt `next dev`, wirklich zu speichern (GitHub) und hochzuladen (Eingang) |
+
+Die **Anmeldebremse** (`ANMELDUNG`) ist keine Variable, sondern eine Bindung in `wrangler.toml`;
+sie kommt mit jedem Deploy, im Dashboard ist dafür nichts einzutragen.
 
 Fehlt `ADMIN_PASSWORT` (oder ist zu kurz): 404. Fehlt `GITHUB_TOKEN`: Verwaltung lesbar, Speichern
 gesperrt (Hinweisband). Fehlt einer der vier Eingangs-Werte: Datei-Knöpfe gesperrt (Hinweisband).
@@ -353,9 +393,22 @@ gebraucht.
    Danach einmal von Hand starten (Actions → Medien → Run workflow) und im Log von „Varianten
    rechnen" nachsehen: Erwartet ist „… unverändert (davon N aus dem Manifest)" und **nichts** neu
    gerechnet.
-6. **Testen.**
+6. **WAF-Regel für die Anmeldung (Pflicht).** Cloudflare → Domain `jakobsax.de` → Security →
+   WAF → **Rate limiting rules** (im neueren Dashboard ggf. Security → Security rules) → Create
+   rule:
+   - Wenn: URI Path **equals** `/api/admin/anmelden` — mehr nicht. Der kostenlose Plan bietet
+     in Rate-Limiting-Regeln nur die Felder Path und Verified Bot an; die Methode muss auch
+     nicht dazu, an diese Adresse schickt nur das Anmeldeformular.
+   - Zählen je IP; Grenze **10 Anfragen in 10 Sekunden**, Aktion **Block** (der kostenlose Plan
+     lässt nur kurze Zeiträume zu — das genügt).
+   - Die Grenze liegt bewusst über der Anmeldebremse im Code (5 je Minute): Wer sich von Hand
+     vertippt, bekommt deren freundliche Meldung; die WAF trifft nur Skripte, und zwar schon vor
+     dem Worker.
+7. **Testen.**
    - `https://jakobsax.de/admin` in einem privaten Fenster: Es erscheint das **Passwortfeld**,
-     nie die Verwaltung. Ein falsches Passwort → „Das Passwort stimmt nicht."
+     nie die Verwaltung. Ein falsches Passwort → „Das Passwort stimmt nicht." Sechs falsche
+     Versuche innerhalb einer Minute → beim sechsten „Zu viele Versuche. Warte eine Minute und
+     versuch es dann noch einmal." (eine Minute warten, dann geht es wieder).
    - `https://jakobsax.de/api/admin/stand` ohne Anmeldung: **404**.
    - Mit dem richtigen Passwort anmelden: Die Verwaltung lädt ohne Hinweisbänder. „Abmelden"
      oben rechts führt zurück zum Passwortfeld.
@@ -381,11 +434,34 @@ Produktionsbuild setzt Next `NODE_ENV` fest auf `production`; dort öffnet `ADMI
 auch nicht versehentlich im Dashboard gesetzt.
 
 Ohne weitere Werte zeigt die Verwaltung den lokalen Stand von `lib/inhalt.json`, Speichern und
-Hochladen sind gesperrt — zum Ansehen und Bauen der Oberfläche reicht das. ⚠️ **Wer lokal
-`GITHUB_TOKEN` einträgt, committet beim Speichern auf das echte `main` — und das geht live.** Zum
-gefahrlosen Ausprobieren `GITHUB_BRANCH` auf einen eigenen, vorhandenen Branch setzen. Unter
-`next dev` gibt es keinen Cloudflare-Kontext; die Werte kommen aus `.env*.local` bzw. der Shell
-(`lib/admin/umgebung.ts`), nicht aus `.dev.vars`.
+Hochladen sind gesperrt — zum Ansehen und Bauen der Oberfläche reicht das.
+
+⚠️ **Schreiben unter `next dev` nur mit ausdrücklicher Freigabe** (seit 2026-10-20). Ein
+`GITHUB_TOKEN` oder die vier Eingangs-Werte allein reichen lokal nicht mehr: Ohne
+`ADMIN_DEV_SCHREIBEN=1` verhält sich die Verwaltung, als fehlten sie (Bänder „Speichern ist
+noch nicht eingerichtet" und „Hochladen ist noch nicht eingerichtet", kein Verlauf, kein
+Anstoßen der Action). Grund: Solche Werte stehen schnell einmal in der Shell oder in
+`.dev.vars` — in Agenten-Containern sogar von selbst —, und dann committete ein Klick auf
+„Speichern" beim Ausprobieren auf das echte `main`, und ein hochgeladenes Testbild verarbeitete
+die nächste Medien-Action — **beides geht live.** Mit Freigabe zeigt die Verwaltung oben das
+Band „Entwicklungsmodus — Speichern schreibt auf {Repo}@{Branch}. Ist das main, geht es sofort
+live." Hochgeladenes landet dann im echten Eingang. Zum gefahrlosen Ausprobieren also zusätzlich
+`GITHUB_BRANCH` auf einen eigenen, vorhandenen Branch setzen und nichts hochladen:
+
+```
+# .env.development.local — nur, wenn lokal wirklich gespeichert werden soll
+ADMIN_DEV_SCHREIBEN=1
+GITHUB_BRANCH=mein-testzweig
+```
+
+Im Produktionsbuild ändert die Freigabe nichts (dort ist `NODE_ENV` immer `production`).
+
+**Woher `next dev` die Werte nimmt:** `getCloudflareContext` holt sich unter `next dev` die
+Worker-Umgebung über Wrangler — also die Werte aus **`.dev.vars`** (die gewinnen) und die
+Bindungen aus `wrangler.toml`, darunter die Anmeldebremse (Miniflare zählt dann lokal mit).
+Alles Übrige kommt aus `.env*.local` bzw. der Shell (`lib/admin/umgebung.ts`). ⚠️ Steht
+`ADMIN_PASSWORT` in `.dev.vars`, zeigt `/admin` ohne `ADMIN_DEV=1` die echte Anmeldung — und
+ein `GITHUB_TOKEN` dort zählt genauso wie einer in der Shell.
 
 ### Fehlerbilder
 
@@ -393,15 +469,19 @@ gefahrlosen Ausprobieren `GITHUB_BRANCH` auf einen eigenen, vorhandenen Branch s
 |---|---|---|
 | `/admin` zeigt 404 statt Passwortfeld | `ADMIN_PASSWORT` fehlt, ist kürzer als 12 Zeichen oder steht unter „Build variables" statt unter „Variables and Secrets" | Schritt 1 und 4. Den Grund zeigen die Worker-Logs (Observability) |
 | Richtiges Passwort, trotzdem wieder das Passwortfeld | Browser blockiert Cookies für die Seite, oder `/admin` über `http://` statt `https://` geöffnet (das Cookie ist `Secure`) | Über `https://jakobsax.de/admin` arbeiten, Cookies erlauben |
+| „Zu viele Versuche. Warte eine Minute …" | Anmeldebremse: mehr als 5 Versuche in einer Minute von dieser IP (oder demselben IPv6-`/64`) | Eine Minute warten. Kommt es ohne eigene Fehlversuche, probiert jemand anderes — Worker-Logs ansehen („Anmeldung gebremst") |
+| Cloudflare-Seite „Error 1015 — You are being rate limited" (HTTP 429) beim Anmelden | WAF-Regel aus Schritt 6 hat gegriffen | Kurz warten; trifft es Jakob beim normalen Arbeiten, die Grenze der Regel höher setzen |
+| Lokal: `GITHUB_TOKEN` bzw. Eingangs-Schlüssel gesetzt, trotzdem „Speichern …" / „Hochladen ist noch nicht eingerichtet" | Unter `next dev` fehlt die Freigabe `ADMIN_DEV_SCHREIBEN=1` — Absicht | Siehe „Lokale Entwicklung"; vorher `GITHUB_BRANCH` auf einen Testzweig setzen |
 | Nach einem Push plötzlich ein Band „… nicht eingerichtet" | `keep_vars` entfernt, die Klartext-Variablen sind weg (Secrets bleiben) | Zeile in `wrangler.toml` zurück, Variablen neu setzen |
 | Band „Speichern ist noch nicht eingerichtet" | `GITHUB_TOKEN` fehlt | Schritt 3 und 4 |
 | Band „Hochladen ist noch nicht eingerichtet" | Einer von `R2_ACCOUNT_ID`, `EINGANG_BUCKET`, `EINGANG_ACCESS_KEY_ID`, `EINGANG_SECRET_ACCESS_KEY` fehlt | Schritt 2 und 4 |
 | „… der Token ist abgelaufen oder falsch" | Token abgelaufen oder widerrufen (GitHub 401) | Token erneuern (Schritt 3) |
 | „… fehlende Rechte des Tokens oder zu viele Anfragen" / „nicht gefunden — Repo, Branch oder Rechte" | Token hat nicht Contents bzw. Actions „Read and write", gilt für ein anderes Repo, oder `GITHUB_REPO`/`GITHUB_BRANCH` falsch | Rechte des Tokens prüfen |
 | Dialog „Konflikt" beim Speichern | `lib/inhalt.json` hat sich seit dem Laden geändert (Jan, zweiter Tab, Medien-Action) | Neu laden, Änderung wiederholen — die eigenen ungespeicherten Änderungen gehen dabei verloren |
-| Speichern gesperrt, rote Befunde | `pruefeInhalt` findet einen Fehler (z. B. doppelte Kennung, Link ohne `https://`) | Befund lesen und beheben; der Build würde sonst abbrechen |
+| Speichern gesperrt, rote Befunde | `pruefeInhalt` findet einen Fehler (z. B. doppelte Kennung, Link ohne `https://` oder mit Leerzeichen, Anführungszeichen, `<`/`>`) | Befund lesen und beheben; der Build würde sonst abbrechen |
 | „Gespeichert, aber noch nicht live" | Cloudflare-Build gescheitert (Workers & Pages → Deployments), `BUILD_COMMIT` leer, oder die Medien-Action hat direkt danach committet und Cloudflare hat den späteren Commit gebaut | Build-Log ansehen; im letzten Fall ist alles online, nur die Meldung hinkt (bekannte Lücke) |
 | Bild bleibt auf „wartet" | Medien-Action nicht eingerichtet (läuft grün, tut nichts), `EINGANG_BUCKET` fehlt in GitHub, oder der Eingang ist gescheitert (Lauf rot) | Actions → Medien → letzten Lauf ansehen |
+| Im Log von „Eingang übernehmen": „Säubern unvollständig … — bleibt im Eingang." | Das JPEG endet nicht sauber, oder nach dem Abschneiden steckt noch ein zweites Bild darin (z. B. eine eingebettete Vorschau in einem behaltenen Block) | Das Bild am Rechner einmal neu als JPEG exportieren und erneut hochladen; die alte Datei im Eingang wird dabei ersetzt |
 | „Verarbeitung starten" scheitert | Workflow-Datei heißt nicht `medien.yml`, Actions im Repo abgeschaltet, Token ohne Actions-Recht | Schritt 3 und 5 |
 | Hochladen: 413 / 415 | Datei über der Grenze aus `MAX_UPLOAD_BYTES`, oder kein JPEG/PNG/WebP/TIFF (z. B. HEIC vom iPhone) | Kleiner bzw. als JPEG exportieren |
 | Hochladen: 403 | Anfrage nicht von derselben Seite (z. B. Verwaltung über eine andere Adresse geöffnet) | Über `jakobsax.de/admin` arbeiten |

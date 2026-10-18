@@ -412,7 +412,10 @@ Umbaus abgehakt.
   sofort auffallen. Sonst auch hier kein Rot — Löschen-Knöpfe bleiben farblos.
 - **Anmeldung:** dieselbe Fläche, mittig „Verwaltung", ein Feld „Passwort" und der Hauptknopf
   „Anmelden", höchstens 360px breit. Falsches Passwort: „Das Passwort stimmt nicht." als
-  Fehlertext (`--rec`, siehe oben).
+  Fehlertext (`--rec`, siehe oben). Nach zu vielen Versuchen (Anmeldebremse, seit 2026-10-20):
+  „Zu viele Versuche. Warte eine Minute und versuch es dann noch einmal." — derselbe Fehlertext
+  an derselben Stelle, ebenfalls `--rec`: Auch hier kommt Jakob nicht weiter, bis er etwas tut
+  (warten), also gilt dieselbe Begründung wie für die blockierenden Fehler.
 - **Aufbau:** Kopf mit „Verwaltung", Link zur Seite und „Abmelden" (fragt nach, wenn noch
   Ungespeichertes da ist); darunter Reiter
   **Fotos · Hero · Arbeiten · Über mich · Filme · Startseite · Papierkorb · Verlauf**
@@ -427,6 +430,10 @@ Umbaus abgehakt.
   veröffentlicht … (1–2 Minuten)" · „Gespeichert und live." · „Alles gespeichert." ·
   „Speichern ist noch nicht eingerichtet." Bei gleichzeitigem Speichern: Dialog „Inzwischen hat
   jemand anderes gespeichert".
+- **Band im Entwicklungsmodus** (nur `next dev` mit Schreibfreigabe, nie in Produktion):
+  „Entwicklungsmodus — Speichern schreibt auf {Repo}@{Branch}. Ist das main, geht es sofort
+  live." Dasselbe Band wie „Speichern ist noch nicht eingerichtet", keine eigene Farbe — es ist
+  ein Hinweis für Jan, kein Fehler.
 - **Qualitätsuntergrenze wie oben:** Trefferflächen ≥ 44px, sichtbarer Fokus, nutzbar ab
   **375px** Breite, `:hover` nur unter `(hover: hover) and (pointer: fine)`.
 

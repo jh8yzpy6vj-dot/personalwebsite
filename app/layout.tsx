@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Archivo, Figtree } from "next/font/google";
 import "./globals.css";
 import StructuredData from "./StructuredData";
-import { INDEXABLE, SITE_URL } from "@/lib/site";
+import { INDEXABLE, SITE_URL, alsJsonLd } from "@/lib/site";
 
 /*
  * ⚠️ **Ersatzschriften für den Übergang** — nicht die Schriften der Seite.
@@ -100,11 +100,14 @@ export default function RootLayout({
 
           Gilt nur für eigene Seiten (`/*`): Die Filmlinks führen nach
           außen und werden nie vorgeladen.
+
+          Maskiert wie das JSON-LD (`alsJsonLd`), obwohl hier nur Festes
+          steht — damit niemand eine Stelle ohne Maske abschreibt.
         */}
         <script
           type="speculationrules"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
+            __html: alsJsonLd({
               prerender: [{ where: { href_matches: "/*" }, eagerness: "moderate" }],
             }),
           }}

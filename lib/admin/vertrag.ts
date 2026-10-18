@@ -21,10 +21,19 @@ import type { Befund } from "../inhalt-pruefen";
 
 /** Was auf dem Server eingerichtet ist — die Oberfläche passt sich an. */
 export type Konfiguration = {
-  /** `GITHUB_TOKEN` gesetzt: Speichern, Verlauf, Verarbeitung anstoßen. */
+  /**
+   * `GITHUB_TOKEN` gesetzt (unter `next dev` zusätzlich `ADMIN_DEV_SCHREIBEN=1`):
+   * Speichern, Verlauf, Verarbeitung anstoßen.
+   */
   github: boolean;
-  /** Eingangs-Bucket gesetzt: Hochladen. */
+  /** Eingangs-Bucket gesetzt (unter `next dev` zusätzlich `ADMIN_DEV_SCHREIBEN=1`): Hochladen. */
   eingang: boolean;
+  /**
+   * Nur unter `next dev` mit Schreibfreigabe (`ADMIN_DEV_SCHREIBEN=1`):
+   * wohin Speichern schreibt, als `<repo>@<branch>`. Die Verwaltung zeigt
+   * dann ein Band. Im Produktionsbuild fehlt das Feld.
+   */
+  entwicklung?: string;
 };
 
 /** `GET /api/admin/stand` — alles, was die Verwaltung zum Start braucht. */

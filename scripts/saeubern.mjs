@@ -88,9 +88,13 @@ export function alsSharpExif(felder) {
  * Wirft bei allem, was kein lesbares JPEG, PNG, WebP oder TIFF ist — eine
  * kaputte Datei soll auffallen, nicht als leeres Bild im Bucket landen.
  *
+ * `anhang` sind die Bytes, die bei einem JPEG hinter dem Bildende hingen
+ * (eingebettete Bilder, Motion-Photo-Videos) und abgeschnitten wurden
+ * (`saeubereJpeg`).
+ *
  * @param {Buffer} roh
  * @returns {Promise<{ datei: Buffer; format: string; neuKodiert: boolean;
- *   verworfen: number[]; breite: number; hoehe: number }>}
+ *   verworfen: number[]; anhang: number; breite: number; hoehe: number }>}
  */
 export async function saeubere(roh) {
   let meta;
@@ -111,11 +115,11 @@ export async function saeubere(roh) {
      * geschrieben hat, ohne sie läge jedes gedreht aufgenommene Hochformat
      * quer.
      */
-    const { datei, verworfen } = saeubereJpeg(
+    const { datei, verworfen, anhang } = saeubereJpeg(
       roh,
       baueExifSegment({ Orientation: meta.orientation ?? 1, ...felder }),
     );
-    return { datei, format: "jpeg", neuKodiert: false, verworfen, breite, hoehe };
+    return { datei, format: "jpeg", neuKodiert: false, verworfen, anhang, breite, hoehe };
   }
 
   if (meta.format && UMWANDELBAR.has(meta.format)) {
@@ -128,7 +132,7 @@ export async function saeubere(roh) {
     const exif = alsSharpExif(felder);
     if (exif) bild = bild.withExif(exif);
     const datei = await bild.toBuffer();
-    return { datei, format: meta.format, neuKodiert: true, verworfen: [], breite, hoehe };
+    return { datei, format: meta.format, neuKodiert: true, verworfen: [], anhang: 0, breite, hoehe };
   }
 
   throw new Error(

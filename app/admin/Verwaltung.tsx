@@ -489,6 +489,14 @@ export default function Verwaltung() {
           </div>
         </header>
 
+        {geladen.konfiguration.entwicklung && (
+          <div className={styles.band} role="status">
+            <p>
+              Entwicklungsmodus — Speichern schreibt auf {geladen.konfiguration.entwicklung}. Ist das main, geht es
+              sofort live.
+            </p>
+          </div>
+        )}
         {!geladen.konfiguration.github && (
           <div className={styles.band} role="status">
             <p>

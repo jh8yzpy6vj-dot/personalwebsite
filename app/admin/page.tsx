@@ -37,5 +37,6 @@ export default async function VerwaltungSeite({
   const z = await pruefeZugang(new Headers(await headers()));
   if (z.ok) return <Verwaltung />;
   if (!z.eingerichtet) notFound();
-  return <Anmeldung falsch={(await searchParams).falsch === "1"} />;
+  const hinweis = await searchParams;
+  return <Anmeldung falsch={hinweis.falsch === "1"} gesperrt={hinweis.gesperrt === "1"} />;
 }

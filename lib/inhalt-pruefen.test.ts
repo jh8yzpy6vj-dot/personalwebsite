@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import manifest from "./bilder-manifest.json";
 import { INHALT, type Inhalt } from "./inhalt";
 import { nurFehler, pruefeInhalt, type Befund } from "./inhalt-pruefen";
+import { alsJsonLd } from "./site";
 
 /**
  * Die Prüfung entscheidet, ob die Verwaltung speichern darf und ob der Build
@@ -107,5 +108,48 @@ describe("pruefeInhalt — Regeln", () => {
     const i = kopie();
     i.foto.arbeiten[0].titel = "x".repeat(500);
     expect(fehlerText(pruefeInhalt(i, BILDER)).join()).toMatch(/länger als/);
+  });
+});
+
+/*
+ * Die Links von „Über mich“ landen im JSON-LD jeder Seite. Zwei Sicherungen:
+ * Die Prüfung lässt keine Adresse mit < > " ' durch, und `alsJsonLd`
+ * maskiert trotzdem — falls doch einmal etwas an der Prüfung vorbeikommt.
+ */
+describe("Adressen im JSON-LD", () => {
+  const BOESE = "https://www.instagram.com/x/</script><script>alert(document.domain)</script>";
+
+  it("lehnt eine Adresse ab, die das Skript-Element beenden würde", () => {
+    const i = kopie();
+    i.ueber.instagram.url = BOESE;
+    const f = nurFehler(pruefeInhalt(i, BILDER));
+    expect(f.map((x) => x.ort)).toContain("Über mich · Instagram · Adresse");
+  });
+
+  it("lehnt Leerzeichen und Anführungszeichen ab — bei Links, Filmen und dem Hero-Video", () => {
+    const i = kopie();
+    i.ueber.swr.url = "https://www.swr.de/a b";
+    i.filme.push({ id: "f", titel: "F", kunde: "K", link: 'https://example.org/"onmouseover' });
+    i.startseite.heroVideo = "https://medien.example.org/film.mp4'";
+    const orte = nurFehler(pruefeInhalt(i, BILDER)).map((x) => x.ort);
+    expect(orte).toContain("Über mich · SWR · Adresse");
+    expect(orte).toContain("Film „F“ · Link");
+    expect(orte).toContain("Startseite · Hero-Video");
+  });
+
+  it("nimmt gewöhnliche Adressen an, auch ohne Schrägstrich am Ende", () => {
+    const i = kopie();
+    expect(i.ueber.instagram.url).toMatch(/^https:\/\//);
+    i.ueber.swr.url = "https://www.swr.de";
+    i.filme.push({ id: "f", titel: "F", kunde: "K", link: "https://www.ardmediathek.de/video/abc?t=12&x=%3C" });
+    expect(fehlerText(pruefeInhalt(i, BILDER))).toEqual([]);
+  });
+
+  it("alsJsonLd lässt kein </script> stehen und bleibt dasselbe JSON", () => {
+    const daten = { u: BOESE, und: "a & b", pfeil: "->" };
+    const text = alsJsonLd(daten);
+    expect(text).not.toMatch(/[<>&]/);
+    expect(text.toLowerCase()).not.toContain("</script");
+    expect(JSON.parse(text)).toEqual(daten);
   });
 });

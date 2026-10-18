@@ -1,5 +1,5 @@
 import { ABOUT } from "@/lib/content";
-import { SITE_URL } from "@/lib/site";
+import { SITE_URL, alsJsonLd } from "@/lib/site";
 
 /**
  * JSON-LD für Google: nur noch eine `Person` (UMBAU 4.7). Der frühere
@@ -26,8 +26,8 @@ export default function StructuredData() {
   return (
     <script
       type="application/ld+json"
-      // Kein Nutzereingabe-Pfad: Der Inhalt stammt aus dem Repo.
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(graph) }}
+      // Die Links tippt Jakob in der Verwaltung — deshalb maskiert.
+      dangerouslySetInnerHTML={{ __html: alsJsonLd(graph) }}
     />
   );
 }

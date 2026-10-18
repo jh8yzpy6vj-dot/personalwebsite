@@ -1,8 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   COOKIE,
   MIN_LAENGE,
   SITZUNG_TAGE,
+  anmeldungErlaubt,
+  bremsSchluessel,
   cookieAus,
   neueSitzung,
   passwortAus,
@@ -12,7 +14,7 @@ import {
   setzeCookie,
   sitzungGueltig,
 } from "./zugang";
-import { umgebungAus } from "./umgebung";
+import { eingangZugang, githubZugang, konfiguration, umgebungAus } from "./umgebung";
 
 const PASSWORT = "lange-genug-und-geheim";
 const JETZT = 1_800_000_000;
@@ -142,5 +144,67 @@ describe("pruefeHerkunft", () => {
 
   it("lehnt Anfragen ohne jeden Herkunftsnachweis ab", () => {
     expect(pruefeHerkunft(anfrage({}))?.status).toBe(403);
+  });
+});
+
+describe("bremsSchluessel", () => {
+  it("IPv4 bleibt, wie sie ist; ohne IP zählt alles gemeinsam", () => {
+    expect(bremsSchluessel("203.0.113.7")).toBe("203.0.113.7");
+    expect(bremsSchluessel("::ffff:203.0.113.7")).toBe("::ffff:203.0.113.7");
+    expect(bremsSchluessel(null)).toBe("unbekannt");
+  });
+
+  it("IPv6 zählt je /64 — ein neuer Rest der Adresse hilft nicht", () => {
+    const a = bremsSchluessel("2001:db8:aa:1::1");
+    expect(a).toBe("2001:db8:aa:1::/64");
+    expect(bremsSchluessel("2001:0DB8:00aa:0001:dead:beef:0:7")).toBe(a);
+    expect(bremsSchluessel("2001:db8:aa:2::1")).not.toBe(a);
+    expect(bremsSchluessel("::1")).toBe("0:0:0:0::/64");
+    expect(bremsSchluessel("2001:db8::")).toBe("2001:db8:0:0::/64");
+  });
+});
+
+describe("anmeldungErlaubt", () => {
+  it("ohne Cloudflare-Kontext (Tests): durchlassen, aber im Log melden", async () => {
+    const warnung = vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect(await anmeldungErlaubt(new Request("https://jakobsax.de/api/admin/anmelden"))).toBe(true);
+    expect(warnung.mock.calls.join()).toMatch(/Anmeldebremse/);
+    warnung.mockRestore();
+  });
+});
+
+describe("Schreiben unter next dev", () => {
+  const MIT_TOKEN = { GITHUB_TOKEN: "ghp_x" };
+  const MIT_EINGANG = {
+    R2_ACCOUNT_ID: "abc",
+    EINGANG_BUCKET: "eingang",
+    EINGANG_ACCESS_KEY_ID: "id",
+    EINGANG_SECRET_ACCESS_KEY: "geheim",
+  };
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("nur mit ADMIN_DEV_SCHREIBEN=1", () => {
+    vi.stubEnv("NODE_ENV", "development");
+    expect(githubZugang(umgebungAus(MIT_TOKEN, {}))).toBeNull();
+    expect(githubZugang(umgebungAus({ ...MIT_TOKEN, ADMIN_DEV_SCHREIBEN: "ja" }, {}))).toBeNull();
+    const u = umgebungAus({ ...MIT_TOKEN, ADMIN_DEV_SCHREIBEN: "1" }, {});
+    expect(githubZugang(u)?.branch).toBe("main");
+    expect(konfiguration(u).entwicklung).toBe("jh8yzpy6vj-dot/personalwebsite@main");
+  });
+
+  it("Hochladen ebenso nur mit ADMIN_DEV_SCHREIBEN=1", () => {
+    vi.stubEnv("NODE_ENV", "development");
+    expect(eingangZugang(umgebungAus(MIT_EINGANG, {}))).toBeNull();
+    expect(eingangZugang(umgebungAus({ ...MIT_EINGANG, ADMIN_DEV_SCHREIBEN: "1" }, {}))?.bucket).toBe("eingang");
+  });
+
+  it("im Produktionsbuild ändert sich nichts", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const u = umgebungAus(MIT_TOKEN, {});
+    expect(githubZugang(u)).not.toBeNull();
+    expect(konfiguration(u)).toEqual({ github: true, eingang: false });
+    expect(eingangZugang(umgebungAus(MIT_EINGANG, {}))).not.toBeNull();
   });
 });

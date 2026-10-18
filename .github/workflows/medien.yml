@@ -21,7 +21,9 @@
 # geben deshalb nie Zugangsdaten oder ganze S3-Fehlerantworten aus
 # (scripts/r2.mjs, s3Grund), und die Secrets stehen nur an den Schritten, die
 # sie brauchen — nicht am Job, wo auch `npm ci` mit den Installationsskripten
-# fremder Pakete sie sähe.
+# fremder Pakete sie sähe. Dasselbe gilt für den schreibberechtigten
+# GITHUB_TOKEN: Er steht nicht in .git/config, sondern nur in der Umgebung
+# des Commit-Schritts.
 
 name: Medien
 
@@ -84,6 +86,12 @@ jobs:
           # Immer main, auch wenn jemand den Lauf von einem anderen Branch
           # aus anstößt: Die Seite wird nur aus main gebaut.
           ref: main
+          # ⚠️ Den Token NICHT in .git/config ablegen. Sonst könnte ihn jedes
+          # Installationsskript von `npm ci` (und jedes Paket, das die
+          # Skripte danach laden) dort einfach lesen und mit `contents: write`
+          # auf main pushen — und main geht live. Den Token bekommt allein der
+          # Commit-Schritt am Ende, nur für pull und push.
+          persist-credentials: false
 
       - name: Node einrichten
         if: steps.bereit.outputs.bereit == 'true'
@@ -148,7 +156,23 @@ jobs:
       # die Datei auf gelöschte Originale (der nächste Lauf holte das nach).
       - name: Änderungen committen
         if: ${{ !cancelled() && steps.bereit.outputs.bereit == 'true' }}
+        env:
+          # Nur hier, siehe „Repo holen". GitHub schwärzt ihn in den Logs.
+          # Ganz dicht ist das nicht: Ein Prozess, den ein Paket bei `npm ci`
+          # im Hintergrund weiterlaufen ließe, könnte die Umgebung dieses
+          # Schritts theoretisch auslesen. Auf der Platte liegt der Token aber
+          # nirgends mehr, wo man ihn einfach fände.
+          GH_TOKEN: ${{ github.token }}
         run: |
+          # ⚠️ Als github-actions[bot] mit dessen noreply-Adresse: Das Repo
+          # ist öffentlich, und jede Adresse im Commit wäre für immer lesbar.
+          # Keine Mail von Jan oder Jakob, weder als Autor noch im Text.
+          # In .git/config des Läufers (nicht nur `-c` am Commit), weil auch
+          # der Rebase unten Commits neu schreibt und eine Identität braucht —
+          # sonst scheitert er, sobald main inzwischen weitergelaufen ist.
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
           pfade="lib/bilder-manifest.json lib/video-manifest.json lib/inhalt.json public/og"
           git add -A -- $pfade
           if git diff --cached --quiet; then
@@ -173,20 +197,25 @@ jobs:
             nachricht="$nachricht Papierkorb geleert"
           fi
 
-          # ⚠️ Als github-actions[bot] mit dessen noreply-Adresse: Das Repo
-          # ist öffentlich, und jede Adresse im Commit wäre für immer lesbar.
-          # Keine Mail von Jan oder Jakob, weder als Autor noch im Text.
-          git -c user.name="github-actions[bot]" \
-              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-              commit -q -m "$nachricht" \
+          git commit -q -m "$nachricht" \
               -m "Lauf: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
 
           # Während des Laufs kann Jakob gespeichert haben (die Verwaltung
           # committet auf denselben Branch). Deshalb vor dem Push auf den
           # neuesten Stand setzen — und bei einem Push-Fehler (jemand war
           # genau dazwischen schneller) noch genau einmal.
+          # Den Token reicht ein Credential-Helper aus der Umgebung durch
+          # (das erste, leere `credential.helper=` schaltet alle anderen ab).
+          # ⚠️ Weder in die Adresse — die stünde sonst im Reflog unter
+          # .git/logs und in FETCH_HEAD — noch in .git/config
+          # (persist-credentials: false beim Checkout).
+          ADRESSE="https://github.com/${GITHUB_REPOSITORY}.git"
+          mit_token() {
+            git -c credential.helper= \
+                -c 'credential.helper=!f() { echo username=x-access-token; echo "password=$GH_TOKEN"; }; f' "$@"
+          }
           for versuch in 1 2; do
-            if git pull -q --rebase --autostash origin main && git push -q origin HEAD:main; then
+            if mit_token pull -q --rebase --autostash "$ADRESSE" main && mit_token push -q "$ADRESSE" HEAD:main; then
               echo "Gepusht: $nachricht"
               exit 0
             fi

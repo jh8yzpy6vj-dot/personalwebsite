@@ -1,3 +1,4 @@
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { umgebung, type Umgebung } from "./umgebung";
 import { nichtGefunden, verboten } from "./antwort";
 
@@ -15,9 +16,11 @@ import { nichtGefunden, verboten } from "./antwort";
  * ⚠️ **Fail closed.** Fehlt `ADMIN_PASSWORT` oder ist es kürzer als
  * `MIN_LAENGE`, ist die Verwaltung nicht da (404) — nie offen.
  *
- * ⚠️ Es gibt keine Sperre nach Fehlversuchen (der Worker hat keinen
- * Speicher dafür), nur eine Verzögerung je Fehlversuch. Den Schutz trägt
- * die Länge des Passworts — deshalb die Mindestlänge.
+ * ⚠️ **Gegen Durchprobieren:** die Anmeldebremse (`anmeldungErlaubt`,
+ * höchstens 5 Versuche je Minute und IP), eine Pause je Fehlversuch und
+ * die WAF-Regel aus der Einrichtung (TECH-STACK.md › Sicherheit).
+ * Den eigentlichen Schutz trägt trotzdem die Länge des Passworts — deshalb
+ * die Mindestlänge.
  */
 
 export type Zugang = { ok: true } | { ok: false; grund: string; eingerichtet: boolean };
@@ -163,6 +166,68 @@ export async function zugangOder404(request: Request): Promise<Response | null> 
   // Nur der Grund, nie Cookie oder Passwort.
   console.warn(`Verwaltung: Zugang abgelehnt (${zugang.grund})`);
   return nichtGefunden();
+}
+
+/** Die Bindung `ANMELDUNG` aus `wrangler.toml` (`[[ratelimits]]`). */
+type Bremse = { limit(o: { key: string }): Promise<{ success: boolean }> };
+
+let bremseFehltGemeldet = false;
+
+/**
+ * Wonach die Anmeldebremse zählt: die IP — bei IPv6 nur ihre ersten vier
+ * Blöcke (das `/64`). Ein Anschluss bekommt meist ein ganzes `/64`; wer
+ * darin bei jedem Versuch die Adresse wechselte, finge sonst jedes Mal bei
+ * null an.
+ */
+export function bremsSchluessel(ip: string | null): string {
+  if (!ip) return "unbekannt";
+  if (!ip.includes(":") || ip.includes(".")) return ip; // IPv4 (auch als ::ffff:1.2.3.4)
+  const [vorn, hinten] = ip.toLowerCase().split("::");
+  const a = vorn ? vorn.split(":") : [];
+  const b = hinten ? hinten.split(":") : [];
+  const bloecke = [...a, ...Array(Math.max(0, 8 - a.length - b.length)).fill("0"), ...b];
+  return `${bloecke
+    .slice(0, 4)
+    .map((x) => x.replace(/^0+(?=.)/, ""))
+    .join(":")}::/64`;
+}
+
+/**
+ * **Anmeldebremse:** höchstens 5 Versuche je Minute und IP (Zahlen in
+ * `wrangler.toml`, Schlüssel `bremsSchluessel`). Die Pause je Fehlversuch
+ * allein half nicht — wer viele Anfragen gleichzeitig schickt, wartet sie
+ * parallel ab.
+ *
+ * Gezählt wird bei Cloudflare (Workers Rate Limiting), nicht im Worker; je
+ * Rechenzentrum und ungefähr, als Bremse reicht das. `next dev` bekommt die
+ * Bindung über Wrangler (Miniflare zählt dann lokal). Fehlt sie (Tests) oder
+ * antwortet sie nicht, geht die Anmeldung durch — wie vor der Bremse —, mit
+ * einer Warnung im Log.
+ *
+ * Bewusst **keine** Grenze für alle zusammen: Die könnte jeder mit ein paar
+ * Anfragen je Minute ausschöpfen und Jakob damit aussperren.
+ */
+export async function anmeldungErlaubt(request: Request): Promise<boolean> {
+  let bremse: Bremse | undefined;
+  try {
+    const env = (await getCloudflareContext({ async: true })).env as unknown as { ANMELDUNG?: Bremse };
+    bremse = env.ANMELDUNG;
+  } catch {
+    // Kein Worker-Kontext — dann eben keine Bremse.
+  }
+  if (bremse) {
+    try {
+      const { success } = await bremse.limit({ key: bremsSchluessel(request.headers.get("cf-connecting-ip")) });
+      return success;
+    } catch {
+      // weiter unten melden
+    }
+  }
+  if (!bremseFehltGemeldet) {
+    bremseFehltGemeldet = true;
+    console.warn("Verwaltung: Anmeldebremse nicht verfügbar (Bindung ANMELDUNG) — Anmeldung ungebremst");
+  }
+  return true;
 }
 
 /**

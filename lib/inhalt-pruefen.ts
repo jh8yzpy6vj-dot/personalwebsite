@@ -49,14 +49,27 @@ const istText = (w: unknown): w is string => typeof w === "string";
 const istObjekt = (w: unknown): w is Record<string, unknown> =>
   typeof w === "object" && w !== null && !Array.isArray(w);
 
+/**
+ * Eine https-Adresse mit Host — und ohne Leerraum, Anführungszeichen,
+ * spitze Klammern und Backslash. ⚠️ Das ist mehr als Form: Die Links von
+ * „Über mich“ stehen im JSON-LD jeder Seite (`app/StructuredData.tsx`), und
+ * `new URL` nimmt auch `https://x/</script><script>…` an. Bewusst kein
+ * Vergleich mit `u.href`: Der lehnte schon `https://host` ohne
+ * abschließenden Schrägstrich ab.
+ */
 function istHttps(w: unknown): boolean {
   if (!istText(w)) return false;
   try {
-    return new URL(w).protocol === "https:";
+    const u = new URL(w);
+    return u.protocol === "https:" && u.hostname !== "" && !/[\s<>"'`\\]/.test(w);
   } catch {
     return false;
   }
 }
+
+/** Für die Fehlertexte, wenn `istHttps` nein sagt — für Jakob, ohne Fachwörter. */
+const OHNE_ZEICHEN = "ohne Leerzeichen und ohne Zeichen wie < > \" '";
+const KEINE_ADRESSE = `muss eine https://-Adresse sein, ${OHNE_ZEICHEN}.`;
 
 /**
  * Prüft den Inhalt. `bilder` sind die Schlüssel, die es im Manifest gibt —
@@ -123,7 +136,7 @@ export function pruefeInhalt(eingabe: unknown, bilder: Iterable<string>): Befund
       return;
     }
     text(`${ort} · Bezeichnung`, w.label);
-    if (!istHttps(w.url)) fehler(`${ort} · Adresse`, "muss mit https:// beginnen.");
+    if (!istHttps(w.url)) fehler(`${ort} · Adresse`, KEINE_ADRESSE);
   }
 
   function kunde(ort: string, w: unknown, pflicht: boolean) {
@@ -146,7 +159,7 @@ export function pruefeInhalt(eingabe: unknown, bilder: Iterable<string>): Befund
   if (istObjekt(i.startseite)) {
     const s = i.startseite;
     if (s.heroVideo !== null && !istHttps(s.heroVideo)) {
-      fehler("Startseite · Hero-Video", "ist weder leer noch eine https://-Adresse.");
+      fehler("Startseite · Hero-Video", `muss leer sein oder eine https://-Adresse, ${OHNE_ZEICHEN}.`);
     }
     if (s.heroAlt !== null) text("Startseite · Beschreibung des Standbilds", s.heroAlt, { max: MAX.alt });
     startNamen.push(["Startseite · Ersatzbild", einSchluessel("Startseite · Ersatzbild", s.heroErsatz, true)]);
@@ -271,7 +284,7 @@ export function pruefeInhalt(eingabe: unknown, bilder: Iterable<string>): Befund
       else ids.add(film.id);
       text(`${ort} · Titel`, film.titel);
       kunde(`${ort} · Kunde`, film.kunde, true);
-      if (!istHttps(film.link)) fehler(`${ort} · Link`, "muss eine https://-Adresse sein.");
+      if (!istHttps(film.link)) fehler(`${ort} · Link`, KEINE_ADRESSE);
       if (istText(film.id) && !vorhanden.has(`film/${film.id}`)) {
         warnung(ort, "hat (noch) kein Standbild und erscheint deshalb nicht.");
       }

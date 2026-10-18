@@ -8,18 +8,23 @@ import type { EingangKonfig } from "./eingang";
  *
  * Gelesen wird zuerst aus der Worker-Umgebung (`getCloudflareContext`), dann
  * aus `process.env`. Zwei Quellen, weil es zwei Laufwege gibt: Im Worker
- * stehen die im Dashboard gesetzten Werte in `env`; unter `next dev` gibt es
- * keinen Cloudflare-Kontext (der Aufruf wirft), dort kommen sie aus
- * `.env.local` bzw. der Shell.
+ * stehen die im Dashboard gesetzten Werte in `env`. Unter `next dev` holt
+ * `getCloudflareContext` sich `env` über Wrangler — mit den Werten aus
+ * `.dev.vars` (die gewinnen) —, alles Übrige kommt aus `.env*.local` bzw.
+ * der Shell. Ohne Kontext (Tests, oder Wrangler startet nicht) wirft der
+ * Aufruf, dann gilt allein `process.env`.
  *
  * ⚠️ **Nichts von hier geht je an den Browser.** Die Routen geben nur die
  * abgeleitete `Konfiguration` (zwei Wahrheitswerte) heraus — nie einen Wert.
+ * Einzige Ausnahme, und nur unter `next dev`: Repo und Branch, auf die
+ * Speichern schreibt (`entwicklung`) — beides kein Geheimnis.
  */
 
 /** Die Namen sind verbindlich; so stehen sie im Cloudflare-Dashboard. */
 const NAMEN = [
   "ADMIN_PASSWORT",
   "ADMIN_DEV",
+  "ADMIN_DEV_SCHREIBEN",
   "GITHUB_TOKEN",
   "GITHUB_REPO",
   "GITHUB_BRANCH",
@@ -65,20 +70,37 @@ export async function umgebung(): Promise<Umgebung> {
     const kontext = await getCloudflareContext({ async: true });
     worker = kontext.env as unknown as Record<string, unknown>;
   } catch {
-    // Kein Worker (next dev, Tests) — dann allein process.env.
+    // Kein Worker-Kontext (Tests, Wrangler startet nicht) — dann allein process.env.
   }
   return umgebungAus(worker, process.env);
 }
 
-/** GitHub-Zugang, oder `null`, solange kein Token gesetzt ist. */
+/** Läuft das unter `next dev`? Im Produktionsbuild setzt Next `NODE_ENV` fest auf "production". */
+const entwicklungsserver = () => process.env.NODE_ENV === "development";
+
+/**
+ * ⚠️ **Unter `next dev` wird nur mit ausdrücklicher Freigabe geschrieben**
+ * (`ADMIN_DEV_SCHREIBEN=1`) — weder auf GitHub noch in den Eingang. Ein
+ * `GITHUB_TOKEN` oder die Eingangs-Schlüssel stehen schnell einmal in der
+ * Shell oder in `.dev.vars` (in Agenten-Containern sogar von selbst), und
+ * dann committete ein Klick auf „Speichern“ beim Ausprobieren auf `main`,
+ * und ein hochgeladenes Testbild verarbeitete die nächste Medien-Action —
+ * beides geht live. Gilt für jeden `next dev`, nicht nur mit `ADMIN_DEV=1`:
+ * Auch wer lokal die echte Anmeldung ausprobiert, soll nicht aus Versehen
+ * schreiben.
+ */
+const entwicklungOhneFreigabe = (u: Umgebung) => entwicklungsserver() && u.ADMIN_DEV_SCHREIBEN !== "1";
+
+/** GitHub-Zugang, oder `null`, solange kein Token gesetzt ist (unter `next dev`: siehe oben). */
 export function githubZugang(u: Umgebung): GithubKonfig | null {
-  if (!u.GITHUB_TOKEN) return null;
+  if (!u.GITHUB_TOKEN || entwicklungOhneFreigabe(u)) return null;
   return { token: u.GITHUB_TOKEN, repo: u.GITHUB_REPO, branch: u.GITHUB_BRANCH };
 }
 
-/** Eingangs-Bucket, oder `null`, solange eine der vier Angaben fehlt. */
+/** Eingangs-Bucket, oder `null`, solange eine der vier Angaben fehlt (unter `next dev`: siehe oben). */
 export function eingangZugang(u: Umgebung): EingangKonfig | null {
   if (
+    entwicklungOhneFreigabe(u) ||
     !u.R2_ACCOUNT_ID ||
     !u.EINGANG_BUCKET ||
     !u.EINGANG_ACCESS_KEY_ID ||
@@ -97,5 +119,9 @@ export function eingangZugang(u: Umgebung): EingangKonfig | null {
 
 /** Was eingerichtet ist — das Einzige aus der Umgebung, das der Browser erfährt. */
 export function konfiguration(u: Umgebung): Konfiguration {
-  return { github: githubZugang(u) !== null, eingang: eingangZugang(u) !== null };
+  const github = githubZugang(u);
+  const k: Konfiguration = { github: github !== null, eingang: eingangZugang(u) !== null };
+  // Schreibt ein Entwicklungsserver echt, soll man sehen, wohin.
+  if (github && entwicklungsserver()) k.entwicklung = `${github.repo}@${github.branch}`;
+  return k;
 }

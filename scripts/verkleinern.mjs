@@ -115,7 +115,7 @@ async function uebernimm(quelle, zielName, meldungen) {
 
   // Positivliste und Segmenttausch: `scripts/saeubern.mjs`, gemeinsam mit
   // der Medien-Action. Für JPEG bleiben die Bilddaten byteweise gleich.
-  const { datei, verworfen } = await saeubere(roh);
+  const { datei, verworfen, anhang } = await saeubere(roh);
   const ziel = path.join(ZIEL, zielName);
   await mkdir(path.dirname(ziel), { recursive: true });
   await writeFile(ziel, datei);
@@ -127,7 +127,8 @@ async function uebernimm(quelle, zielName, meldungen) {
     text:
       `${gedreht ? meta.height : meta.width}×${gedreht ? meta.width : meta.height}, ` +
       `${menschlich(roh.length)} unverändert` +
-      (verworfen.length > 0 ? `, ${verworfen.length} Metadatenblock/-blöcke entfernt` : ", nichts zu entfernen"),
+      (verworfen.length > 0 ? `, ${verworfen.length} Metadatenblock/-blöcke entfernt` : ", nichts zu entfernen") +
+      (anhang > 0 ? `, Anhang hinter dem Bildende (${anhang} Bytes) entfernt` : ""),
     zuGross: false, // Bei --original ist die Größe gewollt.
   });
   return datei;

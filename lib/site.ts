@@ -27,3 +27,19 @@ export const SITE_URL = "https://jakobsax.de";
  * Kontaktdaten echt sind und Jakob die Inhalte freigegeben hat.
  */
 export const INDEXABLE = false;
+
+/**
+ * JSON für ein `<script>`-Element (JSON-LD, Speculation Rules).
+ *
+ * ⚠️ **`JSON.stringify` allein reicht nicht.** Es lässt `<` stehen, und der
+ * HTML-Parser beendet das Element bei `</script` — egal, welcher `type`
+ * gesetzt ist. Ein Link wie `https://x/</script><script>…` liefe sonst als
+ * Code auf jeder Seite, auch auf der Anmeldung von `/admin`. `<` & Co.
+ * sind gültiges JSON und werden beim Lesen wieder zu denselben Zeichen.
+ */
+export function alsJsonLd(daten: unknown): string {
+  return JSON.stringify(daten)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026");
+}
