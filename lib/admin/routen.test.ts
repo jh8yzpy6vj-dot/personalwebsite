@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { BILDER } from "../bilder";
 import { INHALT } from "../inhalt";
-import { nachBase64 } from "./github";
+import { ausBase64, nachBase64 } from "./github";
 import { COOKIE } from "./zugang";
 import * as stand from "@/app/api/admin/stand/route";
 import * as speichern from "@/app/api/admin/speichern/route";
@@ -115,6 +115,7 @@ afterEach(() => {
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
+  vi.useRealTimers();
 });
 
 describe("ohne Einrichtung", () => {
@@ -173,6 +174,29 @@ describe("stand", () => {
     expect(d.bilder).toEqual({});
     expect(d.konfiguration.github).toBe(true);
     expect(JSON.stringify(d)).not.toContain("GEHEIM");
+  });
+
+  it("kaputtes inhalt.json auf main: sagt welche Datei und an wen man sich wendet; Ursache im Log", async () => {
+    anmelden();
+    mitGithub();
+    fakeFetch((url) =>
+      url.includes("inhalt.json") ? datei('{\n<<<<<<< HEAD\n  "seite": {}\n') : datei(JSON.stringify({})),
+    );
+    const a = await stand.GET(new Request(`${BASIS}/stand`));
+    expect(a.status).toBe(502);
+    expect((await a.json()).text).toBe("lib/inhalt.json auf GitHub ist kein gültiges JSON — bitte Jan Bescheid geben.");
+    expect(vi.mocked(console.error).mock.calls.flat().join()).toMatch(/lib\/inhalt\.json .*\(SyntaxError: /);
+  });
+
+  it("kaputtes Manifest auf main: nennt das Manifest", async () => {
+    anmelden();
+    mitGithub();
+    fakeFetch((url) => (url.includes("inhalt.json") ? datei(JSON.stringify(INHALT)) : datei("{ kaputt")));
+    const a = await stand.GET(new Request(`${BASIS}/stand`));
+    expect(a.status).toBe(502);
+    expect((await a.json()).text).toBe(
+      "lib/bilder-manifest.json auf GitHub ist kein gültiges JSON — bitte Jan Bescheid geben.",
+    );
   });
 });
 
@@ -305,27 +329,109 @@ describe("speichern", () => {
     expect(rumpf).toMatchObject({ sha: SHA, branch: "main" });
   });
 
-  it("meldet einen Konflikt mit 409", async () => {
+  it("meldet einen Konflikt mit 409, wenn inhalt.json auf main eine andere sha hat — ohne zu schreiben", async () => {
     anmelden();
     mitGithub();
-    fakeFetch((url, methode) =>
-      methode === "PUT" ? json({ message: "does not match" }, 409) : datei(JSON.stringify(BILDER)),
-    );
+    const aufMain = { ...INHALT, seite: { ...INHALT.seite, name: "von Jan" } };
+    fakeFetch((url, methode) => {
+      if (methode === "PUT") throw new Error("darf nicht schreiben");
+      return url.includes("inhalt.json") ? datei(JSON.stringify(aufMain), "b".repeat(40)) : datei(JSON.stringify(BILDER));
+    });
     const a = await speichern.POST(anfrage({ inhalt: INHALT, sha: SHA, nachricht: "x" }));
     expect(a.status).toBe(409);
     expect((await a.json()).grund).toBe("konflikt");
   });
 
-  it("nimmt den Build-Stand der Bilder, wenn das Manifest nicht lesbar ist", async () => {
+  it("meldet einen Konflikt, wenn main sich erst zwischen Lesen und Schreiben ändert", async () => {
+    anmelden();
+    mitGithub();
+    let geschrieben = false;
+    fakeFetch((url, methode) => {
+      if (methode === "PUT") {
+        geschrieben = true;
+        return json({ message: "does not match" }, 409);
+      }
+      if (!url.includes("inhalt.json")) return datei(JSON.stringify(BILDER));
+      // Vor dem Schreiben noch die geladene sha, danach eine fremde.
+      return geschrieben ? datei("{}", "b".repeat(40)) : datei("{}");
+    });
+    const a = await speichern.POST(anfrage({ inhalt: INHALT, sha: SHA, nachricht: "x" }));
+    expect(a.status).toBe(409);
+    expect((await a.json()).grund).toBe("konflikt");
+  });
+
+  it("409 von GitHub bei unveränderter sha ist kein Konflikt: zweiter Versuch, sonst GitHubs Meldung", async () => {
     anmelden();
     mitGithub();
     fakeFetch((url, methode) =>
-      methode === "PUT"
-        ? json({ content: { sha: "c".repeat(40) }, commit: { sha: "d".repeat(40) } })
-        : json({ message: "Server Error" }, 500),
+      methode === "PUT" ? json({ message: "Repository rule violations found" }, 409) : datei("{}"),
     );
     const a = await speichern.POST(anfrage({ inhalt: INHALT, sha: SHA, nachricht: "x" }));
+    expect(a.status).toBe(502);
+    const d = await a.json();
+    expect(d).toMatchObject({ ok: false, grund: "github" });
+    expect(d.text).toContain("Repository rule violations found");
+    expect(aufrufe.filter((x) => x.methode === "PUT")).toHaveLength(2);
+  });
+
+  it("schon gespeichert (Antwort ging verloren): kein zweiter Commit, die aktuelle sha zurück", async () => {
+    anmelden();
+    mitGithub();
+    // Das Datum auf main darf nicht in der Zukunft liegen — sonst zählte es nicht.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-18T10:00:00Z"));
+    const papierkorb = { "arbeiten/stamp/01": "2026-10-18" };
+    const gespeichert = { ...INHALT, papierkorb };
+    fakeFetch((url, methode) => {
+      if (methode === "PUT") throw new Error("darf nicht schreiben");
+      if (url.includes("/commits?")) return json([{ sha: "d".repeat(40), commit: { message: "Verwaltung: x" } }]);
+      return url.includes("inhalt.json")
+        ? datei(JSON.stringify(gespeichert), "c".repeat(40))
+        : datei(JSON.stringify(BILDER));
+    });
+    // Noch mit der alten sha — und mit dem Datum, das der Browser damals einsetzte.
+    const a = await speichern.POST(
+      anfrage({ inhalt: { ...INHALT, papierkorb: { "arbeiten/stamp/01": "2026-10-17" } }, sha: SHA, nachricht: "x" }),
+    );
     expect(a.status).toBe(200);
+    expect(await a.json()).toMatchObject({ ok: true, sha: "c".repeat(40), commit: "d".repeat(40), papierkorb });
+  });
+
+  it("schon gespeichert, aber der Verlauf ist nicht lesbar: trotzdem gespeichert, nur ohne Commit", async () => {
+    anmelden();
+    mitGithub();
+    fakeFetch((url, methode) => {
+      if (methode === "PUT") throw new Error("darf nicht schreiben");
+      if (url.includes("/commits?")) return json({ message: "Server Error" }, 500);
+      return url.includes("inhalt.json") ? datei(JSON.stringify(INHALT), "c".repeat(40)) : datei(JSON.stringify(BILDER));
+    });
+    const a = await speichern.POST(anfrage({ inhalt: INHALT, sha: SHA, nachricht: "x" }));
+    expect(a.status).toBe(200);
+    expect(await a.json()).toMatchObject({ ok: true, sha: "c".repeat(40), commit: "" });
+  });
+
+  it("nimmt den Build-Stand der Bilder, wenn das Manifest nicht lesbar ist", async () => {
+    anmelden();
+    mitGithub();
+    fakeFetch((url, methode) => {
+      if (methode === "PUT") return json({ content: { sha: "c".repeat(40) }, commit: { sha: "d".repeat(40) } });
+      return url.includes("inhalt.json") ? datei("{}") : json({ message: "Server Error" }, 500);
+    });
+    const a = await speichern.POST(anfrage({ inhalt: INHALT, sha: SHA, nachricht: "x" }));
+    expect(a.status).toBe(200);
+  });
+
+  it("schreibt Unerwartetes mit Art und Meldung ins Log, dem Browser nur den allgemeinen Text", async () => {
+    anmelden();
+    mitGithub();
+    fakeFetch((url, methode) => {
+      if (methode === "PUT") return new Response("<html>kein JSON</html>", { status: 200 });
+      return url.includes("inhalt.json") ? datei("{}") : datei(JSON.stringify(BILDER));
+    });
+    const a = await speichern.POST(anfrage({ inhalt: INHALT, sha: SHA, nachricht: "x" }));
+    expect(a.status).toBe(502);
+    expect((await a.json()).text).toBe("Unerwarteter Fehler auf dem Server.");
+    expect(vi.mocked(console.error).mock.calls.flat().join()).toMatch(/Speichern fehlgeschlagen \(SyntaxError: /);
   });
 
   it("lehnt eine kaputte sha ab", async () => {
@@ -336,16 +442,83 @@ describe("speichern", () => {
   });
 });
 
-describe("zuruecksetzen", () => {
-  it("stellt den alten Stand als neuen Commit her", async () => {
+/*
+ * Papierkorb-Daten legt der Server fest: Nach 30 Tagen löscht die
+ * Medien-Action das Original endgültig — ein Datum aus dem Browser oder aus
+ * einem alten Stand darf das nicht vorziehen.
+ */
+describe("Papierkorb-Daten beim Speichern", () => {
+  const anfrage = (inhalt: unknown) =>
+    new Request(`${BASIS}/speichern`, {
+      method: "POST",
+      headers: { ...eigene, "content-type": "application/json" },
+      body: JSON.stringify({ inhalt, sha: SHA, nachricht: "x" }),
+    });
+
+  /** main mit diesem Papierkorb. */
+  function mitMain(papierkorb: Record<string, string>) {
+    fakeFetch((url, methode) => {
+      if (methode === "PUT") return json({ content: { sha: "c".repeat(40) }, commit: { sha: "d".repeat(40) } });
+      return url.includes("inhalt.json")
+        ? datei(JSON.stringify({ ...INHALT, papierkorb }))
+        : datei(JSON.stringify(BILDER));
+    });
+  }
+
+  /** Der Papierkorb, wie er an GitHub ging. */
+  function geschrieben(): Record<string, string> {
+    const put = aufrufe.find((x) => x.methode === "PUT")!;
+    return JSON.parse(ausBase64((put.rumpf as { content: string }).content)).papierkorb;
+  }
+
+  beforeEach(() => {
+    // 19.10.2026, 00:30 in Berlin — in UTC noch der 18.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-18T22:30:00Z"));
+  });
+
+  it("ignoriert das Datum aus dem Browser — ein neuer Schlüssel bekommt heute (Berlin)", async () => {
     anmelden();
     mitGithub();
+    mitMain({});
+    const a = await speichern.POST(
+      anfrage({ ...INHALT, papierkorb: { "arbeiten/stamp/01": "2000-01-01", "arbeiten/stamp/02": "2026-10-18" } }),
+    );
+    expect(a.status).toBe(200);
+    const erwartet = { "arbeiten/stamp/01": "2026-10-19", "arbeiten/stamp/02": "2026-10-19" };
+    expect(geschrieben()).toEqual(erwartet);
+    expect((await a.json()).papierkorb).toEqual(erwartet);
+  });
+
+  it("was auf main schon im Papierkorb liegt, behält sein Datum", async () => {
+    anmelden();
+    mitGithub();
+    mitMain({ "arbeiten/stamp/01": "2026-10-01" });
+    const a = await speichern.POST(
+      anfrage({
+        ...INHALT,
+        seite: { ...INHALT.seite, name: "geändert" },
+        papierkorb: { "arbeiten/stamp/01": "2026-10-18", "arbeiten/stamp/02": "2026-10-18" },
+      }),
+    );
+    expect(a.status).toBe(200);
+    expect(geschrieben()).toEqual({ "arbeiten/stamp/01": "2026-10-01", "arbeiten/stamp/02": "2026-10-19" });
+  });
+
+  it("ein alter Stand bringt kein abgelaufenes Datum zurück (Beispiel aus dem Befund)", async () => {
+    anmelden();
+    mitGithub();
+    // Am 01.09. gelöscht, am 10.09. wiederhergestellt: Auf main steht der Schlüssel nicht mehr.
     fakeFetch((url, methode) => {
       if (methode === "PUT") return json({ content: { sha: "c".repeat(40) }, commit: { sha: "d".repeat(40) } });
       if (url.includes("/commits/abc1234")) {
-        return json({ sha: "abc1234".padEnd(40, "0"), commit: { committer: { date: "2026-10-01T08:30:00Z" } } });
+        return json({ sha: "abc1234".padEnd(40, "0"), commit: { committer: { date: "2026-09-05T08:30:00Z" } } });
       }
-      if (url.includes("inhalt.json")) return datei(JSON.stringify(INHALT));
+      // Der „Stand vom 05.09." hat das Bild noch mit dem 01.09. im Papierkorb.
+      if (url.includes("inhalt.json?ref=abc1234")) {
+        return datei(JSON.stringify({ ...INHALT, papierkorb: { "arbeiten/stamp/03": "2026-09-01" } }));
+      }
+      if (url.includes("inhalt.json")) return datei(JSON.stringify({ ...INHALT, papierkorb: {} }));
       return datei(JSON.stringify(BILDER));
     });
     const a = await zuruecksetzen.POST(
@@ -356,12 +529,91 @@ describe("zuruecksetzen", () => {
       }),
     );
     expect(a.status).toBe(200);
+    expect(geschrieben()).toEqual({ "arbeiten/stamp/03": "2026-10-19" });
+  });
+});
+
+describe("zuruecksetzen", () => {
+  const anfrage = (commit: unknown = "abc1234") =>
+    new Request(`${BASIS}/zuruecksetzen`, {
+      method: "POST",
+      headers: { ...eigene, "content-type": "application/json" },
+      body: JSON.stringify({ commit, sha: SHA }),
+    });
+
+  /** GitHub mit `alt` im Commit abc1234 und einem anderen Stand auf main. */
+  function mitAltemStand(alt: string) {
+    fakeFetch((url, methode) => {
+      if (methode === "PUT") return json({ content: { sha: "c".repeat(40) }, commit: { sha: "d".repeat(40) } });
+      if (url.includes("/commits/abc1234")) {
+        return json({ sha: "abc1234".padEnd(40, "0"), commit: { committer: { date: "2026-10-01T08:30:00Z" } } });
+      }
+      if (url.includes("inhalt.json?ref=abc1234")) return datei(alt);
+      if (url.includes("inhalt.json")) return datei(JSON.stringify({ ...INHALT, seite: { ...INHALT.seite, name: "neu" } }));
+      return datei(JSON.stringify(BILDER));
+    });
+  }
+
+  it("stellt den alten Stand als neuen Commit her", async () => {
+    anmelden();
+    mitGithub();
+    mitAltemStand(JSON.stringify(INHALT));
+    const a = await zuruecksetzen.POST(anfrage());
+    expect(a.status).toBe(200);
     const lesen = aufrufe.find((x) => x.url.includes("contents/lib/inhalt.json?ref=abc1234"));
     expect(lesen).toBeDefined();
     const put = aufrufe.find((x) => x.methode === "PUT")!;
     expect((put.rumpf as { message: string }).message).toMatch(
       /^Verwaltung: Stand vom 01\.10\.2026, 10:30 wiederhergestellt\n\n/,
     );
+  });
+
+  it("ein Stand, der nicht mehr zu den Regeln passt: eigener Text statt „bitte korrigieren“, mit Befunden", async () => {
+    anmelden();
+    mitGithub();
+    // Wie ein Stand von vor der Zeit, als es `bildausschnitte` noch nicht gab.
+    const ohne: Record<string, unknown> = { ...INHALT };
+    delete ohne.bildausschnitte;
+    mitAltemStand(JSON.stringify(ohne));
+    const a = await zuruecksetzen.POST(anfrage());
+    expect(a.status).toBe(422);
+    const d = await a.json();
+    expect(d.text).toBe(
+      "Dieser alte Stand passt nicht mehr zu den heutigen Regeln (1 Punkt) und lässt sich nicht direkt zurückholen. Gib Jan Bescheid.",
+    );
+    expect(d.befunde.filter((b: { stufe: string }) => b.stufe === "fehler")).toEqual([
+      { stufe: "fehler", ort: "Bildausschnitte", text: "fehlen." },
+    ]);
+    expect(aufrufe.some((x) => x.methode === "PUT")).toBe(false);
+  });
+
+  it("auf einem veralteten Stand: 409, ohne zu schreiben", async () => {
+    anmelden();
+    mitGithub();
+    fakeFetch((url, methode) => {
+      if (methode === "PUT") throw new Error("darf nicht schreiben");
+      if (url.includes("/commits/abc1234")) {
+        return json({ sha: "abc1234".padEnd(40, "0"), commit: { committer: { date: "2026-10-01T08:30:00Z" } } });
+      }
+      if (url.includes("inhalt.json?ref=abc1234")) return datei(JSON.stringify(INHALT));
+      if (url.includes("inhalt.json")) {
+        return datei(JSON.stringify({ ...INHALT, seite: { ...INHALT.seite, name: "von Jan" } }), "b".repeat(40));
+      }
+      return datei(JSON.stringify(BILDER));
+    });
+    const a = await zuruecksetzen.POST(anfrage());
+    expect(a.status).toBe(409);
+    expect((await a.json()).grund).toBe("konflikt");
+  });
+
+  it("ein beschädigter alter Stand: verständlicher Text, Ursache im Log", async () => {
+    anmelden();
+    mitGithub();
+    mitAltemStand("<<<<<<< HEAD\n{}");
+    const a = await zuruecksetzen.POST(anfrage());
+    expect(a.status).toBe(422);
+    expect((await a.json()).text).toBe("Dieser alte Stand ist beschädigt und lässt sich nicht zurückholen.");
+    expect(vi.mocked(console.error).mock.calls.flat().join()).toMatch(/SyntaxError/);
   });
 
   it("lehnt Branchnamen und Unfug als commit ab", async () => {
@@ -480,6 +732,54 @@ describe("verarbeiten, verarbeitung, live, verlauf", () => {
   it("verlauf ohne GitHub: leer", async () => {
     anmelden();
     expect(await (await verlauf.GET(new Request(`${BASIS}/verlauf`))).json()).toEqual({ eintraege: [] });
+  });
+
+  it("verlauf?commit=… liefert den Inhalt aus diesem Commit", async () => {
+    anmelden();
+    mitGithub();
+    fakeFetch(() => datei(JSON.stringify({ ...INHALT, seite: { ...INHALT.seite, name: "damals" } })));
+    const a = await verlauf.GET(new Request(`${BASIS}/verlauf?commit=${"f".repeat(40)}`));
+    expect(a.status).toBe(200);
+    expect(a.headers.get("cache-control")).toBe("no-store");
+    expect((await a.json()).inhalt.seite.name).toBe("damals");
+    expect(aufrufe).toHaveLength(1);
+    expect(aufrufe[0].url).toContain(`contents/lib/inhalt.json?ref=${"f".repeat(40)}`);
+  });
+
+  it("verlauf?commit= nimmt nur Commit-SHAs — keine Branchnamen, keinen Unfug", async () => {
+    anmelden();
+    mitGithub();
+    for (const commit of ["main", "../x", "", "abc", "ABCDEF1"]) {
+      const a = await verlauf.GET(new Request(`${BASIS}/verlauf?commit=${encodeURIComponent(commit)}`));
+      expect(a.status).toBe(400);
+    }
+    expect(aufrufe).toEqual([]);
+  });
+
+  it("verlauf?commit= ohne GitHub: nicht eingerichtet statt leerer Liste", async () => {
+    anmelden();
+    const a = await verlauf.GET(new Request(`${BASIS}/verlauf?commit=abc1234`));
+    expect(a.status).toBe(503);
+    expect((await a.json()).grund).toBe("nicht-eingerichtet");
+  });
+
+  it("verlauf?commit= und GitHub antwortet nicht: Grund für Jakob, Einzelheiten im Log", async () => {
+    anmelden();
+    mitGithub();
+    fakeFetch(() => json({ message: "Not Found" }, 404));
+    const a = await verlauf.GET(new Request(`${BASIS}/verlauf?commit=abc1234`));
+    expect(a.status).toBe(502);
+    expect((await a.json()).text).toMatch(/^lib\/inhalt\.json lesen: nicht gefunden/);
+    expect(vi.mocked(console.error).mock.calls.flat().join()).toMatch(/alter Stand nicht ladbar \(GithubFehler: /);
+  });
+
+  it("verlauf?commit= mit beschädigter Datei: verständlicher Text", async () => {
+    anmelden();
+    mitGithub();
+    fakeFetch(() => datei("{ kaputt"));
+    const a = await verlauf.GET(new Request(`${BASIS}/verlauf?commit=abc1234`));
+    expect(a.status).toBe(422);
+    expect((await a.json()).text).toBe("Dieser alte Stand ist beschädigt und lässt sich nicht zurückholen.");
   });
 });
 

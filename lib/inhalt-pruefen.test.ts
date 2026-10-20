@@ -73,6 +73,18 @@ describe("pruefeInhalt — Regeln", () => {
     expect(f).toMatch(/JJJJ-MM-TT/);
   });
 
+  it("verlangt im Papierkorb ein echtes Datum, nicht nur die Form", () => {
+    const i = kopie();
+    i.papierkorb["arbeiten/stamp/01"] = "2026-99-99";
+    i.papierkorb["arbeiten/stamp/02"] = "2026-02-30";
+    i.papierkorb["arbeiten/stamp/03"] = "2028-02-29"; // Schaltjahr — gültig
+    const f = fehlerText(pruefeInhalt(i, BILDER)).filter((t) => t.startsWith("Papierkorb"));
+    expect(f).toEqual([
+      "Papierkorb: „arbeiten/stamp/01“: „2026-99-99“ ist kein gültiges Datum.",
+      "Papierkorb: „arbeiten/stamp/02“: „2026-02-30“ ist kein gültiges Datum.",
+    ]);
+  });
+
   it("verlangt genau vier Highlight-Plätze", () => {
     const i = kopie();
     i.startseite.highlights.pop();

@@ -428,8 +428,41 @@ Umbaus abgehakt.
   ein Befund, der das Speichern sperrt.
 - **Speicherstand-Texte:** „Ungespeicherte Änderungen." · „Speichert …" · „Gespeichert. Wird
   veröffentlicht … (1–2 Minuten)" · „Gespeichert und live." · „Alles gespeichert." ·
-  „Speichern ist noch nicht eingerichtet." Bei gleichzeitigem Speichern: Dialog „Inzwischen hat
-  jemand anderes gespeichert".
+  „Speichern ist noch nicht eingerichtet." · „Wiederhergestellt, aber der neue Stand ließ sich
+  nicht laden. Bitte neu laden." (seit 2026-10-20; Vorrang vor allen außer „nicht eingerichtet",
+  daneben in der Leiste der Knopf „Neu laden", Speichern bleibt gesperrt — sonst schriebe das
+  nächste Speichern den alten Inhalt still über den wiederhergestellten).
+- **Dialog „Inzwischen hat jemand anderes gespeichert"** (bei gleichzeitigem Speichern): nennt,
+  was verloren ginge — „Neu laden verwirft: {Zusammenfassung wie beim Speichern}." — und „Abbrechen
+  lässt deine Änderungen hier stehen, damit du sie dir ansehen kannst — speichern lassen sie sich
+  so aber nicht." Ohne Ungespeichertes (Konflikt beim Wiederherstellen) nur „Neu laden holt den
+  neuesten Stand; danach kannst du es noch einmal versuchen." und der Knopf heißt „Neu laden".
+  Der Dialog schließt erst, wenn das Laden geklappt hat; sonst steht der Grund als Fehlertext darin.
+  Begründung (2026-10-20): Vorher hieß es nur „Merk dir vorher, was du geändert hast" — zehn
+  Umsortierungen kann sich niemand merken, und ein gescheitertes Laden schloss den Dialog still.
+- **Neu laden gescheitert, Stand schon da:** Band wie „nicht eingerichtet", keine eigene Farbe:
+  „Neu laden hat nicht geklappt: {Grund}" mit dem Knopf „Noch einmal laden". Neu laden aus Band
+  oder Leiste fragt nach, wenn Ungespeichertes verloren ginge.
+- **Verlauf:** Die Nachricht einer Speicherung bricht um statt abgeschnitten zu werden (am Handy
+  hilft `title` nicht). Der Eintrag direkt unter dem aktuellen Stand heißt **„Letzte Speicherung
+  zurücknehmen"** (Rückfrage „Letzte Speicherung zurücknehmen?", Knopf „Zurücknehmen"), ältere
+  „Diesen Stand wiederherstellen". Die Rückfrage lädt den alten Stand („Lädt …") und sagt dann,
+  was geschieht; der Knopf ist erst frei, wenn das feststeht:
+  - „**Wiederherstellen ändert:** {Zusammenfassung}." und darunter „Bilder, die mit diesem Stand
+    wieder im Papierkorb liegen, bekommen ab heute wieder volle 30 Tage." bzw. „Die Bilddateien
+    selbst bleiben, wie sie sind."
+  - „Dieser Stand ist derselbe wie jetzt." — Knopf gesperrt.
+  - „Dieser Stand passt nicht mehr zu den heutigen Regeln und lässt sich nicht direkt
+    zurückholen:" als Fehlertext, darunter die Befunde (Ort leise, dann Text, 14px) und „Wenn du
+    ihn brauchst, gib Jan Bescheid." — Knopf gesperrt.
+  Nach dem Klick bleibt die Rückfrage mit „Stellt wieder her …" offen, bis der neue Stand geladen
+  ist (bis zu einigen Sekunden); erst dann steht unten „Gespeichert. Wird veröffentlicht …".
+  Lehnt der Server ab, stehen sein Text (Fehlertext) und die Befunde über den Einträgen.
+  Begründung (2026-10-20): Vorher stand dort nur „Alles, was danach gespeichert wurde, ist dann
+  nicht mehr zu sehen" — aus Entwickler-Nachrichten im Verlauf erfährt Jakob nicht, was das ist.
+- **Zeilenlisten** (Hero, Arbeiten, Filme, Papierkorb, Verlauf): eine Spalte, so breit wie der
+  Platz; lange Titel enden mit „…" (im Verlauf brechen sie um). Kein waagerechtes Scrollen
+  zwischen 320 und 414px — vorher legte der längste Titel die Breite der Liste fest.
 - **Band im Entwicklungsmodus** (nur `next dev` mit Schreibfreigabe, nie in Produktion):
   „Entwicklungsmodus — Speichern schreibt auf {Repo}@{Branch}. Ist das main, geht es sofort
   live." Dasselbe Band wie „Speichern ist noch nicht eingerichtet", keine eigene Farbe — es ist

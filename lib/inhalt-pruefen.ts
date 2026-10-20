@@ -50,6 +50,18 @@ const istObjekt = (w: unknown): w is Record<string, unknown> =>
   typeof w === "object" && w !== null && !Array.isArray(w);
 
 /**
+ * Ein **echtes** Datum `JJJJ-MM-TT` — nicht nur die Form. ⚠️ „2026-99-99"
+ * hat die Form, liefe im Papierkorb aber nie ab (`utcTag` in
+ * `inhalt-regeln.mjs` gibt dafür `null` zurück), und die Verwaltung zeigte
+ * dauerhaft „noch 30 Tage".
+ */
+export function istTag(w: unknown): w is string {
+  if (!istText(w) || !DATUM.test(w)) return false;
+  const d = new Date(`${w}T00:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === w;
+}
+
+/**
  * Eine https-Adresse mit Host — und ohne Leerraum, Anführungszeichen,
  * spitze Klammern und Backslash. ⚠️ Das ist mehr als Form: Die Links von
  * „Über mich“ stehen im JSON-LD jeder Seite (`app/StructuredData.tsx`), und
@@ -300,6 +312,7 @@ export function pruefeInhalt(eingabe: unknown, bilder: Iterable<string>): Befund
     for (const [k, tag] of Object.entries(i.papierkorb)) {
       if (!SCHLUESSEL.test(k)) fehler("Papierkorb", `ungültiger Bildschlüssel „${k}“.`);
       if (!istText(tag) || !DATUM.test(tag)) fehler("Papierkorb", `„${k}“: Datum muss JJJJ-MM-TT sein.`);
+      else if (!istTag(tag)) fehler("Papierkorb", `„${k}“: „${tag}“ ist kein gültiges Datum.`);
       papierkorb.add(k);
     }
   } else fehler("Papierkorb", "fehlt.");

@@ -4,13 +4,14 @@ import {
   istJson,
   json,
   leseBegrenzt,
+  logText,
   NICHT_EINGERICHTET,
   speichereInhalt,
 } from "@/lib/admin/antwort";
 import { holeCommit, leseDatei } from "@/lib/admin/github";
 import { githubZugang, umgebung } from "@/lib/admin/umgebung";
 import { pruefeHerkunft, zugangOder404 } from "@/lib/admin/zugang";
-import type { SpeichernAntwort } from "@/lib/admin/vertrag";
+import { COMMIT, type SpeichernAntwort } from "@/lib/admin/vertrag";
 
 /**
  * `POST /api/admin/zuruecksetzen` — `lib/inhalt.json` aus einem älteren
@@ -19,13 +20,21 @@ import type { SpeichernAntwort } from "@/lib/admin/vertrag";
  * Bewusst kein `git revert` und kein Zurücksetzen des Branches: Der Verlauf
  * bleibt vollständig, und auch das Wiederherstellen lässt sich wieder
  * rückgängig machen. Geprüft wird der alte Stand wie jeder andere — die
- * Regeln können sich seitdem geändert haben.
+ * Regeln können sich seitdem geändert haben. Die Papierkorb-Daten setzt
+ * `speichereInhalt` neu: Was mit dem alten Stand zurück in den Papierkorb
+ * kommt, bekommt wieder volle 30 Tage, statt sofort abzulaufen.
  */
 export const dynamic = "force-dynamic";
 
-/** Commit-SHA, kurz oder lang. Nur Hex — kein Branchname, kein `..`. */
-const COMMIT = /^[0-9a-f]{7,40}$/;
 const SHA = /^([0-9a-f]{40}|)$/;
+
+/** Für 422: Beim Wiederherstellen gibt es nichts zu „korrigieren". */
+function passtNicht(n: number): string {
+  return (
+    `Dieser alte Stand passt nicht mehr zu den heutigen Regeln (${n} ${n === 1 ? "Punkt" : "Punkte"}) ` +
+    "und lässt sich nicht direkt zurückholen. Gib Jan Bescheid."
+  );
+}
 
 function abgelehnt(text: string, status: number): Response {
   return json({ ok: false, grund: "ungueltig", text } satisfies SpeichernAntwort, status);
@@ -75,16 +84,24 @@ export async function POST(request: Request): Promise<Response> {
     return abgelehnt("Der geladene Stand fehlt — bitte die Seite neu laden.", 400);
   }
 
-  let alt: unknown;
+  let text: string;
   let datum: string;
   try {
     const [datei, eintrag] = await Promise.all([leseDatei(gh, INHALT_PFAD, commit), holeCommit(gh, commit)]);
-    alt = JSON.parse(datei.text);
+    text = datei.text;
     datum = alsDatum(eintrag.datum);
   } catch (e) {
-    console.error(`Verwaltung: alter Stand nicht ladbar (${fehlerText(e)})`);
+    console.error(`Verwaltung: alter Stand nicht ladbar (${logText(e)})`);
     return json({ ok: false, grund: "github", text: fehlerText(e) } satisfies SpeichernAntwort, 502);
   }
 
-  return speichereInhalt(gh, alt, sha, `Stand vom ${datum} wiederhergestellt`);
+  let alt: unknown;
+  try {
+    alt = JSON.parse(text);
+  } catch (e) {
+    console.error(`Verwaltung: alter Stand ${commit} ist kein gültiges JSON (${logText(e)})`);
+    return abgelehnt("Dieser alte Stand ist beschädigt und lässt sich nicht zurückholen.", 422);
+  }
+
+  return speichereInhalt(gh, alt, sha, `Stand vom ${datum} wiederhergestellt`, passtNicht);
 }

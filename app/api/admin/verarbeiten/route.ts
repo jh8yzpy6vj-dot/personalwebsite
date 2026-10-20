@@ -1,4 +1,4 @@
-import { fehlerText, json } from "@/lib/admin/antwort";
+import { fehlerText, json, logText } from "@/lib/admin/antwort";
 import { starteWorkflow } from "@/lib/admin/github";
 import { githubZugang, umgebung } from "@/lib/admin/umgebung";
 import { pruefeHerkunft, zugangOder404 } from "@/lib/admin/zugang";
@@ -34,7 +34,7 @@ export async function POST(request: Request): Promise<Response> {
   try {
     await starteWorkflow(gh, MEDIEN_WORKFLOW, gh.branch);
   } catch (e) {
-    console.error(`Verwaltung: Verarbeitung nicht gestartet (${fehlerText(e)})`);
+    console.error(`Verwaltung: Verarbeitung nicht gestartet (${logText(e)})`);
     return json({ ok: false, text: fehlerText(e) } satisfies VerarbeitenAntwort, 502);
   }
   return json({ ok: true } satisfies VerarbeitenAntwort);

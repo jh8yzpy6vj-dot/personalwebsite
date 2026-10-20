@@ -80,7 +80,8 @@
   margin: 0;
 }
 
-.band p + p {
+.band p + p,
+.band .knopfreihe {
   margin-top: var(--space-sm);
 }
 
@@ -355,8 +356,14 @@ select.eingabe {
   list-style: none;
 }
 
+/*
+ * ⚠️ `minmax(0, 1fr)` statt der stillen `auto`-Spalte: Die wird so breit wie
+ * der längste Titel (`nowrap`), die Ellipse greift nie, und am Handy lässt
+ * sich die ganze Seite seitlich wischen.
+ */
 .reihen {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-sm);
   margin: 0;
   padding: 0;
@@ -480,6 +487,7 @@ select.eingabe {
 /* ── Zeilen (Hero, Arbeiten, Filme, Papierkorb, Verlauf) ────────────── */
 
 .zeile {
+  min-width: 0;
   border: 1px solid var(--linie);
   border-radius: var(--space-sm);
   background: var(--flaeche);
@@ -523,6 +531,13 @@ select.eingabe {
 .zeileName span {
   display: block;
   color: var(--leise);
+}
+
+/* Im Verlauf ist die Nachricht das, worum es geht: umbrechen statt kürzen —
+   `title` hilft am Handy nicht. */
+.verlaufListe .zeileName strong {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .zeileKnoepfe {
@@ -666,6 +681,9 @@ select.eingabe {
 .befundListe {
   margin: 0 0 var(--space-sm);
   padding-left: var(--space-lg);
+  /* Auch außerhalb der Befunde-Leiste (Rückfrage im Verlauf) in 14px. */
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
 }
 
 .befundListe li + li {

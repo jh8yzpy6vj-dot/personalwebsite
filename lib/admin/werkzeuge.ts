@@ -1,7 +1,7 @@
 import { alleBilderDerArbeit, nachWunsch, type Kontext } from "../arbeiten";
 import { AUSSCHNITT_MITTIG, type Streckenbild } from "../bilder";
 import { arbeitZu, bildName, istVerborgen, type Film, type Fotoarbeit, type Inhalt, type Link } from "../inhalt";
-import { ID, type Befund } from "../inhalt-pruefen";
+import { ID, nurFehler, pruefeInhalt, type Befund } from "../inhalt-pruefen";
 import { BILDTYPEN, MAX_UPLOAD_BYTES, ZIEL, type Lauf, type Verarbeitung } from "./vertrag";
 
 /**
@@ -527,6 +527,48 @@ export function fasseZusammen(alt: Inhalt, neu: Inhalt): string {
   const satz = teile.join(", ");
   const gross = satz.charAt(0).toUpperCase() + satz.slice(1);
   return ohneEmail(gross.length > 140 ? `${gross.slice(0, 139)}…` : gross);
+}
+
+/**
+ * Die Papierkorb-Daten, die der Server beim Speichern festgelegt hat, in den
+ * bearbeiteten Inhalt übernehmen — nur für Schlüssel, die dort noch im
+ * Papierkorb liegen. Was Jakob während des Speicherns gelöscht oder
+ * wiederhergestellt hat, bleibt, wie es ist. Ohne Unterschied derselbe
+ * Inhalt (kein neues Objekt).
+ */
+export function mitPapierkorbDaten(i: Inhalt, daten: Record<string, string>): Inhalt {
+  const anders = Object.keys(i.papierkorb).filter((k) => Object.hasOwn(daten, k) && daten[k] !== i.papierkorb[k]);
+  if (anders.length === 0) return i;
+  const n = kopie(i);
+  for (const k of anders) n.papierkorb[k] = daten[k];
+  return n;
+}
+
+/** Was „Wiederherstellen" mit einem alten Stand anrichten würde. */
+export type AlterStand =
+  /** Bricht heutige Regeln — der Server lehnte ihn ab. */
+  | { art: "unpassend"; fehler: Befund[] }
+  /** Genau der Stand von jetzt. */
+  | { art: "gleich" }
+  /** `text` wie die Nachricht beim Speichern; `papierkorb`: so viele Bilder kämen zurück in den Papierkorb. */
+  | { art: "aendert"; text: string; papierkorb: number };
+
+/**
+ * Vergleicht einen alten Stand (aus dem Verlauf, **ungeprüft**) mit dem von
+ * jetzt. ⚠️ Erst prüfen, dann vergleichen: Alten Ständen können Felder
+ * fehlen, die es damals noch nicht gab, und `fasseZusammen` griffe ins Leere.
+ *
+ * Verglichen wird, was der Server schreiben würde: Liegt ein Bild jetzt wie
+ * damals im Papierkorb, behält es sein Datum von jetzt (`papierkorbDaten` in
+ * `antwort.ts`). Ein anderes Löschdatum allein ist also keine Änderung.
+ */
+export function pruefeAltenStand(jetzt: Inhalt, alt: unknown, bilder: Iterable<string>): AlterStand {
+  const fehler = nurFehler(pruefeInhalt(alt, bilder));
+  if (fehler.length > 0) return { art: "unpassend", fehler };
+  const a = mitPapierkorbDaten(alt as Inhalt, jetzt.papierkorb);
+  if (gleich(jetzt, a)) return { art: "gleich" };
+  const papierkorb = Object.keys(a.papierkorb).filter((k) => !Object.hasOwn(jetzt.papierkorb, k)).length;
+  return { art: "aendert", text: fasseZusammen(jetzt, a), papierkorb };
 }
 
 /** Befunde nach Stufe. */

@@ -206,9 +206,30 @@ export async function leseDatei(
 }
 
 /**
+ * Lehnt GitHub ab, weil die `sha` nicht (mehr) passt? So sieht es zumindest
+ * aus — 409 heißt aber auch „Branch ist inzwischen weitergerückt" oder
+ * „Regel des Repos verletzt". Was davon, klärt erst der Blick auf die Datei.
+ */
+async function siehtNachKonfliktAus(antwort: Response): Promise<boolean> {
+  if (antwort.status === 409) return true;
+  if (antwort.status !== 422) return false;
+  const m = (await meldung(antwort)).toLowerCase();
+  return m.includes("sha") || m.includes("does not match");
+}
+
+/**
  * Eine Datei schreiben = ein Commit auf den Branch. `sha` ist die Blob-SHA,
  * auf der die Änderung aufbaut; passt sie nicht mehr, wirft das
  * `GithubKonflikt`.
+ *
+ * ⚠️ **Nicht jede 409 ist ein Konflikt.** GitHub antwortet auch dann so,
+ * wenn der Branch während des Commits weitergerückt ist (die Medien-Action
+ * pusht gerade das Manifest) oder eine Regel des Repos den Commit verbietet.
+ * Hieße das „jemand anderes hat gespeichert", verwürfe Jakob seine
+ * Änderungen umsonst — im zweiten Fall immer wieder. Deshalb wird die
+ * aktuelle `sha` nachgelesen: Weicht sie ab, ist es ein echter Konflikt;
+ * sonst genau ein zweiter Versuch, und scheitert auch der, GitHubs eigene
+ * Meldung.
  */
 export async function schreibeDatei(
   cfg: GithubKonfig,
@@ -217,20 +238,31 @@ export async function schreibeDatei(
   sha: string,
   nachricht: string,
 ): Promise<{ sha: string; commit: string }> {
-  const antwort = await anfrage(cfg, "PUT", `/contents/${pfadTeil(pfad)}`, {
-    message: nachricht,
-    content: nachBase64(text),
-    branch: cfg.branch,
-    // Ohne sha legt GitHub die Datei neu an — und lehnt ab, weil sie existiert.
-    // Genau das soll passieren (→ Konflikt), wenn kein Stand von main geladen war.
-    ...(sha ? { sha } : {}),
-    // ⚠️ Kein author/committer — siehe Kopf dieser Datei.
-  });
+  const sende = () =>
+    anfrage(cfg, "PUT", `/contents/${pfadTeil(pfad)}`, {
+      message: nachricht,
+      content: nachBase64(text),
+      branch: cfg.branch,
+      // Ohne sha legt GitHub die Datei neu an — und lehnt ab, weil sie existiert.
+      // Genau das soll passieren (→ Konflikt), wenn kein Stand von main geladen war.
+      ...(sha ? { sha } : {}),
+      // ⚠️ Kein author/committer — siehe Kopf dieser Datei.
+    });
 
-  if (antwort.status === 409) throw new GithubKonflikt();
-  if (antwort.status === 422) {
-    const m = (await meldung(antwort)).toLowerCase();
-    if (m.includes("sha") || m.includes("does not match")) throw new GithubKonflikt();
+  let antwort = await sende();
+  if (await siehtNachKonfliktAus(antwort)) {
+    // Klappt das Nachlesen nicht, fliegt dessen Fehler — lieber „gleich noch
+    // einmal versuchen" als ein Konflikt, der zum Verwerfen auffordert.
+    const jetzt = await leseDatei(cfg, pfad);
+    if (jetzt.sha !== sha) throw new GithubKonflikt();
+    antwort = await sende();
+    if (await siehtNachKonfliktAus(antwort)) {
+      const m = await meldung(antwort);
+      throw new GithubFehler(
+        m ? `GitHub hat das Speichern abgelehnt: „${m}“.` : `GitHub hat das Speichern abgelehnt (${antwort.status}).`,
+        502,
+      );
+    }
   }
   if (!antwort.ok) throw await fehlerAus(antwort, `${pfad} speichern`);
 

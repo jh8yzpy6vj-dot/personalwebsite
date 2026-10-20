@@ -113,16 +113,76 @@ describe("schreibeDatei", () => {
     expect(ausBase64(rumpf.content as string)).toBe(TEXT);
   });
 
-  it("wirft GithubKonflikt bei 409", async () => {
-    const { cfg } = fake(() => json({ message: "is at abc but expected def" }, 409));
+  /** Die Datei auf main, wie `leseDatei` sie beim Nachsehen bekommt. */
+  const aufMain = (sha: string) => json({ sha, encoding: "base64", content: nachBase64("{}") });
+
+  it("wirft GithubKonflikt bei 409, wenn die Datei auf main wirklich eine andere sha hat", async () => {
+    const { cfg, aufrufe } = fake((a) =>
+      a.methode === "PUT" ? json({ message: "does not match" }, 409) : aufMain("b".repeat(40)),
+    );
     await expect(schreibeDatei(cfg, "lib/inhalt.json", "{}", "a".repeat(40), "x")).rejects.toBeInstanceOf(
       GithubKonflikt,
     );
+    expect(aufrufe.map((a) => a.methode)).toEqual(["PUT", "GET"]);
   });
 
-  it("wirft GithubKonflikt bei 422 mit sha-Meldung", async () => {
-    const { cfg } = fake(() => json({ message: "Invalid request.\n\n\"sha\" wasn't supplied." }, 422));
+  it("wirft GithubKonflikt bei 422 mit sha-Meldung, wenn die sha nicht passt", async () => {
+    const { cfg } = fake((a) =>
+      a.methode === "PUT"
+        ? json({ message: "Invalid request.\n\n\"sha\" wasn't supplied." }, 422)
+        : aufMain("a".repeat(40)),
+    );
     await expect(schreibeDatei(cfg, "lib/inhalt.json", "{}", "", "x")).rejects.toBeInstanceOf(GithubKonflikt);
+  });
+
+  it("409 bei gleicher sha (Branch weitergerückt): genau ein zweiter Versuch, und der geht durch", async () => {
+    let puts = 0;
+    const { cfg, aufrufe } = fake((a) => {
+      if (a.methode !== "PUT") return aufMain("a".repeat(40));
+      puts++;
+      return puts === 1
+        ? json({ message: "refs/heads/main is at 123 but expected 456" }, 409)
+        : json({ content: { sha: "d".repeat(40) }, commit: { sha: "e".repeat(40) } });
+    });
+    expect(await schreibeDatei(cfg, "lib/inhalt.json", "{}", "a".repeat(40), "x")).toEqual({
+      sha: "d".repeat(40),
+      commit: "e".repeat(40),
+    });
+    expect(aufrufe.map((a) => a.methode)).toEqual(["PUT", "GET", "PUT"]);
+    expect(aufrufe[2].rumpf).toEqual(aufrufe[0].rumpf);
+  });
+
+  it("409 bei gleicher sha, auch beim zweiten Mal (Regel des Repos): GitHubs Meldung, kein Konflikt", async () => {
+    const { cfg, aufrufe } = fake((a) =>
+      a.methode === "PUT" ? json({ message: "Repository rule violations found" }, 409) : aufMain("a".repeat(40)),
+    );
+    const e = await schreibeDatei(cfg, "lib/inhalt.json", "{}", "a".repeat(40), "x").catch((x: unknown) => x);
+    expect(e).toBeInstanceOf(GithubFehler);
+    expect(e).not.toBeInstanceOf(GithubKonflikt);
+    expect((e as GithubFehler).status).toBe(502);
+    expect((e as Error).message).toBe("GitHub hat das Speichern abgelehnt: „Repository rule violations found“.");
+    // Kein dritter Versuch.
+    expect(aufrufe.filter((a) => a.methode === "PUT")).toHaveLength(2);
+  });
+
+  it("422 mit sha-Meldung, die Datei aber unverändert: ebenfalls ein zweiter Versuch statt Konflikt", async () => {
+    let puts = 0;
+    const { cfg, aufrufe } = fake((a) => {
+      if (a.methode !== "PUT") return aufMain("a".repeat(40));
+      puts++;
+      return puts === 1
+        ? json({ message: "lib/inhalt.json does not match " + "a".repeat(40) }, 422)
+        : json({ content: { sha: "d".repeat(40) }, commit: { sha: "e".repeat(40) } });
+    });
+    expect((await schreibeDatei(cfg, "lib/inhalt.json", "{}", "a".repeat(40), "x")).sha).toBe("d".repeat(40));
+    expect(aufrufe.map((a) => a.methode)).toEqual(["PUT", "GET", "PUT"]);
+  });
+
+  it("lässt sich die sha nicht nachlesen, ist das kein Konflikt", async () => {
+    const { cfg } = fake((a) => (a.methode === "PUT" ? json({}, 409) : json({ message: "Server Error" }, 500)));
+    const e = await schreibeDatei(cfg, "lib/inhalt.json", "{}", "a".repeat(40), "x").catch((x: unknown) => x);
+    expect(e).toBeInstanceOf(GithubFehler);
+    expect(e).not.toBeInstanceOf(GithubKonflikt);
   });
 
   it("sonstige 422 sind kein Konflikt", async () => {

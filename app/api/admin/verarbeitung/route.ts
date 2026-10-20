@@ -1,4 +1,4 @@
-import { fehlerText, json } from "@/lib/admin/antwort";
+import { json, logText } from "@/lib/admin/antwort";
 import { liste, ohneEndung } from "@/lib/admin/eingang";
 import { laeufe } from "@/lib/admin/github";
 import { eingangZugang, githubZugang, umgebung } from "@/lib/admin/umgebung";
@@ -31,14 +31,14 @@ export async function GET(request: Request): Promise<Response> {
       ? liste(eingang).then(
           (keys) => [...new Set(keys.map(ohneEndung))].sort(),
           (e: unknown) => {
-            console.error(`Verwaltung: Eingang nicht lesbar (${fehlerText(e)})`);
+            console.error(`Verwaltung: Eingang nicht lesbar (${logText(e)})`);
             return [] as string[];
           },
         )
       : Promise.resolve([] as string[]),
     gh
       ? laeufe(gh, MEDIEN_WORKFLOW, 10).catch((e: unknown) => {
-          console.error(`Verwaltung: Läufe nicht lesbar (${fehlerText(e)})`);
+          console.error(`Verwaltung: Läufe nicht lesbar (${logText(e)})`);
           return [] as Lauf[];
         })
       : Promise.resolve([] as Lauf[]),

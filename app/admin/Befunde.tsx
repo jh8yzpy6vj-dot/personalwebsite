@@ -58,7 +58,8 @@ export default function Befunde({ befunde, server }: { befunde: Befund[]; server
   );
 }
 
-function Liste({ befunde }: { befunde: Befund[] }) {
+/** Befunde als Liste: Ort leise, dann der Text. Auch für den Verlauf. */
+export function Liste({ befunde }: { befunde: Befund[] }) {
   return (
     <ul className={styles.befundListe}>
       {befunde.map((b, n) => (

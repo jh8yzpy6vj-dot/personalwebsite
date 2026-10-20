@@ -17,6 +17,7 @@ import {
   fasseZusammen,
   gleich,
   gleicherCommit,
+  mitPapierkorbDaten,
   naechsteZiele,
   nachStufe,
   ohneEmail,
@@ -75,6 +76,9 @@ const LIVE_HOECHSTENS = 15 * 60_000;
 const VERARBEITUNG_ABSTAND = 15_000;
 /** So lange höchstens nach dem letzten Anstoß (ms). */
 const VERARBEITUNG_HOECHSTENS = 30 * 60_000;
+/** Nach dem Wiederherstellen: so oft den neuen Stand holen, in diesem Abstand (ms). */
+const NACH_WIEDERHERSTELLEN_VERSUCHE = 4;
+const NACH_WIEDERHERSTELLEN_ABSTAND = 1500;
 
 type Geladen = {
   inhalt: Inhalt;
@@ -118,6 +122,12 @@ export default function Verwaltung() {
      Inhalt, der geschickt wurde. Ändert Jakob etwas, verschwinden sie. */
   const [serverBefunde, setServerBefunde] = useState<{ fuer: Inhalt; befunde: Befund[] } | null>(null);
   const [konflikt, setKonflikt] = useState(false);
+  /* Lädt gerade neu (Konfliktdialog, Leiste, Band) — gegen Doppelklicks. */
+  const [laedtNeu, setLaedtNeu] = useState(false);
+  /* Wiederhergestellt, aber der neue Stand kam nicht an: `inhalt` und `sha`
+     sind dann alt. Speichern schriebe den alten Inhalt still über den
+     wiederhergestellten — deshalb gesperrt, bis neu geladen ist. */
+  const [veraltet, setVeraltet] = useState(false);
   const [panel, setPanel] = useState<string | null>(null);
 
   const [auftraege, setAuftraege] = useState<Auftrag[]>([]);
@@ -127,8 +137,9 @@ export default function Verwaltung() {
   const [laufFehler, setLaufFehler] = useState<{ url: string } | null>(null);
   const [anstossFehler, setAnstossFehler] = useState<string | null>(null);
 
-  /* Einmal beim Öffnen — ein Tageswechsel mitten in der Sitzung verschiebt
-     höchstens das Löschdatum um einen Tag. */
+  /* Einmal beim Öffnen. Nur vorläufig, für die Anzeige im Papierkorb: Das
+     Datum, das gespeichert wird, legt der Server fest (eine falsch gehende
+     Geräteuhr ließe sonst Originale zu früh löschen). */
   const [heute] = useState(() => tagAus(new Date()));
 
   /* ── Laden ─────────────────────────────────────────────────────────── */
@@ -142,14 +153,22 @@ export default function Verwaltung() {
       konfiguration: stand.konfiguration,
     });
     setLadefehler(null);
+    setVeraltet(false);
     setEigeneNachricht(null);
     setServerBefunde(null);
   }, []);
 
-  const ladeNeu = useCallback(async () => {
+  /** Den Stand frisch holen und übernehmen. `false`: nicht geklappt, der Grund steht in `ladefehler`. */
+  const ladeNeu = useCallback(async (): Promise<boolean> => {
+    setLaedtNeu(true);
     const erg = await holeStand();
-    if ("stand" in erg) uebernimm(erg.stand);
-    else setLadefehler(erg.fehler);
+    setLaedtNeu(false);
+    if ("stand" in erg) {
+      uebernimm(erg.stand);
+      return true;
+    }
+    setLadefehler(erg.fehler);
+    return false;
   }, [uebernimm]);
 
   useEffect(() => {
@@ -225,10 +244,20 @@ export default function Verwaltung() {
     } satisfies SpeichernAnfrage);
 
     if (daten?.ok === true) {
-      setGeladen((g) => (g ? { ...g, basis: gesendet, sha: daten.sha } : g));
+      /* Die Papierkorb-Daten hat der Server festgelegt — in `basis` und, für
+         dieselben Schlüssel, in `inhalt`, sonst stünde gleich wieder
+         „ungespeichert" da. */
+      const { papierkorb } = daten;
+      setGeladen((g) =>
+        g
+          ? { ...g, basis: { ...gesendet, papierkorb }, inhalt: mitPapierkorbDaten(g.inhalt, papierkorb), sha: daten.sha }
+          : g,
+      );
       setEigeneNachricht(null);
       setServerBefunde(null);
-      setSpeicher({ art: "veroeffentlicht", commit: daten.commit, seit: Date.now() });
+      /* Ohne Commit (stand schon so auf main, Verlauf nicht lesbar) gibt es
+         nichts, worauf die Live-Meldung warten könnte. */
+      setSpeicher(daten.commit ? { art: "veroeffentlicht", commit: daten.commit, seit: Date.now() } : { art: "ruhe" });
       return;
     }
     if (status === 409 || (daten?.ok === false && daten.grund === "konflikt")) {
@@ -238,6 +267,38 @@ export default function Verwaltung() {
     }
     if (daten?.ok === false && daten.befunde?.length) setServerBefunde({ fuer: gesendet, befunde: daten.befunde });
     setSpeicher({ art: "fehler", text: netzText(status, daten) });
+  };
+
+  /**
+   * Nach „Wiederherstellen" im Verlauf: den neuen Stand frisch von `main`
+   * holen. Übernommen wird nur, was die `sha` des neuen Commits trägt — hinkt
+   * GitHub kurz hinterher, käme sonst still der alte Stand zurück. Klappt es
+   * gar nicht, sagt die Leiste das und Speichern bleibt gesperrt.
+   */
+  const beiWiederhergestellt = async (commit: string, sha: string) => {
+    let neu: Stand | null = null;
+    for (let versuch = 0; versuch < NACH_WIEDERHERSTELLEN_VERSUCHE && !neu; versuch++) {
+      if (versuch > 0) await new Promise((r) => setTimeout(r, NACH_WIEDERHERSTELLEN_ABSTAND));
+      const erg = await holeStand();
+      if ("stand" in erg && erg.stand.sha === sha) neu = erg.stand;
+    }
+    if (neu) uebernimm(neu);
+    else setVeraltet(true);
+    /* Ohne Commit (stand schon so auf main) gibt es nichts zu veröffentlichen — wie beim Speichern. */
+    setSpeicher(commit ? { art: "veroeffentlicht", commit, seit: Date.now() } : { art: "ruhe" });
+  };
+
+  /* Ein Fehler beim Neuladen gehört zum Konfliktdialog — nach „Abbrechen"
+     soll kein Band mehr zum Neuladen drängen. */
+  const schliesseKonflikt = () => {
+    setKonflikt(false);
+    setLadefehler(null);
+  };
+
+  /** „Neu laden" aus Leiste und Band — wirft Ungespeichertes weg, also erst fragen. */
+  const ladeNeuNachFrage = () => {
+    if (ungespeichert && !window.confirm("Ungespeicherte Änderungen gehen verloren. Trotzdem neu laden?")) return;
+    void ladeNeu();
   };
 
   /* Nach dem Speichern: alle 20 s fragen, ob der Commit online ist. */
@@ -431,25 +492,27 @@ export default function Verwaltung() {
   };
 
   const kannSpeichern =
-    geladen.konfiguration.github && ungespeichert && fehler.length === 0 && speicher.art !== "laeuft";
+    geladen.konfiguration.github && ungespeichert && fehler.length === 0 && speicher.art !== "laeuft" && !veraltet;
 
   const status = !geladen.konfiguration.github
     ? "Speichern ist noch nicht eingerichtet."
-    : speicher.art === "laeuft"
-      ? "Speichert …"
-      : fehler.length > 0 && ungespeichert
-        ? `Erst ${fehler.length === 1 ? "den Fehler" : `die ${fehler.length} Fehler`} oben beheben, dann speichern.`
-        : speicher.art === "fehler" && ungespeichert
-          ? speicher.text
-          : ungespeichert
-            ? "Ungespeicherte Änderungen."
-            : speicher.art === "veroeffentlicht"
-              ? "Gespeichert. Wird veröffentlicht … (1–2 Minuten)"
-              : speicher.art === "live"
-                ? "Gespeichert und live."
-                : speicher.art === "dauert"
-                  ? "Gespeichert, aber noch nicht live. Schau in ein paar Minuten auf der Seite nach."
-                  : "Alles gespeichert.";
+    : veraltet
+      ? "Wiederhergestellt, aber der neue Stand ließ sich nicht laden. Bitte neu laden."
+      : speicher.art === "laeuft"
+        ? "Speichert …"
+        : fehler.length > 0 && ungespeichert
+          ? `Erst ${fehler.length === 1 ? "den Fehler" : `die ${fehler.length} Fehler`} oben beheben, dann speichern.`
+          : speicher.art === "fehler" && ungespeichert
+            ? speicher.text
+            : ungespeichert
+              ? "Ungespeicherte Änderungen."
+              : speicher.art === "veroeffentlicht"
+                ? "Gespeichert. Wird veröffentlicht … (1–2 Minuten)"
+                : speicher.art === "live"
+                  ? "Gespeichert und live."
+                  : speicher.art === "dauert"
+                    ? "Gespeichert, aber noch nicht live. Schau in ein paar Minuten auf der Seite nach."
+                    : "Alles gespeichert.";
 
   const wechsleMitTaste = (e: KeyboardEvent<HTMLButtonElement>, platz: number) => {
     const schritt = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
@@ -508,6 +571,18 @@ export default function Verwaltung() {
         {!geladen.konfiguration.eingang && (
           <div className={styles.band} role="status">
             <p>Hochladen ist noch nicht eingerichtet — dafür fehlt der Bildspeicher für neue Bilder. Gib Jan Bescheid.</p>
+          </div>
+        )}
+        {/* Neu laden ist gescheitert, während schon ein Stand da ist — sonst
+            bliebe es still, und Jakob arbeitete auf dem alten weiter. */}
+        {ladefehler && (
+          <div className={styles.band} role="alert">
+            <p>Neu laden hat nicht geklappt: {ladefehler}</p>
+            <div className={styles.knopfreihe}>
+              <button type="button" className={styles.knopf} disabled={laedtNeu} onClick={ladeNeuNachFrage}>
+                {laedtNeu ? "Lädt …" : "Noch einmal laden"}
+              </button>
+            </div>
           </div>
         )}
 
@@ -601,20 +676,8 @@ export default function Verwaltung() {
           {reiter === "verlauf" && (
             <VerlaufReiter
               sha={geladen.sha}
-              beiWiederhergestellt={async (commit) => {
-                /* Der neue Stand kommt frisch von `main`. Hinkt die Abfrage
-                   GitHub kurz hinterher, wird es kurz später noch einmal
-                   versucht. */
-                for (let versuch = 0; versuch < 3; versuch++) {
-                  const erg = await holeStand();
-                  if ("stand" in erg) {
-                    uebernimm(erg.stand);
-                    break;
-                  }
-                  await new Promise((r) => setTimeout(r, 1500));
-                }
-                setSpeicher({ art: "veroeffentlicht", commit, seit: Date.now() });
-              }}
+              gesperrt={veraltet}
+              beiWiederhergestellt={beiWiederhergestellt}
               beiKonflikt={() => setKonflikt(true)}
             />
           )}
@@ -640,6 +703,11 @@ export default function Verwaltung() {
                 />
               </div>
             )}
+            {veraltet && (
+              <button type="button" className={styles.knopf} disabled={laedtNeu} onClick={ladeNeuNachFrage}>
+                {laedtNeu ? "Lädt …" : "Neu laden"}
+              </button>
+            )}
             <button
               type="button"
               className={styles.knopfHaupt}
@@ -654,29 +722,44 @@ export default function Verwaltung() {
         {panel && <BildPanel schluessel={panel} beiSchliessen={() => setPanel(null)} />}
 
         {konflikt && (
-          <Dialog titel="Inzwischen hat jemand anderes gespeichert" beiSchliessen={() => setKonflikt(false)}>
+          <Dialog titel="Inzwischen hat jemand anderes gespeichert" beiSchliessen={schliesseKonflikt}>
             <p className={styles.text}>
               Seit du die Verwaltung geöffnet hast, wurde der Inhalt an anderer Stelle geändert — in einem zweiten Tab
               oder von Jan im Code. Deine Änderungen lassen sich nicht einfach darüberlegen, sonst wäre das andere still
               weg.
             </p>
-            <p className={styles.text}>
-              <strong>Neu laden verwirft deine ungespeicherten Änderungen.</strong> Merk dir vorher, was du geändert
-              hast, und mach es danach noch einmal.
-            </p>
+            {ungespeichert ? (
+              <>
+                <p className={styles.text}>
+                  <strong>Neu laden verwirft:</strong> {vorschlag}.
+                </p>
+                <p className={styles.text}>
+                  Abbrechen lässt deine Änderungen hier stehen, damit du sie dir ansehen kannst — speichern lassen sie
+                  sich so aber nicht.
+                </p>
+              </>
+            ) : (
+              <p className={styles.text}>Neu laden holt den neuesten Stand; danach kannst du es noch einmal versuchen.</p>
+            )}
+            {ladefehler && <p className={styles.fehlerText}>Neu laden hat nicht geklappt: {ladefehler}</p>}
             <div className={styles.knopfreihe}>
               <button
                 type="button"
                 className={styles.knopfHaupt}
-                onClick={() => {
-                  setKonflikt(false);
-                  setSpeicher({ art: "ruhe" });
-                  void ladeNeu();
+                disabled={laedtNeu}
+                onClick={async () => {
+                  /* Erst nach Erfolg schließen — sonst wäre der Dialog weg,
+                     der alte Stand noch da, und das nächste Speichern
+                     landete wieder hier. */
+                  if (await ladeNeu()) {
+                    setKonflikt(false);
+                    setSpeicher({ art: "ruhe" });
+                  }
                 }}
               >
-                Neu laden (Änderungen verwerfen)
+                {laedtNeu ? "Lädt …" : ungespeichert ? "Neu laden (Änderungen verwerfen)" : "Neu laden"}
               </button>
-              <button type="button" className={styles.knopf} onClick={() => setKonflikt(false)}>
+              <button type="button" className={styles.knopf} onClick={schliesseKonflikt}>
                 Abbrechen
               </button>
             </div>

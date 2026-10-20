@@ -1,5 +1,74 @@
 import { describe, expect, it } from "vitest";
-import { alsDatei, betreffAus, commitNachricht, istJson, leseBegrenzt } from "./antwort";
+import {
+  alsDatei,
+  berlinerTag,
+  betreffAus,
+  commitNachricht,
+  istJson,
+  leseBegrenzt,
+  logText,
+  papierkorbDaten,
+} from "./antwort";
+import { GithubFehler } from "./github";
+
+describe("berlinerTag", () => {
+  it("ist der Tag in deutscher Zeit, nicht in UTC", () => {
+    expect(berlinerTag(new Date("2026-10-18T21:59:00Z"))).toBe("2026-10-18"); // 23:59 Sommerzeit
+    expect(berlinerTag(new Date("2026-10-18T22:30:00Z"))).toBe("2026-10-19"); // 00:30
+    expect(berlinerTag(new Date("2026-12-31T23:30:00Z"))).toBe("2027-01-01"); // 00:30 Winterzeit
+  });
+});
+
+describe("papierkorbDaten", () => {
+  const HEUTE = "2026-10-18";
+
+  it("ignoriert das Datum vom Client — ein neuer Schlüssel bekommt heute", () => {
+    expect(papierkorbDaten({ "arbeiten/stamp/03": "2000-01-01" }, {}, HEUTE)).toEqual({
+      "arbeiten/stamp/03": HEUTE,
+    });
+  });
+
+  it("behält das Datum von main, wenn der Schlüssel dort schon im Papierkorb liegt", () => {
+    expect(
+      papierkorbDaten({ a: "2026-10-18", b: "2026-10-18" }, { a: "2026-10-01", c: "2026-09-01" }, HEUTE),
+    ).toEqual({ a: "2026-10-01", b: HEUTE });
+  });
+
+  it("Beispiel aus dem Befund: der Stand vom 05.09. bringt stamp/03 mit „2026-09-01“ zurück → heute", () => {
+    // Auf main ist das Bild seit dem 10.09. wiederhergestellt, also nicht im Papierkorb.
+    const ausAltemStand = { "arbeiten/stamp/03": "2026-09-01" };
+    expect(papierkorbDaten(ausAltemStand, {}, "2026-10-17")).toEqual({ "arbeiten/stamp/03": "2026-10-17" });
+  });
+
+  it("ein unmögliches oder künftiges Datum auf main wird heute", () => {
+    expect(papierkorbDaten({ a: "x", b: "x", c: "x" }, { a: "2026-99-99", b: "2027-01-01", c: 7 }, HEUTE)).toEqual({
+      a: HEUTE,
+      b: HEUTE,
+      c: HEUTE,
+    });
+  });
+
+  it("verträgt jede Form von main", () => {
+    for (const main of [undefined, null, "x", [], 3]) {
+      expect(papierkorbDaten({ a: "2000-01-01" }, main, HEUTE)).toEqual({ a: HEUTE });
+    }
+  });
+
+  it("lässt sich nicht über __proto__ oder geerbte Schlüssel täuschen", () => {
+    expect(papierkorbDaten({ toString: "2000-01-01" }, {}, HEUTE)).toEqual({ toString: HEUTE });
+  });
+});
+
+describe("logText", () => {
+  it("nennt Art und Meldung, gekürzt", () => {
+    expect(logText(new SyntaxError("Unexpected token <"))).toBe("SyntaxError: Unexpected token <");
+    expect(logText(new GithubFehler("lib/inhalt.json lesen: GitHub antwortet mit 500.", 500))).toBe(
+      "GithubFehler: lib/inhalt.json lesen: GitHub antwortet mit 500.",
+    );
+    expect(logText(new Error("x".repeat(1000)))).toHaveLength("Error: ".length + 300);
+    expect(logText("roh")).toBe("roh");
+  });
+});
 
 describe("betreffAus", () => {
   it("macht eine Zeile daraus", () => {

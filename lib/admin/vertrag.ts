@@ -73,6 +73,14 @@ export type SpeichernAntwort =
       commit: string;
       /** Warnungen und Hinweise (Fehler gibt es bei `ok: true` nie). */
       befunde: Befund[];
+      /**
+       * Der Papierkorb, wie er geschrieben wurde. ⚠️ **Die Daten legt der
+       * Server fest**, nicht der Browser: Ein Schlüssel, der auf `main` schon
+       * im Papierkorb lag, behält sein Datum; jeder andere bekommt den
+       * heutigen Tag (Europe/Berlin). Die Verwaltung übernimmt sie, sonst
+       * stünde nach dem Speichern wieder „ungespeichert" da.
+       */
+      papierkorb: Record<string, string>;
     }
   | {
       ok: false;
@@ -94,8 +102,18 @@ export type VerlaufEintrag = {
 /** `GET /api/admin/verlauf` */
 export type Verlauf = { eintraege: VerlaufEintrag[] };
 
+/**
+ * `GET /api/admin/verlauf?commit=<sha>` — `lib/inhalt.json`, wie es in
+ * diesem Commit stand. Ungeprüft: Die Verwaltung prüft selbst, ob der Stand
+ * zu den heutigen Regeln passt, und zeigt, was Wiederherstellen ändert.
+ */
+export type VerlaufStand = { inhalt: unknown };
+
 /** `POST /api/admin/zuruecksetzen` — stellt die Datei aus `commit` als neuen Commit wieder her. */
 export type ZuruecksetzenAnfrage = { commit: string; sha: string };
+
+/** Commit-SHA, kurz oder lang. Nur Hex — kein Branchname, kein `..`. */
+export const COMMIT = /^[0-9a-f]{7,40}$/;
 
 /**
  * `PUT /api/admin/hochladen?ziel=<schluessel>` — Body ist die Bilddatei

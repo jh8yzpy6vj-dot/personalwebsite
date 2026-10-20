@@ -25,12 +25,14 @@ import {
   hatBilder,
   legeInPapierkorb,
   leseAusschnitt,
+  mitPapierkorbDaten,
   naechsteZiele,
   neueArbeit,
   neuerFilm,
   ohneEmail,
   ordneArbeiten,
   ordneFilme,
+  pruefeAltenStand,
   pruefeDatei,
   restTage,
   setzeAusschnitt,
@@ -327,6 +329,54 @@ describe("Speichern", () => {
 
     const { inhalt } = neueArbeit(alt, "Neue Strecke", alt.foto.kategorien[0]);
     expect(fasseZusammen(alt, inhalt)).toBe("Neue Arbeit „Neue Strecke“");
+  });
+
+  it("übernimmt die Papierkorb-Daten des Servers nur für Schlüssel, die noch im Papierkorb liegen", () => {
+    const gesendet = legeInPapierkorb(kopie(), "arbeiten/stamp/01", "2000-01-01");
+    // Während des Speicherns noch eins gelöscht — das bleibt beim Datum des Browsers.
+    const jetzt = legeInPapierkorb(gesendet, "arbeiten/stamp/02", "2026-10-18");
+    const neu = mitPapierkorbDaten(jetzt, { "arbeiten/stamp/01": "2026-10-18" });
+    expect(neu.papierkorb).toEqual({ "arbeiten/stamp/01": "2026-10-18", "arbeiten/stamp/02": "2026-10-18" });
+    expect(jetzt.papierkorb["arbeiten/stamp/01"]).toBe("2000-01-01"); // Kopie, nichts verändert
+
+    // Inzwischen wiederhergestellt: kommt nicht zurück.
+    const zurueck = stelleWiederHer(gesendet, "arbeiten/stamp/01");
+    expect(mitPapierkorbDaten(zurueck, { "arbeiten/stamp/01": "2026-10-18" })).toBe(zurueck);
+  });
+});
+
+describe("Alter Stand im Verlauf", () => {
+  it("derselbe Stand wie jetzt", () => {
+    expect(pruefeAltenStand(kopie(), kopie(), Object.keys(BILDER))).toEqual({ art: "gleich" });
+  });
+
+  it("ein anderes Löschdatum allein ändert nichts — das Datum von jetzt bleibt", () => {
+    // Am 01.09. gelöscht, zurückgeholt, am 10.09. wieder gelöscht: Der Stand vom 05.09. ist derselbe.
+    const jetzt = legeInPapierkorb(kopie(), "arbeiten/stamp/02", "2026-09-10");
+    const alt = legeInPapierkorb(kopie(), "arbeiten/stamp/02", "2026-09-01");
+    expect(pruefeAltenStand(jetzt, alt, Object.keys(BILDER))).toEqual({ art: "gleich" });
+  });
+
+  it("sagt, was Wiederherstellen ändert, und zählt, was zurück in den Papierkorb kommt", () => {
+    const jetzt = kopie();
+    let alt = umschalteAusgeblendet(jetzt, "arbeiten/stamp/01");
+    alt = legeInPapierkorb(alt, "arbeiten/stamp/02", "2026-09-01");
+    alt = legeInPapierkorb(alt, "arbeiten/stamp/03", "2026-09-01");
+    expect(pruefeAltenStand(jetzt, alt, Object.keys(BILDER))).toEqual({
+      art: "aendert",
+      text: "1 Bild ausgeblendet, 2 Bilder gelöscht",
+      papierkorb: 2,
+    });
+  });
+
+  it("ein Stand, dem ein heute verlangtes Feld fehlt, ist unpassend — ohne dass der Vergleich wirft", () => {
+    const alt: Record<string, unknown> = structuredClone(INHALT);
+    delete alt.bildausschnitte;
+    delete alt.papierkorb;
+    const ergebnis = pruefeAltenStand(kopie(), alt, Object.keys(BILDER));
+    expect(ergebnis.art).toBe("unpassend");
+    expect(ergebnis.art === "unpassend" && ergebnis.fehler.map((f) => f.ort)).toEqual(["Papierkorb", "Bildausschnitte"]);
+    expect(pruefeAltenStand(kopie(), "kaputt", []).art).toBe("unpassend");
   });
 });
 

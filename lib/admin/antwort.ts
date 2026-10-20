@@ -10,9 +10,10 @@
  */
 
 import { BILDER } from "../bilder";
-import { pruefeInhalt, nurFehler } from "../inhalt-pruefen";
-import { GithubFehler, GithubKonflikt, leseDatei, schreibeDatei, type GithubKonfig } from "./github";
+import { istTag, pruefeInhalt, nurFehler } from "../inhalt-pruefen";
+import { GithubFehler, GithubKonflikt, leseDatei, schreibeDatei, verlauf, type GithubKonfig } from "./github";
 import type { SpeichernAntwort } from "./vertrag";
+import { gleich } from "./werkzeuge";
 
 const KEIN_CACHE = { "cache-control": "no-store" };
 
@@ -135,7 +136,7 @@ export async function bilderSchluessel(gh: GithubKonfig | null): Promise<string[
       const { text } = await leseDatei(gh, MANIFEST_PFAD);
       return Object.keys(JSON.parse(text) as Record<string, unknown>);
     } catch (e) {
-      console.warn(`Verwaltung: Manifest von GitHub nicht lesbar, nehme den Build-Stand (${fehlerText(e)})`);
+      console.warn(`Verwaltung: Manifest von GitHub nicht lesbar, nehme den Build-Stand (${logText(e)})`);
     }
   }
   return Object.keys(BILDER);
@@ -148,21 +149,98 @@ export function fehlerText(e: unknown): string {
   return "Unerwarteter Fehler auf dem Server.";
 }
 
+/**
+ * Text eines Fehlers **fürs Log des Workers** — mit Art und Meldung, auch bei
+ * Unerwartetem. Mit `fehlerText` stünde dort bei einem kaputten
+ * `lib/inhalt.json` nur „Unerwarteter Fehler", und niemand fände die
+ * Ursache. Das Log ist nicht öffentlich, und in diesen Meldungen steht kein
+ * Token (`github.ts` und `eingang.ts` formulieren ihre Fehler selbst).
+ */
+export function logText(e: unknown): string {
+  if (e instanceof Error) return `${e.name}: ${e.message.slice(0, 300)}`;
+  return String(e).slice(0, 300);
+}
+
+/* ── Papierkorb-Daten ─────────────────────────────────────────────────── */
+
+const BERLIN = new Intl.DateTimeFormat("sv-SE", {
+  timeZone: "Europe/Berlin",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+/** `JJJJ-MM-TT` in deutscher Zeit — „sv-SE" schreibt das Datum genau so. */
+export function berlinerTag(d: Date): string {
+  return BERLIN.format(d);
+}
+
+/**
+ * Die Papierkorb-Daten, die **geschrieben** werden — festgelegt vom Server.
+ *
+ * ⚠️ Nach 30 Tagen löscht die Medien-Action das Original endgültig, der
+ * einzige Schritt, der sich nicht zurücknehmen lässt. Käme das Datum aus
+ * dem Browser, löschte eine falsch gehende Geräteuhr (2025 statt 2026)
+ * sofort; käme es aus einem zurückgeholten alten Stand, ebenso („Stand vom
+ * 05.09." bringt den Eintrag vom 01.09. zurück, am 18.10. ist er
+ * abgelaufen). Deshalb:
+ * - Liegt der Schlüssel auf `main` schon im Papierkorb, bleibt dessen Datum
+ *   (sonst verlängerte jedes Speichern die Frist).
+ * - Jeder andere Schlüssel — neu gelöscht oder mit einem alten Stand
+ *   zurückgekommen — bekommt `heute`, also wieder volle 30 Tage.
+ *
+ * Ein Datum auf `main`, das kein echtes ist oder in der Zukunft liegt, wird
+ * ebenfalls `heute`: Das eine liefe nie ab, das andere zu spät.
+ */
+export function papierkorbDaten(
+  neu: Record<string, string>,
+  main: unknown,
+  heute: string,
+): Record<string, string> {
+  const alt = typeof main === "object" && main !== null && !Array.isArray(main) ? (main as Record<string, unknown>) : {};
+  const ergebnis: Record<string, string> = {};
+  for (const k of Object.keys(neu)) {
+    const tag = Object.hasOwn(alt, k) ? alt[k] : undefined;
+    ergebnis[k] = istTag(tag) && tag <= heute ? tag : heute;
+  }
+  return ergebnis;
+}
+
 export const NICHT_EINGERICHTET: SpeichernAntwort = {
   ok: false,
   grund: "nicht-eingerichtet",
   text: "Speichern ist noch nicht eingerichtet (GitHub-Zugang fehlt). Bitte Jan Bescheid geben.",
 };
 
+const KONFLIKT: SpeichernAntwort = {
+  ok: false,
+  grund: "konflikt",
+  text:
+    "Inzwischen hat jemand anderes gespeichert (oder du in einem zweiten Fenster). " +
+    "Bitte die Seite neu laden — deine letzten Änderungen dann noch einmal machen.",
+};
+
 /**
  * Prüfen und als Commit schreiben. Dieselben Regeln wie beim Build
  * (`lib/content.ts`) — was hier durchgeht, bricht den Build nicht.
+ *
+ * Vor dem Schreiben wird `main` gelesen:
+ * - **Steht dort schon genau dieser Inhalt**, gibt es keinen Commit, nur die
+ *   aktuelle `sha`. Das ist der Fall „Antwort ging unterwegs verloren"
+ *   (Mobilfunk): Jakob speichert noch einmal, mit der alten `sha` — und
+ *   bekäme sonst „jemand anderes hat gespeichert", obwohl er es selbst war.
+ * - **Passt die `sha` nicht mehr**, gleich 409 — ohne Umweg über GitHub.
+ * - Die **Papierkorb-Daten** setzt der Server (`papierkorbDaten`).
+ *
+ * `textUngueltig` ersetzt den Text bei 422 — beim Wiederherstellen gibt es
+ * nichts zu „korrigieren".
  */
 export async function speichereInhalt(
   gh: GithubKonfig,
   inhalt: unknown,
   sha: string,
   betreff: string,
+  textUngueltig?: (n: number) => string,
 ): Promise<Response> {
   const befunde = pruefeInhalt(inhalt, await bilderSchluessel(gh));
   const fehler = nurFehler(befunde);
@@ -171,8 +249,9 @@ export async function speichereInhalt(
       {
         ok: false,
         grund: "ungueltig",
-        text:
-          fehler.length === 1
+        text: textUngueltig
+          ? textUngueltig(fehler.length)
+          : fehler.length === 1
             ? "Eine Angabe passt noch nicht — bitte korrigieren, dann speichern."
             : `${fehler.length} Angaben passen noch nicht — bitte korrigieren, dann speichern.`,
         befunde,
@@ -182,22 +261,37 @@ export async function speichereInhalt(
   }
 
   try {
-    const neu = await schreibeDatei(gh, INHALT_PFAD, alsDatei(inhalt), sha, commitNachricht(betreff));
-    return json({ ok: true, sha: neu.sha, commit: neu.commit, befunde } satisfies SpeichernAntwort);
-  } catch (e) {
-    if (e instanceof GithubKonflikt) {
-      return json(
-        {
-          ok: false,
-          grund: "konflikt",
-          text:
-            "Inzwischen hat jemand anderes gespeichert (oder du in einem zweiten Fenster). " +
-            "Bitte die Seite neu laden — deine letzten Änderungen dann noch einmal machen.",
-        } satisfies SpeichernAntwort,
-        409,
-      );
+    const aktuell = await leseDatei(gh, INHALT_PFAD);
+    let aufMain: unknown = null;
+    try {
+      aufMain = JSON.parse(aktuell.text);
+    } catch {
+      /* Kaputt auf main: nichts ist gleich, kein Datum bleibt — unten weiter. */
     }
-    console.error(`Verwaltung: Speichern fehlgeschlagen (${fehlerText(e)})`);
+
+    // Nach der Prüfung ohne Fehler ist `papierkorb` sicher eine Zuordnung Schlüssel → Datum.
+    const gesendet = inhalt as { papierkorb: Record<string, string> };
+    const altPapierkorb =
+      typeof aufMain === "object" && aufMain !== null ? (aufMain as { papierkorb?: unknown }).papierkorb : undefined;
+    const papierkorb = papierkorbDaten(gesendet.papierkorb, altPapierkorb, berlinerTag(new Date()));
+    const neu = { ...gesendet, papierkorb };
+
+    if (gleich(aufMain, neu)) {
+      let commit = "";
+      try {
+        commit = (await verlauf(gh, INHALT_PFAD, 1))[0]?.commit ?? "";
+      } catch (e) {
+        console.warn(`Verwaltung: letzter Commit nicht lesbar (${logText(e)})`);
+      }
+      return json({ ok: true, sha: aktuell.sha, commit, befunde, papierkorb } satisfies SpeichernAntwort);
+    }
+    if (aktuell.sha !== sha) return json(KONFLIKT, 409);
+
+    const ergebnis = await schreibeDatei(gh, INHALT_PFAD, alsDatei(neu), sha, commitNachricht(betreff));
+    return json({ ok: true, sha: ergebnis.sha, commit: ergebnis.commit, befunde, papierkorb } satisfies SpeichernAntwort);
+  } catch (e) {
+    if (e instanceof GithubKonflikt) return json(KONFLIKT, 409);
+    console.error(`Verwaltung: Speichern fehlgeschlagen (${logText(e)})`);
     return json({ ok: false, grund: "github", text: fehlerText(e) } satisfies SpeichernAntwort, 502);
   }
 }

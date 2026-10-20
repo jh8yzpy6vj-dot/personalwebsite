@@ -1,4 +1,4 @@
-import { fehlerText, json, leseBegrenzt } from "@/lib/admin/antwort";
+import { fehlerText, json, leseBegrenzt, logText } from "@/lib/admin/antwort";
 import { erkenneBildtyp, legeAb } from "@/lib/admin/eingang";
 import { eingangZugang, umgebung } from "@/lib/admin/umgebung";
 import { pruefeHerkunft, zugangOder404 } from "@/lib/admin/zugang";
@@ -61,7 +61,7 @@ export async function PUT(request: Request): Promise<Response> {
   try {
     await legeAb(eingang, `${ziel}.${endung}`, bytes, typ);
   } catch (e) {
-    console.error(`Verwaltung: Hochladen fehlgeschlagen (${fehlerText(e)})`);
+    console.error(`Verwaltung: Hochladen fehlgeschlagen (${logText(e)})`);
     return abgelehnt(fehlerText(e), 502);
   }
   return json({ ok: true, schluessel: ziel } satisfies HochladenAntwort);
