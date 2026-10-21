@@ -6,6 +6,7 @@ import type { Inhalt } from "@/lib/inhalt";
 import { pruefeInhalt, type Befund } from "@/lib/inhalt-pruefen";
 import {
   ZIEL,
+  type HochladenAntwort,
   type Konfiguration,
   type SpeichernAnfrage,
   type SpeichernAntwort,
@@ -14,9 +15,13 @@ import {
   type VerarbeitenAntwort,
 } from "@/lib/admin/vertrag";
 import {
+  angekommen,
+  bildBezeichnung,
+  erwarteteBilder,
   fasseZusammen,
   gleich,
   gleicherCommit,
+  letzterFehlschlag,
   mitPapierkorbDaten,
   naechsteZiele,
   nachStufe,
@@ -51,9 +56,11 @@ import styles from "./verwaltung.module.css";
  * - `inhalt` — was Jakob gerade sieht und bearbeitet,
  * - `basis` — was zuletzt auf `main` stand (geladen oder gespeichert);
  *   der Unterschied ist „ungespeichert",
- * - `bilder` — das Manifest. Wird nach fertiger Verarbeitung **allein** neu
- *   geholt; `inhalt` und `sha` bleiben dabei, wie sie sind, sonst wären
- *   Jakobs ungespeicherte Änderungen weg.
+ * - `bilder` — das Manifest. Nach fertiger Verarbeitung kommt der ganze
+ *   Stand neu, übernommen wird aber nur das Manifest — `inhalt`, `basis`
+ *   und `sha` nur dann, wenn nichts ungespeichert ist (die Action kann den
+ *   Papierkorb geleert haben). Sonst wären Jakobs Änderungen weg; dann sagt
+ *   ein Band, dass Speichern eine Rückfrage bringt.
  */
 
 const REITER = [
@@ -96,7 +103,20 @@ type Speicherstand =
   | { art: "veroeffentlicht"; commit: string; seit: number }
   | { art: "live" }
   | { art: "dauert"; commit: string }
-  | { art: "fehler"; text: string };
+  /** `anmelden`: abgelaufene Anmeldung — die Leiste bietet dann den Link zum Anmelden. */
+  | { art: "fehler"; text: string; anmelden?: boolean };
+
+/** Ein Hinweis, warum etwas nicht ging; `anmelden` wie beim Speicherstand. */
+type Hinweis = { text: string; anmelden: boolean };
+
+/** Der Link für eine abgelaufene Anmeldung. Neuer Tab: Hier bleibt alles Ungespeicherte stehen. */
+function AnmeldenLink() {
+  return (
+    <a href="/admin" target="_blank" rel="noopener">
+      In neuem Tab anmelden ↗
+    </a>
+  );
+}
 
 /** Den ganzen Stand holen — ohne Zustand anzufassen; das macht der Aufrufer. */
 async function holeStand(): Promise<{ stand: Stand } | { fehler: string }> {
@@ -109,10 +129,22 @@ type Auftrag = {
   id: number;
   name: string;
   ziel: string;
+  /**
+   * Neues Bild: wohin es gehört — beim Wiederholen wird die Nummer neu
+   * vergeben, die alte kann inzwischen belegt sein. `null`: festes Ziel
+   * (Ersetzen, Porträt, Standbild).
+   */
+  art: Zielart | null;
   anteil: number;
-  zustand: "wartet" | "laeuft" | "fertig" | "fehler";
+  zustand: "wartet" | "laeuft" | "fertig" | "fehler" | "abgebrochen";
   text?: string;
+  /** Gescheitert an der abgelaufenen Anmeldung. */
+  anmelden?: boolean;
+  /** Gescheitert oder abgebrochen, aber die Datei ist noch da — für „Noch einmal". */
+  datei?: File;
 };
+
+const gescheitert = (a: Auftrag) => a.zustand === "fehler" || a.zustand === "abgebrochen";
 
 export default function Verwaltung() {
   const [geladen, setGeladen] = useState<Geladen | null>(null);
@@ -137,7 +169,14 @@ export default function Verwaltung() {
   const [verarbeitung, setVerarbeitung] = useState<Verarbeitung | null>(null);
   const [beobachten, setBeobachten] = useState(false);
   const [laufFehler, setLaufFehler] = useState<{ url: string } | null>(null);
-  const [anstossFehler, setAnstossFehler] = useState<string | null>(null);
+  const [anstossFehler, setAnstossFehler] = useState<Hinweis | null>(null);
+  /* Der Anstoß der Verarbeitung ist unterwegs — gegen Doppelklicks. */
+  const [startet, setStartet] = useState(false);
+  /* Die Verarbeitung hat eine neue Fassung von `lib/inhalt.json` gebracht,
+     während Ungespeichertes da war — Speichern wird auf einen Konflikt laufen. */
+  const [fremd, setFremd] = useState(false);
+  /* Der Schlüssel, den Jakob gerade verwerfen will. */
+  const [verwerfen, setVerwerfen] = useState<string | null>(null);
 
   /* Einmal beim Öffnen. Nur vorläufig, für die Anzeige im Papierkorb: Das
      Datum, das gespeichert wird, legt der Server fest (eine falsch gehende
@@ -159,6 +198,7 @@ export default function Verwaltung() {
     setVeraltet(false);
     setEigeneNachricht(null);
     setServerBefunde(null);
+    setFremd(false);
   }, []);
 
   /** Den Stand frisch holen und übernehmen. `false`: nicht geklappt, der Grund steht in `ladefehler`. */
@@ -186,14 +226,6 @@ export default function Verwaltung() {
     };
   }, [uebernimm]);
 
-  /** Nur das Manifest neu holen — `inhalt`, `basis` und `sha` bleiben. */
-  const holeBilder = useCallback(async () => {
-    const { status, daten } = await holeJson<Stand>("/api/admin/stand");
-    if (status === 200 && daten && "bilder" in daten) {
-      setGeladen((g) => (g ? { ...g, bilder: daten.bilder } : g));
-    }
-  }, []);
-
   const aendere = useCallback((f: (i: Inhalt) => Inhalt) => {
     setGeladen((g) => (g ? { ...g, inhalt: f(g.inhalt) } : g));
   }, []);
@@ -208,6 +240,7 @@ export default function Verwaltung() {
   );
   const { fehler } = nachStufe(befunde);
   const ungespeichert = geladen ? !gleich(geladen.basis, geladen.inhalt) : false;
+  const laedtNoch = auftraege.filter((a) => a.zustand === "wartet" || a.zustand === "laeuft").length;
   const vorschlag = geladen ? fasseZusammen(geladen.basis, geladen.inhalt) : "";
   const nachricht = eigeneNachricht ?? vorschlag;
 
@@ -221,16 +254,47 @@ export default function Verwaltung() {
 
   /* ── Warnung beim Verlassen ────────────────────────────────────────── */
 
+  /* Nach „Trotzdem abmelden" nicht ein zweites Mal fragen. */
+  const verlassenErlaubt = useRef(false);
+  /* Auch während des Hochladens: Schließen bräche die Übertragung und die
+     ganze Schlange still ab. */
+  const warnen = ungespeichert || laedtNoch > 0;
   useEffect(() => {
-    if (!ungespeichert) return;
+    if (!warnen) return;
     const warne = (e: BeforeUnloadEvent) => {
+      if (verlassenErlaubt.current) return;
       e.preventDefault();
       /* Ältere Browser brauchen zusätzlich `returnValue`. */
       e.returnValue = "";
     };
     window.addEventListener("beforeunload", warne);
     return () => window.removeEventListener("beforeunload", warne);
-  }, [ungespeichert]);
+  }, [warnen]);
+
+  /* ── Der jeweils letzte Stand, für Abläufe über mehrere Abrufe ─────── */
+
+  /* `schaueNach` wartet auf das Netz; was danach gilt, steht hier — nicht
+     im Stand von dem Rendern, das die Abfrage gestartet hat. */
+  const aktuell = useRef<{ geladen: Geladen | null; hochgeladen: string[]; wartend: string[]; speichert: boolean }>({
+    geladen: null,
+    hochgeladen: [],
+    wartend: [],
+    speichert: false,
+  });
+  /* Jede `sha`, die die Verwaltung schon hatte. Kommt eine davon zurück,
+     hinkt GitHub hinterher — das ist kein neuer Stand. */
+  const gesehen = useRef(new Set<string>());
+  /* In dieser Sitzung verworfen — die erscheinen nicht mehr im Manifest. */
+  const verworfen = useRef(new Set<string>());
+  useEffect(() => {
+    aktuell.current = {
+      geladen,
+      hochgeladen,
+      wartend: verarbeitung?.wartend ?? [],
+      speichert: speicher.art === "laeuft",
+    };
+    if (geladen?.sha) gesehen.current.add(geladen.sha);
+  }, [geladen, hochgeladen, verarbeitung, speicher]);
 
   /* ── Speichern ─────────────────────────────────────────────────────── */
 
@@ -264,6 +328,7 @@ export default function Verwaltung() {
       );
       setEigeneNachricht(null);
       setServerBefunde(null);
+      setFremd(false);
       /* Ohne Commit (stand schon so auf main, Verlauf nicht lesbar) gibt es
          nichts, worauf die Live-Meldung warten könnte. */
       setSpeicher(daten.commit ? { art: "veroeffentlicht", commit: daten.commit, seit: Date.now() } : { art: "ruhe" });
@@ -275,7 +340,7 @@ export default function Verwaltung() {
       return;
     }
     if (daten?.ok === false && daten.befunde?.length) setServerBefunde({ fuer: gesendet, befunde: daten.befunde });
-    setSpeicher({ art: "fehler", text: netzText(status, daten) });
+    setSpeicher({ art: "fehler", text: netzText(status, daten), anmelden: status === 404 });
   };
 
   /**
@@ -335,30 +400,77 @@ export default function Verwaltung() {
   const erledigt = useRef<Set<number> | null>(null);
   const beobachtetSeit = useRef(0);
 
+  /**
+   * Nach fertiger Verarbeitung den neuen Stand übernehmen: das Manifest
+   * immer. Hat die Action auch `lib/inhalt.json` geändert (Papierkorb
+   * geleert), den Inhalt nur, wenn dabei nichts Ungespeichertes verloren
+   * geht — sonst ein Band, denn das nächste Speichern läuft auf einen
+   * Konflikt. Eine `sha`, die schon einmal da war, ist kein neuer Stand,
+   * sondern GitHub, das kurz hinterherhinkt.
+   */
+  const nimmStand = useCallback((stand: Stand) => {
+    const { geladen: g, speichert } = aktuell.current;
+    if (!g) return;
+    const neuerInhalt = stand.sha !== g.sha && !gesehen.current.has(stand.sha);
+    if (neuerInhalt && gleich(g.basis, g.inhalt) && !speichert) {
+      setGeladen((x) =>
+        x && x.sha === g.sha
+          ? { ...x, inhalt: stand.inhalt, basis: stand.inhalt, sha: stand.sha, commit: "", bilder: stand.bilder }
+          : x && { ...x, bilder: stand.bilder },
+      );
+      setVeraltet(false);
+      return;
+    }
+    setGeladen((x) => x && { ...x, bilder: stand.bilder });
+    if (neuerInhalt) setFremd(true);
+  }, []);
+
   const schaueNach = useCallback(async () => {
+    /* Was vor der Abfrage unterwegs war — daran misst sich, was danach im Manifest stehen muss. */
+    const vorher = aktuell.current;
     const { status, daten } = await holeJson<Verarbeitung>("/api/admin/verarbeitung");
+    if (status === 404) {
+      /* Abgemeldet. Die Abfrage läuft bis zur Zeitgrenze weiter (sie kostet
+         nichts) — nach einer Anmeldung im anderen Tab geht es von selbst weiter. */
+      setAnstossFehler({ text: netzText(404, null), anmelden: true });
+      return;
+    }
     if (status !== 200 || !daten || !Array.isArray(daten.wartend)) return;
+    setAnstossFehler((f) => (f?.anmelden ? null : f));
     setVerarbeitung(daten);
-    let auswertung;
     if (erledigt.current === null) {
       /* Erster Blick: Was schon fertig ist, ist alt — es steckt im Manifest,
-         das gerade geladen wurde. */
+         das gerade geladen wurde. War der letzte Lauf rot und wartet noch
+         etwas, soll Jakob das aber sehen (und es verwerfen können). */
       erledigt.current = new Set(daten.laeufe.filter((l) => l.status === "completed").map((l) => l.id));
-      auswertung = werteAus(daten, erledigt.current);
-    } else {
-      auswertung = werteAus(daten, erledigt.current);
-      for (const l of [...auswertung.erfolgreich, ...auswertung.fehlgeschlagen]) erledigt.current.add(l.id);
+      const rot = letzterFehlschlag(daten);
+      if (rot) setLaufFehler({ url: rot.url });
     }
+    const auswertung = werteAus(daten, erledigt.current);
+    for (const l of auswertung.fehlgeschlagen) erledigt.current.add(l.id);
+    /* Ein erfolgreicher Lauf gilt erst als ausgewertet, wenn seine Bilder im
+       geholten Manifest stehen — sonst nächste Runde noch einmal. */
+    let offen = false;
     if (auswertung.erfolgreich.length > 0) {
-      await holeBilder();
-      /* Was nicht mehr im Eingang liegt, ist verarbeitet. */
-      setHochgeladen((h) => h.filter((s) => daten.wartend.includes(s)));
-      setLaufFehler(null);
+      const bisher = [...vorher.hochgeladen, ...vorher.wartend].filter((s) => !verworfen.current.has(s));
+      const erwartet = erwarteteBilder(bisher, daten.wartend, vorher.geladen?.bilder ?? {});
+      const erg = await holeStand();
+      if ("stand" in erg && angekommen(erwartet, erg.stand.bilder)) {
+        for (const l of auswertung.erfolgreich) erledigt.current.add(l.id);
+        nimmStand(erg.stand);
+        /* Was nicht mehr im Eingang liegt, ist verarbeitet. Nur, was vor der
+           Abfrage schon hochgeladen war — Späteres stand noch gar nicht darin. */
+        const fertig = new Set(vorher.hochgeladen.filter((s) => !daten.wartend.includes(s)));
+        setHochgeladen((h) => h.filter((s) => !fertig.has(s)));
+        setLaufFehler(null);
+      } else {
+        offen = true;
+      }
     }
     if (auswertung.fehlgeschlagen.length > 0) setLaufFehler({ url: auswertung.fehlgeschlagen[0].url });
-    const weiter = daten.wartend.length > 0 || auswertung.laufend;
+    const weiter = daten.wartend.length > 0 || auswertung.laufend || offen;
     setBeobachten(weiter && Date.now() - beobachtetSeit.current < VERARBEITUNG_HOECHSTENS);
-  }, [holeBilder]);
+  }, [nimmStand]);
 
   const konf = geladen?.konfiguration;
   const bereit = geladen !== null;
@@ -371,20 +483,34 @@ export default function Verwaltung() {
 
   useEffect(() => {
     if (!beobachten) return;
-    const t = window.setInterval(() => void schaueNach(), VERARBEITUNG_ABSTAND);
+    const t = window.setInterval(() => {
+      /* Die Grenze **vor** dem Abruf: Scheitert jeder Abruf (abgemeldet,
+         offline), käme eine Prüfung danach nie an die Reihe. */
+      if (Date.now() - beobachtetSeit.current > VERARBEITUNG_HOECHSTENS) {
+        setBeobachten(false);
+        return;
+      }
+      void schaueNach();
+    }, VERARBEITUNG_ABSTAND);
     return () => window.clearInterval(t);
   }, [beobachten, schaueNach]);
 
   const stosseAn = useCallback(async () => {
     setAnstossFehler(null);
+    setStartet(true);
     const { status, daten } = await sendeJson<VerarbeitenAntwort>("/api/admin/verarbeiten", {});
+    setStartet(false);
     if (daten?.ok !== true) {
-      setAnstossFehler(netzText(status, daten));
+      setAnstossFehler({ text: netzText(status, daten), anmelden: status === 404 });
+      /* Gleich nachsehen, was wartet: Der Stand vom Öffnen der Seite kennt
+         die eben hochgeladenen Bilder nicht, und ohne ihn fehlte der Knopf
+         zum Wiederholen. */
+      void schaueNach();
       return;
     }
     beobachtetSeit.current = Date.now();
     setBeobachten(true);
-  }, []);
+  }, [schaueNach]);
 
   /* ── Hochladen ─────────────────────────────────────────────────────── */
 
@@ -395,6 +521,8 @@ export default function Verwaltung() {
      nächsten Rendern, damit zwei schnelle Auswahlen nicht dieselbe Nummer
      bekommen. */
   const vergeben = useRef(new Set<string>());
+  /* Je laufender Übertragung ihr Abbruch („Abbrechen"). */
+  const abbrueche = useRef(new Map<number, AbortController>());
 
   const setzeAuftrag = (id: number, teil: Partial<Auftrag>) =>
     setAuftraege((liste) => liste.map((a) => (a.id === id ? { ...a, ...teil } : a)));
@@ -406,39 +534,55 @@ export default function Verwaltung() {
     /* Eine Datei nach der anderen: Der Worker hält jede ganz im Speicher. */
     for (let a = schlange.current.shift(); a; a = schlange.current.shift()) {
       const { id, datei, ziel, typ } = a;
+      const abbruch = new AbortController();
+      abbrueche.current.set(id, abbruch);
       setzeAuftrag(id, { zustand: "laeuft" });
-      const antwort = await sendeDatei(datei, ziel, typ, (anteil) => setzeAuftrag(id, { anteil }));
+      const antwort = await sendeDatei(datei, ziel, typ, (anteil) => setzeAuftrag(id, { anteil }), abbruch.signal);
+      abbrueche.current.delete(id);
       if (antwort.ok) {
         geschafft++;
+        verworfen.current.delete(ziel);
         setHochgeladen((h) => (h.includes(ziel) ? h : [...h, ziel]));
-        setzeAuftrag(id, { zustand: "fertig", anteil: 1 });
+        /* Ein Erfolg auf ein festes Ziel erledigt ältere Fehlversuche dafür. */
+        setAuftraege((liste) =>
+          liste
+            .filter((x) => x.id === id || x.art !== null || x.ziel !== ziel || !gescheitert(x))
+            .map((x) => (x.id === id ? { ...x, zustand: "fertig", anteil: 1 } : x)),
+        );
       } else {
         vergeben.current.delete(ziel);
-        setzeAuftrag(id, { zustand: "fehler", text: antwort.text });
+        setzeAuftrag(
+          id,
+          abbruch.signal.aborted
+            ? { zustand: "abgebrochen", datei }
+            : { zustand: "fehler", text: antwort.text, anmelden: "anmelden" in antwort, datei },
+        );
       }
     }
     pumpeLaeuft.current = false;
     if (geschafft > 0) await stosseAn();
   };
 
-  const ladeHoch = (liste: { datei: File; ziel: string }[]) => {
+  const reiheEin = (liste: { datei: File; ziel: string }[], art: Zielart | null) => {
     const neu: Auftrag[] = [];
     for (const { datei, ziel } of liste) {
-      const id = naechsteId.current++;
+      const auftrag = { id: naechsteId.current++, name: datei.name, ziel, art, anteil: 0 };
       const pruefung = pruefeDatei(datei);
       if (!pruefung.ok) {
-        neu.push({ id, name: datei.name, ziel, anteil: 0, zustand: "fehler", text: pruefung.text });
+        neu.push({ ...auftrag, zustand: "fehler", text: pruefung.text });
       } else if (!ZIEL.test(ziel)) {
-        neu.push({ id, name: datei.name, ziel, anteil: 0, zustand: "fehler", text: "Ungültiges Ziel." });
+        neu.push({ ...auftrag, zustand: "fehler", text: "Ungültiges Ziel." });
       } else {
         vergeben.current.add(ziel);
-        schlange.current.push({ id, datei, ziel, typ: pruefung.typ });
-        neu.push({ id, name: datei.name, ziel, anteil: 0, zustand: "wartet" });
+        schlange.current.push({ id: auftrag.id, datei, ziel, typ: pruefung.typ });
+        neu.push({ ...auftrag, zustand: "wartet" });
       }
     }
     setAuftraege((a) => [...a.filter((x) => x.zustand !== "fertig"), ...neu]);
     void pumpe();
   };
+
+  const ladeHoch = (liste: { datei: File; ziel: string }[]) => reiheEin(liste, null);
 
   const ladeNeueHoch = (art: Zielart, dateien: File[]) => {
     if (!geladen) return;
@@ -453,12 +597,54 @@ export default function Verwaltung() {
     const wahl = naechsteZiele(art, gut.length, belegt);
     if (!wahl.ok) {
       const id = naechsteId.current++;
-      setAuftraege((a) => [...a, { id, name: `${gut.length} Dateien`, ziel: "", anteil: 0, zustand: "fehler", text: wahl.text }]);
+      setAuftraege((a) => [
+        ...a,
+        { id, name: `${gut.length} Dateien`, ziel: "", art, anteil: 0, zustand: "fehler", text: wahl.text },
+      ]);
       return;
     }
     /* Ungeeignete Dateien laufen mit — mit Ziel `""`, damit sie als Fehler
        mit Begründung in der Liste erscheinen statt still wegzufallen. */
-    ladeHoch([...gut.map((datei, n) => ({ datei, ziel: wahl.ziele[n] })), ...schlecht.map((datei) => ({ datei, ziel: "" }))]);
+    reiheEin(
+      [...gut.map((datei, n) => ({ datei, ziel: wahl.ziele[n] })), ...schlecht.map((datei) => ({ datei, ziel: "" }))],
+      art,
+    );
+  };
+
+  /** „Abbrechen": Wartendes kommt aus der Schlange, Laufendes bricht ab. */
+  const brichAb = (a: Auftrag) => {
+    const laufend = abbrueche.current.get(a.id);
+    if (laufend) {
+      laufend.abort();
+      return;
+    }
+    const eintrag = schlange.current.find((x) => x.id === a.id);
+    if (!eintrag) return;
+    schlange.current = schlange.current.filter((x) => x.id !== a.id);
+    vergeben.current.delete(a.ziel);
+    setzeAuftrag(a.id, { zustand: "abgebrochen", datei: eintrag.datei });
+  };
+
+  /** „Noch einmal": dieselbe Datei — ein neues Bild bekommt dabei eine frische Nummer. */
+  const nochEinmal = (a: Auftrag) => {
+    const datei = a.datei;
+    if (!datei) return;
+    setAuftraege((liste) => liste.filter((x) => x.id !== a.id));
+    if (a.art === null) reiheEin([{ datei, ziel: a.ziel }], null);
+    else ladeNeueHoch(a.art, [datei]);
+  };
+
+  const blendeAus = (id: number) => setAuftraege((liste) => liste.filter((x) => x.id !== id));
+
+  /** Nach „Verwerfen": Der Schlüssel ist aus dem Eingang — sofort aus der Anzeige, dann frisch nachsehen. */
+  const beiVerworfen = (s: string) => {
+    verworfen.current.add(s);
+    vergeben.current.delete(s);
+    setHochgeladen((h) => h.filter((x) => x !== s));
+    setVerarbeitung((v) => v && { ...v, wartend: v.wartend.filter((x) => x !== s) });
+    /* Nichts wartet mehr: Dann ist auch der rote Lauf erledigt. */
+    if ((verarbeitung?.wartend ?? []).every((x) => x === s)) setLaufFehler(null);
+    void schaueNach();
   };
 
   /* ── Darstellung ───────────────────────────────────────────────────── */
@@ -503,6 +689,12 @@ export default function Verwaltung() {
   const kannSpeichern =
     geladen.konfiguration.github && ungespeichert && fehler.length === 0 && speicher.art !== "laeuft" && !veraltet;
 
+  /* Warum das letzte Speichern scheiterte — solange nichts Wichtigeres in der Leiste steht. */
+  const speicherFehler =
+    speicher.art === "fehler" && ungespeichert && geladen.konfiguration.github && !veraltet && fehler.length === 0
+      ? speicher
+      : null;
+
   const status = !geladen.konfiguration.github
     ? "Speichern ist noch nicht eingerichtet."
     : veraltet
@@ -511,17 +703,19 @@ export default function Verwaltung() {
         ? "Speichert …"
         : fehler.length > 0 && ungespeichert
           ? `Erst ${fehler.length === 1 ? "den Fehler" : `die ${fehler.length} Fehler`} oben beheben, dann speichern.`
-          : speicher.art === "fehler" && ungespeichert
-            ? speicher.text
+          : speicherFehler
+            ? speicherFehler.text
             : ungespeichert
               ? "Ungespeicherte Änderungen."
-              : speicher.art === "veroeffentlicht"
-                ? "Gespeichert. Wird veröffentlicht … (1–2 Minuten)"
-                : speicher.art === "live"
-                  ? "Gespeichert und live."
-                  : speicher.art === "dauert"
-                    ? "Gespeichert, aber noch nicht live. Schau in ein paar Minuten auf der Seite nach."
-                    : "Alles gespeichert.";
+              : laedtNoch > 0
+                ? `Lädt noch ${laedtNoch} ${laedtNoch === 1 ? "Bild" : "Bilder"} hoch — bitte die Seite offen lassen.`
+                : speicher.art === "veroeffentlicht"
+                  ? "Gespeichert. Wird veröffentlicht … (1–2 Minuten)"
+                  : speicher.art === "live"
+                    ? "Gespeichert und live."
+                    : speicher.art === "dauert"
+                      ? "Gespeichert, aber noch nicht live. Schau in ein paar Minuten auf der Seite nach."
+                      : "Alles gespeichert.";
 
   const wechsleMitTaste = (e: KeyboardEvent<HTMLButtonElement>, platz: number) => {
     const schritt = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
@@ -535,6 +729,12 @@ export default function Verwaltung() {
   const offeneAuftraege = auftraege.filter((a) => a.zustand !== "fertig" || unterwegs.has(a.ziel));
   const wartend = verarbeitung?.wartend ?? [];
   const laufend = verarbeitung?.laeufe.some((l) => l.status !== "completed") ?? false;
+  /* Einmal für den ganzen Bereich, nicht in jeder Zeile. */
+  const abgemeldet = anstossFehler?.anmelden || offeneAuftraege.some((a) => a.zustand === "fehler" && a.anmelden);
+  /* Anstoßen geht, wenn etwas wartet — oder wenn eben Hochgeladenes nicht
+     angestoßen werden konnte und der Blick in den Eingang auch scheiterte. */
+  const anstossbar =
+    !laufend && geladen.konfiguration.github && (wartend.length > 0 || (anstossFehler !== null && hochgeladen.length > 0));
 
   return (
     <SitzungKontext.Provider value={sitzung}>
@@ -549,9 +749,20 @@ export default function Verwaltung() {
               method="post"
               action="/api/admin/abmelden"
               onSubmit={(e) => {
-                if (ungespeichert && !window.confirm("Ungespeicherte Änderungen gehen verloren. Trotzdem abmelden?")) {
+                const frage =
+                  ungespeichert && laedtNoch > 0
+                    ? "Ungespeicherte Änderungen gehen verloren, und das Hochladen bricht ab. Trotzdem abmelden?"
+                    : laedtNoch > 0
+                      ? "Es werden noch Bilder hochgeladen — das bricht ab. Trotzdem abmelden?"
+                      : ungespeichert
+                        ? "Ungespeicherte Änderungen gehen verloren. Trotzdem abmelden?"
+                        : null;
+                if (frage && !window.confirm(frage)) {
                   e.preventDefault();
+                  return;
                 }
+                /* Bestätigt — die Warnung beim Verlassen fragte sonst ein zweites Mal. */
+                verlassenErlaubt.current = true;
               }}
             >
               <button type="submit" className={styles.knopfLeise}>
@@ -580,6 +791,14 @@ export default function Verwaltung() {
         {!geladen.konfiguration.eingang && (
           <div className={styles.band} role="status">
             <p>Hochladen ist noch nicht eingerichtet — dafür fehlt der Bildspeicher für neue Bilder. Gib Jan Bescheid.</p>
+          </div>
+        )}
+        {fremd && (
+          <div className={styles.band} role="status">
+            <p>
+              Inzwischen wurde der Inhalt anderswo geändert (zum Beispiel hat die Bildverarbeitung den Papierkorb
+              geleert). Beim Speichern gibt es deshalb eine Rückfrage.
+            </p>
           </div>
         )}
         {/* Neu laden ist gescheitert, während schon ein Stand da ist — sonst
@@ -614,7 +833,41 @@ export default function Verwaltung() {
                           ? `${Math.round(a.anteil * 100)} %`
                           : a.zustand === "fertig"
                             ? "hochgeladen"
-                            : "nicht hochgeladen"}
+                            : a.zustand === "abgebrochen"
+                              ? "abgebrochen"
+                              : "nicht hochgeladen"}
+                    </span>
+                    <span className={styles.auftragKnoepfe}>
+                      {(a.zustand === "wartet" || a.zustand === "laeuft") && (
+                        <button
+                          type="button"
+                          className={styles.knopfLeise}
+                          aria-label={`Abbrechen: ${a.name}`}
+                          onClick={() => brichAb(a)}
+                        >
+                          Abbrechen
+                        </button>
+                      )}
+                      {gescheitert(a) && a.datei && (
+                        <button
+                          type="button"
+                          className={styles.knopfLeise}
+                          aria-label={`Noch einmal: ${a.name}`}
+                          onClick={() => nochEinmal(a)}
+                        >
+                          Noch einmal
+                        </button>
+                      )}
+                      {gescheitert(a) && (
+                        <button
+                          type="button"
+                          className={styles.knopfLeise}
+                          aria-label={`Ausblenden: ${a.name}`}
+                          onClick={() => blendeAus(a.id)}
+                        >
+                          Ausblenden
+                        </button>
+                      )}
                     </span>
                     {a.zustand === "laeuft" && (
                       <progress className={styles.fortschritt} max={1} value={a.anteil} aria-label={`${a.name} lädt`} />
@@ -630,16 +883,11 @@ export default function Verwaltung() {
                 : wartend.length > 0
                   ? `${wartend.length === 1 ? "Ein Bild wartet" : `${wartend.length} Bilder warten`} auf die Verarbeitung.`
                   : offeneAuftraege.some((a) => a.zustand === "fertig")
-                    ? "Hochgeladen. Die Verarbeitung startet gleich."
+                    ? anstossFehler
+                      ? "Hochgeladen, aber die Verarbeitung ließ sich nicht starten."
+                      : "Hochgeladen. Die Verarbeitung startet gleich."
                     : ""}
             </p>
-            {wartend.length > 0 && !laufend && geladen.konfiguration.github && (
-              <div className={styles.knopfreihe}>
-                <button type="button" className={styles.knopf} onClick={() => void stosseAn()}>
-                  Verarbeitung starten
-                </button>
-              </div>
-            )}
             {laufFehler && (
               <p className={styles.fehlerText}>
                 Die Verarbeitung ist fehlgeschlagen. Die Bilder liegen weiter sicher im Eingang.{" "}
@@ -648,7 +896,47 @@ export default function Verwaltung() {
                 </a>
               </p>
             )}
-            {anstossFehler && <p className={styles.fehlerText}>{anstossFehler}</p>}
+            {anstossFehler && <p className={styles.fehlerText}>{anstossFehler.text}</p>}
+            {abgemeldet && (
+              <p className={styles.leise}>
+                <AnmeldenLink />
+              </p>
+            )}
+            {anstossbar && (
+              <div className={styles.knopfreihe}>
+                <button type="button" className={styles.knopf} disabled={startet} onClick={() => void stosseAn()}>
+                  {startet ? "Startet …" : anstossFehler ? "Noch einmal versuchen" : "Verarbeitung starten"}
+                </button>
+              </div>
+            )}
+            {/* Scheitert ein Bild immer wieder, hängt es sonst für immer im
+                Eingang — und jeder Lauf endet rot. Während eines Laufs nicht:
+                Dann liest die Action gerade daraus. */}
+            {laufFehler && !laufend && wartend.length > 0 && (
+              <>
+                <p className={styles.leise}>
+                  Scheitert es immer wieder, liegt es meist an einem Bild. Verwirf es und lade es neu als JPEG exportiert
+                  noch einmal hoch:
+                </p>
+                <ul>
+                  {wartend.map((s) => (
+                    <li key={s} className={styles.auftrag}>
+                      <span>{bildBezeichnung(geladen.inhalt, s)}</span>
+                      <span className={styles.auftragKnoepfe}>
+                        <button
+                          type="button"
+                          className={styles.knopfLeise}
+                          aria-label={`Verwerfen: ${bildBezeichnung(geladen.inhalt, s)}`}
+                          onClick={() => setVerwerfen(s)}
+                        >
+                          Verwerfen
+                        </button>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
           </section>
         )}
 
@@ -697,6 +985,12 @@ export default function Verwaltung() {
           <div className={styles.leisteInnen}>
             <p className={styles.leisteStatus} role="status">
               {status}
+              {speicherFehler?.anmelden && (
+                <>
+                  {" "}
+                  <AnmeldenLink />
+                </>
+              )}
             </p>
             {geladen.konfiguration.github && ungespeichert && (
               <div className={styles.leisteNachricht}>
@@ -730,6 +1024,15 @@ export default function Verwaltung() {
         </div>
 
         {panel && <BildPanel schluessel={panel} beiSchliessen={() => setPanel(null)} />}
+
+        {verwerfen && (
+          <VerwerfenDialog
+            schluessel={verwerfen}
+            name={bildBezeichnung(geladen.inhalt, verwerfen)}
+            beiVerworfen={beiVerworfen}
+            beiSchliessen={() => setVerwerfen(null)}
+          />
+        )}
 
         {konflikt && (
           <Dialog titel="Inzwischen hat jemand anderes gespeichert" beiSchliessen={schliesseKonflikt}>
@@ -783,5 +1086,76 @@ export default function Verwaltung() {
         )}
       </main>
     </SitzungKontext.Provider>
+  );
+}
+
+/**
+ * Rückfrage vor dem Verwerfen eines Bilds, das noch im Eingang liegt
+ * (`DELETE /api/admin/hochladen`). Schließt erst, wenn es geklappt hat —
+ * sonst steht der Grund darin.
+ */
+function VerwerfenDialog({
+  schluessel,
+  name,
+  beiVerworfen,
+  beiSchliessen,
+}: {
+  schluessel: string;
+  name: string;
+  beiVerworfen: (schluessel: string) => void;
+  beiSchliessen: () => void;
+}) {
+  const [laeuft, setLaeuft] = useState(false);
+  const [grund, setGrund] = useState<Hinweis | null>(null);
+
+  return (
+    <Dialog titel={`„${name}“ verwerfen?`} beiSchliessen={beiSchliessen}>
+      {(schliesse) => (
+        <>
+          <p className={styles.text}>
+            Das Bild wurde noch nicht verarbeitet. Verwerfen löscht es aus dem Eingang; auf der Seite ändert sich
+            nichts. Exportier es am besten neu als JPEG und lade es noch einmal hoch.
+          </p>
+          {grund && (
+            <p className={styles.fehlerText}>
+              {grund.text}
+              {grund.anmelden && (
+                <>
+                  {" "}
+                  <AnmeldenLink />
+                </>
+              )}
+            </p>
+          )}
+          <div className={styles.knopfreihe}>
+            <button
+              type="button"
+              className={styles.knopfHaupt}
+              disabled={laeuft}
+              onClick={async () => {
+                setLaeuft(true);
+                setGrund(null);
+                const { status, daten } = await holeJson<HochladenAntwort>(
+                  `/api/admin/hochladen?ziel=${encodeURIComponent(schluessel)}`,
+                  { method: "DELETE" },
+                );
+                setLaeuft(false);
+                if (daten?.ok === true) {
+                  beiVerworfen(schluessel);
+                  schliesse();
+                  return;
+                }
+                setGrund({ text: netzText(status, daten), anmelden: status === 404 });
+              }}
+            >
+              {laeuft ? "Verwirft …" : "Verwerfen"}
+            </button>
+            <button type="button" className={styles.knopf} onClick={schliesse}>
+              Abbrechen
+            </button>
+          </div>
+        </>
+      )}
+    </Dialog>
   );
 }

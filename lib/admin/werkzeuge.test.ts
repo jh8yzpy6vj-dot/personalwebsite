@@ -8,6 +8,9 @@ import {
   aendereArbeit,
   aendereFilm,
   alleFotos,
+  angekommen,
+  erwarteteBilder,
+  letzterFehlschlag,
   alleUeberBilder,
   ausschnittAus,
   ausserhalb,
@@ -507,6 +510,38 @@ describe("Hochladen und Verarbeitung", () => {
     expect(danach.erfolgreich).toEqual([]);
     expect(danach.fehlgeschlagen).toEqual([]);
     expect(werteAus({ wartend: [], laeufe: [lauf(4, "completed", "cancelled")] }, new Set()).fehlgeschlagen).toEqual([]);
+  });
+
+  it("zeigt beim ersten Blick einen roten letzten Lauf — nur, wenn noch etwas wartet", () => {
+    const rot = [lauf(3, "completed", "failure"), lauf(2, "completed", "success")];
+    expect(letzterFehlschlag({ wartend: ["ueber/07"], laeufe: rot })?.id).toBe(3);
+    expect(letzterFehlschlag({ wartend: [], laeufe: rot })).toBeNull();
+    // Läuft gerade ein neuer Lauf, zählt erst dessen Ergebnis.
+    expect(letzterFehlschlag({ wartend: ["ueber/07"], laeufe: [lauf(4, "in_progress", null), ...rot] })).toBeNull();
+    expect(letzterFehlschlag({ wartend: ["ueber/07"], laeufe: [lauf(4, "queued", null), ...rot] })).toBeNull();
+    // Danach grün, abgebrochen oder gar kein Lauf: nichts melden.
+    expect(letzterFehlschlag({ wartend: ["ueber/07"], laeufe: [lauf(4, "completed", "success"), ...rot] })).toBeNull();
+    expect(letzterFehlschlag({ wartend: ["ueber/07"], laeufe: [lauf(4, "completed", "cancelled"), ...rot] })).toBeNull();
+    expect(letzterFehlschlag({ wartend: ["ueber/07"], laeufe: [] })).toBeNull();
+  });
+
+  it("erwartet nach einem Lauf nur neue Bilder, die den Eingang verlassen haben", () => {
+    const vorher = { "ueber/01": {}, portrait: {} };
+    const bisher = ["ueber/01", "ueber/07", "ueber/08", "arbeiten/stamp/04", "ueber/07"];
+    // ueber/01 ist ersetzt (steht schon im Manifest), ueber/08 liegt noch im Eingang.
+    expect(erwarteteBilder(bisher, ["ueber/08"], vorher)).toEqual(["arbeiten/stamp/04", "ueber/07"]);
+    expect(erwarteteBilder([], [], vorher)).toEqual([]);
+  });
+
+  it("ein Manifest gilt erst als angekommen, wenn alle erwarteten Bilder darin stehen", () => {
+    const neu = { "ueber/01": {}, "ueber/07": {} };
+    expect(angekommen(["ueber/07"], neu)).toBe(true);
+    // GitHub liefert noch das alte Manifest: die neuen Bilder fehlen.
+    expect(angekommen(["ueber/07", "arbeiten/stamp/04"], neu)).toBe(false);
+    // Nichts erwartet (z. B. nur ersetzt): jedes Manifest passt.
+    expect(angekommen([], {})).toBe(true);
+    // Nur eigene Schlüssel zählen, nichts aus dem Prototyp.
+    expect(angekommen(["toString"], {})).toBe(false);
   });
 
   it("schreibt Größen deutsch", () => {

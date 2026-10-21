@@ -107,6 +107,18 @@ export async function legeAb(
   }
 }
 
+/**
+ * Eine Datei aus dem Eingang löschen („Verwerfen"). Gab es sie nicht mehr,
+ * ist das kein Fehler — das Ziel ist erreicht.
+ */
+export async function entferne(cfg: EingangKonfig, key: string): Promise<void> {
+  const antwort = await sende(cfg, `${bucketAdresse(cfg)}/${schluesselTeil(key)}`, { method: "DELETE" });
+  if (!antwort.ok && antwort.status !== 404) {
+    // ⚠️ Den Rumpf nicht weiterreichen: S3-Fehler-XML nennt u. a. die Access-Key-ID.
+    throw new EingangFehler(`Löschen im Bildspeicher fehlgeschlagen (${antwort.status}).`, 502);
+  }
+}
+
 function entschluessele(xml: string): string {
   return xml
     .replace(/&lt;/g, "<")

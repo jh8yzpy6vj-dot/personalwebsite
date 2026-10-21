@@ -1,5 +1,5 @@
 import { fehlerText, json, leseBegrenzt, logText } from "@/lib/admin/antwort";
-import { erkenneBildtyp, legeAb } from "@/lib/admin/eingang";
+import { entferne, erkenneBildtyp, legeAb, liste, ohneEndung } from "@/lib/admin/eingang";
 import { eingangZugang, umgebung } from "@/lib/admin/umgebung";
 import { pruefeHerkunft, zugangOder404 } from "@/lib/admin/zugang";
 import { BILDTYPEN, MAX_UPLOAD_BYTES, ZIEL, type HochladenAntwort } from "@/lib/admin/vertrag";
@@ -12,6 +12,9 @@ import { BILDTYPEN, MAX_UPLOAD_BYTES, ZIEL, type HochladenAntwort } from "@/lib/
  *
  * Verarbeitet wird hier nichts — das macht die Medien-Action, sobald die
  * Verwaltung `verarbeiten` aufruft (Metadaten weg, Varianten rechnen).
+ *
+ * `DELETE /api/admin/hochladen?ziel=<schluessel>` — ein Bild, das noch im
+ * Eingang liegt, verwerfen (siehe unten).
  */
 export const dynamic = "force-dynamic";
 
@@ -62,6 +65,45 @@ export async function PUT(request: Request): Promise<Response> {
     await legeAb(eingang, `${ziel}.${endung}`, bytes, typ);
   } catch (e) {
     console.error(`Verwaltung: Hochladen fehlgeschlagen (${logText(e)})`);
+    return abgelehnt(fehlerText(e), 502);
+  }
+  return json({ ok: true, schluessel: ziel } satisfies HochladenAntwort);
+}
+
+/**
+ * `DELETE /api/admin/hochladen?ziel=<schluessel>` — **Verwerfen**: alle
+ * Dateien `<ziel>.<endung>` aus dem Eingang löschen.
+ *
+ * Wofür: Ein Bild, das die Medien-Action nicht verarbeiten kann (beschädigt,
+ * eine TIFF-Art, die sie nicht liest), bliebe sonst für immer im Eingang,
+ * und jeder Lauf endete rot. Vorher konnte nur Jan es im R2-Dashboard
+ * entfernen. Auf der Seite ändert sich nichts: Im Eingang liegt nur, was
+ * noch nicht verarbeitet ist.
+ *
+ * Antwortet auch dann mit `ok`, wenn nichts (mehr) da war — das Ziel ist
+ * erreicht.
+ */
+export async function DELETE(request: Request): Promise<Response> {
+  const ohneZugang = await zugangOder404(request);
+  if (ohneZugang) return ohneZugang;
+  const fremd = pruefeHerkunft(request);
+  if (fremd) return fremd;
+
+  const eingang = eingangZugang(await umgebung());
+  if (!eingang) {
+    return abgelehnt("Hochladen ist noch nicht eingerichtet (Bildspeicher fehlt). Bitte Jan Bescheid geben.", 503);
+  }
+
+  // ⚠️ Wie beim Hochladen: nur, was exakt auf `ZIEL` passt — sonst ließe sich Fremdes löschen.
+  const ziel = new URL(request.url).searchParams.get("ziel") ?? "";
+  if (!ZIEL.test(ziel)) return abgelehnt("Unbekanntes Ziel für das Bild.", 400);
+
+  try {
+    for (const key of await liste(eingang)) {
+      if (ohneEndung(key) === ziel) await entferne(eingang, key);
+    }
+  } catch (e) {
+    console.error(`Verwaltung: Verwerfen fehlgeschlagen (${logText(e)})`);
     return abgelehnt(fehlerText(e), 502);
   }
   return json({ ok: true, schluessel: ziel } satisfies HochladenAntwort);

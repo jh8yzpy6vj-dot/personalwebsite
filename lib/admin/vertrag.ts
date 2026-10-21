@@ -125,6 +125,11 @@ export const COMMIT = /^[0-9a-f]{7,40}$/;
  * im **privaten** Eingangs-Bucket als `<ziel>.<endung>`; die Medien-Action
  * entfernt Standort- und andere Metadaten und legt sie nach `original/`.
  * Ein vorhandenes Bild mit demselben Schlüssel wird dabei **ersetzt**.
+ *
+ * `DELETE /api/admin/hochladen?ziel=<schluessel>` (seit 2026-10-21) —
+ * **Verwerfen**: löscht `<ziel>.<endung>` aus dem Eingang, solange es dort
+ * noch liegt. Für Bilder, an denen die Medien-Action scheitert. Dieselbe
+ * Antwort; `ok` auch, wenn nichts (mehr) da war.
  */
 export type HochladenAntwort = { ok: true; schluessel: string } | { ok: false; text: string };
 

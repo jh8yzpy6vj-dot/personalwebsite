@@ -766,9 +766,16 @@ select.eingabe {
 
 .auftrag {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: var(--space-xs) var(--space-md);
+}
+
+/* „Abbrechen", „Noch einmal", „Ausblenden", „Verwerfen" — rechts in der Zeile. */
+.auftragKnoepfe {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-xs);
 }
 
 .auftrag span:first-child {

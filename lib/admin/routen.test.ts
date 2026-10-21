@@ -170,6 +170,7 @@ describe("ohne Einrichtung", () => {
       verlauf.GET(new Request(`${BASIS}/verlauf`)),
       zuruecksetzen.POST(new Request(`${BASIS}/zuruecksetzen`, { method: "POST", headers: eigene })),
       hochladen.PUT(new Request(`${BASIS}/hochladen?ziel=portrait`, { method: "PUT", headers: eigene })),
+      hochladen.DELETE(new Request(`${BASIS}/hochladen?ziel=portrait`, { method: "DELETE", headers: eigene })),
       verarbeiten.POST(new Request(`${BASIS}/verarbeiten`, { method: "POST", headers: eigene })),
       verarbeitung.GET(new Request(`${BASIS}/verarbeitung`)),
       live.GET(new Request(`${BASIS}/live`)),
@@ -753,6 +754,91 @@ describe("hochladen", () => {
     mitEingang();
     const a = await hochladen.PUT(anfrage("portrait", JPEG, "image/jpeg", { origin: "https://boese.example" }));
     expect(a.status).toBe(403);
+  });
+});
+
+describe("hochladen: Verwerfen (DELETE)", () => {
+  const verwirf = (ziel: string, kopf: Record<string, string> = eigene) =>
+    hochladen.DELETE(
+      new Request(`${BASIS}/hochladen?ziel=${encodeURIComponent(ziel)}`, { method: "DELETE", headers: kopf }),
+    );
+  /** Ein Eingang mit diesen Schlüsseln; DELETE gelingt. */
+  const eingangMit = (keys: string[]) =>
+    fakeFetch((_, methode) =>
+      methode === "DELETE"
+        ? new Response(null, { status: 204 })
+        : new Response(
+            `<ListBucketResult><IsTruncated>false</IsTruncated>${keys.map((k) => `<Contents><Key>${k}</Key></Contents>`).join("")}</ListBucketResult>`,
+          ),
+    );
+  const geloescht = () => aufrufe.filter((x) => x.methode === "DELETE").map((x) => x.url);
+
+  it("löscht jede Datei des Ziels aus dem Eingang — und nur die", async () => {
+    anmelden();
+    mitEingang();
+    eingangMit(["ueber/07.jpg", "ueber/07.tif", "ueber/08.jpg", "ueber/070.jpg", "arbeiten/stamp/07.jpg"]);
+    const a = await verwirf("ueber/07");
+    expect(a.status).toBe(200);
+    expect(await a.json()).toEqual({ ok: true, schluessel: "ueber/07" });
+    expect(geloescht()).toEqual([
+      "https://abc123.r2.cloudflarestorage.com/eingang/ueber/07.jpg",
+      "https://abc123.r2.cloudflarestorage.com/eingang/ueber/07.tif",
+    ]);
+  });
+
+  it("nichts mehr da: trotzdem ok, nichts gelöscht", async () => {
+    anmelden();
+    mitEingang();
+    eingangMit(["ueber/08.jpg"]);
+    const a = await verwirf("ueber/07");
+    expect(await a.json()).toEqual({ ok: true, schluessel: "ueber/07" });
+    expect(geloescht()).toEqual([]);
+  });
+
+  it("lehnt Ziele außerhalb von ZIEL ab, ohne den Eingang anzufassen", async () => {
+    anmelden();
+    mitEingang();
+    eingangMit(["ueber/07.jpg"]);
+    for (const ziel of ["../geheim", "original/x", "ueber/7", "portrait.jpg", ""]) {
+      expect((await verwirf(ziel)).status).toBe(400);
+    }
+    expect(aufrufe).toEqual([]);
+  });
+
+  it("lehnt fremde Herkunft ab", async () => {
+    anmelden();
+    mitEingang();
+    eingangMit(["portrait.jpg"]);
+    expect((await verwirf("portrait", { origin: "https://boese.example" })).status).toBe(403);
+    expect(aufrufe).toEqual([]);
+  });
+
+  it("ohne Anmeldung: 404", async () => {
+    vi.stubEnv("ADMIN_PASSWORT", "lange-genug-und-geheim");
+    mitEingang();
+    eingangMit(["portrait.jpg"]);
+    expect((await verwirf("portrait")).status).toBe(404);
+    expect(aufrufe).toEqual([]);
+  });
+
+  it("ohne Eingang: 503", async () => {
+    anmelden();
+    expect((await verwirf("portrait")).status).toBe(503);
+  });
+
+  it("Fehler des Bildspeichers: 502 mit Text für Jakob, ohne den Rumpf von R2", async () => {
+    anmelden();
+    mitEingang();
+    fakeFetch((_, methode) =>
+      methode === "DELETE"
+        ? new Response("<Error><AccessKeyId>KEYID</AccessKeyId></Error>", { status: 403 })
+        : new Response("<ListBucketResult><Contents><Key>portrait.jpg</Key></Contents></ListBucketResult>"),
+    );
+    const a = await verwirf("portrait");
+    expect(a.status).toBe(502);
+    const d = await a.json();
+    expect(d).toEqual({ ok: false, text: "Löschen im Bildspeicher fehlgeschlagen (403)." });
+    expect(JSON.stringify(d)).not.toContain("KEYID");
   });
 });
 

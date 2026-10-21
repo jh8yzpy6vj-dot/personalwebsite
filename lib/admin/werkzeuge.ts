@@ -765,8 +765,50 @@ export function werteAus(v: Verarbeitung, erledigt: ReadonlySet<number>): Auswer
   return {
     laufend: v.laeufe.some((l) => !fertig(l)),
     erfolgreich: neu.filter((l) => l.ergebnis === "success"),
-    fehlgeschlagen: neu.filter((l) => l.ergebnis !== "success" && l.ergebnis !== "cancelled" && l.ergebnis !== "skipped"),
+    fehlgeschlagen: neu.filter(fehlgeschlagen),
   };
+}
+
+/** Ein fertiger Lauf, der nicht geklappt hat. Abgebrochen und übersprungen zählen nicht — dann wird nachgeholt. */
+function fehlgeschlagen(l: Lauf): boolean {
+  return l.status === "completed" && l.ergebnis !== "success" && l.ergebnis !== "cancelled" && l.ergebnis !== "skipped";
+}
+
+/**
+ * Beim **ersten Blick** nach dem Öffnen: Ist der neueste fertige Lauf
+ * fehlgeschlagen und wartet noch etwas, gibt es diesen Lauf zurück, sonst
+ * `null`. Ohne das sähe Jakob nach dem Neuladen nur „Ein Bild wartet" —
+ * und nicht, dass es schon gescheitert ist und sich verwerfen lässt.
+ * Läuft gerade ein neuer Lauf, zählt erst dessen Ergebnis (`werteAus`).
+ */
+export function letzterFehlschlag(v: Verarbeitung): Lauf | null {
+  if (v.wartend.length === 0 || v.laeufe.some((l) => l.status !== "completed")) return null;
+  const neuester = v.laeufe[0];
+  return neuester && fehlgeschlagen(neuester) ? neuester : null;
+}
+
+/**
+ * Welche Bilder nach einem erfolgreichen Lauf im Manifest stehen **müssen**:
+ * die, die bisher unterwegs waren (hochgeladen oder im Eingang), jetzt nicht
+ * mehr im Eingang liegen und vorher nicht im Manifest standen. Ersetzte
+ * Bilder zählen nicht — ihr Schlüssel steht ohnehin schon darin.
+ */
+export function erwarteteBilder(
+  bisher: Iterable<string>,
+  wartend: readonly string[],
+  vorher: Record<string, unknown>,
+): string[] {
+  return [...new Set(bisher)].filter((s) => !wartend.includes(s) && !Object.hasOwn(vorher, s)).sort();
+}
+
+/**
+ * Stehen alle erwarteten Bilder im geholten Manifest? Erst dann gilt ein
+ * Lauf als ausgewertet. ⚠️ Status 200 allein reicht nicht: GitHub liefert
+ * kurz nach dem Commit der Action manchmal noch das alte Manifest — dann
+ * verschwänden die Platzhalter, ohne dass die neuen Bilder erscheinen.
+ */
+export function angekommen(erwartet: readonly string[], bilder: Record<string, unknown>): boolean {
+  return erwartet.every((s) => Object.hasOwn(bilder, s));
 }
 
 /** Megabyte, auf eine Stelle: „12,3 MB". */

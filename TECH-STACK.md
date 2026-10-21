@@ -124,7 +124,8 @@ Worker personalwebsite
   ├─ /api/admin/verarbeiten  startet die Medien-Action (workflow_dispatch)    │
   ├─ /api/admin/verarbeitung wartende Bilder + letzte Läufe der Action       ─┘
   ├─ /api/admin/live         aus welchem Commit die laufende Seite gebaut ist (BUILD_COMMIT)
-  └─ /api/admin/hochladen    legt die Bilddatei in den PRIVATEN Eingangs-Bucket (R2, S3-API)
+  └─ /api/admin/hochladen    legt die Bilddatei in den PRIVATEN Eingangs-Bucket (R2, S3-API);
+                             DELETE verwirft sie dort wieder (Bild, an dem die Action scheitert)
                                        │
 GitHub Action Medien (.github/workflows/medien.yml)
   eingang → papierkorb → medien → Commit „Medien: …" auf main  →  Cloudflare baut
@@ -218,6 +219,35 @@ Speichern, nichts wird aus der Geschichte gelöscht. Seit 2026-10-20:
    Größe und die ersten Bytes (ein PNG muss wie ein PNG anfangen) und legt die Datei als
    `<ziel>.<endung>` in den **privaten Eingangs-Bucket**.
 3. Danach stößt die Verwaltung die Medien-Action an und zeigt, was noch wartet.
+
+Seit 2026-10-21 ohne Sackgassen (`app/admin/hochladen.ts`, `Verwaltung.tsx`):
+
+- **Stillstandswache statt Zeitlimit.** Kommt 90 Sekunden lang kein `upload.onprogress`, bricht
+  die Übertragung ab („… kam 90 Sekunden lang nicht voran …"); sonst hielte ein hängender Upload
+  die ganze Schlange für immer auf (es geht streng eine Datei nach der anderen). Ein festes
+  Gesamtlimit gibt es bewusst nicht. Ist alles gesendet (`upload.onload`), endet die Wache — dann
+  schreibt nur noch der Server; hängt der, hilft „Abbrechen".
+- **„Abbrechen", „Noch einmal", „Ausblenden"** je Zeile. „Noch einmal" schickt dieselbe Datei; ein
+  neues Bild bekommt dabei die nächste freie Nummer (die alte kann inzwischen vergeben sein).
+- Solange etwas wartet oder lädt, **warnt der Browser beim Schließen** und „Abmelden" fragt nach
+  — genau einmal (`verlassenErlaubt`).
+- **Anstoß gescheitert** (`POST /api/admin/verarbeiten`): Die Verwaltung schaut sofort nach, was
+  wartet, und bietet „Noch einmal versuchen".
+- **Abfrage** (`/api/admin/verarbeitung`) alle 15 s, höchstens 30 Minuten nach dem letzten
+  Anstoß. Die Grenze wird **vor** dem Abruf geprüft — vorher fragte ein abgemeldeter oder
+  offline gegangener Tab endlos weiter. Bei 404 (abgemeldet) läuft sie bis dahin weiter: Nach der
+  Anmeldung in einem anderen Tab geht es von selbst weiter.
+- **Nach einem grünen Lauf** holt die Verwaltung `/api/admin/stand` und wertet den Lauf erst aus,
+  wenn die neuen Bilder im Manifest stehen (`erwarteteBilder`/`angekommen` in
+  `lib/admin/werkzeuge.ts`) — GitHub liefert direkt nach dem Commit der Action manchmal noch das
+  alte. Sonst nächste Runde noch einmal. Bringt der Stand eine neue `sha` (die Action hat den
+  Papierkorb geleert), übernimmt sie Inhalt und `sha`, wenn nichts ungespeichert ist; sonst nur die
+  Bilder, und ein Band kündigt die Rückfrage beim Speichern an. Eine `sha`, die die Verwaltung
+  schon hatte, gilt als „GitHub hinkt hinterher" und wird nicht übernommen — sonst drehte ein
+  verspäteter Abruf eine eigene Speicherung in der Anzeige zurück.
+- **Verwerfen.** War der letzte Lauf rot und läuft keiner, listet die Verwaltung die wartenden
+  Bilder mit „Verwerfen". `DELETE /api/admin/hochladen?ziel=…` (Zugang, Herkunft, `ZIEL` wie beim
+  Hochladen) löscht alle `<ziel>.<endung>` aus dem Eingang. Auf der Seite ändert sich nichts.
 
 ⚠️ **Warum ein eigener, privater Bucket.** Eine frisch hochgeladene Datei trägt alle
 Kameradaten, oft mit GPS. Läge sie auch nur Minuten im öffentlichen Bucket, wäre der Aufnahmeort
@@ -525,7 +555,7 @@ ein `GITHUB_TOKEN` dort zählt genauso wie einer in der Shell.
 | Band „Hochladen ist noch nicht eingerichtet" | Einer von `R2_ACCOUNT_ID`, `EINGANG_BUCKET`, `EINGANG_ACCESS_KEY_ID`, `EINGANG_SECRET_ACCESS_KEY` fehlt | Schritt 2 und 4 |
 | „… der Token ist abgelaufen oder falsch" | Token abgelaufen oder widerrufen (GitHub 401) | Token erneuern (Schritt 3) |
 | „… fehlende Rechte des Tokens oder zu viele Anfragen" / „nicht gefunden — Repo, Branch oder Rechte" | Token hat nicht Contents bzw. Actions „Read and write", gilt für ein anderes Repo, oder `GITHUB_REPO`/`GITHUB_BRANCH` falsch | Rechte des Tokens prüfen |
-| Dialog „Inzwischen hat jemand anderes gespeichert" | `lib/inhalt.json` auf `main` hat wirklich eine andere SHA als beim Laden (Jan, zweiter Tab, Medien-Action beim Entfernen abgelaufener Papierkorb-Einträge). Ein verlorenes Antwortpaket oder ein Wettlauf mit einem Push lösen ihn seit 2026-10-20 nicht mehr aus | Der Dialog nennt, was Neu laden verwirft. Neu laden, Änderung wiederholen — „Abbrechen" lässt die Änderungen zum Ansehen stehen, speichern lassen sie sich so nicht |
+| Dialog „Inzwischen hat jemand anderes gespeichert" | `lib/inhalt.json` auf `main` hat wirklich eine andere SHA als beim Laden (Jan, zweiter Tab, Medien-Action beim Entfernen abgelaufener Papierkorb-Einträge). Ein verlorenes Antwortpaket oder ein Wettlauf mit einem Push lösen ihn seit 2026-10-20 nicht mehr aus. Den Fall Medien-Action kündigt seit 2026-10-21 ein Band an, sobald die Verwaltung den neuen Stand sieht; ohne Ungespeichertes übernimmt sie ihn still | Der Dialog nennt, was Neu laden verwirft. Neu laden, Änderung wiederholen — „Abbrechen" lässt die Änderungen zum Ansehen stehen, speichern lassen sie sich so nicht |
 | „GitHub hat das Speichern abgelehnt: „…"" | GitHub lehnt den Commit zweimal ab, obwohl die SHA stimmt — meist eine Regel des Repos (Branch-Schutz, Ruleset) | GitHubs Meldung in den Anführungszeichen „…" lesen; Regel unter Settings → Rules bzw. Branches prüfen |
 | „Wiederhergestellt, aber der neue Stand ließ sich nicht laden. Bitte neu laden." | Der Commit ist da, aber `/api/admin/stand` lieferte viermal nicht den Stand mit der neuen SHA (GitHub hinkt hinterher oder ist kurz nicht erreichbar) | „Neu laden" in der Leiste; bis dahin ist Speichern gesperrt. Scheitert auch das, erscheint oben ein Band mit dem Grund und „Noch einmal laden" |
 | „lib/inhalt.json auf GitHub ist kein gültiges JSON — bitte Jan Bescheid geben." | Die Datei auf `main` ist kaputt, z. B. Konfliktmarker nach einem Merge von Hand. Die Verwaltung ist dann ganz blockiert | Datei im Repo reparieren (letzten guten Stand aus dem Git-Verlauf). Die genaue Stelle steht im Worker-Log („… kein gültiges JSON (SyntaxError: …)") |
@@ -533,12 +563,13 @@ ein `GITHUB_TOKEN` dort zählt genauso wie einer in der Shell.
 | Im Worker-Log „… (SyntaxError: …)" oder eine andere Fehlerart vor dem Text | Seit 2026-10-20 steht im Log die Art und Meldung jedes Fehlers (`logText`); Jakob sieht weiter nur „Unerwarteter Fehler auf dem Server." | Die Meldung im Log führt zur Ursache |
 | Speichern gesperrt, rote Befunde | `pruefeInhalt` findet einen Fehler (z. B. doppelte Kennung, Link ohne `https://` oder mit Leerzeichen, Anführungszeichen, `<`/`>`) | Befund lesen und beheben; der Build würde sonst abbrechen |
 | „Gespeichert, aber noch nicht live" | Cloudflare-Build gescheitert (Workers & Pages → Deployments), `BUILD_COMMIT` leer, oder die Medien-Action hat direkt danach committet und Cloudflare hat den späteren Commit gebaut | Build-Log ansehen; im letzten Fall ist alles online, nur die Meldung hinkt (bekannte Lücke) |
-| Bild bleibt auf „wartet" | Medien-Action nicht eingerichtet (läuft grün, tut nichts), `EINGANG_BUCKET` fehlt in GitHub, oder der Eingang ist gescheitert (Lauf rot) | Actions → Medien → letzten Lauf ansehen |
+| Bild bleibt auf „wartet" | Medien-Action nicht eingerichtet (läuft grün, tut nichts), `EINGANG_BUCKET` fehlt in GitHub, oder der Eingang ist gescheitert (Lauf rot) | Lauf rot → in der Verwaltung „Verwerfen" (erscheint unter „Die Verarbeitung ist fehlgeschlagen") und das Bild neu exportiert hochladen. Sonst Actions → Medien → letzten Lauf ansehen |
 | Im Log von „Eingang übernehmen": „Säubern unvollständig … — bleibt im Eingang." | Das JPEG endet nicht sauber, oder nach dem Abschneiden steckt noch ein zweites Bild darin (z. B. eine eingebettete Vorschau in einem behaltenen Block) | Das Bild am Rechner einmal neu als JPEG exportieren und erneut hochladen; die alte Datei im Eingang wird dabei ersetzt |
 | „Verarbeitung starten" scheitert | Workflow-Datei heißt nicht `medien.yml`, Actions im Repo abgeschaltet, Token ohne Actions-Recht | Schritt 3 und 5 |
 | Hochladen: 413 / 415 | Datei über der Grenze aus `MAX_UPLOAD_BYTES`, oder kein JPEG/PNG/WebP/TIFF (z. B. HEIC vom iPhone) | Kleiner bzw. als JPEG exportieren |
 | Hochladen: 403 | Anfrage nicht von derselben Seite (z. B. Verwaltung über eine andere Adresse geöffnet) | Über `jakobsax.de/admin` arbeiten |
-| Mitten in der Arbeit scheitert jede Aktion, „Lade die Seite neu" | Sitzung abgelaufen (nach 30 Tagen) oder das Passwort wurde inzwischen geändert | Neu laden und anmelden |
+| Mitten in der Arbeit scheitert jede Aktion, „Die Anmeldung ist abgelaufen. Melde dich in einem neuen Tab neu an …" | Sitzung abgelaufen (nach 30 Tagen), das Passwort wurde inzwischen geändert, oder in einem anderen Tab abgemeldet | **Nicht neu laden** (das verwirft Ungespeichertes): „In neuem Tab anmelden ↗", dort anmelden, zurück in diesen Tab und die Aktion wiederholen — das Cookie gilt für alle Tabs |
+| Hochladen: „Die Übertragung kam 90 Sekunden lang nicht voran …" | Verbindung weg oder eingeschlafen (WLAN, Mobilfunk) | „Noch einmal" in der Zeile, sobald das Netz wieder da ist |
 | Neues Bild verarbeitet, erscheint aber nicht | Sein Schlüssel steht noch in `ausgeblendet` oder `papierkorb` (z. B. gelöscht und dann unter demselben Platz neu hochgeladen) | In der Verwaltung einblenden bzw. aus dem Papierkorb wiederherstellen |
 
 ### Bekannte Grenzen

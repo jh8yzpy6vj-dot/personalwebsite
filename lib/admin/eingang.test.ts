@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { bucketAdresse, EingangFehler, erkenneBildtyp, legeAb, liste, ohneEndung, type EingangKonfig } from "./eingang";
+import {
+  bucketAdresse,
+  EingangFehler,
+  entferne,
+  erkenneBildtyp,
+  legeAb,
+  liste,
+  ohneEndung,
+  type EingangKonfig,
+} from "./eingang";
 
 function fake(antworte: (r: Request) => Response | Promise<Response>) {
   const anfragen: Request[] = [];
@@ -60,6 +69,36 @@ describe("legeAb", () => {
   it("lehnt Pfad-Ausbrüche ab", async () => {
     const { cfg, anfragen } = fake(() => new Response(null));
     await expect(legeAb(cfg, "../x.jpg", new Uint8Array([1]), "image/jpeg")).rejects.toBeInstanceOf(EingangFehler);
+    expect(anfragen).toHaveLength(0);
+  });
+});
+
+describe("entferne", () => {
+  it("löscht per DELETE, signiert, jeden Abschnitt des Pfads kodiert", async () => {
+    const { cfg, anfragen } = fake(() => new Response(null, { status: 204 }));
+    await entferne(cfg, "arbeiten/a b&c/01.jpg");
+
+    const [r] = anfragen;
+    expect(r.method).toBe("DELETE");
+    expect(r.url).toBe("https://abc123.r2.cloudflarestorage.com/eingang/arbeiten/a%20b%26c/01.jpg");
+    expect(r.headers.get("authorization")).toMatch(/^AWS4-HMAC-SHA256 Credential=KEYID\//);
+  });
+
+  it("schon weg ist kein Fehler", async () => {
+    const { cfg } = fake(() => new Response("<Error><Code>NoSuchKey</Code></Error>", { status: 404 }));
+    await expect(entferne(cfg, "portrait.jpg")).resolves.toBeUndefined();
+  });
+
+  it("gibt den Fehlertext von R2 nicht weiter", async () => {
+    const { cfg } = fake(() => new Response("<Error><AccessKeyId>KEYID</AccessKeyId></Error>", { status: 403 }));
+    const e = await entferne(cfg, "portrait.jpg").catch((x: unknown) => x);
+    expect(e).toBeInstanceOf(EingangFehler);
+    expect((e as Error).message).toBe("Löschen im Bildspeicher fehlgeschlagen (403).");
+  });
+
+  it("lehnt Pfad-Ausbrüche ab", async () => {
+    const { cfg, anfragen } = fake(() => new Response(null));
+    await expect(entferne(cfg, "ueber/../../x.jpg")).rejects.toBeInstanceOf(EingangFehler);
     expect(anfragen).toHaveLength(0);
   });
 });

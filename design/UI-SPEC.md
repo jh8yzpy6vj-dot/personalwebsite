@@ -417,7 +417,11 @@ Umbaus abgehakt.
   an derselben Stelle, ebenfalls `--rec`: Auch hier kommt Jakob nicht weiter, bis er etwas tut
   (warten), also gilt dieselbe Begründung wie für die blockierenden Fehler.
 - **Aufbau:** Kopf mit „Verwaltung", Link zur Seite und „Abmelden" (fragt nach, wenn noch
-  Ungespeichertes da ist); darunter Reiter
+  Ungespeichertes da ist oder Bilder hochgeladen werden — **genau einmal**: „Ungespeicherte
+  Änderungen gehen verloren. Trotzdem abmelden?" bzw. „Es werden noch Bilder hochgeladen — das
+  bricht ab. Trotzdem abmelden?", bei beidem „Ungespeicherte Änderungen gehen verloren, und das
+  Hochladen bricht ab. Trotzdem abmelden?"; danach kein zweites „Seite verlassen?" des Browsers);
+  darunter Reiter
   **Fotos · Hero · Arbeiten · Über mich · Filme · Startseite · Papierkorb · Verlauf**
   (Pfeiltasten wechseln den Reiter); unten eine feste Leiste mit Speicherstand, optionaler
   Nachricht und „Speichern".
@@ -461,7 +465,47 @@ Umbaus abgehakt.
   „Speichern ist noch nicht eingerichtet." · „Wiederhergestellt, aber der neue Stand ließ sich
   nicht laden. Bitte neu laden." (seit 2026-10-20; Vorrang vor allen außer „nicht eingerichtet",
   daneben in der Leiste der Knopf „Neu laden", Speichern bleibt gesperrt — sonst schriebe das
-  nächste Speichern den alten Inhalt still über den wiederhergestellten).
+  nächste Speichern den alten Inhalt still über den wiederhergestellten) ·
+  „Lädt noch {n} Bild/Bilder hoch — bitte die Seite offen lassen." (seit 2026-10-21; solange
+  nichts ungespeichert ist, mit Vorrang vor „Gespeichert …" und „Alles gespeichert."; dazu warnt
+  der Browser beim Schließen oder Neuladen des Tabs wie bei Ungespeichertem). Begründung: Vorher
+  stand während des Hochladens „Alles gespeichert.", und Schließen brach die ganze Schlange
+  ohne Rückfrage ab.
+- **Abgelaufene Anmeldung** (seit 2026-10-21): „Die Anmeldung ist abgelaufen. Melde dich in einem
+  neuen Tab neu an, komm hierher zurück und versuch es noch einmal — deine Änderungen hier
+  bleiben erhalten." Steht der Text in der Leiste (Speichern gescheitert), folgt dahinter der Link
+  **„In neuem Tab anmelden ↗"** (`/admin`, neuer Tab); ebenso einmal unten im Bereich
+  „Hochladen und Verarbeitung" und in der Rückfrage zum Verwerfen — **nicht** in jeder
+  Hochlade-Zeile. Begründung: Vorher hieß es „Lade die Seite neu" — wer dem folgte, verlor alles
+  Ungespeicherte. Das Sitzungs-Cookie gilt für alle Tabs; nach der Anmeldung im zweiten Tab
+  klappt es hier wieder.
+- **Hochladen und Verarbeitung** (Bereich über den Reitern, seit 2026-10-21): Je Datei eine Zeile —
+  Name, Zustand leise („wartet" · „{n} %" · „hochgeladen" · „abgebrochen"; „nicht hochgeladen"
+  normal, der Grund darunter als Fehlertext) und rechts leise Knöpfe (44px): **„Abbrechen"**
+  solange sie wartet oder lädt, **„Noch einmal"** und **„Ausblenden"**, wenn sie abgebrochen oder
+  gescheitert ist („Noch einmal" nur, wenn die Datei noch da ist; ein neues Bild bekommt dabei die
+  nächste freie Nummer). Klappt ein späteres Hochladen auf dasselbe feste Ziel (Ersetzen, Porträt,
+  Standbild), verschwinden dessen alte Fehlerzeilen. Kommt 90 Sekunden lang kein Fortschritt:
+  „Die Übertragung kam 90 Sekunden lang nicht voran — vermutlich ist die Verbindung weg. Versuch
+  es noch einmal." — bewusst kein festes Zeitlimit, 40 MB über eine langsame Leitung dürfen dauern.
+  Ließ sich die Verarbeitung nicht anstoßen: „Hochgeladen, aber die Verarbeitung ließ sich nicht
+  starten." (bzw. „{n} Bilder warten auf die Verarbeitung."), darunter der Grund als Fehlertext
+  und der Knopf **„Noch einmal versuchen"** (sonst „Verarbeitung starten"). War der letzte Lauf
+  rot und läuft gerade keiner, folgt unter „Die Verarbeitung ist fehlgeschlagen …" leise
+  „Scheitert es immer wieder, liegt es meist an einem Bild. Verwirf es und lade es neu als JPEG
+  exportiert noch einmal hoch:" und die wartenden Bilder (Bezeichnung wie im Papierkorb), je mit
+  **„Verwerfen"**. Rückfrage „„{Bild}" verwerfen?" mit „Das Bild wurde noch nicht verarbeitet.
+  Verwerfen löscht es aus dem Eingang; auf der Seite ändert sich nichts. Exportier es am besten
+  neu als JPEG und lade es noch einmal hoch.", Knöpfe „Verwerfen" (Hauptknopf) und „Abbrechen";
+  sie schließt erst nach Erfolg, sonst steht der Grund darin. Begründung: Ein hängender Upload
+  hielt die ganze Schlange für immer auf, Fehlerzeilen ließen sich nicht entfernen, nach einem
+  gescheiterten Anstoß gab es keinen Knopf (und gleichzeitig „Die Verarbeitung startet gleich."),
+  und ein Bild, an dem die Action scheitert, konnte nur Jan im R2-Dashboard entfernen.
+- **Band „Inzwischen wurde der Inhalt anderswo geändert (zum Beispiel hat die Bildverarbeitung
+  den Papierkorb geleert). Beim Speichern gibt es deshalb eine Rückfrage."** (seit 2026-10-21) —
+  wie „nicht eingerichtet", keine eigene Farbe. Erscheint, wenn die Verarbeitung eine neue Fassung
+  des Inhalts mitbringt, während Ungespeichertes da ist. Ohne Ungespeichertes wird der neue Stand
+  still übernommen. Begründung: Vorher kam der Konflikt erst beim Speichern, ohne Vorwarnung.
 - **Dialog „Inzwischen hat jemand anderes gespeichert"** (bei gleichzeitigem Speichern): nennt,
   was verloren ginge — „Neu laden verwirft: {Zusammenfassung wie beim Speichern}." — und „Abbrechen
   lässt deine Änderungen hier stehen, damit du sie dir ansehen kannst — speichern lassen sie sich
