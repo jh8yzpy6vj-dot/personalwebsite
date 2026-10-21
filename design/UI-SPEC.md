@@ -447,10 +447,17 @@ Umbaus abgehakt.
   „· kein Foto aus /foto — …". Begründung (2026-10-21): Ein Bild von „Über mich" ließ sich wählen,
   der Platz blieb auf der Seite aber leer, ohne Warnung.
 - **Neuer Film:** Titel, Kunde und „Link zum Film" in einem Formular; „Film anlegen" ist erst frei,
-  wenn alle drei da sind, darunter leise „Titel, Kunde und Link braucht jeder Film. Das Standbild
-  lädst du danach hoch." Adressfelder (Filme, Instagram, SWR, Hero-Video) ergänzen beim Verlassen
-  ein fehlendes „https://". Begründung (2026-10-21): Ein Film nur mit Titel war sofort ein Fehler,
-  der jedes Speichern sperrte — auch das von allem anderen.
+  wenn alle drei da sind **und die Prüfung sie annähme**. Darunter steht leise, was noch fehlt:
+  „Titel, Kunde und Link braucht jeder Film. Das Standbild lädst du danach hoch.", „Kunde ohne
+  Rechtsform schreiben (GmbH, e.V. …).", „Der Link muss mit https:// beginnen." oder „Der Link ist
+  keine vollständige Adresse — ohne Leerzeichen und ohne Zeichen wie < > " '." Adressfelder
+  (Filme, Instagram, SWR, Hero-Video) ergänzen beim Verlassen ein fehlendes „https://" — **nur,
+  wenn vorne ein Host mit Punkt steht** („youtu.be/abc", „www.swr.de/…"). „@jakobsax", „SWR" oder
+  „Tagesthemen" bleiben, wie sie sind, und die Prüfung meldet sie als Fehler. Begründung
+  (2026-10-21): Ein Film nur mit Titel war sofort ein Fehler, der jedes Speichern sperrte — auch das
+  von allem anderen; ein Kunde „Muster GmbH" ging trotz Regel E10 durch und sperrte danach genauso.
+  Und aus „@jakobsax" wurde still „https://@jakobsax": für die Prüfung gültig, auf der Seite ein
+  toter Link.
 - **Dialoge und Seitenpanel:** schließen über ✕, `Esc` oder einen Klick auf den abgedunkelten
   Rand — nur wenn Drücken **und** Loslassen dort lagen. Ein Tipp in die leere Fläche des Panels
   oder Text markieren und daneben loslassen schließt nicht; am Handy ist das Panel ganzflächig,

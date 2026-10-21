@@ -61,6 +61,9 @@ export function istTag(w: unknown): w is string {
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === w;
 }
 
+/** `https://`, dann der Host bis `/`, `?`, `#` oder zum Ende — ohne `@`. */
+const ANFANG = /^https:\/\/[^/?#@]+(?:[/?#]|$)/i;
+
 /**
  * Eine https-Adresse mit Host — und ohne Leerraum, Anführungszeichen,
  * spitze Klammern und Backslash. ⚠️ Das ist mehr als Form: Die Links von
@@ -68,12 +71,22 @@ export function istTag(w: unknown): w is string {
  * `new URL` nimmt auch `https://x/</script><script>…` an. Bewusst kein
  * Vergleich mit `u.href`: Der lehnte schon `https://host` ohne
  * abschließenden Schrägstrich ab.
+ *
+ * Seit 2026-10-21 außerdem:
+ * - **wörtlich `https://` vorne** (`ANFANG`). `new URL` nimmt auch
+ *   `https:host.de` an — im Link auf der Seite ist das aber ein Pfad
+ *   relativ zur Seite.
+ * - **kein Benutzerteil, auch kein leerer** (`ANFANG`, dazu `username`
+ *   und `password`): Bei `https://user@host.de` sieht man vorne den
+ *   falschen Host.
+ * - **ein Punkt im Host, ohne leere Teile.** `https://SWR` und
+ *   `https://@jakobsax` sind für `new URL` gültig, führen aber nirgendwohin.
  */
 export function istHttps(w: unknown): boolean {
-  if (!istText(w)) return false;
+  if (!istText(w) || !ANFANG.test(w) || /[\s<>"'`\\]/.test(w)) return false;
   try {
     const u = new URL(w);
-    return u.protocol === "https:" && u.hostname !== "" && !/[\s<>"'`\\]/.test(w);
+    return u.protocol === "https:" && /^[^.]+(\.[^.]+)+$/.test(u.hostname) && u.username === "" && u.password === "";
   } catch {
     return false;
   }
@@ -81,7 +94,7 @@ export function istHttps(w: unknown): boolean {
 
 /** Für die Fehlertexte, wenn `istHttps` nein sagt — für Jakob, ohne Fachwörter. */
 const OHNE_ZEICHEN = "ohne Leerzeichen und ohne Zeichen wie < > \" '";
-const KEINE_ADRESSE = `muss eine https://-Adresse sein, ${OHNE_ZEICHEN}.`;
+const KEINE_ADRESSE = `muss eine vollständige https://-Adresse sein, ${OHNE_ZEICHEN}.`;
 
 /**
  * Prüft den Inhalt. `bilder` sind die Schlüssel, die es im Manifest gibt —

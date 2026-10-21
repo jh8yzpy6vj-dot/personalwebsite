@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import manifest from "./bilder-manifest.json";
 import { INHALT, type Inhalt } from "./inhalt";
-import { nurFehler, pruefeInhalt, type Befund } from "./inhalt-pruefen";
+import { istHttps, nurFehler, pruefeInhalt, type Befund } from "./inhalt-pruefen";
 import { alsJsonLd } from "./site";
 
 /**
@@ -193,6 +193,52 @@ describe("Adressen im JSON-LD", () => {
     i.ueber.swr.url = "https://www.swr.de";
     i.filme.push({ id: "f", titel: "F", kunde: "K", link: "https://www.ardmediathek.de/video/abc?t=12&x=%3C" });
     expect(fehlerText(pruefeInhalt(i, BILDER))).toEqual([]);
+  });
+
+  it("lehnt Adressen ab, die nirgendwohin oder woandershin führen", () => {
+    for (const w of [
+      "https://SWR",
+      "https://@jakobsax",
+      "https://Tagesthemen",
+      "https://user@host.de",
+      "https://:geheim@host.de",
+      "https://@host.de",
+      "https:host.de",
+      "https:/host.de",
+      "https://.de",
+      "https://a..b",
+      "https://host.de.",
+      "https://",
+    ]) {
+      expect(istHttps(w), w).toBe(false);
+      const i = kopie();
+      i.ueber.swr.url = w;
+      i.filme.push({ id: "f", titel: "F", kunde: "K", link: w });
+      i.startseite.heroVideo = w;
+      const orte = nurFehler(pruefeInhalt(i, BILDER)).map((x) => x.ort);
+      expect(orte, w).toEqual(["Startseite · Hero-Video", "Über mich · SWR · Adresse", "Film „F“ · Link"]);
+    }
+  });
+
+  it("nimmt jeden heute gespeicherten Link und übliche Filmlinks weiterhin an", () => {
+    const heute = [INHALT.ueber.instagram.url, INHALT.ueber.swr.url, ...INHALT.filme.map((f) => f.link)];
+    if (INHALT.startseite.heroVideo !== null) heute.push(INHALT.startseite.heroVideo);
+    for (const w of [
+      ...heute,
+      "https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=42s",
+      "https://youtu.be/dQw4w9WgXcQ?si=abc",
+      "https://vimeo.com/123456789",
+      "https://player.vimeo.com/video/123456789#t=10",
+      "https://www.ardmediathek.de/video/tagesthemen/abc/Y3JpZDovL2Rhc2Vyc3RlLmRl",
+      "https://www.zdf.de/dokumentation/x-100.html",
+      "https://www.instagram.com/@jakobsax/",
+      "https://www.x.de:8080/a?mail=a@b.de",
+      "HTTPS://vimeo.com/1",
+      "https://www.swr.de",
+      "https://müller.de/x",
+    ]) {
+      expect(istHttps(w), w).toBe(true);
+    }
   });
 
   it("alsJsonLd lässt kein </script> stehen und bleibt dasselbe JSON", () => {

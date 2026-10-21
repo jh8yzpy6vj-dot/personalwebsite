@@ -45,6 +45,7 @@ import { fileURLToPath } from "node:url";
 import { ImageResponse } from "next/og.js";
 import sharp from "sharp";
 
+import { istSichtbaresFoto } from "../lib/inhalt-regeln.mjs";
 import { leseInhalt } from "./inhalt.mjs";
 import { OG_GROESSE, ogKarte } from "./og-karte.mjs";
 
@@ -164,9 +165,12 @@ async function main() {
   };
 
   /* Dasselbe Bild wie auf der Startseite: das Hero-Standbild, sonst das
-     Ersatzfoto aus lib/inhalt.json. */
+     Ersatzfoto aus lib/inhalt.json — aber nur, wenn die Startseite es auch
+     zeigt (`finde` in app/page.tsx). Ein ausgeblendetes oder gelöschtes Foto
+     stünde sonst weiter in jeder geteilten Vorschau. */
   const heroErsatz = inhalt.startseite?.heroErsatz;
-  const startbild = manifest["hero/standbild"] ?? (heroErsatz ? manifest[heroErsatz] : null);
+  const ersatz = heroErsatz && istSichtbaresFoto(inhalt, manifest, heroErsatz) ? manifest[heroErsatz] : null;
+  const startbild = manifest["hero/standbild"] ?? ersatz;
   const startfoto = await foto(startbild);
   behalten.add("start.jpg");
 

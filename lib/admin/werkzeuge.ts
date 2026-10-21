@@ -1,7 +1,7 @@
 import { alleBilderDerArbeit, fotosFuerMosaik, nachWunsch, type Kontext } from "../arbeiten";
 import { AUSSCHNITT_MITTIG, type Streckenbild } from "../bilder";
 import { arbeitZu, bildName, type Film, type Fotoarbeit, type Inhalt, type Link } from "../inhalt";
-import { ID, nurFehler, pruefeInhalt, type Befund } from "../inhalt-pruefen";
+import { ID, istHttps, nurFehler, pruefeInhalt, RECHTSFORM, type Befund } from "../inhalt-pruefen";
 import { BILDTYPEN, MAX_UPLOAD_BYTES, ZIEL, type Lauf, type Verarbeitung } from "./vertrag";
 
 /**
@@ -401,17 +401,41 @@ export function neuerFilm(
   return { inhalt: n, id };
 }
 
+/** Vorne ein Host mit Punkt, ohne `@` — „youtu.be/…", „//vimeo.com/…". */
+const HOST_VORNE = /^(\/\/)?[^\s/@:?#]+\.[^\s/@:?#]+/;
+
 /**
  * Ergänzt ein fehlendes `https://` — so, wie man Adressen oft aus Apps
  * kopiert: „youtu.be/abc" → „https://youtu.be/abc". Leer bleibt leer, und
  * was schon ein Schema hat (`https:`, `http:`, `mailto:` …), bleibt, wie es
  * ist: Ob es taugt, sagt die Prüfung. Bewusst ohne Punkt im Schema, sonst
  * hielte „www.x.de:8080/a" seinen Host für eines.
+ *
+ * ⚠️ **Nur, wenn vorne ein Host mit Punkt steht** (`HOST_VORNE`). Vorher
+ * wurde aus „@jakobsax" still „https://@jakobsax", aus „SWR" „https://SWR"
+ * — für die Prüfung gültig, auf der Seite ein toter Link. So ein Text bleibt
+ * jetzt stehen, und die Prüfung meldet ihn.
  */
 export function mitHttps(w: string): string {
   const t = w.trim();
-  if (t === "" || /^[a-z][a-z0-9+-]*:/i.test(t)) return t;
+  if (t === "" || /^[a-z][a-z0-9+-]*:/i.test(t) || !HOST_VORNE.test(t)) return t;
   return `https://${t.replace(/^\/+/, "")}`;
+}
+
+/**
+ * Warum „Film anlegen" (noch) nicht geht — oder `null`, wenn es geht.
+ * Dieselben Regeln wie `pruefeInhalt` für einen Film: Was hier durchgeht,
+ * darf dort keinen Fehler geben, sonst sperrte der neue Film sofort jedes
+ * Speichern. `link` so, wie er gespeichert würde (nach `mitHttps`).
+ */
+export function grundGegenFilm(titel: string, kunde: string, link: string): string | null {
+  if (titel.trim() === "" || kunde.trim() === "" || link.trim() === "") {
+    return "Titel, Kunde und Link braucht jeder Film. Das Standbild lädst du danach hoch.";
+  }
+  if (RECHTSFORM.test(kunde.trim())) return "Kunde ohne Rechtsform schreiben (GmbH, e.V. …).";
+  if (!/^https:\/\//i.test(link)) return "Der Link muss mit https:// beginnen.";
+  if (!istHttps(link)) return "Der Link ist keine vollständige Adresse — ohne Leerzeichen und ohne Zeichen wie < > \" '.";
+  return null;
 }
 
 export function aendereFilm(i: Inhalt, id: string, aenderung: Partial<Omit<Film, "id">>): Inhalt {

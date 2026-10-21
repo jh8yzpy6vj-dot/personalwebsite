@@ -350,7 +350,11 @@ Manifest noch im Eingang) — sonst rät die Oberfläche zum Ausblenden.
   `https://` mit Host und ohne Leerraum, spitze Klammern, Anführungszeichen, Backtick und
   Backslash an — beim Speichern wie beim Build —, und `alsJsonLd` (`lib/site.ts`) maskiert
   `<`, `>` und `&` trotzdem. Vorher hätte ein Link wie `https://x/</script><script>…` als Code
-  auf jeder Seite laufen können. ⚠️ **Wer ein
+  auf jeder Seite laufen können. Seit 2026-10-21 verlangt `istHttps` außerdem wörtlich
+  `https://` vorne, einen Punkt im Host und keinen Benutzerteil (`https://SWR`,
+  `https://@jakobsax`, `https://user@host.de` sind Fehler), und die Adressfelder der Verwaltung
+  ergänzen `https://` nur vor einem Host mit Punkt (`mitHttps`) — vorher wurde aus „@jakobsax"
+  still ein toter, aber gültiger Link. ⚠️ **Wer ein
   weiteres `<script>` mit Daten einbaut: immer über `alsJsonLd`, nie `JSON.stringify` allein.**
 - **Mutierende Anfragen nur von derselben Seite** (`Origin` bzw. `Sec-Fetch-Site`), sonst 403.
 - **Bildschlüssel werden immer gegen `ZIEL` bzw. feste Muster geprüft**, Pfade und Refs gegen
@@ -561,7 +565,7 @@ ein `GITHUB_TOKEN` dort zählt genauso wie einer in der Shell.
 | „lib/inhalt.json auf GitHub ist kein gültiges JSON — bitte Jan Bescheid geben." | Die Datei auf `main` ist kaputt, z. B. Konfliktmarker nach einem Merge von Hand. Die Verwaltung ist dann ganz blockiert | Datei im Repo reparieren (letzten guten Stand aus dem Git-Verlauf). Die genaue Stelle steht im Worker-Log („… kein gültiges JSON (SyntaxError: …)") |
 | Verlauf: „Dieser Stand passt nicht mehr zu den heutigen Regeln …" | Der alte Stand bricht eine Regel, die es damals noch nicht gab (z. B. ein Feld, das inzwischen Pflicht ist) | Die Befunde stehen in der Rückfrage. Den Stand bei Bedarf von Hand angleichen (`git show <commit>:lib/inhalt.json`) |
 | Im Worker-Log „… (SyntaxError: …)" oder eine andere Fehlerart vor dem Text | Seit 2026-10-20 steht im Log die Art und Meldung jedes Fehlers (`logText`); Jakob sieht weiter nur „Unerwarteter Fehler auf dem Server." | Die Meldung im Log führt zur Ursache |
-| Speichern gesperrt, rote Befunde | `pruefeInhalt` findet einen Fehler (z. B. doppelte Kennung, Link ohne `https://` oder mit Leerzeichen, Anführungszeichen, `<`/`>`) | Befund lesen und beheben; der Build würde sonst abbrechen |
+| Speichern gesperrt, rote Befunde | `pruefeInhalt` findet einen Fehler (z. B. doppelte Kennung, Link ohne `https://`, ohne Punkt im Host wie „@jakobsax" oder mit Leerzeichen, Anführungszeichen, `<`/`>`) | Befund lesen und beheben; der Build würde sonst abbrechen |
 | „Gespeichert, aber noch nicht live" | Cloudflare-Build gescheitert (Workers & Pages → Deployments), `BUILD_COMMIT` leer, oder die Medien-Action hat direkt danach committet und Cloudflare hat den späteren Commit gebaut | Build-Log ansehen; im letzten Fall ist alles online, nur die Meldung hinkt (bekannte Lücke) |
 | Bild bleibt auf „wartet" | Medien-Action nicht eingerichtet (läuft grün, tut nichts), `EINGANG_BUCKET` fehlt in GitHub, oder der Eingang ist gescheitert (Lauf rot) | Lauf rot → in der Verwaltung „Verwerfen" (erscheint unter „Die Verarbeitung ist fehlgeschlagen") und das Bild neu exportiert hochladen. Sonst Actions → Medien → letzten Lauf ansehen |
 | Im Log von „Eingang übernehmen": „Säubern unvollständig … — bleibt im Eingang." | Das JPEG endet nicht sauber, oder nach dem Abschneiden steckt noch ein zweites Bild darin (z. B. eine eingebettete Vorschau in einem behaltenen Block) | Das Bild am Rechner einmal neu als JPEG exportieren und erneut hochladen; die alte Datei im Eingang wird dabei ersetzt |
@@ -696,8 +700,8 @@ alle Nummern samt Alt-Texten. Die Prüfung warnt, wenn Startseite oder Hero auf 
 Bild zeigen, und wenn ein Platz der Startseite kein Foto aus `/foto` ist: Die Startseite sucht
 jedes Bild in `fotosFuerMosaik` (`app/page.tsx`), ein Bild von „Über mich" oder ein
 Film-Standbild bliebe dort leer — deshalb bietet die Verwaltung auch nur diese Fotos an
-(`waehlbareBilder`). Im Hero zählen für „sechs bis acht" und „mindestens eins" nur sichtbare
-Bilder.
+(`waehlbareBilder`). Im Hero zählen für die empfohlene Spanne (UI-SPEC) und „mindestens eins" nur
+sichtbare Bilder.
 
 ⚠️ **Führende Null nicht vergessen** (`01`, nicht `1`). Die natürliche Ordnung geht nach
 Dateiname; ohne sie stünde `10` vor `2`. Die Verwaltung vergibt die Nummern selbst.
@@ -985,7 +989,7 @@ sind, liegt das Foto dahinter, mit demselben Verlauf wie über den Kacheln.
 | Schriften | `assets/fonts/*.ttf` — nur lokal gelesen, **nicht** ausgeliefert. Warum doppelt: siehe `assets/fonts/README.md` |
 | Format | **JPEG, nicht PNG.** `ImageResponse` liefert PNG; mit Foto waren das ~970 kB je Karte. Über sharp als JPEG sind es ~35 kB. Budget: Warnung ab 250 kB |
 | Im Git | **ja** — rund zehn Dateien à 35 kB. So ist die Seite ohne den Bucket vollständig |
-| Texte | aus `lib/inhalt.json` (`seite.name`, Foto aus `startseite.heroErsatz`). ⚠️ Bis 2026-10-17 las das Skript `lib/content.ts` direkt (Node ≥ 22.18, Typen-Stripping); das geht seit dem Umzug der Inhalte nicht mehr, siehe „Verwaltung" |
+| Texte | aus `lib/inhalt.json` (`seite.name`, Foto aus `startseite.heroErsatz` — seit 2026-10-21 nur, wenn die Startseite es auch zeigt, also kein ausgeblendetes oder gelöschtes Foto: `istSichtbaresFoto` in `lib/inhalt-regeln.mjs`). ⚠️ Bis 2026-10-17 las das Skript `lib/content.ts` direkt (Node ≥ 22.18, Typen-Stripping); das geht seit dem Umzug der Inhalte nicht mehr, siehe „Verwaltung" |
 
 ⚠️ **Warum das nicht als `app/**/opengraph-image.tsx` gebaut ist**, obwohl Next genau das
 anbietet: Genau so stand es zuerst da, `next build` hat die Karten sauber vorgerendert — **und im

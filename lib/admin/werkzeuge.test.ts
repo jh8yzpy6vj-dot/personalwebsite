@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import manifest from "../bilder-manifest.json";
 import type { Bildquelle } from "../bilder";
 import { INHALT, type Inhalt } from "../inhalt";
-import { nurFehler, pruefeInhalt } from "../inhalt-pruefen";
+import { nurFehler, pruefeInhalt, type Befund } from "../inhalt-pruefen";
 import { fotosFuerHero, fotosFuerMosaik } from "../arbeiten";
 import {
   aendereArbeit,
@@ -26,6 +26,7 @@ import {
   fasseZusammen,
   gleich,
   gleicherCommit,
+  grundGegenFilm,
   hatBilder,
   legeInPapierkorb,
   leseAusschnitt,
@@ -74,6 +75,7 @@ import type { Lauf } from "./vertrag";
 
 const BILDER = manifest as Record<string, Bildquelle>;
 const kopie = (): Inhalt => structuredClone(INHALT);
+const fehlerText = (b: Befund[]) => nurFehler(b).map((f) => `${f.ort}: ${f.text}`);
 const k = (inhalt: Inhalt = kopie()) => ({ inhalt, bilder: BILDER });
 
 describe("slug und eindeutigeId", () => {
@@ -289,6 +291,64 @@ describe("Änderungen am Inhalt", () => {
     expect(mitHttps("   ")).toBe("");
   });
 
+  it("ergänzt https:// nur vor einem Host mit Punkt — sonst bleibt der Text, und die Prüfung meldet ihn", () => {
+    /* Vorher wurde daraus „https://@jakobsax", „https://SWR" … — gültig, aber tote Links. */
+    for (const w of ["@jakobsax", "SWR", "Tagesthemen", "Tagesthemen 20.10.", "@jakobsax.media", "///vimeo.com/1"]) {
+      expect(mitHttps(w), w).toBe(w);
+      const i = kopie();
+      i.ueber.instagram.url = mitHttps(w);
+      expect(fehlerText(pruefeInhalt(i, Object.keys(BILDER))), w).toEqual([
+        "Über mich · Instagram · Adresse: muss eine vollständige https://-Adresse sein, ohne Leerzeichen und ohne Zeichen wie < > \" '.",
+      ]);
+    }
+    expect(mitHttps(" @jakobsax ")).toBe("@jakobsax");
+    /* Was nach Adresse aussieht, wird ergänzt und ist dann gültig. */
+    for (const w of ["youtu.be/abc", "www.instagram.com/jakobsax.media/", "instagram.com/@jakobsax", "vimeo.com/1?t=3#x"]) {
+      const i = kopie();
+      i.ueber.instagram.url = mitHttps(w);
+      expect(i.ueber.instagram.url, w).toBe(`https://${w}`);
+      expect(fehlerText(pruefeInhalt(i, Object.keys(BILDER))), w).toEqual([]);
+    }
+  });
+
+  it("sperrt „Film anlegen“ genau dann, wenn der Film ein Fehler wäre — und sagt, warum", () => {
+    const fall = (titel: string, kunde: string, eingabe: string) => {
+      const link = mitHttps(eingabe);
+      const { inhalt } = neuerFilm(kopie(), titel, [], { kunde, link });
+      return { grund: grundGegenFilm(titel, kunde, link), fehler: fehlerText(pruefeInhalt(inhalt, Object.keys(BILDER))) };
+    };
+    expect(fall("Probe", "Muster GmbH", "youtu.be/x").grund).toBe("Kunde ohne Rechtsform schreiben (GmbH, e.V. …).");
+    expect(fall("Probe", "Verein e.V.", "youtu.be/x").grund).toBe("Kunde ohne Rechtsform schreiben (GmbH, e.V. …).");
+    expect(fall("Probe", "SWR", "http://youtu.be/x").grund).toBe("Der Link muss mit https:// beginnen.");
+    expect(fall("Probe", "SWR", "Tagesthemen").grund).toBe("Der Link muss mit https:// beginnen.");
+    expect(fall("Probe", "SWR", "@jakobsax").grund).toBe("Der Link muss mit https:// beginnen.");
+    expect(fall("Probe", "SWR", "https://SWR").grund).toMatch(/^Der Link ist keine vollständige Adresse/);
+    expect(fall("Probe", "SWR", "https://user@host.de/x").grund).toMatch(/^Der Link ist keine vollständige Adresse/);
+    expect(fall("Probe", "SWR", "https://youtu.be/a b").grund).toMatch(/^Der Link ist keine vollständige Adresse/);
+    expect(fall(" ", "SWR", "youtu.be/x").grund).toMatch(/^Titel, Kunde und Link braucht jeder Film/);
+    expect(fall("Probe", "", "youtu.be/x").grund).toMatch(/^Titel, Kunde und Link braucht jeder Film/);
+    expect(fall("Probe", "SWR", "  ").grund).toMatch(/^Titel, Kunde und Link braucht jeder Film/);
+    expect(fall("Probe", "SWR/ARD", "youtu.be/x").grund).toBeNull();
+    /* Gegenprobe mit der Inhaltsprüfung: frei genau dann, wenn kein Fehler entstünde. */
+    for (const [titel, kunde, link] of [
+      ["Probe", "Muster GmbH", "youtu.be/x"],
+      ["Probe", "Muster gGmbH", "youtu.be/x"],
+      ["Probe", "Muster UG", "youtu.be/x"],
+      ["Probe", "SWR", "https://SWR"],
+      ["Probe", "SWR", "https://@host.de"],
+      ["Probe", "SWR", "https:host.de"],
+      ["Probe", "SWR", "javascript:alert(1)"],
+      ["Probe", "SWR", "https://x.de/\"<"],
+      ["Probe", "", "youtu.be/x"],
+      ["Probe", "SWR", "youtu.be/x"],
+      ["Probe", "Bayerischer Kanuverband", "www.ardmediathek.de/video/abc?t=12"],
+      ["Probe", "SWR", "//vimeo.com/1"],
+    ]) {
+      const { grund, fehler } = fall(titel, kunde, link);
+      expect(grund === null, `${kunde} ${link}`).toBe(fehler.length === 0);
+    }
+  });
+
   it("legt Filme an, ändert, ordnet und entfernt sie", () => {
     const i = kopie();
     const { inhalt, id } = neuerFilm(i, "Ein Film");
@@ -469,9 +529,9 @@ describe("Startseite und Über mich", () => {
     let i = umschalteAusgeblendet(kopie(), "arbeiten/stamp/01");
     i = legeInPapierkorb(i, "arbeiten/stamp/02", "2026-10-17");
     const wahl = waehlbareBilder(k(i)).map((b) => b.schluessel);
-    /* Dieselbe Liste, in der `app/page.tsx` jedes Startbild sucht. */
-    expect(wahl).toEqual(fotosFuerMosaik(k(i)).map((b) => b.schluessel));
     expect(wahl.length).toBeGreaterThan(0);
+    /* Was in `foto.reihenfolge` steht, kommt in deren Reihenfolge. */
+    expect(wahl.filter((s) => i.foto.reihenfolge.includes(s))).toEqual(i.foto.reihenfolge.filter((s) => wahl.includes(s)));
     expect(wahl.every((s) => s.startsWith("arbeiten/"))).toBe(true);
     expect(wahl).not.toContain("arbeiten/stamp/01");
     expect(wahl).not.toContain("arbeiten/stamp/02");

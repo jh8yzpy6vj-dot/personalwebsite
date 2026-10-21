@@ -2,9 +2,16 @@
 
 import { useState } from "react";
 import type { Film } from "@/lib/inhalt";
-import { istHttps } from "@/lib/inhalt-pruefen";
 import { ZIEL } from "@/lib/admin/vertrag";
-import { aendereFilm, eindeutigeId, entferneFilm, mitHttps, neuerFilm, ordneFilme } from "@/lib/admin/werkzeuge";
+import {
+  aendereFilm,
+  eindeutigeId,
+  entferneFilm,
+  grundGegenFilm,
+  mitHttps,
+  neuerFilm,
+  ordneFilme,
+} from "@/lib/admin/werkzeuge";
 import Ausschnitt from "./Ausschnitt";
 import { useSitzung } from "./kontext";
 import Sortierbar from "./Sortierbar";
@@ -31,10 +38,13 @@ export default function Filme() {
   );
   const vorschauId = neuTitel.trim() ? eindeutigeId(neuTitel, [...inhalt.filme.map((f) => f.id), ...standbilder], "film") : "";
 
-  /* Titel, Kunde und Link sind Pflicht — ein Film ohne sie wäre ein Fehler,
-     der jedes Speichern sperrt. Fehlt nur „https://", ergänzt es sich. */
+  /* Titel, Kunde und Link sind Pflicht und müssen der Prüfung genügen — ein
+     Film ohne sie oder mit „Muster GmbH" als Kunde wäre ein Fehler, der jedes
+     Speichern sperrt. Fehlt nur „https://", ergänzt es sich. Was fehlt,
+     steht unter dem Knopf. */
   const link = mitHttps(neuLink);
-  const vollstaendig = neuTitel.trim() !== "" && neuKunde.trim() !== "" && istHttps(link);
+  const grund = grundGegenFilm(neuTitel, neuKunde, link);
+  const vollstaendig = grund === null;
 
   const lege = () => {
     if (!vollstaendig) return;
@@ -202,11 +212,7 @@ export default function Filme() {
             <Zeichen name="plus" />
             Film anlegen
           </button>
-          {!vollstaendig && (
-            <span className={styles.leise}>
-              Titel, Kunde und Link braucht jeder Film. Das Standbild lädst du danach hoch.
-            </span>
-          )}
+          {grund && <span className={styles.leise}>{grund}</span>}
         </div>
       </div>
 

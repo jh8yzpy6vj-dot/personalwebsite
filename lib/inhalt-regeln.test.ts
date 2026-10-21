@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { ZIEL as ZIEL_VERTRAG } from "./admin/vertrag";
+import { fotosFuerMosaik } from "./arbeiten";
+import type { Bildquelle } from "./bilder";
 import manifest from "./bilder-manifest.json";
 import { arbeitZu as arbeitZuTs, bildName as bildNameTs, INHALT, type Inhalt } from "./inhalt";
 import { nurFehler, pruefeInhalt } from "./inhalt-pruefen";
@@ -11,6 +13,7 @@ import {
   bildName,
   entferneSchluessel,
   istSchluessel,
+  istSichtbaresFoto,
   ordneEingang,
   originaleVon,
   planePapierkorb,
@@ -24,7 +27,8 @@ import {
  * ⚠️ Die ersten beiden Blöcke halten **doppelt geführte** Regeln gleich:
  * `ZIEL` steht in `lib/admin/vertrag.ts` (Worker) und in
  * `lib/inhalt-regeln.mjs` (Node), `bildName`/`arbeitZu` in `lib/inhalt.ts`
- * und in der `.mjs`. Node kann die TS-Dateien nicht laden, vitest schon —
+ * und in der `.mjs`, `istSichtbaresFoto` spiegelt `fotosFuerMosaik`
+ * (`lib/arbeiten.ts`). Node kann die TS-Dateien nicht laden, vitest schon —
  * also wird hier verglichen.
  */
 describe("doppelt geführte Regeln", () => {
@@ -48,6 +52,24 @@ describe("doppelt geführte Regeln", () => {
       expect(bildName(s), s).toBe(bildNameTs(s));
       expect(arbeitZu(s), s).toBe(arbeitZuTs(s));
     }
+  });
+
+  it("istSichtbaresFoto sagt genau für die Fotos ja, die fotosFuerMosaik zeigt", () => {
+    const bilder = manifest as Record<string, Bildquelle>;
+    const verborgen = structuredClone(INHALT);
+    const [erstes, zweites] = fotosFuerMosaik({ inhalt: INHALT, bilder }).map((b) => b.schluessel);
+    verborgen.ausgeblendet.push(erstes);
+    verborgen.papierkorb[zweites] = "2026-10-21";
+    const ohneArbeit = structuredClone(INHALT);
+    ohneArbeit.foto.arbeiten = ohneArbeit.foto.arbeiten.slice(1);
+    const proben = [...Object.keys(bilder), "arbeiten/gibt-es-nicht/01", "arbeiten/wiwawo-52/serie/03", "ueber/01", "portrait"];
+    for (const inhalt of [INHALT, verborgen, ohneArbeit]) {
+      const mosaik = new Set(fotosFuerMosaik({ inhalt, bilder }).map((b) => b.schluessel));
+      for (const s of proben) expect(istSichtbaresFoto(inhalt, bilder, s), s).toBe(mosaik.has(s));
+    }
+    expect(istSichtbaresFoto(verborgen, bilder, erstes)).toBe(false);
+    expect(istSichtbaresFoto(verborgen, bilder, zweites)).toBe(false);
+    expect(istSichtbaresFoto(INHALT, bilder, erstes)).toBe(true);
   });
 });
 
