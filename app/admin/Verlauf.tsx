@@ -9,7 +9,7 @@ import type {
   VerlaufStand,
   ZuruecksetzenAnfrage,
 } from "@/lib/admin/vertrag";
-import { pruefeAltenStand } from "@/lib/admin/werkzeuge";
+import { gleicherCommit, pruefeAltenStand } from "@/lib/admin/werkzeuge";
 import { Liste } from "./Befunde";
 import { holeJson, netzText, sendeJson } from "./hochladen";
 import { useSitzung } from "./kontext";
@@ -45,13 +45,27 @@ function alsZeit(iso: string): string {
 /** Der alte Stand für die Rückfrage — oder warum er nicht kam. */
 type Geholt = { commit: string; inhalt: unknown } | { commit: string; fehler: string };
 
+/**
+ * Die Liste — und zu welchem Stand (`sha`) sie geholt wurde. `vollstaendig`:
+ * Der Commit der eigenen letzten Speicherung steht darin (oder ist nicht
+ * bekannt).
+ */
+type Liste = { sha: string; eintraege: VerlaufEintrag[]; vollstaendig: boolean };
+
+/** Fehlt die eigene letzte Speicherung in der Liste, so oft nachfragen, in diesem Abstand (ms). */
+const LISTE_VERSUCHE = 4;
+const LISTE_ABSTAND = 1500;
+
 export default function VerlaufReiter({
   sha,
+  commit: letzterCommit,
   gesperrt,
   beiWiederhergestellt,
   beiKonflikt,
 }: {
   sha: string;
+  /** Der Commit, der `sha` geschrieben hat — nur nach eigenem Speichern bekannt, sonst `""`. */
+  commit: string;
   /** Der Stand in der Verwaltung ist nicht der von `main` — siehe `veraltet` in `Verwaltung.tsx`. */
   gesperrt: boolean;
   /** `commit` und `sha` des neuen Commits, der den alten Stand enthält. */
@@ -59,27 +73,49 @@ export default function VerlaufReiter({
   beiKonflikt: () => void;
 }) {
   const { inhalt, bilder, konfiguration, ungespeichert } = useSitzung();
-  const [eintraege, setEintraege] = useState<VerlaufEintrag[] | null>(null);
+  const [liste, setListe] = useState<Liste | null>(null);
   const [fehler, setFehler] = useState<{ text: string; befunde: Befund[] } | null>(null);
   const [frage, setFrage] = useState<{ eintrag: VerlaufEintrag; letzte: boolean } | null>(null);
   const [geholt, setGeholt] = useState<Geholt | null>(null);
   const [laeuft, setLaeuft] = useState(false);
   const [runde, setRunde] = useState(0);
 
+  /* Die Liste gehört zu einem Stand. Ändert sich `sha` (gespeichert, neu
+     geladen, wiederhergestellt), zeigte „Letzte Speicherung zurücknehmen" in
+     der alten Liste auf den Eintrag davor — Jakob nähme zwei Speicherungen
+     zurück statt einer. Deshalb neu holen; bis die neue Liste da ist, sind die
+     Knöpfe gesperrt. Hinkt GitHub hinterher und die eigene letzte Speicherung
+     fehlt noch, ein paar Mal nachfragen. */
   useEffect(() => {
     if (!konfiguration.github) return;
     let abgebrochen = false;
-    void holeJson<Verlauf>("/api/admin/verlauf").then(({ status, daten }) => {
-      if (abgebrochen) return;
-      if (status === 200 && daten && Array.isArray(daten.eintraege)) {
-        setEintraege(daten.eintraege);
-        setFehler(null);
-      } else setFehler({ text: netzText(status, daten), befunde: [] });
-    });
+    void (async () => {
+      for (let versuch = 1; ; versuch++) {
+        const { status, daten } = await holeJson<Verlauf>("/api/admin/verlauf");
+        if (abgebrochen) return;
+        if (status !== 200 || !daten || !Array.isArray(daten.eintraege)) {
+          setFehler({ text: netzText(status, daten), befunde: [] });
+          return;
+        }
+        const vollstaendig = !letzterCommit || daten.eintraege.some((e) => gleicherCommit(e.commit, letzterCommit));
+        if (vollstaendig || versuch >= LISTE_VERSUCHE) {
+          setListe({ sha, eintraege: daten.eintraege, vollstaendig });
+          setFehler(null);
+          return;
+        }
+        await new Promise((r) => setTimeout(r, LISTE_ABSTAND));
+        if (abgebrochen) return;
+      }
+    })();
     return () => {
       abgebrochen = true;
     };
-  }, [konfiguration.github, runde]);
+  }, [konfiguration.github, runde, sha, letzterCommit]);
+
+  const eintraege = liste?.eintraege ?? null;
+  /* Nur eine Liste, die zum Stand in der Verwaltung gehört, gibt die Knöpfe frei. */
+  const neuGeholt = liste !== null && liste.sha === sha;
+  const passt = neuGeholt && liste.vollstaendig;
 
   /* Öffnet die Rückfrage, den alten Stand holen — damit sie sagen kann, was
      sich ändert, bevor etwas geschieht. */
@@ -167,7 +203,17 @@ export default function VerlaufReiter({
               {fehler.befunde.length > 0 && <Liste befunde={fehler.befunde} />}
             </div>
           )}
-          {eintraege === null && !fehler && <p className={styles.leise}>Lädt …</p>}
+          {!neuGeholt && !fehler && (
+            <p className={styles.leise} aria-live="polite">
+              Lädt …
+            </p>
+          )}
+          {neuGeholt && !liste.vollstaendig && (
+            <p className={styles.band}>
+              Deine letzte Speicherung steht hier noch nicht. Gleich noch einmal „Aktualisieren“, dann lässt sich
+              wieder ein Stand zurückholen.
+            </p>
+          )}
           {eintraege && eintraege.length === 0 && <p className={styles.leise}>Noch keine Einträge.</p>}
           {eintraege && eintraege.length > 0 && (
             <ul className={`${styles.reihen} ${styles.verlaufListe}`}>
@@ -186,7 +232,7 @@ export default function VerlaufReiter({
                         <button
                           type="button"
                           className={styles.knopf}
-                          disabled={ungespeichert || gesperrt || laeuft}
+                          disabled={ungespeichert || gesperrt || laeuft || !passt}
                           onClick={() => {
                             /* Frisch holen — auch bei einem Eintrag, der schon einmal offen war. */
                             setGeholt(null);

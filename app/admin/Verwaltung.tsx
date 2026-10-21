@@ -84,6 +84,8 @@ type Geladen = {
   inhalt: Inhalt;
   basis: Inhalt;
   sha: string;
+  /** Der Commit, der `sha` geschrieben hat — nur nach eigenem Speichern oder Wiederherstellen bekannt, sonst `""`. */
+  commit: string;
   bilder: Record<string, Bildquelle>;
   konfiguration: Konfiguration;
 };
@@ -144,11 +146,12 @@ export default function Verwaltung() {
 
   /* ── Laden ─────────────────────────────────────────────────────────── */
 
-  const uebernimm = useCallback((stand: Stand) => {
+  const uebernimm = useCallback((stand: Stand, commit = "") => {
     setGeladen({
       inhalt: stand.inhalt,
       basis: stand.inhalt,
       sha: stand.sha,
+      commit,
       bilder: stand.bilder,
       konfiguration: stand.konfiguration,
     });
@@ -250,7 +253,13 @@ export default function Verwaltung() {
       const { papierkorb } = daten;
       setGeladen((g) =>
         g
-          ? { ...g, basis: { ...gesendet, papierkorb }, inhalt: mitPapierkorbDaten(g.inhalt, papierkorb), sha: daten.sha }
+          ? {
+              ...g,
+              basis: { ...gesendet, papierkorb },
+              inhalt: mitPapierkorbDaten(g.inhalt, papierkorb),
+              sha: daten.sha,
+              commit: daten.commit,
+            }
           : g,
       );
       setEigeneNachricht(null);
@@ -282,7 +291,7 @@ export default function Verwaltung() {
       const erg = await holeStand();
       if ("stand" in erg && erg.stand.sha === sha) neu = erg.stand;
     }
-    if (neu) uebernimm(neu);
+    if (neu) uebernimm(neu, commit);
     else setVeraltet(true);
     /* Ohne Commit (stand schon so auf main) gibt es nichts zu veröffentlichen — wie beim Speichern. */
     setSpeicher(commit ? { art: "veroeffentlicht", commit, seit: Date.now() } : { art: "ruhe" });
@@ -676,6 +685,7 @@ export default function Verwaltung() {
           {reiter === "verlauf" && (
             <VerlaufReiter
               sha={geladen.sha}
+              commit={geladen.commit}
               gesperrt={veraltet}
               beiWiederhergestellt={beiWiederhergestellt}
               beiKonflikt={() => setKonflikt(true)}

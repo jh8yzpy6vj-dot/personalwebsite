@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { INHALT } from "../inhalt";
 import {
   alsDatei,
   berlinerTag,
@@ -8,8 +9,9 @@ import {
   leseBegrenzt,
   logText,
   papierkorbDaten,
+  speichereInhalt,
 } from "./antwort";
-import { GithubFehler } from "./github";
+import { GithubFehler, nachBase64, type GithubKonfig } from "./github";
 
 describe("berlinerTag", () => {
   it("ist der Tag in deutscher Zeit, nicht in UTC", () => {
@@ -56,6 +58,68 @@ describe("papierkorbDaten", () => {
 
   it("lässt sich nicht über __proto__ oder geerbte Schlüssel täuschen", () => {
     expect(papierkorbDaten({ toString: "2000-01-01" }, {}, HEUTE)).toEqual({ toString: HEUTE });
+  });
+});
+
+describe("speichereInhalt", () => {
+  const A = "a".repeat(40);
+  const B = "b".repeat(40);
+  const antwort = (d: unknown, status = 200) => new Response(JSON.stringify(d), { status });
+  const datei = (inhalt: unknown, sha: string) =>
+    antwort({ sha, encoding: "base64", content: nachBase64(JSON.stringify(inhalt)) });
+
+  /** GitHub, auf dessen main `aufMain` mit sha B steht; Lesen über den Branch liefert `gelesen`. */
+  function github(aufMain: unknown, gelesen: { inhalt: unknown; sha: string }) {
+    const wege: string[] = [];
+    const gh: GithubKonfig = {
+      token: "t",
+      repo: "besitzer/repo",
+      branch: "main",
+      fetch: (async (url: string, init: RequestInit = {}) => {
+        const methode = init.method ?? "GET";
+        const weg = `${methode} ${url.replace("https://api.github.com/repos/besitzer/repo", "")}`;
+        wege.push(weg);
+        if (methode === "PUT") {
+          return (JSON.parse(String(init.body)) as { sha: string }).sha === B
+            ? antwort({ content: { sha: "c".repeat(40) }, commit: { sha: "d".repeat(40) } })
+            : antwort({ message: "does not match" }, 409);
+        }
+        if (weg.includes("/git/blobs/")) return weg.endsWith(B) ? datei(aufMain, B) : antwort({}, 404);
+        if (weg.includes("/commits?")) return antwort([{ sha: "e".repeat(40), commit: { message: "x" } }]);
+        if (weg.includes("inhalt.json")) return datei(gelesen.inhalt, gelesen.sha);
+        return datei({}, "f".repeat(40)); // Manifest
+      }) as typeof fetch,
+    };
+    return { gh, wege };
+  }
+
+  const NEU = { ...INHALT, seite: { ...INHALT.seite, name: "neu" } };
+
+  it("schreibt zuerst — liefert das Lesen von main noch den alten Stand, wird nichts verschluckt (Fall X1)", async () => {
+    // main ist NEU (sha B), das Lesen über den Branch hinkt und liefert noch INHALT.
+    const { gh, wege } = github(NEU, { inhalt: INHALT, sha: A });
+    const a = await speichereInhalt(gh, INHALT, B, "zurück");
+    expect(a.status).toBe(200);
+    expect(await a.json()).toMatchObject({ ok: true, commit: "d".repeat(40) });
+    expect(wege.filter((w) => w.includes("inhalt.json") || w.includes("/git/blobs/"))).toEqual([
+      `GET /git/blobs/${B}`,
+      "PUT /contents/lib/inhalt.json",
+    ]);
+  });
+
+  it("lehnt GitHub ab und steht genau das schon auf main: kein Commit, die sha von main", async () => {
+    const { gh, wege } = github(NEU, { inhalt: NEU, sha: B });
+    const a = await speichereInhalt(gh, NEU, A, "noch einmal");
+    expect(a.status).toBe(200);
+    expect(await a.json()).toMatchObject({ ok: true, sha: B, commit: "e".repeat(40) });
+    expect(wege.filter((w) => w.startsWith("PUT"))).toHaveLength(1);
+  });
+
+  it("lehnt GitHub ab und steht auf main etwas anderes: 409", async () => {
+    const { gh } = github(NEU, { inhalt: NEU, sha: B });
+    const a = await speichereInhalt(gh, INHALT, A, "x");
+    expect(a.status).toBe(409);
+    expect((await a.json()).grund).toBe("konflikt");
   });
 });
 

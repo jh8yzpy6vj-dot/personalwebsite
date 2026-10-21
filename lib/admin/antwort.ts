@@ -11,7 +11,15 @@
 
 import { BILDER } from "../bilder";
 import { istTag, pruefeInhalt, nurFehler } from "../inhalt-pruefen";
-import { GithubFehler, GithubKonflikt, leseDatei, schreibeDatei, verlauf, type GithubKonfig } from "./github";
+import {
+  GithubFehler,
+  GithubKonflikt,
+  leseBlob,
+  leseDatei,
+  schreibeDatei,
+  verlauf,
+  type GithubKonfig,
+} from "./github";
 import type { SpeichernAntwort } from "./vertrag";
 import { gleich } from "./werkzeuge";
 
@@ -220,17 +228,57 @@ const KONFLIKT: SpeichernAntwort = {
     "Bitte die Seite neu laden — deine letzten Änderungen dann noch einmal machen.",
 };
 
+/** Text als JSON — oder `null`, wenn er keins ist. */
+function alsJson(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+function papierkorbAus(stand: unknown): unknown {
+  return typeof stand === "object" && stand !== null ? (stand as { papierkorb?: unknown }).papierkorb : undefined;
+}
+
+/**
+ * Der Stand, auf dem der Browser aufbaut — gelesen über seine `sha`, also
+ * genau diese Fassung. Nur wenn GitHub den Commit annimmt, war das `main`,
+ * und dann ersetzt der Commit genau diesen Stand.
+ *
+ * `null`, wenn es ihn nicht gibt: leere `sha` (ohne GitHub geladen), eine
+ * unbekannte oder kaputtes JSON. Der Commit scheitert dann ohnehin am
+ * Konflikt — oder schreibt über Kaputtes, wofür kein Datum zählt.
+ */
+async function leseBasis(gh: GithubKonfig, sha: string): Promise<unknown> {
+  if (sha === "") return null;
+  try {
+    return alsJson(await leseBlob(gh, sha, INHALT_PFAD));
+  } catch (e) {
+    // 404: Diesen Blob gibt es nicht; 422: Die sha ist keiner.
+    if (e instanceof GithubFehler && (e.status === 404 || e.status === 422)) return null;
+    throw e;
+  }
+}
+
 /**
  * Prüfen und als Commit schreiben. Dieselben Regeln wie beim Build
  * (`lib/content.ts`) — was hier durchgeht, bricht den Build nicht.
  *
- * Vor dem Schreiben wird `main` gelesen:
- * - **Steht dort schon genau dieser Inhalt**, gibt es keinen Commit, nur die
- *   aktuelle `sha`. Das ist der Fall „Antwort ging unterwegs verloren"
- *   (Mobilfunk): Jakob speichert noch einmal, mit der alten `sha` — und
- *   bekäme sonst „jemand anderes hat gespeichert", obwohl er es selbst war.
- * - **Passt die `sha` nicht mehr**, gleich 409 — ohne Umweg über GitHub.
- * - Die **Papierkorb-Daten** setzt der Server (`papierkorbDaten`).
+ * - **Geschrieben wird zuerst**, mit der `sha` des Browsers. Ob sie noch zu
+ *   `main` passt, entscheidet GitHub beim Commit — nicht ein Lesen von
+ *   `main` vorher: Das kann kurz nach einem Commit noch den Stand davor
+ *   liefern. Nähme Jakob seine gerade gespeicherte Änderung zurück, sähe der
+ *   Rückweg dann aus wie „steht schon so auf main" und würde still
+ *   verschluckt.
+ * - **Lehnt GitHub ab** (`GithubKonflikt`), wird `main` gelesen. Steht dort
+ *   schon genau dieser Inhalt, gibt es keinen Commit, nur die aktuelle
+ *   `sha`: der Fall „Antwort ging unterwegs verloren" (Mobilfunk) — Jakob
+ *   speichert noch einmal, mit der alten `sha`, und bekäme sonst „jemand
+ *   anderes hat gespeichert", obwohl er es selbst war. Sonst 409.
+ * - Die **Papierkorb-Daten** setzt der Server (`papierkorbDaten`), gemessen
+ *   an dem Stand, den der Commit ersetzt (`leseBasis`); im Fall „schon
+ *   gespeichert" an `main`.
  *
  * `textUngueltig` ersetzt den Text bei 422 — beim Wiederherstellen gibt es
  * nichts zu „korrigieren".
@@ -260,37 +308,44 @@ export async function speichereInhalt(
     );
   }
 
+  // Nach der Prüfung ohne Fehler ist `papierkorb` sicher eine Zuordnung Schlüssel → Datum.
+  const gesendet = inhalt as { papierkorb: Record<string, string> };
+  const heute = berlinerTag(new Date());
+  /** Der Inhalt, wie er geschrieben wird — die Papierkorb-Daten gemessen an `stand`. */
+  const mitDaten = (stand: unknown) => ({
+    ...gesendet,
+    papierkorb: papierkorbDaten(gesendet.papierkorb, papierkorbAus(stand), heute),
+  });
+
   try {
-    const aktuell = await leseDatei(gh, INHALT_PFAD);
-    let aufMain: unknown = null;
+    const neu = mitDaten(await leseBasis(gh, sha));
     try {
-      aufMain = JSON.parse(aktuell.text);
-    } catch {
-      /* Kaputt auf main: nichts ist gleich, kein Datum bleibt — unten weiter. */
+      const ergebnis = await schreibeDatei(gh, INHALT_PFAD, alsDatei(neu), sha, commitNachricht(betreff));
+      return json({
+        ok: true,
+        sha: ergebnis.sha,
+        commit: ergebnis.commit,
+        befunde,
+        papierkorb: neu.papierkorb,
+      } satisfies SpeichernAntwort);
+    } catch (e) {
+      if (!(e instanceof GithubKonflikt)) throw e;
     }
 
-    // Nach der Prüfung ohne Fehler ist `papierkorb` sicher eine Zuordnung Schlüssel → Datum.
-    const gesendet = inhalt as { papierkorb: Record<string, string> };
-    const altPapierkorb =
-      typeof aufMain === "object" && aufMain !== null ? (aufMain as { papierkorb?: unknown }).papierkorb : undefined;
-    const papierkorb = papierkorbDaten(gesendet.papierkorb, altPapierkorb, berlinerTag(new Date()));
-    const neu = { ...gesendet, papierkorb };
+    // Abgelehnt — `main` ist weiter als der Browser. Vielleicht genau um diesen Inhalt?
+    const aktuell = await leseDatei(gh, INHALT_PFAD);
+    const aufMain = alsJson(aktuell.text);
+    const wieMain = mitDaten(aufMain);
+    if (!gleich(aufMain, wieMain)) return json(KONFLIKT, 409);
 
-    if (gleich(aufMain, neu)) {
-      let commit = "";
-      try {
-        commit = (await verlauf(gh, INHALT_PFAD, 1))[0]?.commit ?? "";
-      } catch (e) {
-        console.warn(`Verwaltung: letzter Commit nicht lesbar (${logText(e)})`);
-      }
-      return json({ ok: true, sha: aktuell.sha, commit, befunde, papierkorb } satisfies SpeichernAntwort);
+    let commit = "";
+    try {
+      commit = (await verlauf(gh, INHALT_PFAD, 1))[0]?.commit ?? "";
+    } catch (e) {
+      console.warn(`Verwaltung: letzter Commit nicht lesbar (${logText(e)})`);
     }
-    if (aktuell.sha !== sha) return json(KONFLIKT, 409);
-
-    const ergebnis = await schreibeDatei(gh, INHALT_PFAD, alsDatei(neu), sha, commitNachricht(betreff));
-    return json({ ok: true, sha: ergebnis.sha, commit: ergebnis.commit, befunde, papierkorb } satisfies SpeichernAntwort);
+    return json({ ok: true, sha: aktuell.sha, commit, befunde, papierkorb: wieMain.papierkorb } satisfies SpeichernAntwort);
   } catch (e) {
-    if (e instanceof GithubKonflikt) return json(KONFLIKT, 409);
     console.error(`Verwaltung: Speichern fehlgeschlagen (${logText(e)})`);
     return json({ ok: false, grund: "github", text: fehlerText(e) } satisfies SpeichernAntwort, 502);
   }

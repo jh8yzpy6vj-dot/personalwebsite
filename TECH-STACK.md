@@ -154,23 +154,29 @@ zeigt die Verwaltung den Stand des Builds, Speichern ist dann gesperrt.
 
 **Speichern.** Die Oberfläche prüft jede Änderung sofort mit `pruefeInhalt` und zeigt Fehler,
 Warnungen und Hinweise; Fehler sperren das Speichern. Beim Speichern prüft der Server noch einmal
-(422 bei Fehlern), liest `lib/inhalt.json` von `main` und committet dann mit der SHA vom Laden
-(`speichereInhalt` in `lib/admin/antwort.ts`):
+(422 bei Fehlern) und committet dann **sofort** mit der SHA vom Laden — ob sie noch zu `main`
+passt, entscheidet GitHub beim Commit (`speichereInhalt` in `lib/admin/antwort.ts`). ⚠️ Kein
+Lesen von `main` vorher: GitHub liefert kurz nach einem Commit beim Lesen über den Branch
+manchmal noch den Stand davor. Nähme Jakob seine gerade gespeicherte Änderung zurück, sähe das
+aus wie „steht schon so da", und die Rücknahme ginge still verloren (bis 2026-10-21 so gebaut).
 
-- **Steht auf `main` schon genau dieser Inhalt**, gibt es keinen Commit, nur die aktuelle SHA
-  (seit 2026-10-20). Das ist der Fall „Antwort ging unterwegs verloren": Jakob speichert noch
-  einmal mit der alten SHA und bekam vorher „jemand anderes hat gespeichert", obwohl er es selbst
-  war.
-- **Weicht die SHA ab** (Jan im Code, ein zweiter Tab, die Medien-Action, wenn sie abgelaufene
-  Einträge aus dem Papierkorb entfernt): **409, nichts wird still überschrieben.** Die Verwaltung
-  zeigt, was Neu laden verwerfen würde, und schließt den Dialog erst, wenn das Laden geklappt hat.
+- **Lehnt GitHub ab und steht auf `main` schon genau dieser Inhalt**, gibt es keinen Commit, nur
+  die aktuelle SHA (seit 2026-10-20). Das ist der Fall „Antwort ging unterwegs verloren": Jakob
+  speichert noch einmal mit der alten SHA und bekam vorher „jemand anderes hat gespeichert",
+  obwohl er es selbst war. `main` wird erst nach der Ablehnung gelesen.
+- **Lehnt GitHub ab, weil die SHA wirklich abweicht** (Jan im Code, ein zweiter Tab, die
+  Medien-Action, wenn sie abgelaufene Einträge aus dem Papierkorb entfernt): **409, nichts wird
+  still überschrieben.** Die Verwaltung zeigt, was Neu laden verwerfen würde, und schließt den
+  Dialog erst, wenn das Laden geklappt hat.
 - **Nicht jede 409 von GitHub ist ein Konflikt** (`schreibeDatei` in `lib/admin/github.ts`):
   GitHub antwortet auch so, wenn der Branch während des Commits weitergerückt ist (die Action
   pusht gerade) oder eine Regel des Repos den Commit verbietet. Deshalb wird die SHA nachgelesen:
   abweichend → Konflikt; gleich → genau ein zweiter Versuch, scheitert der, steht GitHubs eigene
   Meldung da („GitHub hat das Speichern abgelehnt: …", 502).
-- **Die Papierkorb-Daten setzt der Server**, siehe „Löschen = Papierkorb" unten. Die Antwort
-  bringt sie mit, die Verwaltung übernimmt sie.
+- **Die Papierkorb-Daten setzt der Server**, siehe „Löschen = Papierkorb" unten — gemessen an
+  dem Stand, den der Commit ersetzt. Den liest er über die SHA des Browsers als Blob
+  (`leseBlob`, `/git/blobs/<sha>`): Blobs sind nach Inhalt benannt, da hinkt nichts hinterher.
+  Die Antwort bringt die Daten mit, die Verwaltung übernimmt sie.
 
 Danach fragt die Verwaltung alle 20 s `/api/admin/live`, bis die laufende Seite aus dem neuen
 Commit gebaut ist, und meldet „Gespeichert und live".
@@ -196,6 +202,12 @@ Speichern, nichts wird aus der Geschichte gelöscht. Seit 2026-10-20:
   meldet die Leiste „Wiederhergestellt, aber der neue Stand ließ sich nicht laden" und Speichern
   bleibt gesperrt, bis neu geladen ist. Vorher blieben alter Inhalt und alte SHA stehen, und die
   Leiste sagte „Gespeichert".
+- Seit 2026-10-21 gehört die Liste zu einem Stand (`sha`): Ändert der sich (gespeichert, neu
+  geladen, wiederhergestellt), holt der Reiter sie neu und sperrt die Knöpfe, bis sie da ist.
+  Nach eigenem Speichern muss der neue Commit darin stehen — sonst bis zu vier Abrufe im Abstand
+  von 1,5 s, danach ein Hinweis und weiter gesperrt. Vorher blieb die alte Liste stehen, und
+  „Letzte Speicherung zurücknehmen" zeigte auf den Eintrag davor: Jakob hätte zwei Speicherungen
+  zurückgenommen statt einer.
 
 **Hochladen und Ersetzen.**
 
@@ -514,7 +526,7 @@ ein `GITHUB_TOKEN` dort zählt genauso wie einer in der Shell.
 | „… der Token ist abgelaufen oder falsch" | Token abgelaufen oder widerrufen (GitHub 401) | Token erneuern (Schritt 3) |
 | „… fehlende Rechte des Tokens oder zu viele Anfragen" / „nicht gefunden — Repo, Branch oder Rechte" | Token hat nicht Contents bzw. Actions „Read and write", gilt für ein anderes Repo, oder `GITHUB_REPO`/`GITHUB_BRANCH` falsch | Rechte des Tokens prüfen |
 | Dialog „Inzwischen hat jemand anderes gespeichert" | `lib/inhalt.json` auf `main` hat wirklich eine andere SHA als beim Laden (Jan, zweiter Tab, Medien-Action beim Entfernen abgelaufener Papierkorb-Einträge). Ein verlorenes Antwortpaket oder ein Wettlauf mit einem Push lösen ihn seit 2026-10-20 nicht mehr aus | Der Dialog nennt, was Neu laden verwirft. Neu laden, Änderung wiederholen — „Abbrechen" lässt die Änderungen zum Ansehen stehen, speichern lassen sie sich so nicht |
-| „GitHub hat das Speichern abgelehnt: „…"" | GitHub lehnt den Commit zweimal ab, obwohl die SHA stimmt — meist eine Regel des Repos (Branch-Schutz, Ruleset) | Die Meldung in Klammern lesen; Regel unter Settings → Rules bzw. Branches prüfen |
+| „GitHub hat das Speichern abgelehnt: „…"" | GitHub lehnt den Commit zweimal ab, obwohl die SHA stimmt — meist eine Regel des Repos (Branch-Schutz, Ruleset) | GitHubs Meldung in den Anführungszeichen „…" lesen; Regel unter Settings → Rules bzw. Branches prüfen |
 | „Wiederhergestellt, aber der neue Stand ließ sich nicht laden. Bitte neu laden." | Der Commit ist da, aber `/api/admin/stand` lieferte viermal nicht den Stand mit der neuen SHA (GitHub hinkt hinterher oder ist kurz nicht erreichbar) | „Neu laden" in der Leiste; bis dahin ist Speichern gesperrt. Scheitert auch das, erscheint oben ein Band mit dem Grund und „Noch einmal laden" |
 | „lib/inhalt.json auf GitHub ist kein gültiges JSON — bitte Jan Bescheid geben." | Die Datei auf `main` ist kaputt, z. B. Konfliktmarker nach einem Merge von Hand. Die Verwaltung ist dann ganz blockiert | Datei im Repo reparieren (letzten guten Stand aus dem Git-Verlauf). Die genaue Stelle steht im Worker-Log („… kein gültiges JSON (SyntaxError: …)") |
 | Verlauf: „Dieser Stand passt nicht mehr zu den heutigen Regeln …" | Der alte Stand bricht eine Regel, die es damals noch nicht gab (z. B. ein Feld, das inzwischen Pflicht ist) | Die Befunde stehen in der Rückfrage. Den Stand bei Bedarf von Hand angleichen (`git show <commit>:lib/inhalt.json`) |

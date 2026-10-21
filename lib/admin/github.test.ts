@@ -4,6 +4,7 @@ import {
   GithubFehler,
   GithubKonflikt,
   laeufe,
+  leseBlob,
   leseDatei,
   nachBase64,
   schreibeDatei,
@@ -92,6 +93,29 @@ describe("leseDatei", () => {
     const { cfg, aufrufe } = fake(() => json({}));
     await expect(leseDatei(cfg, "../geheim")).rejects.toBeInstanceOf(GithubFehler);
     await expect(leseDatei(cfg, "lib/inhalt.json", "main..x")).rejects.toBeInstanceOf(GithubFehler);
+    expect(aufrufe).toHaveLength(0);
+  });
+});
+
+describe("leseBlob", () => {
+  it("liest genau die Fassung mit dieser sha — über die Blob-API, nicht über den Branch", async () => {
+    const { cfg, aufrufe } = fake(() => json({ sha: "a".repeat(40), encoding: "base64", content: nachBase64(TEXT) }));
+    expect(await leseBlob(cfg, "a".repeat(40), "lib/inhalt.json")).toBe(TEXT);
+    expect(aufrufe.map((a) => a.url)).toEqual([`https://api.github.com/repos/besitzer/repo/git/blobs/${"a".repeat(40)}`]);
+  });
+
+  it("unbekannte sha: GithubFehler mit 404", async () => {
+    const { cfg } = fake(() => json({ message: "Not Found" }, 404));
+    const e = await leseBlob(cfg, "b".repeat(40), "lib/inhalt.json").catch((x: unknown) => x);
+    expect(e).toBeInstanceOf(GithubFehler);
+    expect((e as GithubFehler).status).toBe(404);
+  });
+
+  it("fragt bei leerer oder kaputter sha gar nicht erst", async () => {
+    const { cfg, aufrufe } = fake(() => json({}));
+    for (const sha of ["", "../x", "A".repeat(40), "a".repeat(39)]) {
+      await expect(leseBlob(cfg, sha, "lib/inhalt.json")).rejects.toBeInstanceOf(GithubFehler);
+    }
     expect(aufrufe).toHaveLength(0);
   });
 });

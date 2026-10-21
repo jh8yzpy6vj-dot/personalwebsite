@@ -185,24 +185,45 @@ export async function leseDatei(
   const daten = (await antwort.json()) as DateiAntwort;
   if (typeof daten.sha !== "string") throw new GithubFehler(`${pfad} ist keine Datei.`, 502);
 
-  let b64: string;
-  if (daten.encoding === "base64" && typeof daten.content === "string") {
-    b64 = daten.content;
-  } else {
-    const blob = await anfrage(cfg, "GET", `/git/blobs/${encodeURIComponent(daten.sha)}`);
-    if (!blob.ok) throw await fehlerAus(blob, `${pfad} lesen`);
-    const roh = (await blob.json()) as DateiAntwort;
-    if (roh.encoding !== "base64" || typeof roh.content !== "string") {
-      throw new GithubFehler(`${pfad} kam in unbekannter Form an.`, 502);
-    }
-    b64 = roh.content;
-  }
+  const b64 =
+    daten.encoding === "base64" && typeof daten.content === "string"
+      ? daten.content
+      : await blobBase64(cfg, daten.sha, pfad);
+  return { text: alsText(b64, pfad), sha: daten.sha };
+}
 
+/** Blob-SHA, wie GitHub sie für dieses Repo liefert (SHA-1, 40 Zeichen). */
+const BLOB = /^[0-9a-f]{40}$/;
+
+async function blobBase64(cfg: GithubKonfig, sha: string, pfad: string): Promise<string> {
+  const blob = await anfrage(cfg, "GET", `/git/blobs/${encodeURIComponent(sha)}`);
+  if (!blob.ok) throw await fehlerAus(blob, `${pfad} lesen`);
+  const roh = (await blob.json()) as DateiAntwort;
+  if (roh.encoding !== "base64" || typeof roh.content !== "string") {
+    throw new GithubFehler(`${pfad} kam in unbekannter Form an.`, 502);
+  }
+  return roh.content;
+}
+
+function alsText(b64: string, pfad: string): string {
   try {
-    return { text: ausBase64(b64), sha: daten.sha };
+    return ausBase64(b64);
   } catch {
     throw new GithubFehler(`${pfad} ist kein gültiger UTF-8-Text.`, 502);
   }
+}
+
+/**
+ * Eine Datei in **genau der Fassung** lesen, die die Blob-`sha` bezeichnet —
+ * egal, was gerade auf dem Branch steht. `pfad` dient nur den Fehlertexten.
+ *
+ * Blobs sind nach ihrem Inhalt benannt: Anders als beim Lesen über den
+ * Branch kann GitHub hier keinen älteren Stand liefern, der kurz
+ * hinterherhinkt. Gibt es den Blob nicht, wirft das `GithubFehler` mit 404.
+ */
+export async function leseBlob(cfg: GithubKonfig, sha: string, pfad: string): Promise<string> {
+  if (!BLOB.test(sha)) throw new GithubFehler("Ungültiger Stand.", 400);
+  return alsText(await blobBase64(cfg, sha, pfad), pfad);
 }
 
 /**

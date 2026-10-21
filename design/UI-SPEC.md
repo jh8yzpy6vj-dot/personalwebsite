@@ -490,6 +490,12 @@ Umbaus abgehakt.
   Lehnt der Server ab, stehen sein Text (Fehlertext) und die Befunde über den Einträgen.
   Begründung (2026-10-20): Vorher stand dort nur „Alles, was danach gespeichert wurde, ist dann
   nicht mehr zu sehen" — aus Entwickler-Nachrichten im Verlauf erfährt Jakob nicht, was das ist.
+  Nach jedem Speichern, Neuladen oder Wiederherstellen wird die Liste neu geholt; bis sie da ist,
+  steht „Lädt …" über der alten Liste und ihre Knöpfe sind gesperrt. Fehlt die eigene letzte
+  Speicherung auch nach mehreren Versuchen, steht dort als Band „Deine letzte Speicherung steht
+  hier noch nicht. Gleich noch einmal „Aktualisieren“, dann lässt sich wieder ein Stand
+  zurückholen." — Knöpfe weiter gesperrt. Begründung (2026-10-21): Die alte Liste blieb stehen,
+  und „Letzte Speicherung zurücknehmen" zeigte auf den Eintrag davor.
 - **Zeilenlisten** (Hero, Arbeiten, Filme, Papierkorb, Verlauf): eine Spalte, so breit wie der
   Platz; lange Titel enden mit „…" (im Verlauf brechen sie um). Kein waagerechtes Scrollen
   zwischen 320 und 414px — vorher legte der längste Titel die Breite der Liste fest.

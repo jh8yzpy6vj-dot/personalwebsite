@@ -61,6 +61,50 @@ function fakeFetch(antworte: (url: string, methode: string, init?: RequestInit) 
 const json = (d: unknown, status = 200) => new Response(JSON.stringify(d), { status });
 const datei = (text: string, sha = SHA) => json({ sha, encoding: "base64", content: nachBase64(text) });
 
+/**
+ * GitHub mit `lib/inhalt.json`, so streng wie das echte: `main` ist der
+ * wirkliche Stand, und ein PUT gelingt nur mit dessen sha (sonst 409).
+ * Jeder Stand ist über seine sha als Blob lesbar (`main` und `blobs`).
+ * `gelesen` ist, was das Lesen über den Branch liefert — sonst `main`;
+ * ein älterer Stand dort ist GitHub, das kurz nach einem Commit hinterherhinkt.
+ * `letzterCommit: null` — der Verlauf ist nicht lesbar.
+ */
+function fakeGithub(o: {
+  main: { text: string; sha: string };
+  blobs?: Record<string, string>;
+  gelesen?: { text: string; sha: string };
+  letzterCommit?: string | null;
+}) {
+  const blobs: Record<string, string> = { ...o.blobs, [o.main.sha]: o.main.text };
+  fakeFetch((url, methode, init) => {
+    if (methode === "PUT") {
+      const { sha } = JSON.parse(String(init?.body)) as { sha?: string };
+      return sha === o.main.sha
+        ? json({ content: { sha: "c".repeat(40) }, commit: { sha: "d".repeat(40) } })
+        : json({ message: "lib/inhalt.json does not match" }, 409);
+    }
+    const blob = /\/git\/blobs\/([0-9a-f]{40})$/.exec(url);
+    if (blob) return blob[1] in blobs ? datei(blobs[blob[1]], blob[1]) : json({ message: "Not Found" }, 404);
+    if (url.includes("/commits?")) {
+      return o.letzterCommit === null
+        ? json({ message: "Server Error" }, 500)
+        : json([{ sha: o.letzterCommit ?? "e".repeat(40), commit: { message: "Verwaltung: x" } }]);
+    }
+    if (url.includes("inhalt.json")) {
+      const g = o.gelesen ?? o.main;
+      return datei(g.text, g.sha);
+    }
+    return datei(JSON.stringify(BILDER), "f".repeat(40));
+  });
+}
+
+/** Die Inhalte, die per PUT an GitHub gingen. */
+function puts(): Record<string, unknown>[] {
+  return aufrufe
+    .filter((x) => x.methode === "PUT")
+    .map((x) => JSON.parse(ausBase64((x.rumpf as { content: string }).content)));
+}
+
 function anmelden() {
   vi.stubEnv("NODE_ENV", "development");
   vi.stubEnv("ADMIN_DEV", "1");
@@ -329,35 +373,43 @@ describe("speichern", () => {
     expect(rumpf).toMatchObject({ sha: SHA, branch: "main" });
   });
 
-  it("meldet einen Konflikt mit 409, wenn inhalt.json auf main eine andere sha hat — ohne zu schreiben", async () => {
+  it("meldet einen Konflikt mit 409, wenn auf main inzwischen etwas anderes steht — GitHub lehnt den Commit ab", async () => {
     anmelden();
     mitGithub();
     const aufMain = { ...INHALT, seite: { ...INHALT.seite, name: "von Jan" } };
-    fakeFetch((url, methode) => {
-      if (methode === "PUT") throw new Error("darf nicht schreiben");
-      return url.includes("inhalt.json") ? datei(JSON.stringify(aufMain), "b".repeat(40)) : datei(JSON.stringify(BILDER));
-    });
+    fakeGithub({ main: { text: JSON.stringify(aufMain), sha: "b".repeat(40) }, blobs: { [SHA]: JSON.stringify(INHALT) } });
+    const a = await speichern.POST(anfrage({ inhalt: INHALT, sha: SHA, nachricht: "x" }));
+    expect(a.status).toBe(409);
+    expect((await a.json()).grund).toBe("konflikt");
+    expect(aufrufe.filter((x) => x.methode === "PUT")).toHaveLength(1);
+  });
+
+  it("ist der geladene Stand bei GitHub unbekannt, bleibt es ein Konflikt — kein Fehler", async () => {
+    anmelden();
+    mitGithub();
+    const aufMain = { ...INHALT, seite: { ...INHALT.seite, name: "von Jan" } };
+    fakeGithub({ main: { text: JSON.stringify(aufMain), sha: "b".repeat(40) } });
     const a = await speichern.POST(anfrage({ inhalt: INHALT, sha: SHA, nachricht: "x" }));
     expect(a.status).toBe(409);
     expect((await a.json()).grund).toBe("konflikt");
   });
 
-  it("meldet einen Konflikt, wenn main sich erst zwischen Lesen und Schreiben ändert", async () => {
+  it("schreibt zuerst und fragt main nicht vorher — eine Rücknahme geht nicht verloren, wenn das Lesen hinterherhinkt", async () => {
     anmelden();
     mitGithub();
-    let geschrieben = false;
-    fakeFetch((url, methode) => {
-      if (methode === "PUT") {
-        geschrieben = true;
-        return json({ message: "does not match" }, 409);
-      }
-      if (!url.includes("inhalt.json")) return datei(JSON.stringify(BILDER));
-      // Vor dem Schreiben noch die geladene sha, danach eine fremde.
-      return geschrieben ? datei("{}", "b".repeat(40)) : datei("{}");
+    // Jakob hat gerade B gespeichert und nimmt es zurück (wieder INHALT). Wer
+    // main über den Branch liest, bekommt aber noch INHALT — sähe also „steht
+    // schon so da" und schriebe nichts.
+    const B = { ...INHALT, seite: { ...INHALT.seite, name: "gerade gespeichert" } };
+    fakeGithub({
+      main: { text: JSON.stringify(B), sha: "b".repeat(40) },
+      gelesen: { text: JSON.stringify(INHALT), sha: SHA },
     });
-    const a = await speichern.POST(anfrage({ inhalt: INHALT, sha: SHA, nachricht: "x" }));
-    expect(a.status).toBe(409);
-    expect((await a.json()).grund).toBe("konflikt");
+    const a = await speichern.POST(anfrage({ inhalt: INHALT, sha: "b".repeat(40), nachricht: "x" }));
+    expect(a.status).toBe(200);
+    expect(await a.json()).toMatchObject({ ok: true, sha: "c".repeat(40), commit: "d".repeat(40) });
+    expect(puts().map((p) => (p.seite as { name: string }).name)).toEqual([INHALT.seite.name]);
+    expect(aufrufe.some((x) => x.methode === "GET" && x.url.includes("/contents/lib/inhalt.json"))).toBe(false);
   });
 
   it("409 von GitHub bei unveränderter sha ist kein Konflikt: zweiter Versuch, sonst GitHubs Meldung", async () => {
@@ -382,12 +434,10 @@ describe("speichern", () => {
     vi.setSystemTime(new Date("2026-10-18T10:00:00Z"));
     const papierkorb = { "arbeiten/stamp/01": "2026-10-18" };
     const gespeichert = { ...INHALT, papierkorb };
-    fakeFetch((url, methode) => {
-      if (methode === "PUT") throw new Error("darf nicht schreiben");
-      if (url.includes("/commits?")) return json([{ sha: "d".repeat(40), commit: { message: "Verwaltung: x" } }]);
-      return url.includes("inhalt.json")
-        ? datei(JSON.stringify(gespeichert), "c".repeat(40))
-        : datei(JSON.stringify(BILDER));
+    fakeGithub({
+      main: { text: JSON.stringify(gespeichert), sha: "c".repeat(40) },
+      blobs: { [SHA]: JSON.stringify(INHALT) },
+      letzterCommit: "d".repeat(40),
     });
     // Noch mit der alten sha — und mit dem Datum, das der Browser damals einsetzte.
     const a = await speichern.POST(
@@ -395,16 +445,14 @@ describe("speichern", () => {
     );
     expect(a.status).toBe(200);
     expect(await a.json()).toMatchObject({ ok: true, sha: "c".repeat(40), commit: "d".repeat(40), papierkorb });
+    // Der eine PUT hat GitHub abgelehnt — es gibt keinen zweiten Commit.
+    expect(aufrufe.filter((x) => x.methode === "PUT")).toHaveLength(1);
   });
 
   it("schon gespeichert, aber der Verlauf ist nicht lesbar: trotzdem gespeichert, nur ohne Commit", async () => {
     anmelden();
     mitGithub();
-    fakeFetch((url, methode) => {
-      if (methode === "PUT") throw new Error("darf nicht schreiben");
-      if (url.includes("/commits?")) return json({ message: "Server Error" }, 500);
-      return url.includes("inhalt.json") ? datei(JSON.stringify(INHALT), "c".repeat(40)) : datei(JSON.stringify(BILDER));
-    });
+    fakeGithub({ main: { text: JSON.stringify(INHALT), sha: "c".repeat(40) }, letzterCommit: null });
     const a = await speichern.POST(anfrage({ inhalt: INHALT, sha: SHA, nachricht: "x" }));
     expect(a.status).toBe(200);
     expect(await a.json()).toMatchObject({ ok: true, sha: "c".repeat(40), commit: "" });
@@ -415,7 +463,7 @@ describe("speichern", () => {
     mitGithub();
     fakeFetch((url, methode) => {
       if (methode === "PUT") return json({ content: { sha: "c".repeat(40) }, commit: { sha: "d".repeat(40) } });
-      return url.includes("inhalt.json") ? datei("{}") : json({ message: "Server Error" }, 500);
+      return url.includes("inhalt.json") || url.includes("/git/blobs/") ? datei("{}") : json({ message: "Server Error" }, 500);
     });
     const a = await speichern.POST(anfrage({ inhalt: INHALT, sha: SHA, nachricht: "x" }));
     expect(a.status).toBe(200);
@@ -455,20 +503,14 @@ describe("Papierkorb-Daten beim Speichern", () => {
       body: JSON.stringify({ inhalt, sha: SHA, nachricht: "x" }),
     });
 
-  /** main mit diesem Papierkorb. */
+  /** main (mit der geladenen sha) mit diesem Papierkorb. */
   function mitMain(papierkorb: Record<string, string>) {
-    fakeFetch((url, methode) => {
-      if (methode === "PUT") return json({ content: { sha: "c".repeat(40) }, commit: { sha: "d".repeat(40) } });
-      return url.includes("inhalt.json")
-        ? datei(JSON.stringify({ ...INHALT, papierkorb }))
-        : datei(JSON.stringify(BILDER));
-    });
+    fakeGithub({ main: { text: JSON.stringify({ ...INHALT, papierkorb }), sha: SHA } });
   }
 
   /** Der Papierkorb, wie er an GitHub ging. */
   function geschrieben(): Record<string, string> {
-    const put = aufrufe.find((x) => x.methode === "PUT")!;
-    return JSON.parse(ausBase64((put.rumpf as { content: string }).content)).papierkorb;
+    return puts()[0].papierkorb as Record<string, string>;
   }
 
   beforeEach(() => {
@@ -505,6 +547,28 @@ describe("Papierkorb-Daten beim Speichern", () => {
     expect(geschrieben()).toEqual({ "arbeiten/stamp/01": "2026-10-01", "arbeiten/stamp/02": "2026-10-19" });
   });
 
+  it("misst an dem Stand, den der Commit ersetzt — auch wenn das Lesen von main noch einen älteren liefert", async () => {
+    anmelden();
+    mitGithub();
+    // Im Stand davor lag stamp/03 seit dem 25.09. im Papierkorb; Jakob hat es
+    // gerade wiederhergestellt und nimmt das zurück. Das Bild kommt also neu in
+    // den Papierkorb — mit dem Datum vom 25.09. wäre es in sechs Tagen gelöscht.
+    const davor = { ...INHALT, papierkorb: { "arbeiten/stamp/03": "2026-09-25" } };
+    fakeGithub({
+      main: { text: JSON.stringify({ ...INHALT, papierkorb: {} }), sha: "b".repeat(40) },
+      gelesen: { text: JSON.stringify(davor), sha: SHA },
+    });
+    const a = await speichern.POST(
+      new Request(`${BASIS}/speichern`, {
+        method: "POST",
+        headers: { ...eigene, "content-type": "application/json" },
+        body: JSON.stringify({ inhalt: davor, sha: "b".repeat(40), nachricht: "x" }),
+      }),
+    );
+    expect(a.status).toBe(200);
+    expect(geschrieben()).toEqual({ "arbeiten/stamp/03": "2026-10-19" });
+  });
+
   it("ein alter Stand bringt kein abgelaufenes Datum zurück (Beispiel aus dem Befund)", async () => {
     anmelden();
     mitGithub();
@@ -518,7 +582,9 @@ describe("Papierkorb-Daten beim Speichern", () => {
       if (url.includes("inhalt.json?ref=abc1234")) {
         return datei(JSON.stringify({ ...INHALT, papierkorb: { "arbeiten/stamp/03": "2026-09-01" } }));
       }
-      if (url.includes("inhalt.json")) return datei(JSON.stringify({ ...INHALT, papierkorb: {} }));
+      if (url.includes("inhalt.json") || url.endsWith(`/git/blobs/${SHA}`)) {
+        return datei(JSON.stringify({ ...INHALT, papierkorb: {} }));
+      }
       return datei(JSON.stringify(BILDER));
     });
     const a = await zuruecksetzen.POST(
@@ -587,11 +653,11 @@ describe("zuruecksetzen", () => {
     expect(aufrufe.some((x) => x.methode === "PUT")).toBe(false);
   });
 
-  it("auf einem veralteten Stand: 409, ohne zu schreiben", async () => {
+  it("auf einem veralteten Stand: GitHub lehnt den Commit ab, 409", async () => {
     anmelden();
     mitGithub();
     fakeFetch((url, methode) => {
-      if (methode === "PUT") throw new Error("darf nicht schreiben");
+      if (methode === "PUT") return json({ message: "lib/inhalt.json does not match" }, 409);
       if (url.includes("/commits/abc1234")) {
         return json({ sha: "abc1234".padEnd(40, "0"), commit: { committer: { date: "2026-10-01T08:30:00Z" } } });
       }
