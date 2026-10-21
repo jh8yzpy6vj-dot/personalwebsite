@@ -424,8 +424,38 @@ Umbaus abgehakt.
 - **Ordnen** per Ziehen (Maus und Touch) und zusätzlich per Knöpfen „nach oben / nach unten"
   für Tastatur und Screenreader. Ausblenden statt Löschen ist der Normalfall; Gelöschtes liegt
   **30 Tage** im Papierkorb und lässt sich zurückholen.
-- **Hero:** dieselbe Spanne wie auf `/foto` (siehe *`/foto`* → Hero); außerhalb davon erscheint
-  ein Befund, der das Speichern sperrt.
+- **Hero:** dieselbe Spanne wie auf `/foto` (siehe *`/foto`* → Hero), gezählt werden nur
+  **sichtbare** Bilder; außerhalb davon erscheint eine Warnung, ohne ein einziges sichtbares Bild
+  ein Fehler, der das Speichern sperrt. Ausgeblendete und gelöschte Bilder behalten ihren Platz in
+  der Liste („ausgeblendet — erscheint nicht" bzw. „im Papierkorb — erscheint nicht"), der Kopf
+  nennt sie: „{n} sichtbare Bilder (dazu {m} ausgeblendet oder gelöscht)". Begründung
+  (2026-10-21): Löschen nahm ein Bild bisher aus dem Hero, und Wiederherstellen brachte es nicht
+  zurück — Jakob glaubte, alles sei wie vorher.
+- **Bildausschnitt:** Die Fläche, auf die Jakob tippt, hat genau die Form des Bilds (höchstens
+  60svh hoch, sonst die volle Breite) — ein Tipp an den Bildrand ergibt 0 % bzw. 100 %, und der
+  Kreis sitzt dort, wo der gespeicherte Wert hinzeigt. Die beiden Rahmen (16:9, 4:5) und „Jetzt:
+  …" stehen **direkt neben dem Bild**, sobald der Platz 640px breit ist (Reiter Hero am PC), sonst
+  darunter (Seitenpanel, Handy). Begründung (2026-10-21): Vorher war die Fläche breiter als das
+  Bild; am PC ergab der linke Bildrand bis zu 37 %, und die Rahmen begannen unter dem Fenster.
+- **Startseite, Bildplätze:** Zur Wahl stehen nur die sichtbaren Fotos aus `/foto` — nur die kann
+  die Startseite zeigen. Zeigt ein Platz trotzdem auf etwas anderes, sagt die Zeile, warum er
+  leer bleibt: „· ausgeblendet — der Platz bleibt auf der Seite leer", „· im Papierkorb — …",
+  „· kein Foto aus /foto — …". Begründung (2026-10-21): Ein Bild von „Über mich" ließ sich wählen,
+  der Platz blieb auf der Seite aber leer, ohne Warnung.
+- **Neuer Film:** Titel, Kunde und „Link zum Film" in einem Formular; „Film anlegen" ist erst frei,
+  wenn alle drei da sind, darunter leise „Titel, Kunde und Link braucht jeder Film. Das Standbild
+  lädst du danach hoch." Adressfelder (Filme, Instagram, SWR, Hero-Video) ergänzen beim Verlassen
+  ein fehlendes „https://". Begründung (2026-10-21): Ein Film nur mit Titel war sofort ein Fehler,
+  der jedes Speichern sperrte — auch das von allem anderen.
+- **Dialoge und Seitenpanel:** schließen über ✕, `Esc` oder einen Klick auf den abgedunkelten
+  Rand — nur wenn Drücken **und** Loslassen dort lagen. Ein Tipp in die leere Fläche des Panels
+  oder Text markieren und daneben loslassen schließt nicht; am Handy ist das Panel ganzflächig,
+  hat also keinen Rand und schließt über ✕. Nach jeder Aktion im Dialog („Leer lassen", Bild
+  gewählt, „Verstanden", „Abbrechen" …) steht der Fokus wieder auf dem Knopf, der ihn geöffnet
+  hat, sofern es ihn noch gibt. Liegt das Bild im Papierkorb, zeigt das Panel statt „Ersetzen"
+  ein Band „Dieses Bild liegt im Papierkorb. …" mit „Wiederherstellen" (Band, kein Fehlertext —
+  Rot bleibt Speicher-Fehlern vorbehalten). Begründung (2026-10-21): Das Panel schloss bei einem
+  Fehltipp unter die Knöpfe, und nach jeder Wahl im Dialog stand der Fokus am Seitenanfang.
 - **Speicherstand-Texte:** „Ungespeicherte Änderungen." · „Speichert …" · „Gespeichert. Wird
   veröffentlicht … (1–2 Minuten)" · „Gespeichert und live." · „Alles gespeichert." ·
   „Speichern ist noch nicht eingerichtet." · „Wiederhergestellt, aber der neue Stand ließ sich

@@ -29,43 +29,47 @@ export default function Bildwahl({
   const { inhalt } = useSitzung();
   return (
     <Dialog titel={titel} beiSchliessen={beiSchliessen}>
-      {leer && (
-        <div className={styles.knopfreihe}>
-          <button
-            type="button"
-            className={styles.knopf}
-            aria-pressed={aktuell === null}
-            onClick={() => {
-              beiWahl(null);
-              beiSchliessen();
-            }}
-          >
-            Leer lassen
-          </button>
-        </div>
-      )}
-      {auswahl.length === 0 ? (
-        <p className={styles.leise}>Keine passenden Bilder.</p>
-      ) : (
-        <ul className={styles.wahlRaster}>
-          {auswahl.map((b) => (
-            <li key={b.schluessel}>
+      {(schliesse) => (
+        <>
+          {leer && (
+            <div className={styles.knopfreihe}>
               <button
                 type="button"
-                className={styles.wahlKachel}
-                aria-pressed={aktuell === b.schluessel}
-                aria-label={bildBezeichnung(inhalt, b.schluessel)}
-                title={bildBezeichnung(inhalt, b.schluessel)}
+                className={styles.knopf}
+                aria-pressed={aktuell === null}
                 onClick={() => {
-                  beiWahl(b.schluessel);
-                  beiSchliessen();
+                  beiWahl(null);
+                  schliesse();
                 }}
               >
-                <Daumen quelle={b.quelle} art="voll" ausschnitt={b.ausschnitt} breite="120px" />
+                Leer lassen
               </button>
-            </li>
-          ))}
-        </ul>
+            </div>
+          )}
+          {auswahl.length === 0 ? (
+            <p className={styles.leise}>Keine passenden Bilder.</p>
+          ) : (
+            <ul className={styles.wahlRaster}>
+              {auswahl.map((b) => (
+                <li key={b.schluessel}>
+                  <button
+                    type="button"
+                    className={styles.wahlKachel}
+                    aria-pressed={aktuell === b.schluessel}
+                    aria-label={bildBezeichnung(inhalt, b.schluessel)}
+                    title={bildBezeichnung(inhalt, b.schluessel)}
+                    onClick={() => {
+                      beiWahl(b.schluessel);
+                      schliesse();
+                    }}
+                  >
+                    <Daumen quelle={b.quelle} art="voll" ausschnitt={b.ausschnitt} breite="120px" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
       )}
     </Dialog>
   );

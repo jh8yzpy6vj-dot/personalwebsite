@@ -1,6 +1,6 @@
-import { alleBilderDerArbeit, nachWunsch, type Kontext } from "../arbeiten";
+import { alleBilderDerArbeit, fotosFuerMosaik, nachWunsch, type Kontext } from "../arbeiten";
 import { AUSSCHNITT_MITTIG, type Streckenbild } from "../bilder";
-import { arbeitZu, bildName, istVerborgen, type Film, type Fotoarbeit, type Inhalt, type Link } from "../inhalt";
+import { arbeitZu, bildName, type Film, type Fotoarbeit, type Inhalt, type Link } from "../inhalt";
 import { ID, nurFehler, pruefeInhalt, type Befund } from "../inhalt-pruefen";
 import { BILDTYPEN, MAX_UPLOAD_BYTES, ZIEL, type Lauf, type Verarbeitung } from "./vertrag";
 
@@ -236,14 +236,15 @@ export function umschalteHero(i: Inhalt, s: string): Inhalt {
 }
 
 /**
- * In den Papierkorb: mit Datum (die Medien-Action räumt nach 30 Tagen auf),
- * raus aus dem Hero (dort fiele es sonst still heraus). Der Platz in der
- * Reihenfolge **bleibt**, damit Wiederherstellen es dorthin zurückbringt.
+ * In den Papierkorb: mit Datum (die Medien-Action räumt nach 30 Tagen auf).
+ * Der Platz in der Reihenfolge **und im Hero bleibt**, damit Wiederherstellen
+ * das Bild genau dorthin zurückbringt. Auf der Seite fehlt es trotzdem
+ * sofort: `fotosFuerHero` zeigt nur Sichtbares. Nach 30 Tagen nimmt
+ * `entferneSchluessel` (`lib/inhalt-regeln.mjs`) es auch aus dem Hero.
  */
 export function legeInPapierkorb(i: Inhalt, s: string, datum: string): Inhalt {
   const n = kopie(i);
   n.papierkorb[s] = datum;
-  n.foto.hero = n.foto.hero.filter((x) => x !== s);
   return n;
 }
 
@@ -384,16 +385,33 @@ export function ordneArbeiten(i: Inhalt, ids: string[]): Inhalt {
  * Legt einen Film an (am Ende). `weitereVergeben`: Standbilder, die schon im
  * Bucket liegen (`film/<id>`) — sonst erbte ein neuer Film still das
  * Standbild eines alten, gleichnamigen.
+ *
+ * Kunde und Link gleich mit: Beide sind Pflicht, und ein Film ohne sie wäre
+ * ein Fehler, der jedes Speichern sperrt — auch das von allem anderen.
  */
 export function neuerFilm(
   i: Inhalt,
   titel: string,
   weitereVergeben: Iterable<string> = [],
+  { kunde = "", link = "" }: { kunde?: string; link?: string } = {},
 ): { inhalt: Inhalt; id: string } {
   const id = eindeutigeId(titel, [...i.filme.map((f) => f.id), ...weitereVergeben], "film");
   const n = kopie(i);
-  n.filme.push({ id, titel: titel.trim() || id, kunde: "", link: "" });
+  n.filme.push({ id, titel: titel.trim() || id, kunde: kunde.trim(), link: mitHttps(link) });
   return { inhalt: n, id };
+}
+
+/**
+ * Ergänzt ein fehlendes `https://` — so, wie man Adressen oft aus Apps
+ * kopiert: „youtu.be/abc" → „https://youtu.be/abc". Leer bleibt leer, und
+ * was schon ein Schema hat (`https:`, `http:`, `mailto:` …), bleibt, wie es
+ * ist: Ob es taugt, sagt die Prüfung. Bewusst ohne Punkt im Schema, sonst
+ * hielte „www.x.de:8080/a" seinen Host für eines.
+ */
+export function mitHttps(w: string): string {
+  const t = w.trim();
+  if (t === "" || /^[a-z][a-z0-9+-]*:/i.test(t)) return t;
+  return `https://${t.replace(/^\/+/, "")}`;
 }
 
 export function aendereFilm(i: Inhalt, id: string, aenderung: Partial<Omit<Film, "id">>): Inhalt {
@@ -612,6 +630,19 @@ export function hatBilder(id: string, schluessel: Iterable<string>): boolean {
   return false;
 }
 
+/**
+ * Liegt der Punkt außerhalb des Rechtecks? Für Dialoge: Nur ein Klick auf
+ * den abgedunkelten Rand schließt — nicht einer in die leere Fläche des
+ * Seitenpanels, die zum Dialog selbst gehört.
+ */
+export function ausserhalb(
+  r: { left: number; top: number; right: number; bottom: number },
+  x: number,
+  y: number,
+): boolean {
+  return x < r.left || x > r.right || y < r.top || y > r.bottom;
+}
+
 /* ── Startseite, Über mich ──────────────────────────────────────────── */
 
 export function setzeSeite(i: Inhalt, feld: keyof Inhalt["seite"], wert: string): Inhalt {
@@ -688,23 +719,14 @@ export function entferneZeile(i: Inhalt, platz: number): Inhalt {
 }
 
 /**
- * Was sich auf der Startseite wählen lässt: alle **sichtbaren** Bilder —
- * erst die Fotos in der Reihenfolge des Mosaiks, dann Über mich und die
- * Film-Standbilder. Ausgeblendetes fehlt, weil es dort trotzdem erschiene
- * (siehe `heroErsatz` in `lib/inhalt.ts`).
+ * Was sich auf der Startseite wählen lässt: genau die Bilder, die sie zeigen
+ * kann — die sichtbaren Fotos aus `/foto`, in der Reihenfolge des Mosaiks.
+ * Dieselbe Funktion, in der `app/page.tsx` jedes Startbild sucht; ein Bild
+ * von „Über mich", ein Film-Standbild oder etwas Ausgeblendetes fände sie
+ * nicht, und der Platz bliebe auf der Seite leer.
  */
 export function waehlbareBilder(k: Kontext): Streckenbild[] {
-  const fotos = alleFotos(k).filter((b) => !istVerborgen(k.inhalt, b.schluessel));
-  const ueber = alleUeberBilder(k).filter((b) => !istVerborgen(k.inhalt, b.schluessel));
-  const filme = Object.keys(k.bilder)
-    .filter((s) => /^film\/[^/]+$/.test(s) && !istVerborgen(k.inhalt, s))
-    .sort()
-    .map((schluessel) => ({
-      schluessel,
-      quelle: k.bilder[schluessel],
-      ausschnitt: k.inhalt.bildausschnitte[schluessel] ?? AUSSCHNITT_MITTIG,
-    }));
-  return [...fotos, ...ueber, ...filme];
+  return fotosFuerMosaik(k);
 }
 
 /* ── Hochladen und Verarbeitung ─────────────────────────────────────── */

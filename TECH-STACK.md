@@ -138,7 +138,7 @@ GitHub Action Medien (.github/workflows/medien.yml)
 | Einstellungen aus der Worker-Umgebung | `lib/admin/umgebung.ts` |
 | GitHub-API, Eingangs-Bucket, gemeinsame Antworten | `lib/admin/github.ts`, `lib/admin/eingang.ts`, `lib/admin/antwort.ts` |
 | Routen | `app/api/admin/*/route.ts` |
-| Oberfläche | `app/admin/` (Server-Seite `page.tsx`, Client-Wurzel `Verwaltung.tsx`, je Reiter eine Datei), reine Hilfsfunktionen in `lib/admin/werkzeuge.ts` |
+| Oberfläche | `app/admin/` (Server-Seite `page.tsx`, Client-Wurzel `Verwaltung.tsx`, je Reiter eine Datei), reine Hilfsfunktionen in `lib/admin/werkzeuge.ts`. Dialoge immer über `Dialog` in `teile.tsx`; Knöpfe darin schließen über `schliesse` (`children` als Funktion), nie über einen eigenen Setter — nur `close()` gibt den Fokus an den Auslöser zurück |
 | Medien-Action und ihre Skripte | `.github/workflows/medien.yml`, `scripts/eingang.mjs`, `scripts/papierkorb.mjs`, `scripts/saeubern.mjs`, `scripts/inhalt.mjs`, `lib/inhalt-regeln.mjs` |
 
 ⚠️ **`lib/content.ts` ist keine Inhaltsquelle mehr.** Es reicht `lib/inhalt.json` unter den alten
@@ -255,8 +255,10 @@ nächsten nachgeholt: Was nicht fertig wurde, liegt noch im Eingang bzw. Papierk
 behält seinen Platz in der Reihenfolge und kehrt beim Einblenden dorthin zurück.
 
 **Löschen = Papierkorb, 30 Tage.** Löschen trägt den Schlüssel mit dem heutigen Datum in
-`papierkorb` ein und nimmt ihn aus dem Hero; auf der Seite ist das Bild sofort weg, im Bucket
-liegt es noch. Bis zum Ablauf stellt der Reiter „Papierkorb" es mit einem Klick wieder her. Nach
+`papierkorb` ein; auf der Seite ist das Bild sofort weg, im Bucket liegt es noch. Seine Plätze in
+Mosaik, Hero und Startseite bleiben stehen (seit 2026-10-21 auch der im Hero — vorher nahm Löschen
+es dort heraus, und Wiederherstellen brachte es nicht zurück). Bis zum Ablauf stellt der Reiter
+„Papierkorb" (oder das Bild-Panel) es mit einem Klick an genau diese Plätze zurück. Nach
 **mehr als 30 Tagen** löscht die tägliche Action das Original im öffentlichen Bucket (die
 Varianten räumt `npm run medien` direkt danach als verwaist weg) und entfernt den Schlüssel
 **restlos** aus `lib/inhalt.json` — aus Reihenfolge, Hero, Ausschnitten, Bildtiteln und Alt-Texten;
@@ -648,7 +650,11 @@ nicht mehr auf die Seite, aber im Bucket bleiben, steht sein Schlüssel in `ausg
 Tagen endgültig (siehe „Verwaltung"). Fehlt dadurch das Startbild, wird das erste übrige Bild zum
 ersten der Arbeit. Grund für beides: Löschen im Bucket ist endgültig, und Umbenennen verschiebt
 alle Nummern samt Alt-Texten. Die Prüfung warnt, wenn Startseite oder Hero auf ein verborgenes
-Bild zeigen.
+Bild zeigen, und wenn ein Platz der Startseite kein Foto aus `/foto` ist: Die Startseite sucht
+jedes Bild in `fotosFuerMosaik` (`app/page.tsx`), ein Bild von „Über mich" oder ein
+Film-Standbild bliebe dort leer — deshalb bietet die Verwaltung auch nur diese Fotos an
+(`waehlbareBilder`). Im Hero zählen für „sechs bis acht" und „mindestens eins" nur sichtbare
+Bilder.
 
 ⚠️ **Führende Null nicht vergessen** (`01`, nicht `1`). Die natürliche Ordnung geht nach
 Dateiname; ohne sie stünde `10` vor `2`. Die Verwaltung vergibt die Nummern selbst.

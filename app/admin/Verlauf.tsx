@@ -110,7 +110,9 @@ export default function VerlaufReiter({
     [alt, inhalt, bilder],
   );
 
-  const stelleHer = async (e: VerlaufEintrag) => {
+  /* `schliesse` schließt die Rückfrage über `close()` — so kommt der Fokus
+     zurück auf den Knopf, der sie geöffnet hat (siehe `Dialog`). */
+  const stelleHer = async (e: VerlaufEintrag, schliesse: () => void) => {
     setLaeuft(true);
     setFehler(null);
     const { status, daten } = await sendeJson<SpeichernAntwort>("/api/admin/zuruecksetzen", {
@@ -122,13 +124,13 @@ export default function VerlaufReiter({
          Stand da ist (bis zu einigen Sekunden) — sonst stünde unten so lange
          „Alles gespeichert." über dem alten Inhalt. */
       await beiWiederhergestellt(daten.commit, daten.sha);
-      setFrage(null);
+      schliesse();
       setRunde((r) => r + 1);
     } else if (status === 409 || (daten?.ok === false && daten.grund === "konflikt")) {
-      setFrage(null);
+      schliesse();
       beiKonflikt();
     } else {
-      setFrage(null);
+      schliesse();
       const befunde = daten?.ok === false ? (daten.befunde ?? []).filter((b) => b.stufe === "fehler") : [];
       setFehler({ text: netzText(status, daten), befunde });
     }
@@ -209,52 +211,56 @@ export default function VerlaufReiter({
           titel={frage.letzte ? "Letzte Speicherung zurücknehmen?" : "Diesen Stand wiederherstellen?"}
           beiSchliessen={() => setFrage(null)}
         >
-          <p className={styles.text}>
-            Die Seite bekommt wieder den Inhalt vom {alsZeit(frage.eintrag.datum)} („{frage.eintrag.nachricht}“).
-            Alles, was danach gespeichert wurde, ist dann nicht mehr zu sehen — steht aber weiter im Verlauf und lässt
-            sich genauso zurückholen.
-          </p>
-          {!alt ? (
-            <p className={styles.leise} aria-live="polite">
-              Lädt …
-            </p>
-          ) : "fehler" in alt ? (
-            <p className={styles.fehlerText}>{alt.fehler}</p>
-          ) : vergleich?.art === "unpassend" ? (
-            <div>
-              <p className={styles.fehlerText}>
-                Dieser Stand passt nicht mehr zu den heutigen Regeln und lässt sich nicht direkt zurückholen:
-              </p>
-              <Liste befunde={vergleich.fehler} />
-              <p className={styles.text}>Wenn du ihn brauchst, gib Jan Bescheid.</p>
-            </div>
-          ) : vergleich?.art === "gleich" ? (
-            <p className={styles.text}>Dieser Stand ist derselbe wie jetzt.</p>
-          ) : vergleich?.art === "aendert" ? (
+          {(schliesse) => (
             <>
               <p className={styles.text}>
-                <strong>Wiederherstellen ändert:</strong> {vergleich.text}.
+                Die Seite bekommt wieder den Inhalt vom {alsZeit(frage.eintrag.datum)} („{frage.eintrag.nachricht}“).
+                Alles, was danach gespeichert wurde, ist dann nicht mehr zu sehen — steht aber weiter im Verlauf und
+                lässt sich genauso zurückholen.
               </p>
-              <p className={styles.text}>
-                {vergleich.papierkorb > 0
-                  ? "Bilder, die mit diesem Stand wieder im Papierkorb liegen, bekommen ab heute wieder volle 30 Tage."
-                  : "Die Bilddateien selbst bleiben, wie sie sind."}
-              </p>
+              {!alt ? (
+                <p className={styles.leise} aria-live="polite">
+                  Lädt …
+                </p>
+              ) : "fehler" in alt ? (
+                <p className={styles.fehlerText}>{alt.fehler}</p>
+              ) : vergleich?.art === "unpassend" ? (
+                <div>
+                  <p className={styles.fehlerText}>
+                    Dieser Stand passt nicht mehr zu den heutigen Regeln und lässt sich nicht direkt zurückholen:
+                  </p>
+                  <Liste befunde={vergleich.fehler} />
+                  <p className={styles.text}>Wenn du ihn brauchst, gib Jan Bescheid.</p>
+                </div>
+              ) : vergleich?.art === "gleich" ? (
+                <p className={styles.text}>Dieser Stand ist derselbe wie jetzt.</p>
+              ) : vergleich?.art === "aendert" ? (
+                <>
+                  <p className={styles.text}>
+                    <strong>Wiederherstellen ändert:</strong> {vergleich.text}.
+                  </p>
+                  <p className={styles.text}>
+                    {vergleich.papierkorb > 0
+                      ? "Bilder, die mit diesem Stand wieder im Papierkorb liegen, bekommen ab heute wieder volle 30 Tage."
+                      : "Die Bilddateien selbst bleiben, wie sie sind."}
+                  </p>
+                </>
+              ) : null}
+              <div className={styles.knopfreihe}>
+                <button
+                  type="button"
+                  className={styles.knopfHaupt}
+                  disabled={laeuft || vergleich?.art !== "aendert"}
+                  onClick={() => void stelleHer(frage.eintrag, schliesse)}
+                >
+                  {laeuft ? "Stellt wieder her …" : frage.letzte ? "Zurücknehmen" : "Wiederherstellen"}
+                </button>
+                <button type="button" className={styles.knopf} disabled={laeuft} onClick={schliesse}>
+                  Abbrechen
+                </button>
+              </div>
             </>
-          ) : null}
-          <div className={styles.knopfreihe}>
-            <button
-              type="button"
-              className={styles.knopfHaupt}
-              disabled={laeuft || vergleich?.art !== "aendert"}
-              onClick={() => void stelleHer(frage.eintrag)}
-            >
-              {laeuft ? "Stellt wieder her …" : frage.letzte ? "Zurücknehmen" : "Wiederherstellen"}
-            </button>
-            <button type="button" className={styles.knopf} disabled={laeuft} onClick={() => setFrage(null)}>
-              Abbrechen
-            </button>
-          </div>
+          )}
         </Dialog>
       )}
     </section>

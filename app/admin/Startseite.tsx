@@ -5,6 +5,7 @@ import { istVerborgen } from "@/lib/inhalt";
 import { AUSSCHNITT_MITTIG } from "@/lib/bilder";
 import {
   bildBezeichnung,
+  mitHttps,
   setzeSeite,
   setzeStartbild,
   setzeStartText,
@@ -84,6 +85,9 @@ export default function Startseite() {
             wert={st.heroVideo ?? ""}
             platzhalter="https://"
             beiAenderung={(w) => aendere((i) => setzeStartText(i, "heroVideo", w))}
+            beiVerlassen={(w) => {
+              if (mitHttps(w) !== w) aendere((i) => setzeStartText(i, "heroVideo", mitHttps(w)));
+            }}
             hinweis="Nur ausnahmsweise. Leer lassen, dann kommt das Video aus dem Bildspeicher."
           />
         </div>
@@ -96,7 +100,18 @@ export default function Startseite() {
         <ul className={styles.reihen}>
           {PLAETZE.map((p) => {
             const s = startbild(inhalt, p.platz);
-            const verborgen = s !== null && istVerborgen(inhalt, s);
+            /* Die Seite sucht jedes Bild unter den sichtbaren Fotos von /foto
+               (`waehlbareBilder`); alles andere lässt den Platz leer. */
+            const bleibtLeer =
+              s === null
+                ? ""
+                : s in inhalt.papierkorb
+                  ? " · im Papierkorb — der Platz bleibt auf der Seite leer"
+                  : istVerborgen(inhalt, s)
+                    ? " · ausgeblendet — der Platz bleibt auf der Seite leer"
+                    : !s.startsWith("arbeiten/")
+                      ? " · kein Foto aus /foto — der Platz bleibt auf der Seite leer"
+                      : "";
             return (
               <li key={kennung(p.platz)} className={styles.zeile}>
                 <div className={styles.zeileKopf}>
@@ -122,7 +137,7 @@ export default function Startseite() {
                     <strong>{p.name}</strong>
                     <span>
                       {s ? bildBezeichnung(inhalt, s) : "leer"}
-                      {verborgen ? " · ausgeblendet, erscheint hier trotzdem" : ""}
+                      {bleibtLeer}
                     </span>
                     {p.hinweis && <span>{p.hinweis}</span>}
                   </span>

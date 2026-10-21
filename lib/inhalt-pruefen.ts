@@ -69,7 +69,7 @@ export function istTag(w: unknown): w is string {
  * Vergleich mit `u.href`: Der lehnte schon `https://host` ohne
  * abschließenden Schrägstrich ab.
  */
-function istHttps(w: unknown): boolean {
+export function istHttps(w: unknown): boolean {
   if (!istText(w)) return false;
   try {
     const u = new URL(w);
@@ -247,10 +247,8 @@ export function pruefeInhalt(eingabe: unknown, bilder: Iterable<string>): Befund
       const id = k.split("/")[0] === "arbeiten" ? k.split("/")[1] : null;
       if (!id || !arbeitIds.has(id)) fehler("Hero auf /foto", `„${k}“ gehört zu keiner Arbeit.`);
     }
-    if (hero.length < 6 || hero.length > 8) {
-      warnung("Hero auf /foto", `hat ${hero.length} Bilder — empfohlen sind sechs bis acht (UI-SPEC).`);
-    }
-    if (hero.length === 0) fehler("Hero auf /foto", "braucht mindestens ein Bild.");
+    /* Wie viele Bilder es sind, zählt erst unten — dafür muss klar sein,
+       was ausgeblendet oder gelöscht ist. */
   } else fehler("Fotos", "fehlen.");
 
   /* ── Über mich ─────────────────────────────────────────────────── */
@@ -336,9 +334,30 @@ export function pruefeInhalt(eingabe: unknown, bilder: Iterable<string>): Befund
     if (!k) continue;
     if (!vorhanden.has(k)) warnung(ort, `„${k}“ gibt es (noch) nicht — wird es gerade verarbeitet?`);
     const grund = unsichtbar(k);
-    /* Auf der Startseite fiele ein ausgeblendetes Bild nicht weg, sondern
-       bliebe stehen — im Hero von /foto fiele es still heraus. */
+    /* Auf der Startseite bleibt der Platz eines verborgenen Bildes leer, im
+       Hero von /foto fällt es still heraus. */
     if (grund) warnung(ort, `„${k}“ ${grund}.`);
+  }
+
+  /* Die Startseite sucht jedes Bild unter den Fotos von /foto
+     (`fotosFuerMosaik` in `app/page.tsx`) — ein Bild von „Über mich" oder
+     ein Film-Standbild fände sie nie. */
+  for (const [ort, k] of startNamen) {
+    if (k && !k.startsWith("arbeiten/")) {
+      warnung(ort, `„${k}“ ist kein Foto aus /foto — der Platz bleibt auf der Seite leer.`);
+    }
+  }
+
+  /* Gezählt wird, was im Hero zu sehen ist. Ob das Bild schon im Manifest
+     steht, zählt bewusst nicht — sonst bräche ein laufender Upload den
+     Build. */
+  if (istObjekt(i.foto)) {
+    const sichtbar = hero.filter((k) => !unsichtbar(k)).length;
+    if (sichtbar < 6 || sichtbar > 8) {
+      const zahl = sichtbar === 1 ? "ein sichtbares Bild" : `${sichtbar} sichtbare Bilder`;
+      warnung("Hero auf /foto", `hat ${zahl} — empfohlen sind sechs bis acht (UI-SPEC).`);
+    }
+    if (sichtbar === 0) fehler("Hero auf /foto", "braucht mindestens ein sichtbares Bild.");
   }
 
   /* Arbeiten, die nichts zeigen, erscheinen nicht (UI-SPEC). */

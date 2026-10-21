@@ -24,7 +24,10 @@ export default function Hero() {
   const [waehlen, setWaehlen] = useState(false);
   const hero = inhalt.foto.hero;
   const name = (s: string) => bildBezeichnung(inhalt, s);
-  const anzahl = hero.length;
+  /* Gezählt wird, was zu sehen ist — wie in der Prüfung. Ausgeblendete und
+     gelöschte Bilder behalten ihren Platz und kehren dorthin zurück. */
+  const sichtbar = hero.filter((s) => !istVerborgen(inhalt, s)).length;
+  const verborgen = hero.length - sichtbar;
 
   /* Zur Wahl: sichtbare Fotos, die noch nicht im Hero sind. */
   const auswahl = alleFotos({ inhalt, bilder }).filter(
@@ -43,13 +46,13 @@ export default function Hero() {
         </button>
       </div>
       <p className={styles.text}>
-        {anzahl === 1 ? "Ein Bild" : `${anzahl} Bilder`} — gut sind sechs bis acht. Das erste erscheint zuerst. Mit
-        dem Stern im Reiter Fotos geht es auch.
+        {sichtbar === 1 ? "Ein sichtbares Bild" : `${sichtbar} sichtbare Bilder`}
+        {verborgen > 0 ? ` (dazu ${verborgen} ausgeblendet oder gelöscht)` : ""} — gut sind sechs bis acht. Das erste
+        erscheint zuerst. Mit dem Stern im Reiter Fotos geht es auch.
       </p>
 
-      {anzahl === 0 ? (
-        <p className={styles.fehlerText}>Der Hero braucht mindestens ein Bild.</p>
-      ) : (
+      {sichtbar === 0 && <p className={styles.fehlerText}>Der Hero braucht mindestens ein sichtbares Bild.</p>}
+      {hero.length > 0 && (
         <Sortierbar<string>
           name="Hero auf /foto"
           darstellung="liste"
@@ -76,11 +79,13 @@ export default function Hero() {
                     {st.platz + 1}. {name(s)}
                   </strong>
                   <span>
-                    {!bilder[s]
-                      ? "Bild fehlt"
-                      : istVerborgen(inhalt, s)
-                        ? "ausgeblendet — erscheint nicht"
-                        : `Ausschnitt ${inhalt.bildausschnitte[s] ?? "mittig"}`}
+                    {s in inhalt.papierkorb
+                      ? "im Papierkorb — erscheint nicht"
+                      : !bilder[s]
+                        ? "Bild fehlt"
+                        : istVerborgen(inhalt, s)
+                          ? "ausgeblendet — erscheint nicht"
+                          : `Ausschnitt ${inhalt.bildausschnitte[s] ?? "mittig"}`}
                   </span>
                 </span>
                 <span className={styles.zeileKnoepfe}>

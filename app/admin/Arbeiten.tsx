@@ -238,42 +238,47 @@ function LoeschDialog({
   const nochBilder = hatBilder(arbeit.id, [...Object.keys(bilder), ...unterwegs]);
   return (
     <Dialog titel={`„${arbeit.titel}“ löschen?`} beiSchliessen={beiSchliessen}>
-      {nochBilder ? (
-        <>
-          <p className={styles.text}>
-            Das geht erst, wenn keine Bilder dieser Arbeit mehr im Bildspeicher liegen. Gelöschte Bilder bleiben dort
-            noch bis zu 30 Tage (Papierkorb).
-          </p>
-          <p className={styles.text}>
-            Soll die Arbeit sofort verschwinden: Blende alle ihre Bilder aus — ohne sichtbares Bild erscheint sie nicht.
-          </p>
-          <div className={styles.knopfreihe}>
-            <button type="button" className={styles.knopf} onClick={beiSchliessen}>
-              Verstanden
-            </button>
-          </div>
-        </>
-      ) : (
-        <>
-          <p className={styles.text}>Die Arbeit hat keine Bilder mehr. Titel, Kunde und Notiz gehen dabei verloren.</p>
-          <div className={styles.knopfreihe}>
-            <button
-              type="button"
-              className={styles.knopfHaupt}
-              onClick={() => {
-                aendere((i) => entferneArbeit(i, arbeit.id));
-                beiLoeschen();
-                beiSchliessen();
-              }}
-            >
-              Löschen
-            </button>
-            <button type="button" className={styles.knopf} onClick={beiSchliessen}>
-              Abbrechen
-            </button>
-          </div>
-        </>
-      )}
+      {(schliesse) =>
+        nochBilder ? (
+          <>
+            <p className={styles.text}>
+              Das geht erst, wenn keine Bilder dieser Arbeit mehr im Bildspeicher liegen. Gelöschte Bilder bleiben dort
+              noch bis zu 30 Tage (Papierkorb).
+            </p>
+            <p className={styles.text}>
+              Soll die Arbeit sofort verschwinden: Blende alle ihre Bilder aus — ohne sichtbares Bild erscheint sie
+              nicht.
+            </p>
+            <div className={styles.knopfreihe}>
+              <button type="button" className={styles.knopf} onClick={schliesse}>
+                Verstanden
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className={styles.text}>
+              Die Arbeit hat keine Bilder mehr. Titel, Kunde und Notiz gehen dabei verloren.
+            </p>
+            <div className={styles.knopfreihe}>
+              <button
+                type="button"
+                className={styles.knopfHaupt}
+                onClick={() => {
+                  aendere((i) => entferneArbeit(i, arbeit.id));
+                  beiLoeschen();
+                  schliesse();
+                }}
+              >
+                Löschen
+              </button>
+              <button type="button" className={styles.knopf} onClick={schliesse}>
+                Abbrechen
+              </button>
+            </div>
+          </>
+        )
+      }
     </Dialog>
   );
 }

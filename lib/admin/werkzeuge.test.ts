@@ -3,13 +3,14 @@ import manifest from "../bilder-manifest.json";
 import type { Bildquelle } from "../bilder";
 import { INHALT, type Inhalt } from "../inhalt";
 import { nurFehler, pruefeInhalt } from "../inhalt-pruefen";
-import { fotosFuerMosaik } from "../arbeiten";
+import { fotosFuerHero, fotosFuerMosaik } from "../arbeiten";
 import {
   aendereArbeit,
   aendereFilm,
   alleFotos,
   alleUeberBilder,
   ausschnittAus,
+  ausserhalb,
   bildBezeichnung,
   bildtext,
   dateiTyp,
@@ -25,6 +26,7 @@ import {
   hatBilder,
   legeInPapierkorb,
   leseAusschnitt,
+  mitHttps,
   mitPapierkorbDaten,
   naechsteZiele,
   neueArbeit,
@@ -203,13 +205,17 @@ describe("Änderungen am Inhalt", () => {
     expect(umschalteHero(umschalteHero(i, s), s).foto.hero).toEqual(i.foto.hero);
   });
 
-  it("legt in den Papierkorb, nimmt aus dem Hero und stellt wieder her", () => {
+  it("legt in den Papierkorb und stellt genau den alten Stand wieder her — auch im Hero", () => {
     const i = kopie();
-    const s = i.foto.hero[0];
+    const s = i.foto.hero[2];
     const weg = legeInPapierkorb(i, s, "2026-10-17");
     expect(weg.papierkorb[s]).toBe("2026-10-17");
-    expect(weg.foto.hero).not.toContain(s);
-    expect(stelleWiederHer(weg, s).papierkorb[s]).toBeUndefined();
+    /* Der Platz im Hero bleibt, auf der Seite fehlt das Bild trotzdem. */
+    expect(weg.foto.hero).toEqual(i.foto.hero);
+    expect(fotosFuerHero(k(weg)).map((b) => b.schluessel)).not.toContain(s);
+    const zurueck = stelleWiederHer(weg, s);
+    expect(gleich(zurueck, i)).toBe(true);
+    expect(fotosFuerHero(k(zurueck)).map((b) => b.schluessel)[2]).toBe(s);
   });
 
   it("setzt Ausschnitte; mittig entfernt den Eintrag", () => {
@@ -257,6 +263,27 @@ describe("Änderungen am Inhalt", () => {
     expect(hatBilder("stamp", Object.keys(BILDER))).toBe(true);
     expect(hatBilder("gibt-es-nicht", Object.keys(BILDER))).toBe(false);
     expect(hatBilder("neu", ["arbeiten/neu/01"])).toBe(true);
+  });
+
+  it("legt Filme gleich mit Kunde und Link an — ohne Fehler, die das Speichern sperren", () => {
+    const i = kopie();
+    const { inhalt, id } = neuerFilm(i, " Ein Film ", [], { kunde: " SWR ", link: "youtu.be/abc123" });
+    expect(inhalt.filme.at(-1)).toEqual({ id, titel: "Ein Film", kunde: "SWR", link: "https://youtu.be/abc123" });
+    expect(nurFehler(pruefeInhalt(inhalt, Object.keys(BILDER)))).toEqual([]);
+  });
+
+  it("ergänzt ein fehlendes https:// und lässt alles andere stehen", () => {
+    expect(mitHttps("youtu.be/abc")).toBe("https://youtu.be/abc");
+    expect(mitHttps("www.ardmediathek.de/x")).toBe("https://www.ardmediathek.de/x");
+    expect(mitHttps("  //vimeo.com/1 ")).toBe("https://vimeo.com/1");
+    expect(mitHttps("www.x.de:8080/a")).toBe("https://www.x.de:8080/a");
+    expect(mitHttps("https://vimeo.com/1")).toBe("https://vimeo.com/1");
+    expect(mitHttps(" HTTPS://vimeo.com/1")).toBe("HTTPS://vimeo.com/1");
+    /* Ein anderes Schema bleibt — dass es nicht taugt, sagt die Prüfung. */
+    expect(mitHttps("http://example.org")).toBe("http://example.org");
+    expect(mitHttps("javascript:alert(1)")).toBe("javascript:alert(1)");
+    expect(mitHttps("")).toBe("");
+    expect(mitHttps("   ")).toBe("");
   });
 
   it("legt Filme an, ändert, ordnet und entfernt sie", () => {
@@ -380,6 +407,17 @@ describe("Alter Stand im Verlauf", () => {
   });
 });
 
+describe("Dialoge", () => {
+  it("schließt nur bei einem Punkt außerhalb des Rechtecks", () => {
+    const r = { left: 760, top: 0, right: 1280, bottom: 900 };
+    expect(ausserhalb(r, 100, 450)).toBe(true); // abgedunkelter Rand links neben dem Panel
+    expect(ausserhalb(r, 1000, 798)).toBe(false); // leere Fläche unter dem Inhalt
+    expect(ausserhalb(r, 760, 0)).toBe(false); // genau auf der Kante
+    expect(ausserhalb(r, 1000, 901)).toBe(true);
+    expect(ausserhalb({ left: 0, top: 0, right: 390, bottom: 844 }, 200, 736)).toBe(false); // Handy: ganzflächig
+  });
+});
+
 describe("Anzeige", () => {
   it("benennt Bilder für Jakob", () => {
     const i = kopie();
@@ -424,13 +462,19 @@ describe("Startseite und Über mich", () => {
     expect(link.ueber.swr).toEqual({ label: "SWR", url: i.ueber.swr.url });
   });
 
-  it("bietet nur sichtbare Bilder zur Wahl an", () => {
-    const i = kopie();
-    const versteckt = umschalteAusgeblendet(i, "arbeiten/stamp/01");
-    const wahl = waehlbareBilder(k(versteckt)).map((b) => b.schluessel);
+  it("bietet nur an, was die Startseite zeigen kann: sichtbare Fotos aus /foto, in Mosaik-Reihenfolge", () => {
+    let i = umschalteAusgeblendet(kopie(), "arbeiten/stamp/01");
+    i = legeInPapierkorb(i, "arbeiten/stamp/02", "2026-10-17");
+    const wahl = waehlbareBilder(k(i)).map((b) => b.schluessel);
+    /* Dieselbe Liste, in der `app/page.tsx` jedes Startbild sucht. */
+    expect(wahl).toEqual(fotosFuerMosaik(k(i)).map((b) => b.schluessel));
+    expect(wahl.length).toBeGreaterThan(0);
+    expect(wahl.every((s) => s.startsWith("arbeiten/"))).toBe(true);
     expect(wahl).not.toContain("arbeiten/stamp/01");
+    expect(wahl).not.toContain("arbeiten/stamp/02");
+    expect(wahl).not.toContain("ueber/01");
     expect(wahl).not.toContain("portrait");
-    expect(wahl).toContain("ueber/01");
+    expect(Object.keys(BILDER).some((s) => s.startsWith("ueber/"))).toBe(true);
     for (const s of INHALT.ausgeblendet) expect(wahl).not.toContain(s);
   });
 });

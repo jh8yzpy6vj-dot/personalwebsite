@@ -723,46 +723,52 @@ export default function Verwaltung() {
 
         {konflikt && (
           <Dialog titel="Inzwischen hat jemand anderes gespeichert" beiSchliessen={schliesseKonflikt}>
-            <p className={styles.text}>
-              Seit du die Verwaltung geöffnet hast, wurde der Inhalt an anderer Stelle geändert — in einem zweiten Tab
-              oder von Jan im Code. Deine Änderungen lassen sich nicht einfach darüberlegen, sonst wäre das andere still
-              weg.
-            </p>
-            {ungespeichert ? (
+            {(schliesse) => (
               <>
                 <p className={styles.text}>
-                  <strong>Neu laden verwirft:</strong> {vorschlag}.
+                  Seit du die Verwaltung geöffnet hast, wurde der Inhalt an anderer Stelle geändert — in einem zweiten
+                  Tab oder von Jan im Code. Deine Änderungen lassen sich nicht einfach darüberlegen, sonst wäre das
+                  andere still weg.
                 </p>
-                <p className={styles.text}>
-                  Abbrechen lässt deine Änderungen hier stehen, damit du sie dir ansehen kannst — speichern lassen sie
-                  sich so aber nicht.
-                </p>
+                {ungespeichert ? (
+                  <>
+                    <p className={styles.text}>
+                      <strong>Neu laden verwirft:</strong> {vorschlag}.
+                    </p>
+                    <p className={styles.text}>
+                      Abbrechen lässt deine Änderungen hier stehen, damit du sie dir ansehen kannst — speichern lassen
+                      sie sich so aber nicht.
+                    </p>
+                  </>
+                ) : (
+                  <p className={styles.text}>
+                    Neu laden holt den neuesten Stand; danach kannst du es noch einmal versuchen.
+                  </p>
+                )}
+                {ladefehler && <p className={styles.fehlerText}>Neu laden hat nicht geklappt: {ladefehler}</p>}
+                <div className={styles.knopfreihe}>
+                  <button
+                    type="button"
+                    className={styles.knopfHaupt}
+                    disabled={laedtNeu}
+                    onClick={async () => {
+                      /* Erst nach Erfolg schließen — sonst wäre der Dialog weg,
+                         der alte Stand noch da, und das nächste Speichern
+                         landete wieder hier. */
+                      if (await ladeNeu()) {
+                        schliesse();
+                        setSpeicher({ art: "ruhe" });
+                      }
+                    }}
+                  >
+                    {laedtNeu ? "Lädt …" : ungespeichert ? "Neu laden (Änderungen verwerfen)" : "Neu laden"}
+                  </button>
+                  <button type="button" className={styles.knopf} onClick={schliesse}>
+                    Abbrechen
+                  </button>
+                </div>
               </>
-            ) : (
-              <p className={styles.text}>Neu laden holt den neuesten Stand; danach kannst du es noch einmal versuchen.</p>
             )}
-            {ladefehler && <p className={styles.fehlerText}>Neu laden hat nicht geklappt: {ladefehler}</p>}
-            <div className={styles.knopfreihe}>
-              <button
-                type="button"
-                className={styles.knopfHaupt}
-                disabled={laedtNeu}
-                onClick={async () => {
-                  /* Erst nach Erfolg schließen — sonst wäre der Dialog weg,
-                     der alte Stand noch da, und das nächste Speichern
-                     landete wieder hier. */
-                  if (await ladeNeu()) {
-                    setKonflikt(false);
-                    setSpeicher({ art: "ruhe" });
-                  }
-                }}
-              >
-                {laedtNeu ? "Lädt …" : ungespeichert ? "Neu laden (Änderungen verwerfen)" : "Neu laden"}
-              </button>
-              <button type="button" className={styles.knopf} onClick={schliesseKonflikt}>
-                Abbrechen
-              </button>
-            </div>
           </Dialog>
         )}
       </main>

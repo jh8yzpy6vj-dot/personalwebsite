@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import Bild from "../components/Bild";
 import type { Bildquelle } from "@/lib/bilder";
 import { BILDTYPEN } from "@/lib/admin/vertrag";
+import { ausserhalb } from "@/lib/admin/werkzeuge";
 import styles from "./verwaltung.module.css";
 
 /**
@@ -149,6 +150,13 @@ export function Daumen({
  * Erscheint, sobald er gerendert wird; `beiSchliessen` entfernt ihn.
  *
  * `art="seite"` ist das Seitenpanel (rechts am PC, ganzflächig am Telefon).
+ *
+ * ⚠️ **Knöpfe im Dialog schließen über `schliesse`** (`children` als
+ * Funktion), nie über `beiSchliessen` oder einen eigenen Setter. Nur das
+ * native `close()` gibt den Fokus an den Knopf zurück, der den Dialog
+ * geöffnet hat; ein Dialog, der einfach aus dem DOM verschwindet, lässt ihn
+ * auf `<body>` fallen — wer per Tastatur oder Screenreader arbeitet, stünde
+ * wieder am Seitenanfang. `onClose` ruft danach `beiSchliessen`.
  */
 export function Dialog({
   titel,
@@ -158,27 +166,59 @@ export function Dialog({
 }: {
   titel: string;
   beiSchliessen: () => void;
-  children: ReactNode;
+  children: ReactNode | ((schliesse: () => void) => ReactNode);
   art?: "mitte" | "seite";
 }) {
-  const ref = useRef<HTMLDialogElement>(null);
+  /* Das Element als Zustand, nicht als Ref: `schliesse` geht beim Rendern an
+     `children`, und dort darf kein Ref gelesen werden. */
+  const [element, setElement] = useState<HTMLDialogElement | null>(null);
   const kennung = useId();
+  /* Wo der Fokus vor dem Öffnen stand. */
+  const vorher = useRef<HTMLElement | null>(null);
+  /* Begann der Druck auf dem abgedunkelten Rand? */
+  const startDraussen = useRef(false);
 
   useEffect(() => {
-    const d = ref.current;
-    if (d && !d.open) d.showModal();
-  }, []);
+    const d = element;
+    if (!d) return;
+    /* Nur merken, was außerhalb liegt — im Strict Mode läuft das zweimal,
+       und beim zweiten Mal steht der Fokus schon im Dialog. */
+    const fokus = document.activeElement;
+    if (fokus instanceof HTMLElement && !d.contains(fokus)) vorher.current = fokus;
+    if (!d.open) d.showModal();
+    return () => {
+      /* Rückfall, falls der Dialog doch ohne `close()` verschwindet: Der
+         Fokus geht dorthin zurück, wo er vorher stand — wenn es das noch gibt. */
+      const jetzt = document.activeElement;
+      const ziel = vorher.current;
+      if ((jetzt === null || jetzt === document.body) && ziel?.isConnected) ziel.focus();
+    };
+  }, [element]);
+
+  const schliesse = () => element?.close();
+  /* Der abgedunkelte Rand gehört zum `<dialog>` selbst — aber auch die leere
+     Fläche unter dem Inhalt des Seitenpanels. Deshalb zählt die Lage, nicht
+     das Ziel. */
+  const draussen = (e: { target: EventTarget; currentTarget: HTMLDialogElement; clientX: number; clientY: number }) =>
+    e.target === e.currentTarget && ausserhalb(e.currentTarget.getBoundingClientRect(), e.clientX, e.clientY);
 
   return (
     <dialog
-      ref={ref}
+      ref={setElement}
       className={art === "seite" ? styles.panel : styles.dialog}
       aria-labelledby={kennung}
       onClose={beiSchliessen}
+      onPointerDown={(e) => {
+        startDraussen.current = draussen(e);
+      }}
       onClick={(e) => {
-        /* Klick auf den abgedunkelten Rand schließt — aber nur der Rand
-           selbst, nicht ein Klick im Inhalt. */
-        if (e.target === e.currentTarget) ref.current?.close();
+        /* Nur, wenn Drücken **und** Loslassen auf dem Rand lagen: Wer Text
+           markiert und die Maus daneben loslässt, löst ebenfalls ein `click`
+           auf dem Dialog aus. Am Telefon ist das Panel ganzflächig und hat
+           keinen Rand — dort schließt ✕ (oder Esc). */
+        const zu = startDraussen.current && draussen(e);
+        startDraussen.current = false;
+        if (zu) schliesse();
       }}
     >
       <div className={styles.dialogInnen}>
@@ -186,11 +226,11 @@ export function Dialog({
           <h2 id={kennung} className={styles.dialogTitel}>
             {titel}
           </h2>
-          <button type="button" className={styles.knopfSymbol} onClick={() => ref.current?.close()} aria-label="Schließen">
+          <button type="button" className={styles.knopfSymbol} onClick={schliesse} aria-label="Schließen">
             <Zeichen name="zu" />
           </button>
         </div>
-        {children}
+        {typeof children === "function" ? children(schliesse) : children}
       </div>
     </dialog>
   );
@@ -246,6 +286,7 @@ export function Textfeld({
   bezeichnung,
   wert,
   beiAenderung,
+  beiVerlassen,
   mehrzeilig = false,
   hinweis,
   typ = "text",
@@ -255,6 +296,8 @@ export function Textfeld({
   bezeichnung: string;
   wert: string;
   beiAenderung?: (w: string) => void;
+  /** Wenn der Fokus das Feld verlässt — z. B. um bei Adressen `https://` zu ergänzen. */
+  beiVerlassen?: (w: string) => void;
   mehrzeilig?: boolean;
   hinweis?: ReactNode;
   typ?: "text" | "email" | "url";
@@ -271,6 +314,7 @@ export function Textfeld({
     readOnly: nurLesen,
     "aria-describedby": hinweis ? hinweisKennung : undefined,
     onChange: (e: { currentTarget: { value: string } }) => beiAenderung?.(e.currentTarget.value),
+    onBlur: (e: { currentTarget: { value: string } }) => beiVerlassen?.(e.currentTarget.value),
   };
   return (
     <div className={styles.feld}>

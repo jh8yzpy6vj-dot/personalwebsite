@@ -839,6 +839,11 @@ select.eingabe {
   padding: var(--space-md);
 }
 
+/* Den Abstand macht hier das Raster. */
+.dialogInnen > .band {
+  margin: 0;
+}
+
 .dialogKopf {
   position: sticky;
   top: 0;
@@ -873,16 +878,49 @@ select.eingabe {
 .ausschnitt {
   display: grid;
   gap: var(--space-sm);
+  /* Container- statt Media-Query: Derselbe Ausschnitt steht in der vollen
+     Breite des Reiters Hero und im schmalen Seitenpanel. */
+  container-type: inline-size;
 }
 
-/* Die Fläche ist genau so groß wie das Bild, damit die Prozente stimmen. */
+/* Bild und Vorschau: untereinander, ab 640px Platz nebeneinander — die
+   Vorschau direkt neben dem Bild; ist es zu breit, wird es schmaler (das
+   Seitenverhältnis bleibt). */
+.ausschnittGitter {
+  display: grid;
+  gap: var(--space-md);
+  align-items: start;
+}
+
+@container (min-width: 640px) {
+  .ausschnittGitter {
+    display: flex;
+    align-items: flex-start;
+  }
+
+  .ausschnittGitter > .ausschnittFlaeche {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .ausschnittGitter > .ausschnittVorschau {
+    flex: 0 0 240px;
+  }
+}
+
+/*
+ * Die Fläche ist genau so groß wie das Bild, damit die Prozente stimmen:
+ * Seitenverhältnis und Breite (höchstens 60svh hoch) setzt `Ausschnitt.tsx`
+ * am Knopf, das Bild füllt ihn ganz.
+ */
 .ausschnittFlaeche {
   position: relative;
   display: block;
-  width: 100%;
+  max-width: 100%;
   padding: 0;
   border: 0;
-  background: none;
+  border-radius: var(--space-xs);
+  background: var(--flaeche);
   cursor: crosshair;
   line-height: 0;
 }
@@ -892,11 +930,11 @@ select.eingabe {
 }
 
 .ausschnittBild {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
-  height: auto;
-  max-height: 60vh;
-  object-fit: contain;
+  height: 100%;
   border-radius: var(--space-xs);
 }
 
@@ -918,6 +956,10 @@ select.eingabe {
   flex-wrap: wrap;
   align-items: flex-start;
   gap: var(--space-md);
+}
+
+.ausschnittVorschau .knopfreihe {
+  flex-basis: 100%;
 }
 
 .ausschnittRahmen {

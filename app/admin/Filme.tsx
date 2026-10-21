@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import type { Film } from "@/lib/inhalt";
+import { istHttps } from "@/lib/inhalt-pruefen";
 import { ZIEL } from "@/lib/admin/vertrag";
-import { aendereFilm, eindeutigeId, entferneFilm, neuerFilm, ordneFilme } from "@/lib/admin/werkzeuge";
+import { aendereFilm, eindeutigeId, entferneFilm, mitHttps, neuerFilm, ordneFilme } from "@/lib/admin/werkzeuge";
 import Ausschnitt from "./Ausschnitt";
 import { useSitzung } from "./kontext";
 import Sortierbar from "./Sortierbar";
@@ -19,6 +20,8 @@ export default function Filme() {
   const { inhalt, bilder, aendere, konfiguration, unterwegs, ladeHoch } = useSitzung();
   const [offen, setOffen] = useState<string | null>(null);
   const [neuTitel, setNeuTitel] = useState("");
+  const [neuKunde, setNeuKunde] = useState("");
+  const [neuLink, setNeuLink] = useState("");
   const [entfernen, setEntfernen] = useState<Film | null>(null);
 
   /* Standbilder, die schon im Bildspeicher liegen — ein neuer Film darf
@@ -28,11 +31,19 @@ export default function Filme() {
   );
   const vorschauId = neuTitel.trim() ? eindeutigeId(neuTitel, [...inhalt.filme.map((f) => f.id), ...standbilder], "film") : "";
 
+  /* Titel, Kunde und Link sind Pflicht — ein Film ohne sie wäre ein Fehler,
+     der jedes Speichern sperrt. Fehlt nur „https://", ergänzt es sich. */
+  const link = mitHttps(neuLink);
+  const vollstaendig = neuTitel.trim() !== "" && neuKunde.trim() !== "" && istHttps(link);
+
   const lege = () => {
-    if (!neuTitel.trim()) return;
+    if (!vollstaendig) return;
     const titel = neuTitel;
-    aendere((i) => neuerFilm(i, titel, standbilder).inhalt);
+    const kunde = neuKunde;
+    aendere((i) => neuerFilm(i, titel, standbilder, { kunde, link }).inhalt);
     setNeuTitel("");
+    setNeuKunde("");
+    setNeuLink("");
     setOffen(vorschauId);
   };
 
@@ -113,6 +124,9 @@ export default function Filme() {
                       wert={f.link}
                       platzhalter="https://"
                       beiAenderung={(w) => aendere((i) => aendereFilm(i, f.id, { link: w }))}
+                      beiVerlassen={(w) => {
+                        if (mitHttps(w) !== w) aendere((i) => aendereFilm(i, f.id, { link: mitHttps(w) }));
+                      }}
                       hinweis="Vollständige Adresse bei YouTube, Vimeo oder der Mediathek."
                     />
                     <Textfeld
@@ -167,37 +181,61 @@ export default function Filme() {
             beiAenderung={setNeuTitel}
             hinweis={vorschauId ? `Kennung wird „${vorschauId}“ — danach nicht mehr änderbar.` : undefined}
           />
-          <div className={`${styles.feld} ${styles.feldUnten}`}>
-            <button type="button" className={styles.knopf} disabled={!neuTitel.trim()} onClick={lege}>
-              <Zeichen name="plus" />
-              Film anlegen
-            </button>
-          </div>
+          <Textfeld
+            bezeichnung="Kunde"
+            wert={neuKunde}
+            beiAenderung={setNeuKunde}
+            hinweis="Ohne Rechtsform; mehrere mit Schrägstrich, „SWR/ARD“."
+          />
+          <Textfeld
+            bezeichnung="Link zum Film"
+            typ="url"
+            wert={neuLink}
+            platzhalter="https://"
+            beiAenderung={setNeuLink}
+            beiVerlassen={(w) => setNeuLink(mitHttps(w))}
+            hinweis="Vollständige Adresse bei YouTube, Vimeo oder der Mediathek."
+          />
+        </div>
+        <div className={`${styles.knopfreihe} ${styles.unterTitel}`}>
+          <button type="button" className={styles.knopf} disabled={!vollstaendig} onClick={lege}>
+            <Zeichen name="plus" />
+            Film anlegen
+          </button>
+          {!vollstaendig && (
+            <span className={styles.leise}>
+              Titel, Kunde und Link braucht jeder Film. Das Standbild lädst du danach hoch.
+            </span>
+          )}
         </div>
       </div>
 
       {entfernen && (
         <Dialog titel={`„${entfernen.titel}“ entfernen?`} beiSchliessen={() => setEntfernen(null)}>
-          <p className={styles.text}>
-            Der Film verschwindet von /film. Das Standbild bleibt im Bildspeicher; legst du den Film später mit
-            demselben Titel neu an, bekommt er eine neue Kennung.
-          </p>
-          <div className={styles.knopfreihe}>
-            <button
-              type="button"
-              className={styles.knopfHaupt}
-              onClick={() => {
-                aendere((i) => entferneFilm(i, entfernen.id));
-                setOffen(null);
-                setEntfernen(null);
-              }}
-            >
-              Entfernen
-            </button>
-            <button type="button" className={styles.knopf} onClick={() => setEntfernen(null)}>
-              Abbrechen
-            </button>
-          </div>
+          {(schliesse) => (
+            <>
+              <p className={styles.text}>
+                Der Film verschwindet von /film. Das Standbild bleibt im Bildspeicher; legst du den Film später mit
+                demselben Titel neu an, bekommt er eine neue Kennung.
+              </p>
+              <div className={styles.knopfreihe}>
+                <button
+                  type="button"
+                  className={styles.knopfHaupt}
+                  onClick={() => {
+                    aendere((i) => entferneFilm(i, entfernen.id));
+                    setOffen(null);
+                    schliesse();
+                  }}
+                >
+                  Entfernen
+                </button>
+                <button type="button" className={styles.knopf} onClick={schliesse}>
+                  Abbrechen
+                </button>
+              </div>
+            </>
+          )}
         </Dialog>
       )}
     </section>

@@ -10,9 +10,9 @@ import styles from "./verwaltung.module.css";
  * Danach entfernt die Medien-Action das Original aus dem Bildspeicher und
  * den Eintrag aus `papierkorb`.
  *
- * Wiederherstellen streicht nur den Eintrag: Der Platz im Mosaik ist beim
- * Löschen stehen geblieben, das Bild kehrt dorthin zurück. Nur der Hero
- * nicht — dort war es sofort herausgenommen.
+ * Wiederherstellen streicht nur den Eintrag: Die Plätze im Mosaik, im Hero
+ * und auf der Startseite sind beim Löschen stehen geblieben, das Bild kehrt
+ * überall dorthin zurück.
  */
 export default function Papierkorb() {
   const { inhalt, bilder, aendere, heute } = useSitzung();

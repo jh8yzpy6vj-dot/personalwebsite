@@ -99,6 +99,31 @@ describe("pruefeInhalt — Regeln", () => {
     expect(b.some((x) => x.stufe === "warnung" && /sechs bis acht/.test(x.text))).toBe(true);
   });
 
+  it("zählt im Hero nur sichtbare Bilder", () => {
+    const i = kopie();
+    i.foto.hero = i.foto.hero.slice(0, 6);
+    expect(pruefeInhalt(i, BILDER).some((x) => /sechs bis acht/.test(x.text))).toBe(false);
+    i.ausgeblendet.push(i.foto.hero[0]);
+    i.papierkorb[i.foto.hero[1]] = "2026-10-17";
+    const b = pruefeInhalt(i, BILDER);
+    expect(nurFehler(b)).toEqual([]);
+    expect(b.find((x) => /sechs bis acht/.test(x.text))?.text).toBe(
+      "hat 4 sichtbare Bilder — empfohlen sind sechs bis acht (UI-SPEC).",
+    );
+  });
+
+  it("verlangt mindestens ein sichtbares Hero-Bild — ein Bild, das noch verarbeitet wird, zählt", () => {
+    const i = kopie();
+    i.foto.hero = i.foto.hero.slice(0, 2);
+    i.ausgeblendet.push(i.foto.hero[0]);
+    i.papierkorb[i.foto.hero[1]] = "2026-10-17";
+    expect(fehlerText(pruefeInhalt(i, BILDER))).toEqual(["Hero auf /foto: braucht mindestens ein sichtbares Bild."]);
+
+    /* Steht das Bild noch nicht im Manifest (Upload läuft), ist das kein Fehler — sonst bräche der Build. */
+    i.foto.hero.push("arbeiten/stamp/09");
+    expect(nurFehler(pruefeInhalt(i, BILDER))).toEqual([]);
+  });
+
   it("warnt, wenn das Hero ein ausgeblendetes oder gelöschtes Bild nennt", () => {
     const i = kopie();
     i.ausgeblendet.push(i.foto.hero[0]);
@@ -114,6 +139,19 @@ describe("pruefeInhalt — Regeln", () => {
     const b = pruefeInhalt(i, BILDER);
     expect(nurFehler(b)).toEqual([]);
     expect(b.some((x) => /gibt es \(noch\) nicht/.test(x.text))).toBe(true);
+  });
+
+  it("warnt, wenn ein Platz der Startseite kein Foto aus /foto ist — der bliebe auf der Seite leer", () => {
+    const i = kopie();
+    i.startseite.highlights[0] = "ueber/01";
+    i.startseite.wege.foto = "portrait";
+    const b = pruefeInhalt(i, BILDER);
+    expect(nurFehler(b)).toEqual([]);
+    const w = b.filter((x) => x.stufe === "warnung").map((x) => `${x.ort}: ${x.text}`);
+    const leer = "ist kein Foto aus /foto — der Platz bleibt auf der Seite leer.";
+    expect(w).toContain(`Startseite · Highlight 1: „ueber/01“ ${leer}`);
+    expect(w).toContain(`Startseite · Weg „foto“: „portrait“ ${leer}`);
+    expect(w.filter((t) => t.includes("kein Foto aus /foto"))).toHaveLength(2);
   });
 
   it("begrenzt die Länge von Texten", () => {

@@ -5,6 +5,7 @@ import {
   alleUeberBilder,
   entferneZeile,
   legeInPapierkorb,
+  mitHttps,
   neueZeile,
   platzhalter,
   setzeUeberBeschriftung,
@@ -116,6 +117,9 @@ export default function Ueber() {
             typ="url"
             wert={u.instagram.url}
             beiAenderung={(w) => aendere((i) => setzeUeberLink(i, "instagram", "url", w))}
+            beiVerlassen={(w) => {
+              if (mitHttps(w) !== w) aendere((i) => setzeUeberLink(i, "instagram", "url", mitHttps(w)));
+            }}
           />
           <Textfeld
             bezeichnung="SWR · Bezeichnung"
@@ -127,6 +131,9 @@ export default function Ueber() {
             typ="url"
             wert={u.swr.url}
             beiAenderung={(w) => aendere((i) => setzeUeberLink(i, "swr", "url", w))}
+            beiVerlassen={(w) => {
+              if (mitHttps(w) !== w) aendere((i) => setzeUeberLink(i, "swr", "url", mitHttps(w)));
+            }}
           />
         </div>
       </section>

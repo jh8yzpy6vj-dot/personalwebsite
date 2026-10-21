@@ -102,7 +102,10 @@ export type Inhalt = {
      * Das Foto, das die Startseite trägt, solange es **weder Hero-Video noch
      * Hero-Standbild** im Bucket gibt. Querformat, keine erkennbaren
      * Gesichter, trägt hinter dem Schriftzug (UI-SPEC, „Bildbehandlung").
-     * ⚠️ Ein ausgeblendetes Bild wirkt hier trotzdem — die Prüfung warnt.
+     * ⚠️ Wie alle Bildplätze der Startseite nur ein **sichtbares Foto aus
+     * `/foto`** (`fotosFuerMosaik`): Bei einem ausgeblendeten oder
+     * gelöschten Bild, einem von „Über mich" oder einem Film-Standbild bleibt
+     * der Platz leer — die Prüfung warnt.
      */
     heroErsatz: string | null;
     /**
@@ -136,8 +139,11 @@ export type Inhalt = {
     reihenfolge: string[];
     /**
      * Die Bilder im Hero von `/foto`, **in dieser Reihenfolge**; die Blende
-     * läuft über sie. Sechs bis acht empfohlen (UI-SPEC) — die Prüfung warnt
-     * außerhalb davon. Erstes Bild = das, was ohne Skript steht.
+     * läuft über sie. Sechs bis acht **sichtbare** empfohlen (UI-SPEC) — die
+     * Prüfung warnt außerhalb davon. Erstes Bild = das, was ohne Skript
+     * steht. Ausgeblendete und gelöschte Bilder behalten ihren Platz hier,
+     * erscheinen aber nicht; so kehren sie beim Einblenden bzw.
+     * Wiederherstellen an ihren Platz zurück.
      */
     hero: string[];
   };
