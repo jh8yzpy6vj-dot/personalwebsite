@@ -15,7 +15,7 @@ import styles from "./verwaltung.module.css";
  * überall dorthin zurück.
  */
 export default function Papierkorb() {
-  const { inhalt, bilder, aendere, heute } = useSitzung();
+  const { inhalt, bilder, aendereMitMeldung, heute } = useSitzung();
   const eintraege = Object.entries(inhalt.papierkorb).sort(([a, x], [b, y]) =>
     x === y ? (a < b ? -1 : 1) : x < y ? 1 : -1,
   );
@@ -49,7 +49,18 @@ export default function Papierkorb() {
                     </span>
                   </span>
                   <span className={styles.zeileKnoepfe}>
-                    <button type="button" className={styles.knopf} onClick={() => aendere((i) => stelleWiederHer(i, s))}>
+                    {/* Die Zeile verschwindet, die nächste rückt nach — deshalb gegen den Doppelklick geschützt. */}
+                    <button
+                      type="button"
+                      className={styles.knopf}
+                      onClick={() =>
+                        aendereMitMeldung(
+                          (i) => stelleWiederHer(i, s),
+                          `„${bildBezeichnung(inhalt, s)}“ ist wiederhergestellt.`,
+                          true,
+                        )
+                      }
+                    >
                       <Zeichen name="zurueck" />
                       Wiederherstellen
                     </button>

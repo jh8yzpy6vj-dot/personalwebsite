@@ -234,7 +234,7 @@ function LoeschDialog({
   beiSchliessen: () => void;
   beiLoeschen: () => void;
 }) {
-  const { bilder, unterwegs, aendere } = useSitzung();
+  const { bilder, unterwegs, aendereMitMeldung } = useSitzung();
   const nochBilder = hatBilder(arbeit.id, [...Object.keys(bilder), ...unterwegs]);
   return (
     <Dialog titel={`„${arbeit.titel}“ löschen?`} beiSchliessen={beiSchliessen}>
@@ -265,7 +265,7 @@ function LoeschDialog({
                 type="button"
                 className={styles.knopfHaupt}
                 onClick={() => {
-                  aendere((i) => entferneArbeit(i, arbeit.id));
+                  aendereMitMeldung((i) => entferneArbeit(i, arbeit.id), `„${arbeit.titel}“ ist gelöscht.`);
                   beiLoeschen();
                   schliesse();
                 }}

@@ -21,8 +21,21 @@ export type Sitzung = {
   /** Das Manifest von `main` — welche Bilder es gibt. */
   bilder: Record<string, Bildquelle>;
   konfiguration: Konfiguration;
-  /** Ändert den Inhalt — immer über eine Funktion `Inhalt → Inhalt` aus `lib/admin/werkzeuge.ts`. */
+  /**
+   * Ändert den Inhalt — immer über eine Funktion `Inhalt → Inhalt` aus
+   * `lib/admin/werkzeuge.ts`. Jede Änderung lässt sich rückgängig machen;
+   * Tippen in einem Feld zählt als ein Schritt.
+   */
   aendere: (f: (i: Inhalt) => Inhalt) => void;
+  /**
+   * Wie `aendere`, dazu eine kurze Meldung über der Leiste mit „Rückgängig"
+   * — für alles, was etwas verschwinden lässt oder sichtbar umstellt
+   * (Löschen, Ausblenden, Hero, Wiederherstellen). `nimmtWeg`: Der Eintrag
+   * verschwindet aus seiner Liste, die anderen rücken nach. Dann zählt ein
+   * zweiter solcher Aufruf direkt danach (600 ms, nichts dazwischen) nicht —
+   * der zweite Klick eines Doppelklicks träfe schon den nächsten Eintrag.
+   */
+  aendereMitMeldung: (f: (i: Inhalt) => Inhalt, text: string, nimmtWeg?: boolean) => void;
   /** Schlüssel, die hochgeladen sind oder im Eingang warten, aber noch nicht fertig verarbeitet. */
   unterwegs: Set<string>;
   /** Lädt Dateien auf feste Ziele hoch (Ersetzen, Porträt, Standbild). */

@@ -19,7 +19,7 @@ import styles from "./verwaltung.module.css";
  * beschneidet — am PC breit, am Telefon hoch.
  */
 export default function Hero() {
-  const { inhalt, bilder, aendere } = useSitzung();
+  const { inhalt, bilder, aendere, aendereMitMeldung } = useSitzung();
   const [offen, setOffen] = useState<string | null>(null);
   const [waehlen, setWaehlen] = useState(false);
   const hero = inhalt.foto.hero;
@@ -110,7 +110,9 @@ export default function Hero() {
                     className={styles.knopfSymbol}
                     aria-label="Aus dem Hero nehmen"
                     title="Aus dem Hero nehmen"
-                    onClick={() => aendere((i) => umschalteHero(i, s))}
+                    onClick={() =>
+                      aendereMitMeldung((i) => umschalteHero(i, s), `„${name(s)}“ ist nicht mehr im Hero.`, true)
+                    }
                   >
                     <Zeichen name="zu" />
                   </button>
@@ -132,7 +134,12 @@ export default function Hero() {
           auswahl={auswahl}
           aktuell={null}
           beiWahl={(s) => {
-            if (s) aendere((i) => (i.foto.hero.includes(s) ? i : setzeHero(i, [...i.foto.hero, s])));
+            if (s) {
+              aendereMitMeldung(
+                (i) => (i.foto.hero.includes(s) ? i : setzeHero(i, [...i.foto.hero, s])),
+                `„${name(s)}“ ist jetzt im Hero.`,
+              );
+            }
           }}
           beiSchliessen={() => setWaehlen(false)}
         />

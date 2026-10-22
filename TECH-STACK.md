@@ -210,6 +210,39 @@ Speichern, nichts wird aus der Geschichte gelöscht. Seit 2026-10-20:
   „Letzte Speicherung zurücknehmen" zeigte auf den Eintrag davor: Jakob hätte zwei Speicherungen
   zurückgenommen statt einer.
 
+**Rückgängig, Meldungen, Tasten** (seit 2026-10-21; `Verwaltung.tsx`, die Rechnung als reine
+Funktionen in `lib/admin/werkzeuge.ts`). Texte und Aussehen: `design/UI-SPEC.md`, „Rückgängig,
+Meldungen, Tasten".
+
+- **Ein Stapel im offenen Tab.** Jede Änderung über `aendere` legt den Stand davor ab (`legeAb`,
+  höchstens 50); „Rückgängig", Strg/⌘+Z und Strg/⌘+Umschalt+Z bzw. Strg+Y gehen ihn durch
+  (`schrittZurueck`/`schrittVor`). Er lebt nur im React-Zustand — kein Server, kein Speicher im
+  Browser, keine zweite Datenquelle neben Git.
+- **Tippen ist ein Schritt je Besuch eines Felds:** Jedes `focusin` zieht eine neue Nummer,
+  Änderungen aus demselben Textfeld mit derselben Nummer fassen sich zusammen. Getippt und wieder
+  gelöscht ist kein Schritt; das Tippen danach beginnt einen neuen, statt in den Schritt darunter
+  zu rutschen.
+- **Der Stapel gehört zu `basis` und `sha`.** Nach Speichern, Neu laden, Wiederherstellen und wenn
+  die Medien-Action einen neuen Stand bringt, beginnt er leer — ein Stand von vorher unter der
+  neuen `sha` schriebe beim Speichern still zurück, was inzwischen auf `main` steht. „Alles
+  verwerfen" (`inhalt = basis`) ist dagegen ein gewöhnlicher Schritt und lässt sich zurücknehmen.
+- **Tasten** (`tastenbefehl`): Strg/⌘+S ruft dasselbe `speichere` wie der Knopf, auch aus
+  Textfeldern und dem Seitenpanel; geht es nicht, zeigt die Meldung den Grund. Strg/⌘+Z nur
+  außerhalb von Textfeldern; bei offenem Dialog oder Panel tut es dort nichts. ⚠️ Jeder erkannte
+  Befehl wird abgefangen (`preventDefault`), auch ein Rückgängig ohne Schritt: Chrome nähme mit
+  Strg+Z sonst still das letzte Tippen in irgendeinem Feld zurück, auch wenn der Fokus längst auf
+  einem Knopf steht (nachgeprüft).
+- **Meldungen** (`aendereMitMeldung` im Sitzungskontext): Löschen, Ausblenden, Hero,
+  Wiederherstellen, Absatz/Arbeit/Film entfernen. Die nächste Änderung löscht die Meldung, ihr
+  „Rückgängig" trifft also immer genau den Schritt, den sie nennt. Mit `nimmtWeg` zählt ein
+  zweiter solcher Aufruf innerhalb von 600 ms nicht, wenn dazwischen keine andere Änderung kam
+  (Doppelklick, während die Liste nachrückt).
+- **Kein Entwurf im Browser** (bewusst, 2026-10-21): Die Verwaltung wird nur am PC benutzt. Dort
+  warnt `beforeunload` beim Schließen und Neuladen, solange etwas ungespeichert ist oder
+  hochlädt. Ein Entwurf in `localStorage` war für iPhone-Tabs gedacht, die das System im
+  Hintergrund verwirft; am PC brächte er nur eine zweite Kopie des Inhalts (samt Kontaktadresse)
+  und die Frage, was bei einer neueren `sha` mit ihr geschieht.
+
 **Hochladen und Ersetzen.**
 
 1. Die Oberfläche wählt das Ziel (den künftigen Bildschlüssel, z. B. `arbeiten/<id>/07`, `ueber/03`,

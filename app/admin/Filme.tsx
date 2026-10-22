@@ -24,7 +24,7 @@ import styles from "./verwaltung.module.css";
  * nur das Standbild (`film/<id>`). Ohne Standbild erscheint ein Film nicht.
  */
 export default function Filme() {
-  const { inhalt, bilder, aendere, konfiguration, unterwegs, ladeHoch } = useSitzung();
+  const { inhalt, bilder, aendere, aendereMitMeldung, konfiguration, unterwegs, ladeHoch } = useSitzung();
   const [offen, setOffen] = useState<string | null>(null);
   const [neuTitel, setNeuTitel] = useState("");
   const [neuKunde, setNeuKunde] = useState("");
@@ -229,7 +229,7 @@ export default function Filme() {
                   type="button"
                   className={styles.knopfHaupt}
                   onClick={() => {
-                    aendere((i) => entferneFilm(i, entfernen.id));
+                    aendereMitMeldung((i) => entferneFilm(i, entfernen.id), `„${entfernen.titel}“ ist entfernt.`);
                     setOffen(null);
                     schliesse();
                   }}

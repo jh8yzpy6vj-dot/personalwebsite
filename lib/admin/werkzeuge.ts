@@ -622,6 +622,124 @@ export function nachStufe(befunde: Befund[]) {
   };
 }
 
+/* ── Rückgängig und Tasten ──────────────────────────────────────────── */
+
+/**
+ * Der Verlauf für „Rückgängig": `rueck` sind frühere Stände (der jüngste
+ * zuletzt), `vor` die eben zurückgenommenen — für „Wiederholen".
+ *
+ * Er lebt nur im offenen Tab, nie auf dem Server. Wer neu lädt, speichert
+ * oder einen alten Stand wiederherstellt, beginnt mit einem leeren: Ein
+ * Stand von vorher läge sonst unter einer neuen `sha` und schriebe beim
+ * Speichern still über, was inzwischen auf `main` steht.
+ */
+export type Stapel = {
+  rueck: Inhalt[];
+  vor: Inhalt[];
+  /** Zu welcher Gruppe (Tippen in einem Feld) der oberste Schritt gehört — `null`: zu keiner. */
+  gruppe: number | null;
+};
+
+export const LEERER_STAPEL: Stapel = { rueck: [], vor: [], gruppe: null };
+
+/** So viele Schritte lassen sich höchstens zurücknehmen. */
+export const STAPEL_MAX = 50;
+
+/**
+ * Legt `alt` ab, bevor `neu` gilt. Ändert sich nichts, bleibt alles, wie es
+ * ist. Jede echte Änderung verwirft „Wiederholen".
+ *
+ * `gruppe`: Tippen in einem Feld trägt eine Nummer je Besuch des Felds.
+ * Gehört schon der oberste Schritt zu ihr, bleibt der Stand vor dem ersten
+ * Buchstaben oben liegen, statt dass jeder Buchstabe ein Schritt wird. Ist
+ * danach alles wieder wie vorher (getippt und wieder gelöscht), fällt der
+ * Schritt weg — und mit ihm die Gruppe: Weitertippen beginnt einen neuen,
+ * statt in den fremden Schritt darunter zu rutschen.
+ */
+export function legeAb(st: Stapel, alt: Inhalt, neu: Inhalt, gruppe: number | null, max = STAPEL_MAX): Stapel {
+  if (gleich(alt, neu)) return st;
+  const oben = st.rueck.at(-1);
+  if (gruppe !== null && st.gruppe === gruppe && oben) {
+    return gleich(oben, neu)
+      ? { rueck: st.rueck.slice(0, -1), vor: [], gruppe: null }
+      : { rueck: st.rueck, vor: [], gruppe };
+  }
+  return { rueck: [...st.rueck, alt].slice(-max), vor: [], gruppe };
+}
+
+/** Einen Schritt zurück: der neue Stapel und der Inhalt, der dann gilt — `null`, wenn es keinen gibt. */
+export function schrittZurueck(st: Stapel, jetzt: Inhalt): { stapel: Stapel; inhalt: Inhalt } | null {
+  const inhalt = st.rueck.at(-1);
+  if (!inhalt) return null;
+  return { stapel: { rueck: st.rueck.slice(0, -1), vor: [...st.vor, jetzt], gruppe: null }, inhalt };
+}
+
+/** Einen zurückgenommenen Schritt wiederholen — `null`, wenn es keinen gibt. */
+export function schrittVor(st: Stapel, jetzt: Inhalt): { stapel: Stapel; inhalt: Inhalt } | null {
+  const inhalt = st.vor.at(-1);
+  if (!inhalt) return null;
+  return { stapel: { rueck: [...st.rueck, jetzt], vor: st.vor.slice(0, -1), gruppe: null }, inhalt };
+}
+
+/** Eingaben, in denen man tippt. Datei, Knöpfe, Häkchen gehören nicht dazu. */
+const TEXTARTEN = new Set(["text", "email", "url", "search", "tel", "password", "number"]);
+
+/**
+ * Ein Feld, in dem getippt wird — dort gilt das Rückgängig des Browsers,
+ * und Tippen darin wird zu einem Schritt zusammengefasst. Nimmt ein
+ * Element (oder alles mit denselben Feldern, für die Tests).
+ */
+export function istTextfeld(el: { tagName: string; type?: string; isContentEditable?: boolean } | null): boolean {
+  if (!el) return false;
+  const tag = el.tagName.toUpperCase();
+  if (tag === "TEXTAREA") return true;
+  if (tag === "INPUT") return TEXTARTEN.has((el.type || "text").toLowerCase());
+  return el.isContentEditable === true;
+}
+
+export type Tastenbefehl = "speichern" | "rueckgaengig" | "wiederholen" | "abfangen";
+
+/**
+ * Was ein Tastendruck in der Verwaltung tut — `null`: nichts, der Browser
+ * macht weiter wie immer.
+ *
+ * - Strg/⌘+S speichert, auch aus einem Textfeld und aus dem Seitenpanel.
+ *   In einer Rückfrage (`dialog: "anderer"`) nur `abfangen`: kein Speichern
+ *   hinter ihrem Rücken, aber auch kein „Seite speichern unter".
+ * - Strg/⌘+Z, Strg/⌘+Umschalt+Z und Strg+Y nur außerhalb von Textfeldern —
+ *   darin gilt das Rückgängig des Browsers. Ist ein Dialog oder das Panel
+ *   offen, nur `abfangen`: Ein Rückgängig dahinter verschöbe, worauf sich
+ *   die Rückfrage bezieht (etwa „Absatz 2"). ⌘+Y nicht: Das ist am Mac der
+ *   Verlauf des Browsers.
+ * - Mit Alt nie: Strg+Alt ist unter Windows AltGr, also ein Schriftzeichen.
+ *
+ * Der Aufrufer muss jeden Befehl abfangen (`preventDefault`) — auch ein
+ * Rückgängig ohne Schritt. Sonst nähme Chrome mit Strg+Z still das letzte
+ * Tippen in irgendeinem Feld zurück, auch wenn der Fokus längst woanders ist.
+ */
+export function tastenbefehl(
+  t: { key: string; ctrlKey: boolean; metaKey: boolean; shiftKey: boolean; altKey: boolean },
+  lage: { imTextfeld: boolean; dialog: "keiner" | "seite" | "anderer" },
+): Tastenbefehl | null {
+  if (!(t.ctrlKey || t.metaKey) || t.altKey) return null;
+  const taste = t.key.toLowerCase();
+  if (taste === "s") {
+    if (t.shiftKey) return null;
+    return lage.dialog === "anderer" ? "abfangen" : "speichern";
+  }
+  if (lage.imTextfeld) return null;
+  const befehl =
+    taste === "z"
+      ? t.shiftKey
+        ? "wiederholen"
+        : "rueckgaengig"
+      : taste === "y" && t.ctrlKey && !t.metaKey && !t.shiftKey
+        ? "wiederholen"
+        : null;
+  if (befehl && lage.dialog !== "keiner") return "abfangen";
+  return befehl;
+}
+
 /* ── Anzeige ────────────────────────────────────────────────────────── */
 
 /** Kurzer Name eines Bildes für Jakob: „STAMP · 02", „STAMP · Startbild", „Über mich · 01". */

@@ -28,7 +28,10 @@ import {
   gleicherCommit,
   grundGegenFilm,
   hatBilder,
+  istTextfeld,
+  legeAb,
   legeInPapierkorb,
+  LEERER_STAPEL,
   leseAusschnitt,
   mitHttps,
   mitPapierkorbDaten,
@@ -41,14 +44,18 @@ import {
   pruefeAltenStand,
   pruefeDatei,
   restTage,
+  schrittVor,
+  schrittZurueck,
   setzeAusschnitt,
   setzeBildtext,
   setzeFotoReihenfolge,
   setzeUeberBeschriftung,
   slug,
   stabil,
+  STAPEL_MAX,
   stelleWiederHer,
   tagAus,
+  tastenbefehl,
   umschalteAusgeblendet,
   umschalteHero,
   verschiebe,
@@ -467,6 +474,165 @@ describe("Alter Stand im Verlauf", () => {
     expect(ergebnis.art).toBe("unpassend");
     expect(ergebnis.art === "unpassend" && ergebnis.fehler.map((f) => f.ort)).toEqual(["Papierkorb", "Bildausschnitte"]);
     expect(pruefeAltenStand(kopie(), "kaputt", []).art).toBe("unpassend");
+  });
+});
+
+describe("Rückgängig", () => {
+  /* Drei Stände hintereinander: A → B → C. */
+  const a = kopie();
+  const b = setzeSeite(a, "name", "B");
+  const c = setzeSeite(b, "name", "C");
+
+  it("legt den alten Stand ab — aber nicht, wenn sich nichts ändert", () => {
+    const st = legeAb(LEERER_STAPEL, a, b, null);
+    expect(st.rueck).toEqual([a]);
+    expect(legeAb(st, b, structuredClone(b), null)).toBe(st);
+    expect(LEERER_STAPEL.rueck).toEqual([]); // der leere Stapel bleibt leer
+  });
+
+  it("geht zurück und wieder vor — Schritt für Schritt", () => {
+    const st = legeAb(legeAb(LEERER_STAPEL, a, b, null), b, c, null);
+    const z1 = schrittZurueck(st, c)!;
+    expect(z1.inhalt).toBe(b);
+    const z2 = schrittZurueck(z1.stapel, z1.inhalt)!;
+    expect(z2.inhalt).toBe(a);
+    expect(schrittZurueck(z2.stapel, z2.inhalt)).toBeNull();
+    const v1 = schrittVor(z2.stapel, z2.inhalt)!;
+    expect(v1.inhalt).toBe(b);
+    const v2 = schrittVor(v1.stapel, v1.inhalt)!;
+    expect(v2.inhalt).toBe(c);
+    expect(schrittVor(v2.stapel, v2.inhalt)).toBeNull();
+    // Und wieder zurück: Wiederholen hat den Stapel richtig aufgebaut.
+    expect(schrittZurueck(v2.stapel, v2.inhalt)!.inhalt).toBe(b);
+  });
+
+  it("eine neue Änderung nach Rückgängig verwirft das Wiederholen", () => {
+    const st = legeAb(legeAb(LEERER_STAPEL, a, b, null), b, c, null);
+    const z = schrittZurueck(st, c)!;
+    expect(z.stapel.vor).toEqual([c]);
+    const d = setzeSeite(b, "positioning", "D");
+    const neu = legeAb(z.stapel, b, d, null);
+    expect(neu.vor).toEqual([]);
+    expect(schrittVor(neu, d)).toBeNull();
+    expect(neu.rueck).toEqual([a, b]);
+  });
+
+  it("fasst Tippen in einem Feld zu einem Schritt zusammen", () => {
+    // Jeder Buchstabe eine Änderung, alle aus demselben Besuch des Felds (Gruppe 7).
+    let st = LEERER_STAPEL;
+    let jetzt = a;
+    for (const text of ["N", "Ne", "Neu"]) {
+      const neu = setzeSeite(jetzt, "name", text);
+      st = legeAb(st, jetzt, neu, 7);
+      jetzt = neu;
+    }
+    expect(st.rueck).toEqual([a]);
+    expect(schrittZurueck(st, jetzt)!.inhalt).toBe(a);
+    // Ein neuer Besuch des Felds (Gruppe 8) ist ein neuer Schritt.
+    const weiter = setzeSeite(jetzt, "name", "Neu!");
+    expect(legeAb(st, jetzt, weiter, 8).rueck).toHaveLength(2);
+    // Ein Klick dazwischen (ohne Gruppe) auch — und danach gehört Tippen nicht mehr dazu.
+    const klick = legeAb(st, jetzt, umschalteHero(jetzt, "arbeiten/stamp/02"), null);
+    expect(klick.rueck).toHaveLength(2);
+    expect(legeAb(klick, jetzt, weiter, 7).rueck).toHaveLength(3);
+  });
+
+  it("die erste Änderung einer Gruppe legt immer ab — auch auf einen leeren Stapel", () => {
+    expect(legeAb(LEERER_STAPEL, a, b, 3)).toEqual({ rueck: [a], vor: [], gruppe: 3 });
+  });
+
+  it("getippt und wieder gelöscht ist kein Schritt — und Weitertippen rutscht nicht in den fremden darunter", () => {
+    const geloescht = legeInPapierkorb(a, "arbeiten/stamp/02", "2026-10-21");
+    let st = legeAb(LEERER_STAPEL, a, geloescht, null); // Bild gelöscht
+    const x = setzeSeite(geloescht, "name", "x");
+    st = legeAb(st, geloescht, x, 5); // „x" getippt
+    st = legeAb(st, x, geloescht, 5); // und wieder gelöscht
+    expect(st.rueck).toEqual([a]);
+    const y = setzeSeite(geloescht, "name", "y");
+    st = legeAb(st, geloescht, y, 5); // weiter im selben Feld
+    expect(st.rueck).toEqual([a, geloescht]);
+    // Rückgängig nimmt nur das Tippen zurück, das gelöschte Bild bleibt gelöscht.
+    expect(schrittZurueck(st, y)!.inhalt).toEqual(geloescht);
+  });
+
+  it("hält höchstens 50 Schritte; der älteste fällt weg", () => {
+    let st = LEERER_STAPEL;
+    let jetzt = a;
+    const staende = [a];
+    for (let n = 1; n <= STAPEL_MAX + 5; n++) {
+      const neu = setzeSeite(jetzt, "name", `Stand ${n}`);
+      st = legeAb(st, jetzt, neu, null);
+      jetzt = neu;
+      staende.push(neu);
+    }
+    expect(STAPEL_MAX).toBe(50);
+    expect(st.rueck).toHaveLength(50);
+    expect(st.rueck[0]).toBe(staende[5]);
+    expect(st.rueck.at(-1)).toBe(staende.at(-2));
+    expect(legeAb(LEERER_STAPEL, a, b, null, 1).rueck).toHaveLength(1);
+    expect(legeAb(legeAb(LEERER_STAPEL, a, b, null, 1), b, c, null, 1).rueck).toEqual([b]);
+  });
+
+  it("verändert keinen Stapel, sondern gibt neue zurück", () => {
+    const st = legeAb(LEERER_STAPEL, a, b, null);
+    const kopieVorher = structuredClone(st);
+    legeAb(st, b, c, null);
+    schrittZurueck(st, b);
+    schrittVor(schrittZurueck(st, b)!.stapel, a);
+    expect(st).toEqual(kopieVorher);
+  });
+
+  it("erkennt Felder, in denen getippt wird", () => {
+    expect(istTextfeld({ tagName: "TEXTAREA" })).toBe(true);
+    expect(istTextfeld({ tagName: "INPUT", type: "text" })).toBe(true);
+    expect(istTextfeld({ tagName: "INPUT", type: "email" })).toBe(true);
+    expect(istTextfeld({ tagName: "INPUT", type: "url" })).toBe(true);
+    expect(istTextfeld({ tagName: "INPUT", type: "" })).toBe(true); // ohne Typ ist es Text
+    expect(istTextfeld({ tagName: "INPUT", type: "file" })).toBe(false); // Dateiknopf
+    expect(istTextfeld({ tagName: "INPUT", type: "checkbox" })).toBe(false);
+    expect(istTextfeld({ tagName: "SELECT" })).toBe(false); // hier hat der Browser kein Rückgängig
+    expect(istTextfeld({ tagName: "BUTTON" })).toBe(false);
+    expect(istTextfeld({ tagName: "DIV", isContentEditable: true })).toBe(true);
+    expect(istTextfeld({ tagName: "BODY", isContentEditable: false })).toBe(false);
+    expect(istTextfeld(null)).toBe(false);
+  });
+
+  it("Strg/⌘+S speichert überall außer in Rückfragen — dort nur abfangen", () => {
+    const strg = { key: "s", ctrlKey: true, metaKey: false, shiftKey: false, altKey: false };
+    const cmd = { ...strg, ctrlKey: false, metaKey: true };
+    const frei = { imTextfeld: false, dialog: "keiner" as const };
+    expect(tastenbefehl(strg, frei)).toBe("speichern");
+    expect(tastenbefehl(cmd, frei)).toBe("speichern");
+    expect(tastenbefehl({ ...strg, key: "S" }, frei)).toBe("speichern"); // Feststelltaste
+    expect(tastenbefehl(strg, { imTextfeld: true, dialog: "keiner" })).toBe("speichern");
+    expect(tastenbefehl(strg, { imTextfeld: true, dialog: "seite" })).toBe("speichern");
+    expect(tastenbefehl(strg, { imTextfeld: false, dialog: "anderer" })).toBe("abfangen");
+    expect(tastenbefehl({ ...strg, ctrlKey: false }, frei)).toBeNull(); // nur „s"
+    expect(tastenbefehl({ ...strg, shiftKey: true }, frei)).toBeNull();
+    expect(tastenbefehl({ ...strg, altKey: true }, frei)).toBeNull(); // AltGr
+  });
+
+  it("Strg/⌘+Z nur außerhalb von Textfeldern; in Dialogen abgefangen; Umschalt oder Strg+Y wiederholt", () => {
+    const z = { key: "z", ctrlKey: true, metaKey: false, shiftKey: false, altKey: false };
+    const frei = { imTextfeld: false, dialog: "keiner" as const };
+    expect(tastenbefehl(z, frei)).toBe("rueckgaengig");
+    expect(tastenbefehl({ ...z, ctrlKey: false, metaKey: true }, frei)).toBe("rueckgaengig");
+    expect(tastenbefehl({ ...z, key: "Z", shiftKey: true }, frei)).toBe("wiederholen");
+    expect(tastenbefehl({ ...z, key: "y" }, frei)).toBe("wiederholen");
+    expect(tastenbefehl({ ...z, key: "y", ctrlKey: false, metaKey: true }, frei)).toBeNull(); // ⌘Y: Verlauf am Mac
+    // Im Textfeld gilt das Rückgängig des Browsers.
+    expect(tastenbefehl(z, { imTextfeld: true, dialog: "keiner" })).toBeNull();
+    expect(tastenbefehl({ ...z, shiftKey: true }, { imTextfeld: true, dialog: "keiner" })).toBeNull();
+    // Mit offenem Panel oder offener Rückfrage nichts — auch nicht das Rückgängig des Browsers.
+    expect(tastenbefehl(z, { imTextfeld: false, dialog: "seite" })).toBe("abfangen");
+    expect(tastenbefehl({ ...z, shiftKey: true }, { imTextfeld: false, dialog: "anderer" })).toBe("abfangen");
+    expect(tastenbefehl({ ...z, key: "y" }, { imTextfeld: false, dialog: "seite" })).toBe("abfangen");
+    // Im Textfeld des Panels aber das des Browsers.
+    expect(tastenbefehl(z, { imTextfeld: true, dialog: "seite" })).toBeNull();
+    expect(tastenbefehl({ ...z, key: "q" }, { imTextfeld: false, dialog: "seite" })).toBeNull();
+    expect(tastenbefehl({ ...z, ctrlKey: false }, frei)).toBeNull();
+    expect(tastenbefehl({ ...z, altKey: true }, frei)).toBeNull();
+    expect(tastenbefehl({ ...z, key: "a" }, frei)).toBeNull();
   });
 });
 

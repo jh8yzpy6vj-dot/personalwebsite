@@ -731,6 +731,46 @@ select.eingabe {
   font-size: var(--text-label);
 }
 
+/* Die Meldung nach Löschen, Ausblenden … schwebt über der Leiste, statt sie
+   höher zu machen — sonst sprängen Status und „Speichern" bei jeder
+   Meldung. Der leere Platz lässt Klicks durch. */
+.meldungOrt {
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  left: 0;
+  padding: 0 var(--rand) var(--space-sm);
+  pointer-events: none;
+}
+
+.meldung {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-sm);
+  width: fit-content;
+  max-width: min(100%, 720px);
+  min-height: 44px;
+  margin: 0 auto;
+  padding: 0 var(--space-xs) 0 var(--space-md);
+  border: 1px solid var(--linie);
+  border-radius: var(--space-sm);
+  background: var(--flaeche-hoch);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  pointer-events: auto;
+}
+
+/* Der Knopf darin ist leise — auf der hellen Fläche hebt ihn eine Linie ab. */
+.meldung .knopfLeise {
+  margin-left: auto;
+  border-color: var(--linie);
+}
+
+.meldung .knopfLeise:hover {
+  background: var(--flaeche);
+}
+
 @media (max-width: 700px) {
   .leisteNachricht,
   .leisteStatus {

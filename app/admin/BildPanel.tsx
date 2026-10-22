@@ -27,7 +27,8 @@ import styles from "./verwaltung.module.css";
  * `lib/inhalt.json`, und `bildtext`/`setzeBildtext` übersetzen.
  */
 export default function BildPanel({ schluessel, beiSchliessen }: { schluessel: string; beiSchliessen: () => void }) {
-  const { inhalt, bilder, aendere, konfiguration, ladeHoch, unterwegs, heute } = useSitzung();
+  const { inhalt, bilder, aendere, aendereMitMeldung, konfiguration, ladeHoch, unterwegs, heute } = useSitzung();
+  const name = bildBezeichnung(inhalt, schluessel);
   const arbeit = arbeitZu(schluessel);
   const ueber = schluessel.startsWith("ueber/");
   const film = schluessel.startsWith("film/");
@@ -37,7 +38,7 @@ export default function BildPanel({ schluessel, beiSchliessen }: { schluessel: s
   const titel = arbeit ? inhalt.foto.arbeiten.find((a) => a.id === arbeit)?.titel : undefined;
 
   return (
-    <Dialog titel={bildBezeichnung(inhalt, schluessel)} beiSchliessen={beiSchliessen} art="seite">
+    <Dialog titel={name} beiSchliessen={beiSchliessen} art="seite">
       {(schliesse) => (
         <>
           <div className={styles.panelBild}>
@@ -55,7 +56,9 @@ export default function BildPanel({ schluessel, beiSchliessen }: { schluessel: s
                 <button
                   type="button"
                   className={styles.knopf}
-                  onClick={() => aendere((i) => stelleWiederHer(i, schluessel))}
+                  onClick={() =>
+                    aendereMitMeldung((i) => stelleWiederHer(i, schluessel), `„${name}“ ist wiederhergestellt.`)
+                  }
                 >
                   <Zeichen name="zurueck" />
                   Wiederherstellen
@@ -109,7 +112,12 @@ export default function BildPanel({ schluessel, beiSchliessen }: { schluessel: s
                 type="button"
                 className={styles.knopf}
                 aria-pressed={ausgeblendet}
-                onClick={() => aendere((i) => umschalteAusgeblendet(i, schluessel))}
+                onClick={() =>
+                  aendereMitMeldung(
+                    (i) => umschalteAusgeblendet(i, schluessel),
+                    ausgeblendet ? `„${name}“ ist wieder sichtbar.` : `„${name}“ ist ausgeblendet.`,
+                  )
+                }
               >
                 <Zeichen name={ausgeblendet ? "augeZu" : "auge"} />
                 {ausgeblendet ? "Ausgeblendet — einblenden" : "Ausblenden"}
@@ -119,17 +127,23 @@ export default function BildPanel({ schluessel, beiSchliessen }: { schluessel: s
                   type="button"
                   className={styles.knopf}
                   aria-pressed={imHero}
-                  onClick={() => aendere((i) => umschalteHero(i, schluessel))}
+                  onClick={() =>
+                    aendereMitMeldung(
+                      (i) => umschalteHero(i, schluessel),
+                      imHero ? `„${name}“ ist nicht mehr im Hero.` : `„${name}“ ist jetzt im Hero.`,
+                    )
+                  }
                 >
                   <Zeichen name="stern" voll={imHero} />
                   {imHero ? "Im Hero — herausnehmen" : "In den Hero"}
                 </button>
               )}
+              {/* Das Panel schließt: Die Meldung mit „Rückgängig" steht dann frei über der Leiste. */}
               <button
                 type="button"
                 className={styles.knopf}
                 onClick={() => {
-                  aendere((i) => legeInPapierkorb(i, schluessel, heute));
+                  aendereMitMeldung((i) => legeInPapierkorb(i, schluessel, heute), `„${name}“ liegt im Papierkorb.`, true);
                   schliesse();
                 }}
               >

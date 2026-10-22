@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import type { Streckenbild } from "@/lib/bilder";
 import {
   alleUeberBilder,
+  bildBezeichnung,
   entferneZeile,
   legeInPapierkorb,
   mitHttps,
@@ -17,19 +19,38 @@ import {
 } from "@/lib/admin/werkzeuge";
 import { useSitzung } from "./kontext";
 import Sortierbar from "./Sortierbar";
-import { DateiKnopf, Daumen, Textfeld, Zeichen } from "./teile";
+import { DateiKnopf, Daumen, Dialog, Textfeld, Zeichen } from "./teile";
 import styles from "./verwaltung.module.css";
+
+/** So viel vom Absatz zeigt die Rückfrage vor dem Entfernen. */
+const ANFANG = 120;
 
 /**
  * **Reiter Über mich** — die Zeilen auf `/ueber`, Porträt, Kontaktzeile und
  * das kleine Mosaik darunter (`ueber/01`, `02` …).
  */
 export default function Ueber() {
-  const { inhalt, bilder, aendere, konfiguration, unterwegs, heute, ladeHoch, ladeNeueHoch, bearbeite } =
-    useSitzung();
+  const {
+    inhalt,
+    bilder,
+    aendere,
+    aendereMitMeldung,
+    konfiguration,
+    unterwegs,
+    heute,
+    ladeHoch,
+    ladeNeueHoch,
+    bearbeite,
+  } = useSitzung();
+  /* Der Absatz (Platz), nach dem gerade gefragt wird. */
+  const [entfernen, setEntfernen] = useState<number | null>(null);
   const u = inhalt.ueber;
   const mosaik = alleUeberBilder({ inhalt, bilder }).filter((b) => !(b.schluessel in inhalt.papierkorb));
   const warten = platzhalter(unterwegs, bilder, "ueber/");
+  const name = (s: string) => bildBezeichnung(inhalt, s);
+
+  const entferneAbsatz = (n: number) =>
+    aendereMitMeldung((i) => entferneZeile(i, n), `Absatz ${n + 1} entfernt.`, true);
 
   return (
     <>
@@ -46,12 +67,13 @@ export default function Ueber() {
                 wert={zeile}
                 beiAenderung={(w) => aendere((i) => setzeZeile(i, n, w))}
               />
+              {/* Mit Text erst nachfragen — ein leerer Absatz geht sofort. */}
               <button
                 type="button"
                 className={styles.knopfSymbol}
                 aria-label={`Absatz ${n + 1} entfernen`}
                 title="Entfernen"
-                onClick={() => aendere((i) => entferneZeile(i, n))}
+                onClick={() => (zeile.trim() === "" ? entferneAbsatz(n) : setEntfernen(n))}
               >
                 <Zeichen name="eimer" />
               </button>
@@ -213,7 +235,12 @@ export default function Ueber() {
                       aria-pressed={aus}
                       aria-label="Ausgeblendet"
                       title={aus ? "Einblenden" : "Ausblenden"}
-                      onClick={() => aendere((i) => umschalteAusgeblendet(i, s))}
+                      onClick={() =>
+                        aendereMitMeldung(
+                          (i) => umschalteAusgeblendet(i, s),
+                          aus ? `„${name(s)}“ ist wieder sichtbar.` : `„${name(s)}“ ist ausgeblendet.`,
+                        )
+                      }
                     >
                       <Zeichen name={aus ? "augeZu" : "auge"} />
                     </button>
@@ -222,7 +249,9 @@ export default function Ueber() {
                       className={styles.knopfSymbol}
                       aria-label="Löschen"
                       title="Löschen (Papierkorb, 30 Tage)"
-                      onClick={() => aendere((i) => legeInPapierkorb(i, s, heute))}
+                      onClick={() =>
+                        aendereMitMeldung((i) => legeInPapierkorb(i, s, heute), `„${name(s)}“ liegt im Papierkorb.`, true)
+                      }
                     >
                       <Zeichen name="eimer" />
                     </button>
@@ -239,6 +268,36 @@ export default function Ueber() {
         )}
         {!konfiguration.eingang && <p className={styles.leise}>Hochladen ist noch nicht eingerichtet.</p>}
       </section>
+
+      {entfernen !== null && (
+        <Dialog titel={`Absatz ${entfernen + 1} entfernen?`} beiSchliessen={() => setEntfernen(null)}>
+          {(schliesse) => {
+            const text = (u.zeilen[entfernen] ?? "").trim();
+            return (
+              <>
+                <p className={styles.text}>
+                  Darin steht: „{text.length > ANFANG ? `${text.slice(0, ANFANG - 1)}…` : text}“
+                </p>
+                <div className={styles.knopfreihe}>
+                  <button
+                    type="button"
+                    className={styles.knopfHaupt}
+                    onClick={() => {
+                      entferneAbsatz(entfernen);
+                      schliesse();
+                    }}
+                  >
+                    Entfernen
+                  </button>
+                  <button type="button" className={styles.knopf} onClick={schliesse}>
+                    Abbrechen
+                  </button>
+                </div>
+              </>
+            );
+          }}
+        </Dialog>
+      )}
     </>
   );
 }

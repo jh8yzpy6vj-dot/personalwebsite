@@ -424,7 +424,47 @@ Umbaus abgehakt.
   darunter Reiter
   **Fotos · Hero · Arbeiten · Über mich · Filme · Startseite · Papierkorb · Verlauf**
   (Pfeiltasten wechseln den Reiter); unten eine feste Leiste mit Speicherstand, optionaler
-  Nachricht und „Speichern".
+  Nachricht, „Alles verwerfen" (nur solange Ungespeichertes da ist), „Rückgängig" und
+  „Speichern" — siehe *Rückgängig, Meldungen, Tasten*.
+- **Rückgängig, Meldungen, Tasten** (seit 2026-10-21):
+  - **„Rückgängig"** ist ein leiser Knopf mit dem Zeichen „zurück" links von „Speichern",
+    gesperrt, solange es nichts zurückzunehmen gibt. Er und **Strg/⌘+Z** nehmen den letzten
+    Schritt zurück, **Strg/⌘+Umschalt+Z** (oder Strg+Y) holt ihn wieder. In Textfeldern gilt das
+    Rückgängig des Browsers; solange ein Dialog oder das Seitenpanel offen ist, tun die beiden
+    Tasten außerhalb von Textfeldern gar nichts (auch nicht das Rückgängig des Browsers, das sonst
+    das letzte Tippen in irgendeinem Feld zurücknähme). Tippen in einem Feld ist **ein** Schritt,
+    bis der Fokus das Feld verlässt. Höchstens 50 Schritte; nach Speichern, Neu laden oder
+    Wiederherstellen beginnt die Liste neu.
+  - **Meldung über der Leiste** (`role=status`), schwebend und mittig, damit die Leiste nicht
+    springt: Fläche `--flaeche-hoch`, Linie `--linie`, 14px, mindestens 44px hoch, keine neue
+    Farbe. Sie steht 8 Sekunden; solange Maus oder Fokus darin sind, bleibt sie, danach wieder
+    8 Sekunden. Die nächste Änderung ersetzt sie. Texte, jeweils mit dem leisen Knopf
+    „Rückgängig": „„{Bild}" liegt im Papierkorb." · „„{Bild}" ist ausgeblendet." · „„{Bild}" ist
+    wieder sichtbar." · „„{Bild}" ist jetzt im Hero." · „„{Bild}" ist nicht mehr im Hero." ·
+    „„{Bild}" ist wiederhergestellt." · „Absatz {n} entfernt." · „„{Titel}" ist gelöscht."
+    (Arbeit) · „„{Titel}" ist entfernt." (Film) · „Alle Änderungen verworfen." Nach Rückgängig:
+    „Rückgängig gemacht: {Zusammenfassung wie beim Speichern}." mit „Wiederholen", danach
+    „Wiederholt: {…}." mit „Rückgängig". `{Bild}` wie im Papierkorb („STAMP · 02").
+  - **Doppelklick:** Nach Löschen, „Aus dem Hero nehmen", Wiederherstellen aus dem Papierkorb und
+    dem Entfernen eines leeren Absatzes zählt ein zweiter solcher Klick innerhalb von 0,6 Sekunden
+    nicht, wenn dazwischen nichts anderes geschah — die Liste rückt nach dem ersten nach, der
+    zweite träfe schon den nächsten Eintrag.
+  - **„Alles verwerfen"** fragt „Alle Änderungen verwerfen?" mit „Verworfen wird:
+    {Zusammenfassung}." und „Danach steht wieder da, was zuletzt gespeichert war.", Knöpfe
+    „Verwerfen" (Hauptknopf) und „Abbrechen". Auch das nimmt „Rückgängig" zurück.
+  - **Strg/⌘+S speichert** — auch aus einem Textfeld und aus dem Seitenpanel, nicht aber aus
+    einer Rückfrage. Geht Speichern gerade nicht, steht der Grund (derselbe Text wie in der
+    Leiste) als Meldung da; „Seite speichern unter" des Browsers erscheint nie.
+  - **Absatz entfernen** (Über mich): Steht Text darin, erst die Rückfrage „Absatz {n}
+    entfernen?" mit „Darin steht: „{Anfang des Texts}"" und den Knöpfen „Entfernen" (Hauptknopf)
+    und „Abbrechen"; ein leerer Absatz geht sofort.
+  - **Tab schließen oder neu laden** mit Ungespeichertem: Der Browser warnt (wie beim Hochladen).
+    Einen Entwurf im Browser gibt es bewusst nicht: Die Verwaltung läuft nur am PC, und dort
+    verwirft der Browser keine Tabs im Hintergrund — die Warnung reicht.
+  - Begründung: Löschen nahm ein Bild ohne jede Rückmeldung weg, ein Doppelklick auf den Eimer
+    löschte zwei, und zurück ging es nur über den Papierkorb oder Neuladen — das verwarf alles
+    Ungespeicherte. Ein Absatz verschwand mit einem Klick samt Text. Strg+S öffnete „Seite
+    speichern unter".
 - **Ordnen** per Ziehen (Maus und Touch) und zusätzlich per Knöpfen „nach oben / nach unten"
   für Tastatur und Screenreader. Ausblenden statt Löschen ist der Normalfall; Gelöschtes liegt
   **30 Tage** im Papierkorb und lässt sich zurückholen.

@@ -29,7 +29,8 @@ import styles from "./verwaltung.module.css";
  * sie dorthin zurückbringt.
  */
 export default function Fotos() {
-  const { inhalt, bilder, aendere, unterwegs, heute, bearbeite, konfiguration, ladeNeueHoch } = useSitzung();
+  const { inhalt, bilder, aendere, aendereMitMeldung, unterwegs, heute, bearbeite, konfiguration, ladeNeueHoch } =
+    useSitzung();
   const [vorschau, setVorschau] = useState(false);
   const [ziel, setZiel] = useState(inhalt.foto.arbeiten[0]?.id ?? "");
 
@@ -126,7 +127,12 @@ export default function Fotos() {
                       aria-pressed={aus}
                       aria-label="Ausgeblendet"
                       title={aus ? "Einblenden" : "Ausblenden"}
-                      onClick={() => aendere((i) => umschalteAusgeblendet(i, s))}
+                      onClick={() =>
+                        aendereMitMeldung(
+                          (i) => umschalteAusgeblendet(i, s),
+                          aus ? `„${name(s)}“ ist wieder sichtbar.` : `„${name(s)}“ ist ausgeblendet.`,
+                        )
+                      }
                     >
                       <Zeichen name={aus ? "augeZu" : "auge"} />
                     </button>
@@ -136,7 +142,12 @@ export default function Fotos() {
                       aria-pressed={hero}
                       aria-label="Im Hero"
                       title={hero ? "Aus dem Hero nehmen" : "In den Hero"}
-                      onClick={() => aendere((i) => umschalteHero(i, s))}
+                      onClick={() =>
+                        aendereMitMeldung(
+                          (i) => umschalteHero(i, s),
+                          hero ? `„${name(s)}“ ist nicht mehr im Hero.` : `„${name(s)}“ ist jetzt im Hero.`,
+                        )
+                      }
                     >
                       <Zeichen name="stern" voll={hero} />
                     </button>
@@ -145,7 +156,9 @@ export default function Fotos() {
                       className={styles.knopfSymbol}
                       aria-label="Löschen"
                       title="Löschen (Papierkorb, 30 Tage)"
-                      onClick={() => aendere((i) => legeInPapierkorb(i, s, heute))}
+                      onClick={() =>
+                        aendereMitMeldung((i) => legeInPapierkorb(i, s, heute), `„${name(s)}“ liegt im Papierkorb.`, true)
+                      }
                     >
                       <Zeichen name="eimer" />
                     </button>
