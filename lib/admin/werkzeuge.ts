@@ -1,7 +1,7 @@
 import { alleBilderDerArbeit, fotosFuerMosaik, nachWunsch, type Kontext } from "../arbeiten";
 import { AUSSCHNITT_MITTIG, type Streckenbild } from "../bilder";
-import { arbeitZu, bildName, type Film, type Fotoarbeit, type Inhalt, type Link } from "../inhalt";
-import { ID, istHttps, nurFehler, pruefeInhalt, RECHTSFORM, type Befund } from "../inhalt-pruefen";
+import { arbeitZu, bildName, istVerborgen, type Film, type Fotoarbeit, type Inhalt, type Link } from "../inhalt";
+import { ID, istHttps, nurFehler, pruefeInhalt, RECHTSFORM, STARTPLATZ_NAMEN, type Befund } from "../inhalt-pruefen";
 import { BILDTYPEN, MAX_UPLOAD_BYTES, ZIEL, type Lauf, type Verarbeitung } from "./vertrag";
 
 /**
@@ -216,6 +216,51 @@ export function alleUeberBilder(k: Kontext): Streckenbild[] {
       ausschnitt: k.inhalt.bildausschnitte[schluessel] ?? AUSSCHNITT_MITTIG,
     }));
   return nachWunsch(natuerlich, k.inhalt.ueber.reihenfolge);
+}
+
+const istUeberBild = (s: string) => /^ueber\/[^/]+$/.test(s);
+
+/**
+ * Das Mosaik, in dem ein Bild steht, als Schlüssel — genau so, wie der
+ * Reiter Fotos bzw. Über mich es zeigt und nummeriert: auch Ausgeblendetes,
+ * ohne Gelöschtes. `null` für Bilder ohne Mosaik (Film-Standbild, Porträt).
+ */
+export function mosaikVon(k: Kontext, s: string): string[] | null {
+  const alle = arbeitZu(s) !== null ? alleFotos(k) : istUeberBild(s) ? alleUeberBilder(k) : null;
+  return alle && alle.map((b) => b.schluessel).filter((x) => !(x in k.inhalt.papierkorb));
+}
+
+/** Platz (ab 1, wie auf der Kachel) und Anzahl im Mosaik — `null`, wenn das Bild in keinem steht. */
+export function platzImMosaik(k: Kontext, s: string): { platz: number; anzahl: number } | null {
+  const liste = mosaikVon(k, s);
+  const p = liste?.indexOf(s) ?? -1;
+  return liste && p >= 0 ? { platz: p + 1, anzahl: liste.length } : null;
+}
+
+/**
+ * Setzt ein Bild mit einem Schritt auf Platz `platz` (ab 1) seines Mosaiks
+ * — „An den Anfang" ist 1, „Ans Ende" die Anzahl. Begrenzt auf 1 … n.
+ * Gelöschte Bilder behalten ihren Platz in der Reihenfolge
+ * (`ersetzeTeilfolge`), wie beim Ziehen. Steht es schon dort oder in keinem
+ * Mosaik, kommt derselbe Inhalt zurück.
+ */
+export function verschiebeAufPlatz(i: Inhalt, bilder: Kontext["bilder"], s: string, platz: number): Inhalt {
+  const k = { inhalt: i, bilder };
+  const liste = mosaikVon(k, s);
+  const von = liste?.indexOf(s) ?? -1;
+  if (!liste || von < 0 || !Number.isFinite(platz)) return i;
+  const nach = Math.min(Math.max(Math.round(platz), 1), liste.length) - 1;
+  if (nach === von) return i;
+  const neu = verschiebe(liste, von, nach);
+  return arbeitZu(s) !== null
+    ? setzeFotoReihenfolge(i, alleFotos(k).map((b) => b.schluessel), neu)
+    : setzeUeberReihenfolge(i, alleUeberBilder(k).map((b) => b.schluessel), neu);
+}
+
+/** Das Feld „Platz": „ 10 " → 10; alles, was keine ganze Zahl ist, → `null`. */
+export function lesePlatz(text: string): number | null {
+  const t = text.trim();
+  return /^\d{1,4}$/.test(t) ? Number(t) : null;
 }
 
 /* ── Änderungen am Inhalt (alle als Kopie) ──────────────────────────── */
@@ -891,6 +936,22 @@ export function startbild(i: Inhalt, platz: Startplatz): string | null {
   return st.highlights[platz.highlight] ?? null;
 }
 
+/** Alle Bildplätze der Startseite, in der Reihenfolge des Reiters. */
+export const STARTPLAETZE: Startplatz[] = [
+  "heroErsatz",
+  "wegeFoto",
+  "wegeFilm",
+  { highlight: 0 },
+  { highlight: 1 },
+  { highlight: 2 },
+  { highlight: 3 },
+];
+
+/** „Großes Bild oben", „Highlight 2" … (`STARTPLATZ_NAMEN`). */
+export function startplatzName(p: Startplatz): string {
+  return typeof p === "string" ? STARTPLATZ_NAMEN[p] : STARTPLATZ_NAMEN.highlight(p.highlight + 1);
+}
+
 /** Setzt ein Bild (oder `null` = leer). Die Highlights bleiben **genau vier** Plätze. */
 export function setzeStartbild(i: Inhalt, platz: Startplatz, s: string | null): Inhalt {
   const n = kopie(i);
@@ -945,6 +1006,89 @@ export function entferneZeile(i: Inhalt, platz: number): Inhalt {
  */
 export function waehlbareBilder(k: Kontext): Streckenbild[] {
   return fotosFuerMosaik(k);
+}
+
+/* ── Bild-Panel ─────────────────────────────────────────────────────── */
+
+/**
+ * Wodurch das Bild-Panel blättert: `"mosaik"` — das Mosaik, in dem das Bild
+ * steht, **so, wie es gerade geordnet ist** (Reiter Fotos, Über mich) —
+ * oder eine Liste, gemerkt beim Öffnen (eine Arbeit, der Hero, die Bilder
+ * ohne Beschreibung). Ohne Folge kein Blättern (Startseite).
+ *
+ * Das Mosaik bewusst nicht als gemerkte Liste: Holt Jakob ein Bild über
+ * „Platz" nach vorn, stünde sonst „35 von 38" neben „Platz 1", und „›"
+ * führte zu dem Bild, das vorher dahinter lag.
+ */
+export type Folge = "mosaik" | readonly string[];
+
+/** Die Liste zum Blättern — leer, wenn es keine gibt. */
+export function blaetterListe(k: Kontext, s: string, folge: Folge | undefined): readonly string[] {
+  if (folge === "mosaik") return mosaikVon(k, s) ?? [];
+  return folge ?? [];
+}
+
+export type Blaetterstelle = { nr: number; anzahl: number; vorher: string | null; nachher: string | null };
+
+/** Wo das Bild in der Liste steht (ab 1) und wohin „‹" und „›" führen — `null`: nichts zu blättern. */
+export function blaettern(liste: readonly string[], s: string): Blaetterstelle | null {
+  const p = liste.indexOf(s);
+  if (p < 0 || liste.length < 2) return null;
+  return { nr: p + 1, anzahl: liste.length, vorher: liste[p - 1] ?? null, nachher: liste[p + 1] ?? null };
+}
+
+/**
+ * Was ← und → im Bild-Panel tun: -1 zurück, 1 vor, `null` nichts.
+ *
+ * - Nie mit Umschalt, Strg, Alt oder ⌘: Alt+← ist „Zurück" im Browser,
+ *   Wahl+← springt am Mac wortweise, Umschalt+← markiert.
+ * - Nie in einem Textfeld — dort bewegen die Pfeile den Cursor.
+ * - Was die Pfeile selbst braucht (die Ausschnitt-Fläche), hat sie vorher
+ *   abgefangen; das prüft der Aufrufer (`defaultPrevented`).
+ */
+export function blaetterTaste(
+  t: { key: string; ctrlKey: boolean; metaKey: boolean; shiftKey: boolean; altKey: boolean },
+  imTextfeld: boolean,
+): -1 | 1 | null {
+  if (imTextfeld || t.ctrlKey || t.metaKey || t.shiftKey || t.altKey) return null;
+  return t.key === "ArrowLeft" ? -1 : t.key === "ArrowRight" ? 1 : null;
+}
+
+/** Steht das Bild auf einem Platz der Startseite? */
+export function aufDerStartseite(i: Inhalt, s: string): boolean {
+  return STARTPLAETZE.some((p) => startbild(i, p) === s);
+}
+
+/**
+ * Wo ein Bild außer im Mosaik noch steht — für „Verwendet: …" im Bild-Panel:
+ * „Hero auf /foto, Platz 3", „Startseite: Highlight 2". Auch bei
+ * ausgeblendeten und gelöschten Bildern: Gerade dann fehlt dort etwas.
+ */
+export function verwendung(i: Inhalt, s: string): string[] {
+  const orte: string[] = [];
+  const imHero = i.foto.hero.indexOf(s);
+  if (imHero >= 0) orte.push(`Hero auf /foto, Platz ${imHero + 1}`);
+  for (const p of STARTPLAETZE) if (startbild(i, p) === s) orte.push(`Startseite: ${startplatzName(p)}`);
+  return orte;
+}
+
+/**
+ * Sichtbare Fotos ohne Beschreibung (Alt-Text), in Mosaik-Reihenfolge —
+ * dieselbe Regel wie der Hinweis „Bildbeschreibungen" in `pruefeInhalt`:
+ * Bild einer Arbeit, weder ausgeblendet noch gelöscht, Beschreibung leer.
+ */
+export function ohneBeschreibung(k: Kontext): string[] {
+  return alleFotos(k)
+    .map((b) => b.schluessel)
+    .filter((s) => !istVerborgen(k.inhalt, s) && bildtext(k.inhalt, s, "alt").trim() === "");
+}
+
+/** Das nächste Bild ohne Beschreibung hinter `s` (Mosaik-Reihenfolge, nach dem letzten wieder von vorn) — nie `s` selbst. */
+export function naechstesOhneBeschreibung(k: Kontext, s: string): string | null {
+  const ohne = ohneBeschreibung(k).filter((x) => x !== s);
+  const reihe = alleFotos(k).map((b) => b.schluessel);
+  const hier = reihe.indexOf(s);
+  return ohne.find((x) => reihe.indexOf(x) > hier) ?? ohne[0] ?? null;
 }
 
 /* ── Hochladen und Verarbeitung ─────────────────────────────────────── */

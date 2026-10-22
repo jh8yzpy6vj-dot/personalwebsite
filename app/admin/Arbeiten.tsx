@@ -158,7 +158,13 @@ export default function Arbeiten() {
                               className={`${styles.zeileBild} ${istVerborgen(inhalt, b.schluessel) ? styles.kachelAus : ""}`}
                               aria-label={`${bildBezeichnung(inhalt, b.schluessel)} bearbeiten`}
                               title={bildBezeichnung(inhalt, b.schluessel)}
-                              onClick={() => bearbeite(b.schluessel)}
+                              data-bild={b.schluessel}
+                              onClick={() =>
+                                bearbeite(
+                                  b.schluessel,
+                                  vorhanden.map((x) => x.schluessel),
+                                )
+                              }
                             >
                               <Daumen quelle={b.quelle} art="voll" breite="72px" />
                             </button>

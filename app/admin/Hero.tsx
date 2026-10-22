@@ -19,7 +19,7 @@ import styles from "./verwaltung.module.css";
  * beschneidet — am PC breit, am Telefon hoch.
  */
 export default function Hero() {
-  const { inhalt, bilder, aendere, aendereMitMeldung } = useSitzung();
+  const { inhalt, bilder, aendere, aendereMitMeldung, bearbeite } = useSitzung();
   const [offen, setOffen] = useState<string | null>(null);
   const [waehlen, setWaehlen] = useState(false);
   const hero = inhalt.foto.hero;
@@ -66,14 +66,22 @@ export default function Hero() {
                 <button type="button" {...st.griff}>
                   <Zeichen name="griff" />
                 </button>
-                <span className={styles.zeileBild}>
+                {/* Öffnet das Bild-Panel; geblättert wird dort durch den Hero. */}
+                <button
+                  type="button"
+                  className={styles.zeileBild}
+                  data-bild={s}
+                  disabled={!bilder[s]}
+                  aria-label={`${name(s)} bearbeiten`}
+                  onClick={() => bearbeite(s, hero)}
+                >
                   <Daumen
                     quelle={bilder[s]}
                     art="voll"
                     ausschnitt={inhalt.bildausschnitte[s] ?? AUSSCHNITT_MITTIG}
                     breite="72px"
                   />
-                </span>
+                </button>
                 <span className={styles.zeileName}>
                   <strong>
                     {st.platz + 1}. {name(s)}

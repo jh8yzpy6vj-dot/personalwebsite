@@ -139,7 +139,7 @@ GitHub Action Medien (.github/workflows/medien.yml)
 | Einstellungen aus der Worker-Umgebung | `lib/admin/umgebung.ts` |
 | GitHub-API, Eingangs-Bucket, gemeinsame Antworten | `lib/admin/github.ts`, `lib/admin/eingang.ts`, `lib/admin/antwort.ts` |
 | Routen | `app/api/admin/*/route.ts` |
-| Oberfläche | `app/admin/` (Server-Seite `page.tsx`, Client-Wurzel `Verwaltung.tsx`, je Reiter eine Datei), reine Hilfsfunktionen in `lib/admin/werkzeuge.ts`. Dialoge immer über `Dialog` in `teile.tsx`; Knöpfe darin schließen über `schliesse` (`children` als Funktion), nie über einen eigenen Setter — nur `close()` gibt den Fokus an den Auslöser zurück |
+| Oberfläche | `app/admin/` (Server-Seite `page.tsx`, Client-Wurzel `Verwaltung.tsx`, je Reiter eine Datei), reine Hilfsfunktionen in `lib/admin/werkzeuge.ts`. Dialoge immer über `Dialog` in `teile.tsx`; Knöpfe darin schließen über `schliesse` (`children` als Funktion), nie über einen eigenen Setter — nur `close()` gibt den Fokus an den Auslöser zurück. Eine Rückfrage darf in einem Dialog stehen (Ersetzen im Bild-Panel): `onClose` zählt nur das eigene Schließen, weil React `close` durch den Komponentenbaum weiterreicht |
 | Medien-Action und ihre Skripte | `.github/workflows/medien.yml`, `scripts/eingang.mjs`, `scripts/papierkorb.mjs`, `scripts/saeubern.mjs`, `scripts/inhalt.mjs`, `lib/inhalt-regeln.mjs` |
 
 ⚠️ **`lib/content.ts` ist keine Inhaltsquelle mehr.** Es reicht `lib/inhalt.json` unter den alten
@@ -259,6 +259,31 @@ Meldungen, Tasten".
   Hintergrund verwirft; am PC brächte er nur eine zweite Kopie des Inhalts (samt Kontaktadresse)
   und die Frage, was bei einer neueren `sha` mit ihr geschieht.
 
+**Bild-Panel** (seit 2026-10-22; `BildPanel.tsx`, die Rechnung in `lib/admin/werkzeuge.ts`, Aufbau
+und Texte: `design/UI-SPEC.md`, „Bild-Panel").
+
+- **Blättern:** `bearbeite(schluessel, folge)` im Sitzungskontext; `Verwaltung` hält
+  `{ schluessel, folge }`. `folge` ist entweder `"mosaik"` — das Mosaik des Bilds, bei jedem Rendern
+  frisch aus dem Inhalt (`mosaikVon`, wie Reiter Fotos bzw. Über mich: mit Ausgeblendetem, ohne
+  Gelöschtes) — oder eine beim Öffnen gemerkte Liste (Arbeit, Hero, `ohneBeschreibung`). Das Mosaik
+  bewusst live: Nach „Platz" stünde sonst „35 von 38" neben „Platz 1". Beim Blättern bleibt das
+  Panel eingehängt, nur `schluessel` wechselt; die Textfelder tragen den Schlüssel als `key`
+  (frische Felder je Bild). Pfeiltasten über `Dialog`s `beiTaste` (am Fenster, nur solange der
+  Dialog oben liegt — auch wenn der Fokus nach einem Klick ins Bild auf `<body>` steht) und
+  `blaetterTaste`; die Ausschnitt-Fläche fängt ihre Pfeile vorher ab (`defaultPrevented`).
+  Gesperrte Knöpfe für Blättern und „An den Anfang"/„Ans Ende" über `aria-disabled`, nicht
+  `disabled` — ein `disabled` gewordener Knopf verlöre den Fokus. Beim Schließen holt
+  `zeigeKachel` die Kachel des zuletzt gezeigten Bilds (`data-bild`) in den Blick und fokussiert sie.
+- **Platz:** `verschiebeAufPlatz` (begrenzt auf 1 … n, gelöschte Bilder behalten ihren Platz über
+  `ersetzeTeilfolge`) über `aendereMitMeldung` — jeder Sprung ein Schritt mit „Rückgängig". Das
+  Feld hält den Entwurf nur für sein Bild und übernimmt bei Enter und `blur` (`lesePlatz`).
+- **Verwendung:** `verwendung` (Hero, Startseiten-Plätze), Namen der Plätze aus
+  `STARTPLATZ_NAMEN` in `lib/inhalt-pruefen.ts` (auch im Reiter Startseite).
+  `ohneBeschreibung` hat dieselbe Regel wie der Hinweis in `pruefeInhalt` (Test vergleicht die
+  Anzahl).
+- **Mehrzeilige Felder wachsen mit:** CSS `field-sizing: content` mit `min-height`/`max-height`;
+  wo der Browser das nicht kennt, misst `Textfeld` per `scrollHeight` nach.
+
 **Hochladen und Ersetzen.**
 
 1. Die Oberfläche wählt das Ziel (den künftigen Bildschlüssel, z. B. `arbeiten/<id>/07`, `ueber/03`,
@@ -268,6 +293,16 @@ Meldungen, Tasten".
    Größe und die ersten Bytes (ein PNG muss wie ein PNG anfangen) und legt die Datei als
    `<ziel>.<endung>` in den **privaten Eingangs-Bucket**.
 3. Danach stößt die Verwaltung die Medien-Action an und zeigt, was noch wartet.
+
+⚠️ **Ersetzen ist endgültig — es gibt keinen Papierkorb dafür.** Die Action schreibt
+`original/<ziel>.jpg` neu und löscht andere Endungen desselben Schlüssels, `npm run medien` räumt
+die alten Varianten weg; R2 hat keine Objektversionen, und der Verlauf stellt nur
+`lib/inhalt.json` wieder her. Deshalb fragt die Verwaltung seit 2026-10-22 vor jedem Ersetzen
+(`app/admin/Ersetzen.tsx`: Bild-Panel, Porträt, Standbild, sobald es eins gibt): „… lässt sich
+danach nicht zurückholen — nur neu hochladen." Eine Datei, die `pruefeDatei` ohnehin ablehnt,
+geht ohne Rückfrage in die Hochlade-Zeile. Eine Sicherungskopie des alten Originals (etwa unter
+`ersetzt/` im Eingangs-Bucket mit Ablaufregel) gibt es bewusst noch nicht — Jakob hat die
+Originale selbst; wenn sie gebraucht wird: `scripts/eingang.mjs` vor dem Überschreiben.
 
 Seit 2026-10-21 ohne Sackgassen (`app/admin/hochladen.ts`, `Verwaltung.tsx`):
 
@@ -368,7 +403,7 @@ es dort heraus, und Wiederherstellen brachte es nicht zurück). Bis zum Ablauf s
 Varianten räumt `npm run medien` direkt danach als verwaist weg) und entfernt den Schlüssel
 **restlos** aus `lib/inhalt.json` — aus Reihenfolge, Hero, Ausschnitten, Bildtiteln und Alt-Texten;
 Plätze auf der Startseite werden leer (`entferneSchluessel` in `lib/inhalt-regeln.mjs`).
-⚠️ **Der einzige Schritt, der sich nicht zurücknehmen lässt.** Deshalb gilt ein unlesbares Datum
+⚠️ **Lässt sich nicht zurücknehmen** (wie Ersetzen, siehe oben). Deshalb gilt ein unlesbares Datum
 als nicht abgelaufen, und wurde nach dem Löschtag ein neues Bild unter demselben Schlüssel
 hochgeladen, bleibt die Datei stehen und nur der Papierkorbeintrag fällt weg.
 ⚠️ **Das Datum legt seit 2026-10-20 der Server fest** (`papierkorbDaten` in

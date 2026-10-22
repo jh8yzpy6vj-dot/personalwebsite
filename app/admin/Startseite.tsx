@@ -10,6 +10,7 @@ import {
   setzeStartbild,
   setzeStartText,
   startbild,
+  startplatzName,
   waehlbareBilder,
   type Startplatz,
 } from "@/lib/admin/werkzeuge";
@@ -23,23 +24,25 @@ import styles from "./verwaltung.module.css";
  * Hero, die beiden Wege, vier Highlights) und das Hero-Video.
  */
 
-const PLAETZE: { platz: Startplatz; name: string; hinweis: string }[] = [
-  {
-    platz: "heroErsatz",
-    name: "Hero-Bild",
-    hinweis: "Trägt die Startseite, solange es kein Hero-Video gibt. Querformat, keine erkennbaren Gesichter.",
-  },
-  { platz: "wegeFoto", name: "Weg „foto“", hinweis: "Das Bild zum Weg nach /foto." },
-  {
-    platz: "wegeFilm",
-    name: "Weg „film“",
-    hinweis: "Nur Rückfall: Gibt es einen Film mit Standbild, nimmt die Seite dessen Standbild.",
-  },
-  { platz: { highlight: 0 }, name: "Highlight 1", hinweis: "Leer zeigt „Highlight folgt“." },
-  { platz: { highlight: 1 }, name: "Highlight 2", hinweis: "" },
-  { platz: { highlight: 2 }, name: "Highlight 3", hinweis: "" },
-  { platz: { highlight: 3 }, name: "Highlight 4", hinweis: "" },
-];
+/* Die Namen der Plätze sind überall dieselben (`startplatzName`) — auch in
+   „Verwendet: …" im Bild-Panel. */
+const PLAETZE = (
+  [
+    {
+      platz: "heroErsatz",
+      hinweis: "Trägt die Startseite, solange es kein Hero-Video gibt. Querformat, keine erkennbaren Gesichter.",
+    },
+    { platz: "wegeFoto", hinweis: "Das Bild zum Weg nach /foto." },
+    {
+      platz: "wegeFilm",
+      hinweis: "Nur Rückfall: Gibt es einen Film mit Standbild, nimmt die Seite dessen Standbild.",
+    },
+    { platz: { highlight: 0 }, hinweis: "Leer zeigt „Highlight folgt“." },
+    { platz: { highlight: 1 }, hinweis: "" },
+    { platz: { highlight: 2 }, hinweis: "" },
+    { platz: { highlight: 3 }, hinweis: "" },
+  ] satisfies { platz: Startplatz; hinweis: string }[]
+).map((p) => ({ ...p, name: startplatzName(p.platz) }));
 
 const kennung = (p: Startplatz) => (typeof p === "string" ? p : `highlight-${p.highlight}`);
 
@@ -120,6 +123,7 @@ export default function Startseite() {
                     className={styles.platzBild}
                     disabled={!s || !bilder[s]}
                     aria-label={s ? `${bildBezeichnung(inhalt, s)} bearbeiten` : "Leer"}
+                    data-bild={s ?? undefined}
                     onClick={() => s && bearbeite(s)}
                   >
                     {s ? (

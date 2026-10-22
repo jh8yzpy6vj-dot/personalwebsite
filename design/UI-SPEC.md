@@ -449,8 +449,9 @@ Umbaus abgehakt.
     Speicherns gesperrt; ein Doppelklick darauf zählt einmal. Texte, jeweils mit dem leisen Knopf
     „Rückgängig": „„{Bild}" liegt im Papierkorb." · „„{Bild}" ist ausgeblendet." · „„{Bild}" ist
     wieder sichtbar." · „„{Bild}" ist jetzt im Hero." · „„{Bild}" ist nicht mehr im Hero." ·
-    „„{Bild}" ist wiederhergestellt." · „Absatz {n} entfernt." · „„{Titel}" ist gelöscht."
-    (Arbeit) · „„{Titel}" ist entfernt." (Film) · „Alle Änderungen verworfen." Nach Rückgängig:
+    „„{Bild}" ist wiederhergestellt." · „„{Bild}" steht jetzt auf Platz {n}." · „Absatz {n}
+    entfernt." · „„{Titel}" ist gelöscht." (Arbeit) · „„{Titel}" ist entfernt." (Film) · „Alle
+    Änderungen verworfen." Nach Rückgängig:
     „Rückgängig gemacht: {Zusammenfassung wie beim Speichern}." mit „Wiederholen", danach
     „Wiederholt: {…}." mit „Rückgängig". `{Bild}` wie im Papierkorb („STAMP · 02").
   - **Doppelklick:** Nach Löschen (Kachel und Panel), „Aus dem Hero nehmen", Wiederherstellen aus
@@ -485,7 +486,66 @@ Umbaus abgehakt.
     dazukam, danach nicht mehr.
 - **Ordnen** per Ziehen (Maus und Touch) und zusätzlich per Knöpfen „nach oben / nach unten"
   für Tastatur und Screenreader. Ausblenden statt Löschen ist der Normalfall; Gelöschtes liegt
-  **30 Tage** im Papierkorb und lässt sich zurückholen.
+  **30 Tage** im Papierkorb und lässt sich zurückholen. Weite Wege gehen im Bild-Panel mit einem
+  Schritt: „An den Anfang", „Ans Ende" und das Feld „Platz" (siehe *Bild-Panel*); der Hilfetext
+  über dem Mosaik und bei „Neue Bilder" sagt das.
+- **Bild-Panel** („Bild bearbeiten", rechts, seit 2026-10-22), von oben nach unten:
+  - **Kopf:** Bildname, daneben „‹" (Vorheriges Bild), leise „{n} von {m}", „›" (Nächstes Bild)
+    und „Schließen". Geblättert wird durch die Liste, aus der das Bild geöffnet wurde: in den
+    Reitern Fotos und Über mich durch das Mosaik **so, wie es gerade geordnet ist** (auch gleich
+    nach „Platz"), in einer Arbeit durch deren Bilder, im Hero durch die Hero-Liste, nach „Nächstes
+    Bild ohne Beschreibung" durch die Bilder ohne Beschreibung. Von der Startseite aus gibt es kein
+    Blättern. Am Anfang bzw. Ende ist der Knopf gesperrt, der Fokus bleibt darauf. Die Pfeiltasten
+    ← und → blättern ebenso — nur ohne Umschalt, Strg, Alt und ⌘ (Alt+← ist „Zurück" im Browser),
+    nicht in Textfeldern und nicht auf der Ausschnitt-Fläche (dort gehören die Pfeile dem Feld)
+    und nicht, solange eine Rückfrage darüber liegt.
+  - **Bild**, direkt darunter die **Aktionen** „Ausblenden" / „In den Hero" / „Löschen" (Löschen
+    schließt das Panel, die Meldung steht dann in der Leiste). Darunter leise: steht das Bild auf
+    der Startseite „Ausgeblendet oder gelöscht bleibt sein Platz auf der Startseite leer — dort
+    dann ein anderes Bild wählen.", sonst bei einem ausgeblendeten Bild „Ausgeblendete Bilder
+    bleiben im Bildspeicher, nur die Seite zeigt sie nicht."
+  - **„Verwendet: …"** leise, die Orte mit „ · " getrennt: „Hero auf /foto, Platz {n}",
+    „Startseite: {Platz}" — die Plätze heißen überall gleich: „Großes Bild oben", „Bild zum
+    Bereich Foto", „Bild zum Bereich Film", „Highlight 1" … „Highlight 4" (auch im Reiter
+    Startseite). Auch ausgeblendete und gelöschte Bilder nennen ihre Plätze; steht das Bild nirgends
+    sonst, fehlt die Zeile.
+  - **Platz im Mosaik** (Fotos und Bilder auf /ueber, nicht im Papierkorb): Feld „Platz" mit der
+    Nummer wie auf der Kachel, leise „von {m}", dazu die leisen Knöpfe „An den Anfang" und „Ans
+    Ende" (am jeweiligen Rand gesperrt). Das Feld übernimmt bei Enter und beim Verlassen; über {m}
+    heißt „ans Ende", was keine Zahl ist, stellt die alte Nummer wieder hin. Gelöschte Bilder
+    behalten ihren Platz in der Reihenfolge. Jeder Sprung ist ein Schritt mit der Meldung
+    „„{Bild}" steht jetzt auf Platz {n}." und „Rückgängig".
+  - **Texte:** Bildtitel und Bildbeschreibung, bei Bildern auf /ueber die Beschriftung — in deren
+    Kachel steht sie nur noch als Text „{n}. {Beschriftung oder „Jakob Sax"}". Unter der
+    Beschreibung, solange es andere sichtbare Fotos ohne Beschreibung gibt, der leise Knopf
+    „Nächstes Bild ohne Beschreibung ({Anzahl der anderen})": in Mosaik-Reihenfolge, nach dem
+    letzten wieder von vorn, gezählt nach derselben Regel wie der Hinweis „Bildbeschreibungen".
+  - **„Ausschnitt anpassen"** zum Aufklappen (Fotos, Film-Standbilder; Zeichen „›", aufgeklappt
+    nach unten gedreht), schon aufgeklappt, wenn ein Ausschnitt gesetzt ist.
+  - **Ersetzen** (mit Rückfrage, siehe unten), am Ende der Hauptknopf **„Fertig"** (schließt) und
+    leise „Änderungen gehen erst mit „Speichern" unten online."
+  - Mehrzeilige Felder (hier und überall in der Verwaltung) wachsen mit dem Text: mindestens drei
+    Zeilen, höchstens 60 % der Fensterhöhe, darüber scrollt das Feld.
+  - Nach dem Schließen steht die Kachel des **zuletzt gezeigten** Bilds im Blick (nicht unter
+    Reiter- oder Speicherleiste) und hat den Fokus — nach dem Blättern ist das nicht mehr die, die
+    das Panel geöffnet hat.
+  - Begründung (2026-10-22): Wer Titel oder Beschreibungen einer Serie pflegte, musste je Bild
+    öffnen, schließen und die nächste Kachel suchen. Ein neues Bild kommt ans Ende; von Platz 38
+    nach vorn kostete das 37 Klicks auf „‹" — Pos1 am Griff stand nirgends. Dass ein Bild die
+    Startseite trägt, sah Jakob erst nach dem Ausblenden, als Warnung. Die Aktionen standen unter
+    dem großen Ausschnitt, ein „Fertig" fehlte, und das Panel sagte nicht, dass erst „Speichern"
+    veröffentlicht. Die Beschriftung der Bilder auf /ueber stand abgeschnitten in einem schmalen
+    Feld der Kachel, lange Beschreibungen in festen drei Zeilen.
+- **Ersetzen fragt nach** (Bild-Panel, „Porträt ersetzen", „Standbild ersetzen", wenn es schon
+  eins gibt): Nach der Dateiwahl die Rückfrage „Bild ersetzen?" (bzw. „Porträt ersetzen?",
+  „Standbild ersetzen?") mit „Das bisherige Bild wird durch „{Datei}" ersetzt und lässt sich
+  danach nicht zurückholen — nur neu hochladen. Platz, Texte und Ausschnitt bleiben." (Porträt:
+  „… Die Beschreibung bleibt.", Standbild: „… Ausschnitt, Titel und Link des Films bleiben."),
+  Knöpfe „Ersetzen" (Hauptknopf) und „Abbrechen". Eine Datei, die ohnehin nicht angenommen wird
+  (HEIC, zu groß …), geht ohne Rückfrage in die Hochlade-Zeile mit ihrem Grund — ersetzt wird da
+  nichts. Begründung (2026-10-22): Ersetzen überschreibt das Original im Bildspeicher; anders als
+  beim Löschen gibt es keinen Papierkorb und keinen Verlauf dafür, und ein Fehlgriff im
+  Dateidialog war sofort endgültig.
 - **Hero:** dieselbe Spanne wie auf `/foto` (siehe *`/foto`* → Hero), gezählt werden nur
   **sichtbare** Bilder; außerhalb davon erscheint eine Warnung, ohne ein einziges sichtbares Bild
   ein Fehler, der das Speichern sperrt. Ausgeblendete und gelöschte Bilder behalten ihren Platz in
@@ -521,7 +581,8 @@ Umbaus abgehakt.
   oder Text markieren und daneben loslassen schließt nicht; am Handy ist das Panel ganzflächig,
   hat also keinen Rand und schließt über ✕. Nach jeder Aktion im Dialog („Leer lassen", Bild
   gewählt, „Verstanden", „Abbrechen" …) steht der Fokus wieder auf dem Knopf, der ihn geöffnet
-  hat, sofern es ihn noch gibt. Liegt das Bild im Papierkorb, zeigt das Panel statt „Ersetzen"
+  hat, sofern es ihn noch gibt. Eine Rückfrage über dem Seitenpanel (Ersetzen) schließt nur sich
+  selbst, das Panel bleibt offen. Liegt das Bild im Papierkorb, zeigt das Panel statt „Ersetzen"
   ein Band „Dieses Bild liegt im Papierkorb. …" mit „Wiederherstellen" (Band, kein Fehlertext —
   Rot bleibt Speicher-Fehlern vorbehalten). Begründung (2026-10-21): Das Panel schloss bei einem
   Fehltipp unter die Knöpfe, und nach jeder Wahl im Dialog stand der Fokus am Seitenanfang.

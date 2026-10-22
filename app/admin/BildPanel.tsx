@@ -1,45 +1,68 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { arbeitZu, istVerborgen } from "@/lib/inhalt";
+import { useState, type ReactNode } from "react";
+import { arbeitZu } from "@/lib/inhalt";
 import { ZIEL } from "@/lib/admin/vertrag";
 import {
+  aufDerStartseite,
   bildBezeichnung,
   bildtext,
+  blaetterListe,
+  blaettern,
+  blaetterTaste,
+  istTextfeld,
   legeInPapierkorb,
+  lesePlatz,
+  naechstesOhneBeschreibung,
+  ohneBeschreibung,
+  platzImMosaik,
   setzeBildtext,
   setzeUeberBeschriftung,
   stelleWiederHer,
   umschalteAusgeblendet,
   umschalteHero,
+  verschiebeAufPlatz,
+  verwendung,
+  type Folge,
 } from "@/lib/admin/werkzeuge";
 import Ausschnitt from "./Ausschnitt";
+import Ersetzen from "./Ersetzen";
 import { useSitzung } from "./kontext";
-import { DateiKnopf, Daumen, Dialog, Textfeld, Zeichen } from "./teile";
+import { Daumen, Dialog, Textfeld, Zeichen } from "./teile";
 import styles from "./verwaltung.module.css";
 
 /**
- * **Seitenpanel „Bild bearbeiten"**: Texte, Ausschnitt, Ersetzen — alles, was
- * zu genau einem Bild gehört. Öffnet sich aus jedem Reiter über
- * `bearbeite(schluessel)`.
+ * **Seitenpanel „Bild bearbeiten"**: alles, was zu genau einem Bild gehört.
+ * Öffnet sich aus jedem Reiter über `bearbeite(schluessel, folge)`.
+ *
+ * Von oben nach unten (UI-SPEC, „Bild-Panel"): Blättern im Kopf, Bild,
+ * Aktionen, „Verwendet: …", Platz im Mosaik, Texte, Ausschnitt zum
+ * Aufklappen, Ersetzen, „Fertig".
  *
  * Bildtitel und Alt-Text hängen an der **Arbeit**, nicht am Bild
  * (`bildtitel`/`alt` mit dem Namen `leitbild`, `01` …) — so steht es in
  * `lib/inhalt.json`, und `bildtext`/`setzeBildtext` übersetzen.
+ *
+ * Beim Blättern bleibt das Panel dasselbe, nur `schluessel` wechselt. Die
+ * Textfelder tragen den Schlüssel als `key`: Jedes Bild bekommt frische
+ * Felder, das Rückgängig des Browsers darin reicht nie ins Bild davor.
  *
  * `meldung`: die Meldung mit „Rückgängig" — solange das Panel offen ist,
  * steht sie unten darin statt in der Leiste, die es verdeckt.
  */
 export default function BildPanel({
   schluessel,
+  folge,
   beiSchliessen,
   meldung,
 }: {
   schluessel: string;
+  folge: Folge | undefined;
   beiSchliessen: () => void;
   meldung: ReactNode;
 }) {
-  const { inhalt, bilder, aendere, aendereMitMeldung, konfiguration, ladeHoch, unterwegs, heute } = useSitzung();
+  const { inhalt, bilder, aendere, aendereMitMeldung, konfiguration, unterwegs, heute, bearbeite } = useSitzung();
+  const k = { inhalt, bilder };
   const name = bildBezeichnung(inhalt, schluessel);
   const arbeit = arbeitZu(schluessel);
   const ueber = schluessel.startsWith("ueber/");
@@ -48,12 +71,95 @@ export default function BildPanel({
   const imHero = inhalt.foto.hero.includes(schluessel);
   const geloescht = schluessel in inhalt.papierkorb;
   const titel = arbeit ? inhalt.foto.arbeiten.find((a) => a.id === arbeit)?.titel : undefined;
+  const orte = verwendung(inhalt, schluessel);
+  const stelle = blaettern(blaetterListe(k, schluessel, folge), schluessel);
+  const platz = platzImMosaik(k, schluessel);
+  const ohne = arbeit ? ohneBeschreibung(k) : [];
+  const naechstesOhne = arbeit ? naechstesOhneBeschreibung(k, schluessel) : null;
+
+  /* Was im Feld „Platz" getippt, aber noch nicht übernommen ist — nur für
+     das Bild, zu dem es getippt wurde; nach dem Blättern steht dort wieder
+     dessen Platz. */
+  const [entwurf, setEntwurf] = useState<{ fuer: string; text: string } | null>(null);
+  /* „Ausschnitt anpassen" — je Bild zuerst offen, wenn schon einer gesetzt
+     ist; danach, wie Jakob es auf- oder zuklappt. Neu bestimmt beim
+     Blättern, nicht bei jeder Änderung: Sonst klappte „Mittig" den Bereich
+     unter der Hand zu. */
+  const [ausschnittOffen, setAusschnittOffen] = useState({
+    fuer: schluessel,
+    offen: schluessel in inhalt.bildausschnitte,
+  });
+  if (ausschnittOffen.fuer !== schluessel) {
+    setAusschnittOffen({ fuer: schluessel, offen: schluessel in inhalt.bildausschnitte });
+  }
+
+  const geheZu = (ziel: string | null) => {
+    if (ziel) bearbeite(ziel, folge);
+  };
+
+  const setzePlatz = (ziel: number) => {
+    setEntwurf(null);
+    if (!platz) return;
+    const p = Math.min(Math.max(ziel, 1), platz.anzahl);
+    if (p === platz.platz) return;
+    aendereMitMeldung((i) => verschiebeAufPlatz(i, bilder, schluessel, p), `„${name}“ steht jetzt auf Platz ${p}.`);
+  };
+  /* Keine Zahl: Die alte steht wieder da. */
+  const uebernimmPlatz = (text: string) => {
+    const p = lesePlatz(text);
+    if (p === null) setEntwurf(null);
+    else setzePlatz(p);
+  };
+
+  /* ← und → blättern — nicht in Textfeldern, nicht mit Zusatztasten, nicht
+     auf der Ausschnitt-Fläche (die fängt ihre Pfeile vorher ab). */
+  const beiTaste = (e: KeyboardEvent) => {
+    if (e.defaultPrevented || e.isComposing || !stelle) return;
+    const richtung = blaetterTaste(e, istTextfeld(document.activeElement));
+    if (richtung === null) return;
+    e.preventDefault();
+    geheZu(richtung < 0 ? stelle.vorher : stelle.nachher);
+  };
+
+  /* Gesperrt über `aria-disabled` statt `disabled`: Ein gesperrter Knopf
+     verlöre den Fokus — nach „Nächstes Bild" am Ende oder „An den Anfang"
+     stünde man sonst am Seitenanfang. */
+  const gesperrt = (an: boolean) => (an ? { "aria-disabled": true } : {});
+
+  const kopf = stelle && (
+    <div className={styles.blaettern}>
+      <button
+        type="button"
+        className={styles.knopfSymbol}
+        aria-label="Vorheriges Bild"
+        {...gesperrt(!stelle.vorher)}
+        onClick={() => geheZu(stelle.vorher)}
+      >
+        <Zeichen name="links" />
+      </button>
+      <span className={styles.leise} aria-live="polite">
+        {stelle.nr} von {stelle.anzahl}
+        <span className="nur-vorlesen">: {name}</span>
+      </span>
+      <button
+        type="button"
+        className={styles.knopfSymbol}
+        aria-label="Nächstes Bild"
+        {...gesperrt(!stelle.nachher)}
+        onClick={() => geheZu(stelle.nachher)}
+      >
+        <Zeichen name="rechts" />
+      </button>
+    </div>
+  );
 
   return (
     <Dialog
       titel={name}
       beiSchliessen={beiSchliessen}
       art="seite"
+      kopf={kopf}
+      beiTaste={beiTaste}
       fuss={
         /* Immer da, auch leer — wie in der Leiste: Eine Live-Region, die
            erst mit ihrem Text erscheint, lesen Screenreader oft nicht vor. */
@@ -90,26 +196,140 @@ export default function BildPanel({
             </div>
           )}
 
+          {(arbeit || ueber) && !geloescht && (
+            <div className={styles.panelAktionen}>
+              <div className={styles.knopfreihe}>
+                <button
+                  type="button"
+                  className={styles.knopf}
+                  aria-pressed={ausgeblendet}
+                  onClick={() =>
+                    aendereMitMeldung(
+                      (i) => umschalteAusgeblendet(i, schluessel),
+                      ausgeblendet ? `„${name}“ ist wieder sichtbar.` : `„${name}“ ist ausgeblendet.`,
+                    )
+                  }
+                >
+                  <Zeichen name={ausgeblendet ? "augeZu" : "auge"} />
+                  {ausgeblendet ? "Ausgeblendet — einblenden" : "Ausblenden"}
+                </button>
+                {arbeit && (
+                  <button
+                    type="button"
+                    className={styles.knopf}
+                    aria-pressed={imHero}
+                    onClick={() =>
+                      aendereMitMeldung(
+                        (i) => umschalteHero(i, schluessel),
+                        imHero ? `„${name}“ ist nicht mehr im Hero.` : `„${name}“ ist jetzt im Hero.`,
+                      )
+                    }
+                  >
+                    <Zeichen name="stern" voll={imHero} />
+                    {imHero ? "Im Hero — herausnehmen" : "In den Hero"}
+                  </button>
+                )}
+                {/* Das Panel schließt: Die Meldung mit „Rückgängig" steht dann in der Leiste. */}
+                <button
+                  type="button"
+                  className={styles.knopf}
+                  onClick={() => {
+                    aendereMitMeldung(
+                      (i) => legeInPapierkorb(i, schluessel, heute),
+                      `„${name}“ liegt im Papierkorb.`,
+                      true,
+                    );
+                    schliesse();
+                  }}
+                >
+                  <Zeichen name="eimer" />
+                  Löschen
+                </button>
+              </div>
+              {/* Die Startseite zeigt nur sichtbare Fotos — ein verborgenes
+                  lässt seinen Platz dort leer. */}
+              {aufDerStartseite(inhalt, schluessel) ? (
+                <p className={styles.leise}>
+                  Ausgeblendet oder gelöscht bleibt sein Platz auf der Startseite leer — dort dann ein anderes Bild
+                  wählen.
+                </p>
+              ) : (
+                ausgeblendet && (
+                  <p className={styles.leise}>
+                    Ausgeblendete Bilder bleiben im Bildspeicher, nur die Seite zeigt sie nicht.
+                  </p>
+                )
+              )}
+            </div>
+          )}
+
+          {orte.length > 0 && <p className={styles.leise}>Verwendet: {orte.join(" · ")}</p>}
+
+          {platz && (
+            <section className={styles.panelAbschnitt}>
+              <h3 className={styles.abschnittTitel}>Platz im Mosaik</h3>
+              <div className={styles.platzZeile}>
+                <Textfeld
+                  bezeichnung="Platz"
+                  zahl
+                  wert={entwurf?.fuer === schluessel ? entwurf.text : String(platz.platz)}
+                  beiAenderung={(w) => setEntwurf({ fuer: schluessel, text: w })}
+                  beiEnter={uebernimmPlatz}
+                  beiVerlassen={uebernimmPlatz}
+                />
+                <span className={styles.leise}>von {platz.anzahl}</span>
+                <button
+                  type="button"
+                  className={styles.knopfLeise}
+                  {...gesperrt(platz.platz === 1)}
+                  onClick={() => setzePlatz(1)}
+                >
+                  An den Anfang
+                </button>
+                <button
+                  type="button"
+                  className={styles.knopfLeise}
+                  {...gesperrt(platz.platz === platz.anzahl)}
+                  onClick={() => setzePlatz(platz.anzahl)}
+                >
+                  Ans Ende
+                </button>
+              </div>
+            </section>
+          )}
+
           {arbeit && (
             <div className={styles.formular}>
               <Textfeld
+                key={`${schluessel}:bildtitel`}
                 bezeichnung="Bildtitel (optional)"
                 wert={bildtext(inhalt, schluessel, "bildtitel")}
                 beiAenderung={(w) => aendere((i) => setzeBildtext(i, schluessel, "bildtitel", w))}
                 hinweis={`Meist die Compagnie. Die Beschriftung wird dann „Bildtitel – ${titel ?? "Titel"}“.`}
               />
               <Textfeld
+                key={`${schluessel}:alt`}
                 bezeichnung="Bildbeschreibung (Alt-Text)"
                 mehrzeilig
                 wert={bildtext(inhalt, schluessel, "alt")}
                 beiAenderung={(w) => aendere((i) => setzeBildtext(i, schluessel, "alt", w))}
                 hinweis="Was ist zu sehen? Für Menschen, die das Bild nicht sehen können, und für Suchmaschinen."
               />
+              {/* Blättert danach durch genau diese Bilder — so lässt sich eine
+                  Lücke nach der anderen schließen. */}
+              {naechstesOhne && (
+                <div className={styles.knopfreihe}>
+                  <button type="button" className={styles.knopfLeise} onClick={() => bearbeite(naechstesOhne, ohne)}>
+                    Nächstes Bild ohne Beschreibung ({ohne.filter((s) => s !== schluessel).length})
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
           {ueber && (
             <Textfeld
+              key={`${schluessel}:beschriftung`}
               bezeichnung="Beschriftung"
               wert={inhalt.ueber.bilder[schluessel] ?? ""}
               platzhalter="Jakob Sax"
@@ -119,86 +339,55 @@ export default function BildPanel({
           )}
 
           {(arbeit || film) && (
-            <section>
-              <h3 className={styles.abschnittTitel}>Bildausschnitt</h3>
-              <p className={styles.leise}>
-                Gilt überall, wo das Bild beschnitten wird: im Hero, auf der Startseite
-                {film ? ", beim Film-Standbild" : ""}. Im Mosaik steht es immer ganz.
-              </p>
-              <Ausschnitt schluessel={schluessel} />
-            </section>
-          )}
-
-          {(arbeit || ueber) && !geloescht && (
-            <div className={styles.knopfreihe}>
-              <button
-                type="button"
-                className={styles.knopf}
-                aria-pressed={ausgeblendet}
-                onClick={() =>
-                  aendereMitMeldung(
-                    (i) => umschalteAusgeblendet(i, schluessel),
-                    ausgeblendet ? `„${name}“ ist wieder sichtbar.` : `„${name}“ ist ausgeblendet.`,
-                  )
-                }
-              >
-                <Zeichen name={ausgeblendet ? "augeZu" : "auge"} />
-                {ausgeblendet ? "Ausgeblendet — einblenden" : "Ausblenden"}
-              </button>
-              {arbeit && (
-                <button
-                  type="button"
-                  className={styles.knopf}
-                  aria-pressed={imHero}
-                  onClick={() =>
-                    aendereMitMeldung(
-                      (i) => umschalteHero(i, schluessel),
-                      imHero ? `„${name}“ ist nicht mehr im Hero.` : `„${name}“ ist jetzt im Hero.`,
-                    )
-                  }
-                >
-                  <Zeichen name="stern" voll={imHero} />
-                  {imHero ? "Im Hero — herausnehmen" : "In den Hero"}
-                </button>
-              )}
-              {/* Das Panel schließt: Die Meldung mit „Rückgängig" steht dann in der Leiste. */}
-              <button
-                type="button"
-                className={styles.knopf}
-                onClick={() => {
-                  aendereMitMeldung((i) => legeInPapierkorb(i, schluessel, heute), `„${name}“ liegt im Papierkorb.`, true);
-                  schliesse();
-                }}
-              >
-                <Zeichen name="eimer" />
-                Löschen
-              </button>
-            </div>
-          )}
-          {istVerborgen(inhalt, schluessel) && !geloescht && (
-            <p className={styles.leise}>Ausgeblendete Bilder bleiben im Bildspeicher, nur die Seite zeigt sie nicht.</p>
+            <details
+              className={styles.aufklappen}
+              open={ausschnittOffen.offen}
+              onToggle={(e) => setAusschnittOffen({ fuer: schluessel, offen: e.currentTarget.open })}
+            >
+              <summary className={styles.aufklappenKopf}>
+                <Zeichen name="rechts" />
+                Ausschnitt anpassen
+              </summary>
+              <div className={styles.aufklappenInhalt}>
+                <p className={styles.leise}>
+                  Gilt überall, wo das Bild beschnitten wird: im Hero, auf der Startseite
+                  {film ? ", beim Film-Standbild" : ""}. Im Mosaik steht es immer ganz.
+                </p>
+                <Ausschnitt schluessel={schluessel} />
+              </div>
+            </details>
           )}
 
           {/* Ein gelöschtes Bild erst wiederherstellen: Ein neues unter
               demselben Schlüssel bliebe sonst verborgen — und die
               Medien-Action löschte es nach 30 Tagen womöglich mit. */}
           {ZIEL.test(schluessel) && !geloescht && (
-            <section>
+            <section className={styles.panelAbschnitt}>
               <h3 className={styles.abschnittTitel}>Ersetzen</h3>
               <p className={styles.leise}>
                 Das neue Bild übernimmt Platz, Texte und Ausschnitt des alten. Prüf danach den Ausschnitt.
                 {!konfiguration.eingang && " Hochladen ist noch nicht eingerichtet."}
               </p>
               <div className={styles.knopfreihe}>
-                <DateiKnopf
+                <Ersetzen
+                  ziel={schluessel}
                   gesperrt={!konfiguration.eingang}
-                  beiDateien={(dateien) => ladeHoch([{ datei: dateien[0], ziel: schluessel }])}
+                  titel="Bild ersetzen?"
+                  was="Das bisherige Bild"
+                  bleibt="Platz, Texte und Ausschnitt bleiben."
                 >
                   Neue Datei wählen
-                </DateiKnopf>
+                </Ersetzen>
               </div>
             </section>
           )}
+
+          <div className={styles.knopfreihe}>
+            <button type="button" className={styles.knopfHaupt} onClick={schliesse}>
+              Fertig
+            </button>
+            <span className={styles.leise}>Änderungen gehen erst mit „Speichern“ unten online.</span>
+          </div>
         </>
       )}
     </Dialog>

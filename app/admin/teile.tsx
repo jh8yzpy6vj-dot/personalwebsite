@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useContext, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import Bild from "../components/Bild";
 import type { Bildquelle } from "@/lib/bilder";
 import { BILDTYPEN } from "@/lib/admin/vertrag";
@@ -152,6 +152,15 @@ export function Daumen({
  *
  * `art="seite"` ist das Seitenpanel (rechts am PC, ganzflächig am Telefon).
  * `fuss` klebt unten im Dialog, auch beim Scrollen (im Panel die Meldung).
+ * `kopf` steht zwischen Titel und „Schließen" (im Panel das Blättern).
+ * `beiTaste` hört auf Tasten, solange der Dialog oben liegt — auch wenn der
+ * Fokus nach einem Klick auf eine leere Stelle auf `<body>` steht, und nie
+ * unter einer Rückfrage, die darüber offen ist.
+ *
+ * Eine Rückfrage darf im Dialog stehen (Ersetzen im Panel): `onClose` zählt
+ * nur das eigene Schließen. ⚠️ React reicht `close` — anders als der Browser
+ * — durch den Komponentenbaum nach oben weiter; ohne die Prüfung schlösse
+ * „Abbrechen" in der Rückfrage auch das Panel darunter.
  *
  * ⚠️ **Knöpfe im Dialog schließen über `schliesse`** (`children` als
  * Funktion), nie über `beiSchliessen` oder einen eigenen Setter. Nur das
@@ -166,12 +175,16 @@ export function Dialog({
   children,
   art = "mitte",
   fuss,
+  kopf,
+  beiTaste,
 }: {
   titel: string;
   beiSchliessen: () => void;
   children: ReactNode | ((schliesse: () => void) => ReactNode);
   art?: "mitte" | "seite";
   fuss?: ReactNode;
+  kopf?: ReactNode;
+  beiTaste?: (e: KeyboardEvent) => void;
 }) {
   /* Das Element als Zustand, nicht als Ref: `schliesse` geht beim Rendern an
      `children`, und dort darf kein Ref gelesen werden. */
@@ -181,6 +194,28 @@ export function Dialog({
   const vorher = useRef<HTMLElement | null>(null);
   /* Begann der Druck auf dem abgedunkelten Rand? */
   const startDraussen = useRef(false);
+  /* Immer die Tastenfunktion aus dem letzten Rendern. */
+  const taste = useRef(beiTaste);
+  useEffect(() => {
+    taste.current = beiTaste;
+  }, [beiTaste]);
+  const mitTasten = beiTaste !== undefined;
+
+  useEffect(() => {
+    const d = element;
+    if (!d || !mitTasten) return;
+    const hoere = (e: KeyboardEvent) => {
+      /* Oben liegt der Dialog mit dem Fokus — steht der auf `<body>`, der
+         zuletzt geöffnete (Rückfragen stehen im DOM nach ihrem Auslöser). */
+      const fokus = document.activeElement;
+      const oben =
+        (fokus instanceof Element ? fokus.closest("dialog[open]") : null) ??
+        [...document.querySelectorAll("dialog[open]")].at(-1);
+      if (oben === d) taste.current?.(e);
+    };
+    window.addEventListener("keydown", hoere);
+    return () => window.removeEventListener("keydown", hoere);
+  }, [element, mitTasten]);
 
   useEffect(() => {
     const d = element;
@@ -211,7 +246,9 @@ export function Dialog({
       ref={setElement}
       className={art === "seite" ? styles.panel : styles.dialog}
       aria-labelledby={kennung}
-      onClose={beiSchliessen}
+      onClose={(e) => {
+        if (e.target === e.currentTarget) beiSchliessen();
+      }}
       onPointerDown={(e) => {
         startDraussen.current = draussen(e);
       }}
@@ -230,6 +267,7 @@ export function Dialog({
           <h2 id={kennung} className={styles.dialogTitel}>
             {titel}
           </h2>
+          {kopf}
           <button type="button" className={styles.knopfSymbol} onClick={schliesse} aria-label="Schließen">
             <Zeichen name="zu" />
           </button>
@@ -297,6 +335,8 @@ export function Textfeld({
   typ = "text",
   platzhalter,
   nurLesen = false,
+  zahl = false,
+  beiEnter,
 }: {
   bezeichnung: string;
   wert: string;
@@ -308,6 +348,10 @@ export function Textfeld({
   typ?: "text" | "email" | "url";
   platzhalter?: string;
   nurLesen?: boolean;
+  /** Ziffern-Tastatur (Feld „Platz"). */
+  zahl?: boolean;
+  /** Enter in einem einzeiligen Feld — z. B. um eine Eingabe zu übernehmen. */
+  beiEnter?: (w: string) => void;
 }) {
   const kennung = useId();
   const hinweisKennung = `${kennung}-hinweis`;
@@ -315,6 +359,16 @@ export function Textfeld({
      Felds — das sagt das Feld selbst (`tippe`), statt dass die Verwaltung
      am Fokus rät. Außerhalb der Verwaltung gibt es keine Sitzung. */
   const sitzung = useContext(SitzungKontext);
+  /* Mehrzeilige Felder wachsen mit dem Text — `field-sizing` im CSS. Wo der
+     Browser das nicht kennt (Safari, Firefox), misst sich das Feld selbst;
+     die Grenzen (drei Zeilen, 60 % des Fensters) setzt auch dann das CSS. */
+  const flaeche = useRef<HTMLTextAreaElement>(null);
+  useLayoutEffect(() => {
+    const t = flaeche.current;
+    if (!t || CSS.supports("field-sizing", "content")) return;
+    t.style.height = "auto";
+    t.style.height = `${t.scrollHeight + t.offsetHeight - t.clientHeight}px`;
+  }, [wert]);
   const gemeinsam = {
     id: kennung,
     className: styles.eingabe,
@@ -334,7 +388,23 @@ export function Textfeld({
       <label htmlFor={kennung} className={styles.feldName}>
         {bezeichnung}
       </label>
-      {mehrzeilig ? <textarea rows={3} {...gemeinsam} /> : <input type={typ} {...gemeinsam} />}
+      {mehrzeilig ? (
+        <textarea ref={flaeche} rows={3} {...gemeinsam} />
+      ) : (
+        <input
+          type={typ}
+          inputMode={zahl ? "numeric" : undefined}
+          onKeyDown={
+            beiEnter &&
+            ((e) => {
+              if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
+              e.preventDefault();
+              beiEnter(e.currentTarget.value);
+            })
+          }
+          {...gemeinsam}
+        />
+      )}
       {hinweis && (
         <p id={hinweisKennung} className={styles.feldHinweis}>
           {hinweis}

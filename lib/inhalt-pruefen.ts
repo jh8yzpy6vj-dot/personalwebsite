@@ -42,6 +42,17 @@ const AUSSCHNITT = /^(\d{1,3}(?:\.\d+)?)% (\d{1,3}(?:\.\d+)?)%$/;
 /** UI-SPEC, E10: keine Rechtsformzusätze in der Beschriftung. */
 export const RECHTSFORM = /\b(e\.\s?V\.|gGmbH|GmbH|UG)(?=$|[\s,/)])/;
 
+/**
+ * Die Bildplätze der Startseite in Worten für Jakob — überall dieselben
+ * (Reiter Startseite, „Verwendet: …" im Bild-Panel). Highlights zählen ab 1.
+ */
+export const STARTPLATZ_NAMEN = {
+  heroErsatz: "Großes Bild oben",
+  wegeFoto: "Bild zum Bereich Foto",
+  wegeFilm: "Bild zum Bereich Film",
+  highlight: (n: number) => `Highlight ${n}`,
+} as const;
+
 /** Obergrenzen gegen Versehen (eingefügter Roman) — keine Stilregeln. */
 const MAX = { kurz: 120, zeile: 800, alt: 400, notiz: 1000, liste: 2000 };
 

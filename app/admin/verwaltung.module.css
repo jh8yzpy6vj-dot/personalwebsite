@@ -230,7 +230,11 @@
 .knopfHaupt:disabled,
 .knopfSymbol:disabled,
 .griff:disabled,
-.gesperrt {
+.gesperrt,
+/* Gesperrt, aber fokussierbar (Blättern, „An den Anfang"): Ein `disabled`
+   Knopf verlöre den Fokus, wenn er es durch seinen eigenen Klick wird. */
+.knopfLeise[aria-disabled="true"],
+.knopfSymbol[aria-disabled="true"] {
   opacity: 0.4;
   cursor: not-allowed;
 }
@@ -332,8 +336,13 @@
   color: var(--leise);
 }
 
+/* Wächst mit dem Text (in Safari und Firefox misst `Textfeld` nach):
+   mindestens drei Zeilen, höchstens 60 % des Fensters — darüber scrollt es. */
 textarea.eingabe {
   resize: vertical;
+  field-sizing: content;
+  min-height: calc(3lh + 2 * var(--space-sm) + 2px);
+  max-height: 60svh;
 }
 
 select.eingabe {
@@ -437,10 +446,6 @@ select.eingabe {
 
 .kachelLeiste + .kachelLeiste {
   padding-top: 0;
-}
-
-.kachelFeld {
-  padding: 0 var(--space-sm) var(--space-sm);
 }
 
 .daumenGanz,
@@ -932,6 +937,8 @@ select.eingabe {
 }
 
 .dialogTitel {
+  flex: 1;
+  min-width: 0;
   margin: 0;
   font-size: var(--text-body);
   font-weight: 400;
@@ -944,6 +951,74 @@ select.eingabe {
   overflow: hidden;
   background: var(--flaeche);
   aspect-ratio: 3 / 2;
+}
+
+/* Blättern im Kopf des Bild-Panels: „‹ 3 von 38 ›". Die Zahl hat feste
+   Breite, damit die Pfeile beim Blättern nicht springen. */
+.blaettern {
+  display: flex;
+  flex: none;
+  align-items: center;
+}
+
+.blaettern > .leise {
+  min-width: 7ch;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Aktionen direkt unter dem Bild, darunter ihr leiser Satz. */
+.panelAktionen,
+.panelAbschnitt {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+/* Feld „Platz", „von 38", „An den Anfang", „Ans Ende" in einer Reihe,
+   unten bündig mit dem Eingabefeld. */
+.platzZeile {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-sm);
+}
+
+.platzZeile > .feld {
+  flex: 0 0 6.5em;
+}
+
+.platzZeile > .leise {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-right: var(--space-sm);
+}
+
+/* Zum Aufklappen („Ausschnitt anpassen"): eigenes Zeichen statt des
+   Dreiecks des Browsers, aufgeklappt nach unten gedreht. */
+.aufklappenKopf {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: 44px;
+  font-size: var(--text-body);
+  line-height: var(--leading-titel);
+  list-style: none;
+  cursor: pointer;
+}
+
+.aufklappenKopf::-webkit-details-marker {
+  display: none;
+}
+
+.aufklappen[open] > .aufklappenKopf .symbol {
+  transform: rotate(90deg);
+}
+
+.aufklappenInhalt {
+  display: grid;
+  gap: var(--space-sm);
+  padding-top: var(--space-sm);
 }
 
 /* ── Bildausschnitt ─────────────────────────────────────────────────── */
@@ -1161,6 +1236,11 @@ select.eingabe {
 
 .zeileBild.kachelAus {
   opacity: 0.35;
+}
+
+/* Ein Vorschaubild ohne Bild (fehlt im Manifest) öffnet nichts. */
+.zeileBild:disabled {
+  cursor: default;
 }
 
 /* Ein Feld mit einem Knopf daneben (Absätze auf „Über mich"). */

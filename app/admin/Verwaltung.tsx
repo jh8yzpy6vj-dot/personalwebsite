@@ -40,6 +40,7 @@ import {
   tippgruppen,
   verarbeitungsanzeige,
   werteAus,
+  type Folge,
   type Klick,
   type Stapel,
   type Zielart,
@@ -187,7 +188,8 @@ export default function Verwaltung() {
      sind dann alt. Speichern schriebe den alten Inhalt still über den
      wiederhergestellten — deshalb gesperrt, bis neu geladen ist. */
   const [veraltet, setVeraltet] = useState(false);
-  const [panel, setPanel] = useState<string | null>(null);
+  /* Das offene Bild-Panel: welches Bild, und wodurch es blättert. */
+  const [panel, setPanel] = useState<{ schluessel: string; folge?: Folge } | null>(null);
 
   const [auftraege, setAuftraege] = useState<Auftrag[]>([]);
   const [hochgeladen, setHochgeladen] = useState<string[]>([]);
@@ -877,7 +879,7 @@ export default function Verwaltung() {
     ladeHoch,
     ladeNeueHoch,
     heute,
-    bearbeite: setPanel,
+    bearbeite: (schluessel, folge) => setPanel({ schluessel, folge }),
     ungespeichert,
   };
 
@@ -915,7 +917,8 @@ export default function Verwaltung() {
   /* Strg/⌘+S, Strg/⌘+Z, Strg/⌘+Umschalt+Z — was wann gilt, entscheidet `tastenbefehl`. */
   const beiTaste = (e: globalThis.KeyboardEvent) => {
     if (e.defaultPrevented || e.isComposing) return;
-    const offen = document.querySelector("dialog[open]");
+    /* Der oberste Dialog zählt — eine Rückfrage über dem Panel ist eine Rückfrage. */
+    const offen = [...document.querySelectorAll("dialog[open]")].at(-1);
     const befehl = tastenbefehl(e, {
       imTextfeld: istTextfeld(document.activeElement),
       dialog: !offen ? "keiner" : offen.classList.contains(styles.panel) ? "seite" : "anderer",
@@ -1290,7 +1293,19 @@ export default function Verwaltung() {
           </div>
         </div>
 
-        {panel && <BildPanel schluessel={panel} beiSchliessen={() => setPanel(null)} meldung={meldungZeile} />}
+        {panel && (
+          <BildPanel
+            schluessel={panel.schluessel}
+            folge={panel.folge}
+            beiSchliessen={() => {
+              setPanel(null);
+              /* Ein Bild später: Erst dann ist das Panel weg und der Fokus zurück. */
+              const zuletzt = panel.schluessel;
+              requestAnimationFrame(() => zeigeKachel(zuletzt));
+            }}
+            meldung={meldungZeile}
+          />
+        )}
 
         {verwerfen && (
           <VerwerfenDialog
@@ -1380,6 +1395,25 @@ export default function Verwaltung() {
       </main>
     </SitzungKontext.Provider>
   );
+}
+
+/**
+ * Nach dem Bild-Panel: die Kachel (`data-bild`) des **zuletzt gezeigten**
+ * Bilds in den Blick holen und fokussieren — nach dem Blättern ist das nicht
+ * mehr die, die das Panel geöffnet hat und auf die der Browser den Fokus
+ * zurückgibt. Liegt sie unter der Reiter- oder der Speicherleiste, zählt
+ * sie nicht als sichtbar. Gibt es sie nicht (gelöscht, anderer Reiter),
+ * bleibt alles, wie es ist.
+ */
+function zeigeKachel(s: string) {
+  if (document.querySelector("dialog[open]")) return;
+  const knopf = document.querySelector<HTMLElement>(`[data-bild="${CSS.escape(s)}"]`);
+  if (!knopf) return;
+  const r = knopf.getBoundingClientRect();
+  const oben = document.querySelector(`.${CSS.escape(styles.reiter)}`)?.getBoundingClientRect().bottom ?? 0;
+  const unten = document.querySelector(`.${CSS.escape(styles.leiste)}`)?.getBoundingClientRect().top ?? window.innerHeight;
+  if (r.top < oben || r.bottom > unten) knopf.scrollIntoView({ block: "center" });
+  knopf.focus({ preventScroll: true });
 }
 
 /**

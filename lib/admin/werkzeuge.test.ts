@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import manifest from "../bilder-manifest.json";
 import type { Bildquelle } from "../bilder";
-import { INHALT, type Inhalt } from "../inhalt";
+import { INHALT, istVerborgen, type Inhalt } from "../inhalt";
 import { nurFehler, pruefeInhalt, type Befund } from "../inhalt-pruefen";
 import { fotosFuerHero, fotosFuerMosaik } from "../arbeiten";
 import {
@@ -81,6 +81,19 @@ import {
   startbild,
   waehlbareBilder,
   werteAus,
+  aufDerStartseite,
+  blaetterListe,
+  blaettern,
+  blaetterTaste,
+  lesePlatz,
+  mosaikVon,
+  naechstesOhneBeschreibung,
+  ohneBeschreibung,
+  platzImMosaik,
+  startplatzName,
+  STARTPLAETZE,
+  verschiebeAufPlatz,
+  verwendung,
 } from "./werkzeuge";
 import type { Lauf } from "./vertrag";
 
@@ -857,6 +870,234 @@ describe("Startseite und Über mich", () => {
     expect(wahl).not.toContain("portrait");
     expect(Object.keys(BILDER).some((s) => s.startsWith("ueber/"))).toBe(true);
     for (const s of INHALT.ausgeblendet) expect(wahl).not.toContain(s);
+  });
+});
+
+describe("Bild-Panel: Platz im Mosaik", () => {
+  const fotos = (i: Inhalt) => mosaikVon(k(i), "arbeiten/stamp/01") ?? [];
+
+  it("nummeriert wie die Kacheln im Reiter Fotos: auch Ausgeblendetes, ohne Gelöschtes", () => {
+    const i = kopie();
+    const reiter = alleFotos(k(i)).map((b) => b.schluessel);
+    expect(fotos(i)).toEqual(reiter);
+    expect(reiter.length).toBeGreaterThanOrEqual(36);
+    expect(platzImMosaik(k(i), reiter[34])).toEqual({ platz: 35, anzahl: reiter.length });
+    const ohne = legeInPapierkorb(i, reiter[0], "2026-10-22");
+    expect(platzImMosaik(k(ohne), reiter[0])).toBeNull();
+    expect(platzImMosaik(k(ohne), reiter[34])).toEqual({ platz: 34, anzahl: reiter.length - 1 });
+    expect(platzImMosaik(k(i), "ueber/03")).toEqual({ platz: 3, anzahl: alleUeberBilder(k(i)).length });
+    expect(mosaikVon(k(i), "portrait")).toBeNull();
+    expect(mosaikVon(k(i), "film/irgendwas")).toBeNull();
+    expect(platzImMosaik(k(i), "arbeiten/gibt-es-nicht/01")).toBeNull();
+  });
+
+  it("Platz 35 → 2 in einem Schritt; die anderen behalten ihre Reihenfolge", () => {
+    const i = kopie();
+    const vorher = fotos(i);
+    const s = vorher[34];
+    const neu = verschiebeAufPlatz(i, BILDER, s, 2);
+    expect(fotos(neu)).toEqual([vorher[0], s, ...vorher.slice(1, 34), ...vorher.slice(35)]);
+    expect(platzImMosaik(k(neu), s)).toEqual({ platz: 2, anzahl: vorher.length });
+    /* Die Seite zeigt dieselbe Ordnung. */
+    const seite = fotosFuerMosaik(k(neu)).map((b) => b.schluessel);
+    expect(fotos(neu).filter((x) => seite.includes(x))).toEqual(seite);
+    expect(nurFehler(pruefeInhalt(neu, Object.keys(BILDER)))).toEqual([]);
+    expect(i).toEqual(kopie());
+  });
+
+  it("an den Anfang, ans Ende, über das Ende hinaus, unter 1", () => {
+    const i = kopie();
+    const vorher = fotos(i);
+    const s = vorher[34];
+    expect(fotos(verschiebeAufPlatz(i, BILDER, s, 1))[0]).toBe(s);
+    expect(fotos(verschiebeAufPlatz(i, BILDER, s, vorher.length)).at(-1)).toBe(s);
+    expect(fotos(verschiebeAufPlatz(i, BILDER, s, 999)).at(-1)).toBe(s);
+    expect(fotos(verschiebeAufPlatz(i, BILDER, s, 0))[0]).toBe(s);
+    expect(fotos(verschiebeAufPlatz(i, BILDER, vorher[0], 1.6))[1]).toBe(vorher[0]);
+  });
+
+  it("ändert nichts, wenn es schon dort steht, keine Zahl kommt oder das Bild in keinem Mosaik ist", () => {
+    const i = kopie();
+    const s = fotos(i)[34];
+    expect(verschiebeAufPlatz(i, BILDER, s, 35)).toBe(i);
+    /* „Ans Ende“ beim letzten, „An den Anfang“ beim ersten — auch über den Rand hinaus. */
+    expect(verschiebeAufPlatz(i, BILDER, fotos(i).at(-1) as string, 999)).toBe(i);
+    expect(verschiebeAufPlatz(i, BILDER, fotos(i)[0], 0)).toBe(i);
+    expect(verschiebeAufPlatz(i, BILDER, s, Number.NaN)).toBe(i);
+    expect(verschiebeAufPlatz(i, BILDER, "portrait", 1)).toBe(i);
+    const geloescht = legeInPapierkorb(i, s, "2026-10-22");
+    expect(verschiebeAufPlatz(geloescht, BILDER, s, 1)).toBe(geloescht);
+  });
+
+  it("gelöschte Bilder behalten ihren Platz in der Reihenfolge", () => {
+    const i = kopie();
+    const gesamt = alleFotos(k(i)).map((b) => b.schluessel);
+    const weg = gesamt[1];
+    const mitPapierkorb = legeInPapierkorb(i, weg, "2026-10-22");
+    const s = fotos(mitPapierkorb)[33];
+    const neu = verschiebeAufPlatz(mitPapierkorb, BILDER, s, 1);
+    expect(neu.foto.reihenfolge).toHaveLength(gesamt.length);
+    expect(neu.foto.reihenfolge[0]).toBe(s);
+    expect(neu.foto.reihenfolge[1]).toBe(weg);
+    /* Wiederhergestellt steht es wieder an seinem Platz. */
+    expect(alleFotos(k(stelleWiederHer(neu, weg))).map((b) => b.schluessel)[1]).toBe(weg);
+  });
+
+  it("verschiebt auch Bilder auf /ueber — nur dort", () => {
+    const i = kopie();
+    const vorher = alleUeberBilder(k(i)).map((b) => b.schluessel);
+    const s = vorher.at(-1) as string;
+    const neu = verschiebeAufPlatz(i, BILDER, s, 1);
+    expect(alleUeberBilder(k(neu)).map((b) => b.schluessel)).toEqual([s, ...vorher.slice(0, -1)]);
+    expect(neu.foto.reihenfolge).toEqual(i.foto.reihenfolge);
+  });
+
+  it("liest das Feld „Platz“", () => {
+    expect(lesePlatz("10")).toBe(10);
+    expect(lesePlatz(" 3 ")).toBe(3);
+    expect(lesePlatz("0")).toBe(0);
+    for (const t of ["", "  ", "abc", "3.5", "-1", "1e2", "12345"]) expect(lesePlatz(t)).toBeNull();
+  });
+});
+
+describe("Bild-Panel: Blättern", () => {
+  it("blättert durch das Mosaik so, wie es gerade geordnet ist", () => {
+    const i = kopie();
+    const vorher = alleFotos(k(i)).map((b) => b.schluessel);
+    const s = vorher[34];
+    expect(blaettern(blaetterListe(k(i), s, "mosaik"), s)).toEqual({
+      nr: 35,
+      anzahl: vorher.length,
+      vorher: vorher[33],
+      nachher: vorher[35],
+    });
+    /* Nach „An den Anfang“: „1 von 38“, und „›“ führt zum bisher ersten. */
+    const neu = verschiebeAufPlatz(i, BILDER, s, 1);
+    expect(blaettern(blaetterListe(k(neu), s, "mosaik"), s)).toEqual({
+      nr: 1,
+      anzahl: vorher.length,
+      vorher: null,
+      nachher: vorher[0],
+    });
+  });
+
+  it("an den Rändern führt nur eine Richtung weiter", () => {
+    const liste = ["a", "b", "c"];
+    expect(blaettern(liste, "a")).toEqual({ nr: 1, anzahl: 3, vorher: null, nachher: "b" });
+    expect(blaettern(liste, "b")).toEqual({ nr: 2, anzahl: 3, vorher: "a", nachher: "c" });
+    expect(blaettern(liste, "c")).toEqual({ nr: 3, anzahl: 3, vorher: "b", nachher: null });
+  });
+
+  it("nichts zu blättern: ohne Folge, ein einziges Bild, oder das Bild steht nicht darin", () => {
+    const i = kopie();
+    expect(blaetterListe(k(i), "arbeiten/stamp/01", undefined)).toEqual([]);
+    expect(blaettern(blaetterListe(k(i), "arbeiten/stamp/01", undefined), "arbeiten/stamp/01")).toBeNull();
+    expect(blaettern(["a"], "a")).toBeNull();
+    expect(blaettern(["a", "b"], "x")).toBeNull();
+    expect(blaetterListe(k(i), "portrait", "mosaik")).toEqual([]);
+    /* Eine gemerkte Liste bleibt, wie sie ist. */
+    expect(blaetterListe(k(i), "b", ["c", "b", "a"])).toEqual(["c", "b", "a"]);
+  });
+
+  it("← und → nur ohne Zusatztasten und nicht in Textfeldern", () => {
+    const t = (key: string, extra: Partial<Record<"ctrlKey" | "metaKey" | "shiftKey" | "altKey", boolean>> = {}) => ({
+      key,
+      ctrlKey: false,
+      metaKey: false,
+      shiftKey: false,
+      altKey: false,
+      ...extra,
+    });
+    expect(blaetterTaste(t("ArrowLeft"), false)).toBe(-1);
+    expect(blaetterTaste(t("ArrowRight"), false)).toBe(1);
+    expect(blaetterTaste(t("ArrowRight"), true)).toBeNull();
+    expect(blaetterTaste(t("ArrowLeft", { altKey: true }), false)).toBeNull();
+    expect(blaetterTaste(t("ArrowLeft", { ctrlKey: true }), false)).toBeNull();
+    expect(blaetterTaste(t("ArrowLeft", { metaKey: true }), false)).toBeNull();
+    expect(blaetterTaste(t("ArrowRight", { shiftKey: true }), false)).toBeNull();
+    expect(blaetterTaste(t("ArrowUp"), false)).toBeNull();
+    expect(blaetterTaste(t("Enter"), false)).toBeNull();
+  });
+});
+
+describe("Bild-Panel: Verwendung und Beschreibungen", () => {
+  it("nennt Hero und Startseite mit den Namen der Plätze — auch für ausgeblendete Bilder", () => {
+    const i = kopie();
+    const reihe = alleFotos(k(i)).map((x) => x.schluessel);
+    const [a, b, c] = reihe;
+    i.foto.hero = [reihe[5], reihe[6], a];
+    i.startseite.heroErsatz = a;
+    i.startseite.wege = { foto: b, film: b };
+    i.startseite.highlights = [null, a, null, b];
+    expect(verwendung(i, a)).toEqual(["Hero auf /foto, Platz 3", "Startseite: Großes Bild oben", "Startseite: Highlight 2"]);
+    expect(verwendung(i, b)).toEqual([
+      "Startseite: Bild zum Bereich Foto",
+      "Startseite: Bild zum Bereich Film",
+      "Startseite: Highlight 4",
+    ]);
+    expect(verwendung(umschalteAusgeblendet(i, a), a)).toEqual(verwendung(i, a));
+    expect(verwendung(i, c)).toEqual([]);
+    expect(aufDerStartseite(i, a)).toBe(true);
+    expect(aufDerStartseite(i, c)).toBe(false);
+    i.foto.hero = [];
+    i.startseite.heroErsatz = null;
+    i.startseite.highlights = [null, null, null, null];
+    expect(verwendung(i, a)).toEqual([]);
+    expect(aufDerStartseite(i, a)).toBe(false);
+  });
+
+  it("hat für jeden Bildplatz der Startseite einen Namen", () => {
+    expect(STARTPLAETZE.map(startplatzName)).toEqual([
+      "Großes Bild oben",
+      "Bild zum Bereich Foto",
+      "Bild zum Bereich Film",
+      "Highlight 1",
+      "Highlight 2",
+      "Highlight 3",
+      "Highlight 4",
+    ]);
+  });
+
+  it("zählt Bilder ohne Beschreibung genau wie der Hinweis der Prüfung", () => {
+    const anzahlImHinweis = (i: Inhalt) => {
+      const h = pruefeInhalt(i, Object.keys(BILDER)).find((b) => b.ort === "Bildbeschreibungen");
+      return h ? Number(h.text.match(/^(\d+)/)?.[1]) : 0;
+    };
+    let i = kopie();
+    expect(ohneBeschreibung(k(i))).toHaveLength(anzahlImHinweis(i));
+    const ohne = ohneBeschreibung(k(i));
+    expect(ohne.length).toBeGreaterThan(2);
+    /* In Mosaik-Reihenfolge. */
+    const reihe = alleFotos(k(i)).map((b) => b.schluessel);
+    expect(ohne).toEqual(reihe.filter((s) => ohne.includes(s)));
+    /* Beschreiben, Ausblenden, Löschen nimmt heraus; nur Leerzeichen zählt als leer. */
+    i = setzeBildtext(i, ohne[0], "alt", "Zwei Tänzer im Gegenlicht");
+    i = umschalteAusgeblendet(i, ohne[1]);
+    i = legeInPapierkorb(i, ohne[2], "2026-10-22");
+    const mitText = reihe.find((s) => !ohne.includes(s) && !istVerborgen(i, s)) as string;
+    i = setzeBildtext(i, mitText, "alt", "   ");
+    const danach = ohneBeschreibung(k(i));
+    expect(danach).not.toContain(ohne[0]);
+    expect(danach).not.toContain(ohne[1]);
+    expect(danach).not.toContain(ohne[2]);
+    expect(danach).toContain(mitText);
+    expect(danach).toHaveLength(anzahlImHinweis(i));
+  });
+
+  it("springt zum nächsten Bild ohne Beschreibung — nach dem letzten wieder von vorn, nie zu sich selbst", () => {
+    const i = kopie();
+    const ohne = ohneBeschreibung(k(i));
+    expect(naechstesOhneBeschreibung(k(i), ohne[0])).toBe(ohne[1]);
+    expect(naechstesOhneBeschreibung(k(i), ohne.at(-1) as string)).toBe(ohne[0]);
+    /* Von einem Bild mit Beschreibung aus: das nächste dahinter. */
+    const reihe = alleFotos(k(i)).map((b) => b.schluessel);
+    const mit = reihe.find((s, p) => !ohne.includes(s) && p < reihe.indexOf(ohne.at(-1) as string)) as string;
+    expect(naechstesOhneBeschreibung(k(i), mit)).toBe(ohne.find((s) => reihe.indexOf(s) > reihe.indexOf(mit)));
+    /* Ist es das letzte ohne, gibt es kein nächstes. */
+    let nurEins = i;
+    for (const s of ohne.slice(1)) nurEins = setzeBildtext(nurEins, s, "alt", "Szene");
+    expect(ohneBeschreibung(k(nurEins))).toEqual([ohne[0]]);
+    expect(naechstesOhneBeschreibung(k(nurEins), ohne[0])).toBeNull();
   });
 });
 

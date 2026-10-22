@@ -4,7 +4,7 @@ import { createContext, useContext } from "react";
 import type { Bildquelle } from "@/lib/bilder";
 import type { Inhalt } from "@/lib/inhalt";
 import type { Konfiguration } from "@/lib/admin/vertrag";
-import type { Zielart } from "@/lib/admin/werkzeuge";
+import type { Folge, Zielart } from "@/lib/admin/werkzeuge";
 
 /**
  * Was jeder Reiter der Verwaltung braucht — einmal von der Wurzel
@@ -50,8 +50,12 @@ export type Sitzung = {
   ladeNeueHoch: (art: Zielart, dateien: File[]) => void;
   /** Heute als `JJJJ-MM-TT` (für den Papierkorb). */
   heute: string;
-  /** Öffnet das Seitenpanel „Bild bearbeiten". */
-  bearbeite: (schluessel: string) => void;
+  /**
+   * Öffnet das Seitenpanel „Bild bearbeiten" — oder zeigt darin ein anderes
+   * Bild. `folge`: wodurch das Panel blättert (`Folge` in
+   * `lib/admin/werkzeuge.ts`); ohne kein Blättern.
+   */
+  bearbeite: (schluessel: string, folge?: Folge) => void;
   /** Gibt es Ungespeichertes? */
   ungespeichert: boolean;
 };

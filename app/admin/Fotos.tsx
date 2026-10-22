@@ -68,7 +68,8 @@ export default function Fotos() {
         <>
           <p className={styles.text}>
             Zieh ein Bild am Griff an seinen Platz, oder nimm die Pfeile. Tipp aufs Bild für Titel, Beschreibung und
-            Ausschnitt. {sichtbar} von {fotos.length} Bildern sind sichtbar.
+            Ausschnitt — dort kommt es auch mit einem Schritt an den Anfang oder auf einen bestimmten Platz.{" "}
+            {sichtbar} von {fotos.length} Bildern sind sichtbar.
           </p>
 
           <Sortierbar<Streckenbild>
@@ -96,7 +97,8 @@ export default function Fotos() {
                   <button
                     type="button"
                     className={styles.kachelBild}
-                    onClick={() => bearbeite(s)}
+                    data-bild={s}
+                    onClick={() => bearbeite(s, "mosaik")}
                     aria-label={`${name(s)} bearbeiten`}
                   >
                     <Daumen quelle={b.quelle} />
@@ -192,7 +194,8 @@ export default function Fotos() {
       <div className={styles.nachtrag}>
         <h3 className={styles.abschnittTitel}>Neue Bilder</h3>
         <p className={styles.text}>
-          Jedes Bild gehört zu einer Arbeit. Neue kommen ans Ende des Mosaiks; danach kannst du sie verschieben.
+          Jedes Bild gehört zu einer Arbeit. Neue kommen ans Ende des Mosaiks; tipp danach aufs Bild, dann holt „An den
+          Anfang“ es mit einem Schritt nach vorn.
           {!konfiguration.eingang && " Hochladen ist noch nicht eingerichtet."}
         </p>
         {inhalt.foto.arbeiten.length > 0 && (

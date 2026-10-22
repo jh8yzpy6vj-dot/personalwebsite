@@ -13,9 +13,10 @@ import {
   ordneFilme,
 } from "@/lib/admin/werkzeuge";
 import Ausschnitt from "./Ausschnitt";
+import Ersetzen from "./Ersetzen";
 import { useSitzung } from "./kontext";
 import Sortierbar from "./Sortierbar";
-import { DateiKnopf, Daumen, Dialog, Textfeld, Zeichen } from "./teile";
+import { Daumen, Dialog, Textfeld, Zeichen } from "./teile";
 import styles from "./verwaltung.module.css";
 
 /**
@@ -24,7 +25,7 @@ import styles from "./verwaltung.module.css";
  * nur das Standbild (`film/<id>`). Ohne Standbild erscheint ein Film nicht.
  */
 export default function Filme() {
-  const { inhalt, bilder, aendere, aendereMitMeldung, konfiguration, unterwegs, ladeHoch } = useSitzung();
+  const { inhalt, bilder, aendere, aendereMitMeldung, konfiguration, unterwegs } = useSitzung();
   const [offen, setOffen] = useState<string | null>(null);
   const [neuTitel, setNeuTitel] = useState("");
   const [neuKunde, setNeuKunde] = useState("");
@@ -163,12 +164,17 @@ export default function Filme() {
                       </p>
                     )}
                     <div className={`${styles.knopfreihe} ${styles.unterTitel}`}>
-                      <DateiKnopf
+                      {/* Fragt nur, wenn es schon ein Standbild gibt — sonst ersetzt es nichts. */}
+                      <Ersetzen
+                        ziel={s}
                         gesperrt={!konfiguration.eingang || !ZIEL.test(s)}
-                        beiDateien={(d) => ladeHoch([{ datei: d[0], ziel: s }])}
+                        fragen={s in bilder}
+                        titel="Standbild ersetzen?"
+                        was="Das bisherige Standbild"
+                        bleibt="Ausschnitt, Titel und Link des Films bleiben."
                       >
                         {bilder[s] ? "Standbild ersetzen" : "Standbild hochladen"}
-                      </DateiKnopf>
+                      </Ersetzen>
                       <button type="button" className={styles.knopfLeise} onClick={() => setEntfernen(f)}>
                         <Zeichen name="eimer" />
                         Film entfernen

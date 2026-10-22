@@ -10,13 +10,13 @@ import {
   mitHttps,
   neueZeile,
   platzhalter,
-  setzeUeberBeschriftung,
   setzeUeberFeld,
   setzeUeberLink,
   setzeUeberReihenfolge,
   setzeZeile,
   umschalteAusgeblendet,
 } from "@/lib/admin/werkzeuge";
+import Ersetzen from "./Ersetzen";
 import { useSitzung } from "./kontext";
 import Sortierbar from "./Sortierbar";
 import { DateiKnopf, Daumen, Dialog, Textfeld, Zeichen } from "./teile";
@@ -38,7 +38,6 @@ export default function Ueber() {
     konfiguration,
     unterwegs,
     heute,
-    ladeHoch,
     ladeNeueHoch,
     bearbeite,
   } = useSitzung();
@@ -98,12 +97,16 @@ export default function Ueber() {
             <Daumen quelle={bilder.portrait} art="voll" breite="96px" />
           </span>
           <div className={styles.knopfreihe}>
-            <DateiKnopf
+            <Ersetzen
+              ziel="portrait"
               gesperrt={!konfiguration.eingang}
-              beiDateien={(d) => ladeHoch([{ datei: d[0], ziel: "portrait" }])}
+              fragen={"portrait" in bilder}
+              titel="Porträt ersetzen?"
+              was="Das bisherige Porträt"
+              bleibt="Die Beschreibung bleibt."
             >
               Porträt ersetzen
-            </DateiKnopf>
+            </Ersetzen>
             {unterwegs.has("portrait") && <span className={styles.leise}>Neues Porträt wird verarbeitet.</span>}
           </div>
         </div>
@@ -200,7 +203,8 @@ export default function Ueber() {
                   <button
                     type="button"
                     className={styles.kachelBild}
-                    onClick={() => bearbeite(s)}
+                    data-bild={s}
+                    onClick={() => bearbeite(s, "mosaik")}
                     aria-label={`Bild ${s.slice(6)} bearbeiten`}
                   >
                     <Daumen quelle={b.quelle} />
@@ -209,6 +213,11 @@ export default function Ueber() {
                       {unterwegs.has(s) && <span className={styles.marke}>wird ersetzt</span>}
                     </span>
                   </button>
+                  {/* Bearbeitet wird die Beschriftung im Bild-Panel — in der
+                      Kachel war das Feld zu schmal und schnitt sie ab. */}
+                  <div className={styles.kachelName} title={u.bilder[s] ?? "Jakob Sax"}>
+                    {st.platz + 1}. {u.bilder[s] ?? "Jakob Sax"}
+                  </div>
                   <div className={styles.kachelLeiste}>
                     <button type="button" {...st.griff}>
                       <Zeichen name="griff" />
@@ -219,14 +228,6 @@ export default function Ueber() {
                     <button type="button" className={styles.knopfSymbol} {...st.zurueck}>
                       <Zeichen name="rechts" />
                     </button>
-                  </div>
-                  <div className={styles.kachelFeld}>
-                    <Textfeld
-                      bezeichnung="Beschriftung"
-                      wert={u.bilder[s] ?? ""}
-                      platzhalter="Jakob Sax"
-                      beiAenderung={(w) => aendere((i) => setzeUeberBeschriftung(i, s, w))}
-                    />
                   </div>
                   <div className={styles.kachelLeiste}>
                     <button
