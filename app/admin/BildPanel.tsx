@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { arbeitZu, istVerborgen } from "@/lib/inhalt";
 import { ZIEL } from "@/lib/admin/vertrag";
 import {
@@ -25,8 +26,19 @@ import styles from "./verwaltung.module.css";
  * Bildtitel und Alt-Text hängen an der **Arbeit**, nicht am Bild
  * (`bildtitel`/`alt` mit dem Namen `leitbild`, `01` …) — so steht es in
  * `lib/inhalt.json`, und `bildtext`/`setzeBildtext` übersetzen.
+ *
+ * `meldung`: die Meldung mit „Rückgängig" — solange das Panel offen ist,
+ * steht sie unten darin statt in der Leiste, die es verdeckt.
  */
-export default function BildPanel({ schluessel, beiSchliessen }: { schluessel: string; beiSchliessen: () => void }) {
+export default function BildPanel({
+  schluessel,
+  beiSchliessen,
+  meldung,
+}: {
+  schluessel: string;
+  beiSchliessen: () => void;
+  meldung: ReactNode;
+}) {
   const { inhalt, bilder, aendere, aendereMitMeldung, konfiguration, ladeHoch, unterwegs, heute } = useSitzung();
   const name = bildBezeichnung(inhalt, schluessel);
   const arbeit = arbeitZu(schluessel);
@@ -38,7 +50,18 @@ export default function BildPanel({ schluessel, beiSchliessen }: { schluessel: s
   const titel = arbeit ? inhalt.foto.arbeiten.find((a) => a.id === arbeit)?.titel : undefined;
 
   return (
-    <Dialog titel={name} beiSchliessen={beiSchliessen} art="seite">
+    <Dialog
+      titel={name}
+      beiSchliessen={beiSchliessen}
+      art="seite"
+      fuss={
+        /* Immer da, auch leer — wie in der Leiste: Eine Live-Region, die
+           erst mit ihrem Text erscheint, lesen Screenreader oft nicht vor. */
+        <div className={styles.panelMeldung} role="status">
+          {meldung}
+        </div>
+      }
+    >
       {(schliesse) => (
         <>
           <div className={styles.panelBild}>
@@ -138,7 +161,7 @@ export default function BildPanel({ schluessel, beiSchliessen }: { schluessel: s
                   {imHero ? "Im Hero — herausnehmen" : "In den Hero"}
                 </button>
               )}
-              {/* Das Panel schließt: Die Meldung mit „Rückgängig" steht dann frei über der Leiste. */}
+              {/* Das Panel schließt: Die Meldung mit „Rückgängig" steht dann in der Leiste. */}
               <button
                 type="button"
                 className={styles.knopf}

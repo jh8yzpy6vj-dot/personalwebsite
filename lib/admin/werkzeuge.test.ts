@@ -32,6 +32,9 @@ import {
   gleicherCommit,
   grundGegenFilm,
   hatBilder,
+  DOPPELKLICK_ABSTAND,
+  DOPPELKLICK_ZEIT,
+  istDoppelklick,
   istTextfeld,
   legeAb,
   legeInPapierkorb,
@@ -57,9 +60,11 @@ import {
   slug,
   stabil,
   STAPEL_MAX,
+  stapelNachSpeichern,
   stelleWiederHer,
   tagAus,
   tastenbefehl,
+  tippgruppen,
   umschalteAusgeblendet,
   umschalteHero,
   verschiebe,
@@ -637,6 +642,149 @@ describe("Rückgängig", () => {
     expect(tastenbefehl({ ...z, ctrlKey: false }, frei)).toBeNull();
     expect(tastenbefehl({ ...z, altKey: true }, frei)).toBeNull();
     expect(tastenbefehl({ ...z, key: "a" }, frei)).toBeNull();
+  });
+
+  it("nach dem Speichern: leer — oder genau ein Schritt zurück auf das Gespeicherte, wenn währenddessen etwas dazukam", () => {
+    const gesendet = b;
+    const gespeichert = { ...b, papierkorb: {} };
+    expect(stapelNachSpeichern(gesendet, gesendet, gespeichert)).toBe(LEERER_STAPEL);
+    expect(stapelNachSpeichern(structuredClone(b), gesendet, gespeichert)).toBe(LEERER_STAPEL);
+    const st = stapelNachSpeichern(c, gesendet, gespeichert);
+    expect(st).toEqual({ rueck: [gespeichert], vor: [], gruppe: null });
+    // Rückgängig führt genau auf das Gespeicherte — nichts von davor.
+    const z = schrittZurueck(st, c)!;
+    expect(z.inhalt).toBe(gespeichert);
+    expect(schrittZurueck(z.stapel, z.inhalt)).toBeNull();
+  });
+});
+
+describe("Rückgängig: Tippen und Ziehen", () => {
+  /* Wie in der Verwaltung: Jede Änderung legt mit der Gruppe ab, die
+     `tippgruppen` gerade nennt — getippt wird über `tippe`, gezogen nicht. */
+  const ablauf = () => {
+    const t = tippgruppen();
+    let st = LEERER_STAPEL;
+    let jetzt = kopie();
+    const aendere = (f: (i: Inhalt) => Inhalt) => {
+      const gruppe = t.gruppe();
+      const neu = f(jetzt);
+      st = legeAb(st, jetzt, neu, gruppe);
+      jetzt = neu;
+    };
+    const tippeIn = (platz: number, text: string, imFokus = true) => {
+      // Jeder Buchstabe ein `input`-Ereignis.
+      const vorher = jetzt.ueber.zeilen[platz];
+      for (let n = 1; n <= text.length; n++) {
+        t.tippe(() => aendere((i) => setzeZeile(i, platz, vorher + text.slice(0, n))), imFokus);
+      }
+    };
+    const ziehe = () =>
+      aendere((i) => {
+        const g = alleFotos(k(i)).map((x) => x.schluessel);
+        return setzeFotoReihenfolge(i, g, verschiebe(g, 0, 3));
+      });
+    const zurueck = () => {
+      const z = schrittZurueck(st, jetzt)!;
+      st = z.stapel;
+      jetzt = z.inhalt;
+    };
+    return { t, aendere, tippeIn, ziehe, zurueck, st: () => st, jetzt: () => jetzt };
+  };
+  const erstes = (i: Inhalt) => alleFotos(k(i))[0].schluessel;
+
+  it("Tippen ist ein Schritt je Besuch des Felds", () => {
+    const a = ablauf();
+    a.t.neuerBesuch(); // Fokus ins Feld
+    a.tippeIn(0, " Neuer Satz.");
+    expect(a.st().rueck).toHaveLength(1);
+    a.t.neuerBesuch(); // Fokus in ein anderes Feld
+    a.tippeIn(1, " Noch einer.");
+    expect(a.st().rueck).toHaveLength(2);
+  });
+
+  it("Ziehen bei Fokus im Feld ist ein eigener Schritt — Rückgängig lässt das Getippte stehen", () => {
+    const a = ablauf();
+    const vorher = a.jetzt();
+    a.t.neuerBesuch();
+    a.tippeIn(0, " Neuer Satz.");
+    const getippt = a.jetzt();
+    a.ziehe(); // kein neuer Besuch: Der Fokus steht noch im Feld
+    expect(erstes(a.jetzt())).not.toBe(erstes(getippt));
+    expect(a.st().rueck).toEqual([vorher, getippt]);
+    a.zurueck();
+    expect(a.jetzt()).toBe(getippt);
+    expect(a.jetzt().ueber.zeilen[0]).toMatch(/Neuer Satz\.$/);
+  });
+
+  it("mehrere Züge sind mehrere Schritte, auch mit Fokus im Feld", () => {
+    const a = ablauf();
+    a.t.neuerBesuch();
+    a.ziehe();
+    a.ziehe();
+    a.ziehe();
+    expect(a.st().rueck).toHaveLength(3);
+    expect(a.t.gruppe()).toBeNull();
+  });
+
+  it("Tippen nach einem Zug im selben Besuch beginnt einen neuen Schritt", () => {
+    const a = ablauf();
+    a.t.neuerBesuch();
+    a.tippeIn(0, " A");
+    a.ziehe();
+    const gezogen = a.jetzt();
+    a.tippeIn(0, " B");
+    expect(a.st().rueck).toHaveLength(3);
+    a.zurueck();
+    expect(a.jetzt()).toBe(gezogen); // nur „B" zurück, der Zug bleibt
+  });
+
+  it("eine Eingabe aus einem Feld ohne Fokus ist ein eigener Schritt", () => {
+    const a = ablauf();
+    a.t.neuerBesuch();
+    a.tippeIn(0, "xy", false);
+    expect(a.st().rueck).toHaveLength(2);
+  });
+
+  it("die Gruppe gilt nur während `tippe` — auch wenn darin etwas schiefgeht", () => {
+    const t = tippgruppen();
+    t.neuerBesuch();
+    let drin: number | null = null;
+    t.tippe(() => {
+      drin = t.gruppe();
+    });
+    expect(drin).toBe(1);
+    expect(t.gruppe()).toBeNull();
+    expect(() =>
+      t.tippe(() => {
+        throw new Error("kaputt");
+      }),
+    ).toThrow("kaputt");
+    expect(t.gruppe()).toBeNull();
+  });
+});
+
+describe("Doppelklick nach dem Wegnehmen", () => {
+  const erst = { x: 400, y: 600, zeit: 1000 };
+
+  it("der zweite Klick an derselben Stelle kurz danach zählt nicht", () => {
+    expect(istDoppelklick(erst, { x: 400, y: 600, zeit: 1300 })).toBe(true);
+    expect(istDoppelklick(erst, { x: 400 + DOPPELKLICK_ABSTAND, y: 600 - DOPPELKLICK_ABSTAND, zeit: 1001 })).toBe(true);
+  });
+
+  it("ein schneller Klick auf ein anderes Bild zählt", () => {
+    expect(istDoppelklick(erst, { x: 400 + DOPPELKLICK_ABSTAND + 1, y: 600, zeit: 1200 })).toBe(false);
+    expect(istDoppelklick(erst, { x: 620, y: 600, zeit: 1250 })).toBe(false); // Kachel daneben
+    expect(istDoppelklick(erst, { x: 400, y: 930, zeit: 1250 })).toBe(false); // Kachel darunter
+  });
+
+  it("nach der Doppelklick-Zeit zählt auch derselbe Platz", () => {
+    expect(DOPPELKLICK_ZEIT).toBe(600);
+    expect(istDoppelklick(erst, { x: 400, y: 600, zeit: 1000 + DOPPELKLICK_ZEIT })).toBe(false);
+  });
+
+  it("per Tastatur oder ohne Wegnehmen davor nie", () => {
+    expect(istDoppelklick(null, { x: 400, y: 600, zeit: 1100 })).toBe(false);
+    expect(istDoppelklick(erst, null)).toBe(false);
   });
 });
 

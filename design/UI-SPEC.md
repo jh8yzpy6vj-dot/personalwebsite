@@ -425,30 +425,39 @@ Umbaus abgehakt.
   **Fotos · Hero · Arbeiten · Über mich · Filme · Startseite · Papierkorb · Verlauf**
   (Pfeiltasten wechseln den Reiter); unten eine feste Leiste mit Speicherstand, optionaler
   Nachricht, „Alles verwerfen" (nur solange Ungespeichertes da ist), „Rückgängig" und
-  „Speichern" — siehe *Rückgängig, Meldungen, Tasten*.
-- **Rückgängig, Meldungen, Tasten** (seit 2026-10-21):
+  „Speichern", darüber, solange eine steht, die Zeile mit der Meldung — siehe *Rückgängig,
+  Meldungen, Tasten*.
+- **Rückgängig, Meldungen, Tasten** (seit 2026-10-22):
   - **„Rückgängig"** ist ein leiser Knopf mit dem Zeichen „zurück" links von „Speichern",
-    gesperrt, solange es nichts zurückzunehmen gibt. Er und **Strg/⌘+Z** nehmen den letzten
-    Schritt zurück, **Strg/⌘+Umschalt+Z** (oder Strg+Y) holt ihn wieder. In Textfeldern gilt das
-    Rückgängig des Browsers; solange ein Dialog oder das Seitenpanel offen ist, tun die beiden
-    Tasten außerhalb von Textfeldern gar nichts (auch nicht das Rückgängig des Browsers, das sonst
-    das letzte Tippen in irgendeinem Feld zurücknähme). Tippen in einem Feld ist **ein** Schritt,
-    bis der Fokus das Feld verlässt. Höchstens 50 Schritte; nach Speichern, Neu laden oder
-    Wiederherstellen beginnt die Liste neu.
-  - **Meldung über der Leiste** (`role=status`), schwebend und mittig, damit die Leiste nicht
-    springt: Fläche `--flaeche-hoch`, Linie `--linie`, 14px, mindestens 44px hoch, keine neue
-    Farbe. Sie steht 8 Sekunden; solange Maus oder Fokus darin sind, bleibt sie, danach wieder
-    8 Sekunden. Die nächste Änderung ersetzt sie. Texte, jeweils mit dem leisen Knopf
+    gesperrt, solange es nichts zurückzunehmen gibt und solange gespeichert wird. Er und
+    **Strg/⌘+Z** nehmen den letzten Schritt zurück, **Strg/⌘+Umschalt+Z** (oder Strg+Y) holt ihn
+    wieder; beide Tasten tun während des Speicherns nichts. In Textfeldern gilt das Rückgängig des
+    Browsers; solange ein Dialog oder das Seitenpanel offen ist, tun die beiden Tasten außerhalb von
+    Textfeldern gar nichts (auch nicht das Rückgängig des Browsers, das sonst das letzte Tippen in
+    irgendeinem Feld zurücknähme). Tippen in einem Feld ist **ein** Schritt, bis der Fokus das Feld
+    verlässt; Ziehen, Klicks und Tasten sind immer eigene Schritte, auch wenn der Fokus noch in
+    einem Feld steht. Höchstens 50 Schritte; nach Speichern, Neu laden oder Wiederherstellen
+    beginnt die Liste neu — was während des Speicherns dazukam, lässt sich danach mit genau einem
+    Schritt zurücknehmen (auf den eben gespeicherten Stand).
+  - **Meldung in der Leiste** (`role=status`): eine eigene Zeile über Speicherstand und Knöpfen,
+    mittig. Die Leiste wächst dafür nach oben; Speicherstand und Knöpfe bleiben stehen. Bei
+    offenem Seitenpanel steht sie stattdessen unten im Panel (klebt beim Scrollen, Linie `--linie`
+    darüber, Fläche `--grund`) — die Leiste liegt dann unter dem Panel. Die Meldung selbst: Fläche
+    `--flaeche-hoch`, Linie `--linie`, 14px, mindestens 44px hoch, keine neue Farbe. Sie steht
+    8 Sekunden; solange Maus oder Fokus darin sind oder ein Dialog sie verdeckt, bleibt sie,
+    danach wieder 8 Sekunden. Die nächste Änderung ersetzt sie. Ihr Knopf ist während des
+    Speicherns gesperrt; ein Doppelklick darauf zählt einmal. Texte, jeweils mit dem leisen Knopf
     „Rückgängig": „„{Bild}" liegt im Papierkorb." · „„{Bild}" ist ausgeblendet." · „„{Bild}" ist
     wieder sichtbar." · „„{Bild}" ist jetzt im Hero." · „„{Bild}" ist nicht mehr im Hero." ·
     „„{Bild}" ist wiederhergestellt." · „Absatz {n} entfernt." · „„{Titel}" ist gelöscht."
     (Arbeit) · „„{Titel}" ist entfernt." (Film) · „Alle Änderungen verworfen." Nach Rückgängig:
     „Rückgängig gemacht: {Zusammenfassung wie beim Speichern}." mit „Wiederholen", danach
     „Wiederholt: {…}." mit „Rückgängig". `{Bild}` wie im Papierkorb („STAMP · 02").
-  - **Doppelklick:** Nach Löschen, „Aus dem Hero nehmen", Wiederherstellen aus dem Papierkorb und
-    dem Entfernen eines leeren Absatzes zählt ein zweiter solcher Klick innerhalb von 0,6 Sekunden
+  - **Doppelklick:** Nach Löschen (Kachel und Panel), „Aus dem Hero nehmen", Wiederherstellen aus
+    dem Papierkorb und „Absatz entfernen" (leer sofort oder nach der Rückfrage) zählt ein zweiter
+    solcher Mausklick **an derselben Stelle** (höchstens 10px daneben) innerhalb von 0,6 Sekunden
     nicht, wenn dazwischen nichts anderes geschah — die Liste rückt nach dem ersten nach, der
-    zweite träfe schon den nächsten Eintrag.
+    zweite träfe schon den nächsten Eintrag. Ein schneller Klick auf ein anderes Bild zählt.
   - **„Alles verwerfen"** fragt „Alle Änderungen verwerfen?" mit „Verworfen wird:
     {Zusammenfassung}." und „Danach steht wieder da, was zuletzt gespeichert war.", Knöpfe
     „Verwerfen" (Hauptknopf) und „Abbrechen". Auch das nimmt „Rückgängig" zurück.
@@ -464,7 +473,16 @@ Umbaus abgehakt.
   - Begründung: Löschen nahm ein Bild ohne jede Rückmeldung weg, ein Doppelklick auf den Eimer
     löschte zwei, und zurück ging es nur über den Papierkorb oder Neuladen — das verwarf alles
     Ungespeicherte. Ein Absatz verschwand mit einem Klick samt Text. Strg+S öffnete „Seite
-    speichern unter".
+    speichern unter". Nachgebessert 2026-10-22: Die Meldung schwebte über den Kacheln und
+    verdeckte die Knöpfe der untersten sichtbaren Reihe — ein Klick dorthin traf die Meldung, und
+    stand die Maus darauf, blieb sie stehen. In der Leiste liegt sie im festen Rand, unter dem die
+    Seite ohnehin durchscrollt: Was darüber zu sehen ist, lässt sich auch klicken, und der freie
+    Platz unter der Seite (160px) reicht für Leiste und Meldung. Hinter dem Seitenpanel war sie
+    weder zu sehen noch zu klicken und lief dort ungesehen ab. Ein Zug im Mosaik mit dem Fokus
+    noch im Absatz darüber landete im Schritt des Tippens — „Rückgängig" nahm den Satz mit. Ein
+    anderes Bild weniger als 0,6 Sekunden nach dem ersten zu löschen ging nicht. Während des
+    Speicherns ließ sich zurücknehmen, was gerade gespeichert wurde, und was währenddessen
+    dazukam, danach nicht mehr.
 - **Ordnen** per Ziehen (Maus und Touch) und zusätzlich per Knöpfen „nach oben / nach unten"
   für Tastatur und Screenreader. Ausblenden statt Löschen ist der Normalfall; Gelöschtes liegt
   **30 Tage** im Papierkorb und lässt sich zurückholen.

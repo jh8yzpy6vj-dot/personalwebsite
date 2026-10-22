@@ -731,16 +731,18 @@ select.eingabe {
   font-size: var(--text-label);
 }
 
-/* Die Meldung nach Löschen, Ausblenden … schwebt über der Leiste, statt sie
-   höher zu machen — sonst sprängen Status und „Speichern" bei jeder
-   Meldung. Der leere Platz lässt Klicks durch. */
+/* Die Meldung nach Löschen, Ausblenden … ist eine eigene Zeile der Leiste
+   über Speicherstand und Knöpfen. Die Leiste wächst dafür nach oben —
+   Status und „Speichern" bleiben, wo sie sind —, und nichts schwebt über
+   den Kacheln. Leer ist die Zeile 0px hoch. Der freie Platz unter der
+   Seite (`.seite`, 160px) reicht für Leiste und Meldung. */
 .meldungOrt {
-  position: absolute;
-  right: 0;
-  bottom: 100%;
-  left: 0;
-  padding: 0 var(--rand) var(--space-sm);
-  pointer-events: none;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.meldungOrt:not(:empty) {
+  padding-bottom: var(--space-sm);
 }
 
 .meldung {
@@ -758,7 +760,6 @@ select.eingabe {
   background: var(--flaeche-hoch);
   font-size: var(--text-label);
   line-height: var(--leading-label);
-  pointer-events: auto;
 }
 
 /* Der Knopf darin ist leise — auf der hellen Fläche hebt ihn eine Linie ab. */
@@ -873,7 +874,9 @@ select.eingabe {
   border-radius: var(--space-sm);
 }
 
-/* Das Seitenpanel: rechts am PC, ganzflächig am Telefon. */
+/* Das Seitenpanel: rechts am PC, ganzflächig am Telefon. Als Spalte, damit
+   der Fuß mit der Meldung auch bei wenig Inhalt unten steht. Nur offen —
+   ein geschlossener Dialog muss `display: none` behalten. */
 .panel {
   margin: 0 0 0 auto;
   width: min(520px, 100vw);
@@ -881,6 +884,26 @@ select.eingabe {
   height: 100dvh;
   max-height: 100dvh;
   border-width: 0 0 0 1px;
+}
+
+.panel[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Die Meldung im Panel — wie die Zeile der Leiste: unten, klebt beim
+   Scrollen, mit eigenem Platz am Ende statt über dem letzten Knopf. Leer
+   0px hoch. */
+.panelMeldung {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+  background: var(--grund);
+}
+
+.panelMeldung:not(:empty) {
+  padding: var(--space-sm) var(--space-md);
+  border-top: 1px solid var(--linie);
 }
 
 .dialogInnen {

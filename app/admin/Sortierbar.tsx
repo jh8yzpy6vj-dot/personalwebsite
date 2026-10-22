@@ -80,6 +80,10 @@ type Zug = {
 const SCHWELLE = 5;
 /** So nah am Fensterrand (px) scrollt die Seite beim Ziehen mit. */
 const RAND = 72;
+/* Fokus ohne Ring und ohne Scrollen. Als Konstante, weil TypeScripts
+   DOM-Typen `focusVisible` noch nicht kennen; ein Browser ohne die Option
+   zeigt eben den Ring. */
+const OHNE_RING = { preventScroll: true, focusVisible: false };
 
 /** Element mit `data-sortier-ziel` unter dem Ereignis, samt Schlüssel des Eintrags. */
 function ziel(e: { target: EventTarget | null; currentTarget: HTMLElement }) {
@@ -253,8 +257,13 @@ export default function Sortierbar<T>({
           const t = ziel(e);
           if (!t || t.art !== "griff" || gesperrt || e.button !== 0) return;
           const r = t.eintrag.getBoundingClientRect();
-          /* Keine Textauswahl beim Ziehen mit der Maus. */
+          /* Keine Textauswahl beim Ziehen mit der Maus. Das verhindert aber
+             auch, dass der Griff den Fokus bekommt — er bliebe im zuletzt
+             benutzten Textfeld, dessen `beiVerlassen` käme nie, und Strg+Z
+             nach dem Zug ginge an das Rückgängig des Browsers in diesem Feld.
+             Ohne Fokusring: Gedrückt wurde mit Maus oder Finger. */
           e.preventDefault();
+          t.el.focus(OHNE_RING);
           const alle = eintraege.map(schluessel);
           setzeZug({
             s: t.s,

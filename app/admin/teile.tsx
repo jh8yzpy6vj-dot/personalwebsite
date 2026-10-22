@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import Bild from "../components/Bild";
 import type { Bildquelle } from "@/lib/bilder";
 import { BILDTYPEN } from "@/lib/admin/vertrag";
 import { ausserhalb } from "@/lib/admin/werkzeuge";
+import { SitzungKontext } from "./kontext";
 import styles from "./verwaltung.module.css";
 
 /**
@@ -150,6 +151,7 @@ export function Daumen({
  * Erscheint, sobald er gerendert wird; `beiSchliessen` entfernt ihn.
  *
  * `art="seite"` ist das Seitenpanel (rechts am PC, ganzflächig am Telefon).
+ * `fuss` klebt unten im Dialog, auch beim Scrollen (im Panel die Meldung).
  *
  * ⚠️ **Knöpfe im Dialog schließen über `schliesse`** (`children` als
  * Funktion), nie über `beiSchliessen` oder einen eigenen Setter. Nur das
@@ -163,11 +165,13 @@ export function Dialog({
   beiSchliessen,
   children,
   art = "mitte",
+  fuss,
 }: {
   titel: string;
   beiSchliessen: () => void;
   children: ReactNode | ((schliesse: () => void) => ReactNode);
   art?: "mitte" | "seite";
+  fuss?: ReactNode;
 }) {
   /* Das Element als Zustand, nicht als Ref: `schliesse` geht beim Rendern an
      `children`, und dort darf kein Ref gelesen werden. */
@@ -232,6 +236,7 @@ export function Dialog({
         </div>
         {typeof children === "function" ? children(schliesse) : children}
       </div>
+      {fuss}
     </dialog>
   );
 }
@@ -306,6 +311,10 @@ export function Textfeld({
 }) {
   const kennung = useId();
   const hinweisKennung = `${kennung}-hinweis`;
+  /* Was hier getippt wird, ist für „Rückgängig" ein Schritt je Besuch des
+     Felds — das sagt das Feld selbst (`tippe`), statt dass die Verwaltung
+     am Fokus rät. Außerhalb der Verwaltung gibt es keine Sitzung. */
+  const sitzung = useContext(SitzungKontext);
   const gemeinsam = {
     id: kennung,
     className: styles.eingabe,
@@ -313,7 +322,11 @@ export function Textfeld({
     placeholder: platzhalter,
     readOnly: nurLesen,
     "aria-describedby": hinweis ? hinweisKennung : undefined,
-    onChange: (e: { currentTarget: { value: string } }) => beiAenderung?.(e.currentTarget.value),
+    onChange: (e: { currentTarget: HTMLInputElement | HTMLTextAreaElement }) => {
+      const w = e.currentTarget.value;
+      if (sitzung) sitzung.tippe(e.currentTarget, () => beiAenderung?.(w));
+      else beiAenderung?.(w);
+    },
     onBlur: (e: { currentTarget: { value: string } }) => beiVerlassen?.(e.currentTarget.value),
   };
   return (

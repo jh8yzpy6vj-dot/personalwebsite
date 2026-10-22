@@ -210,7 +210,7 @@ Speichern, nichts wird aus der Geschichte gelöscht. Seit 2026-10-20:
   „Letzte Speicherung zurücknehmen" zeigte auf den Eintrag davor: Jakob hätte zwei Speicherungen
   zurückgenommen statt einer.
 
-**Rückgängig, Meldungen, Tasten** (seit 2026-10-21; `Verwaltung.tsx`, die Rechnung als reine
+**Rückgängig, Meldungen, Tasten** (seit 2026-10-22; `Verwaltung.tsx`, die Rechnung als reine
 Funktionen in `lib/admin/werkzeuge.ts`). Texte und Aussehen: `design/UI-SPEC.md`, „Rückgängig,
 Meldungen, Tasten".
 
@@ -218,14 +218,22 @@ Meldungen, Tasten".
   höchstens 50); „Rückgängig", Strg/⌘+Z und Strg/⌘+Umschalt+Z bzw. Strg+Y gehen ihn durch
   (`schrittZurueck`/`schrittVor`). Er lebt nur im React-Zustand — kein Server, kein Speicher im
   Browser, keine zweite Datenquelle neben Git.
-- **Tippen ist ein Schritt je Besuch eines Felds:** Jedes `focusin` zieht eine neue Nummer,
-  Änderungen aus demselben Textfeld mit derselben Nummer fassen sich zusammen. Getippt und wieder
-  gelöscht ist kein Schritt; das Tippen danach beginnt einen neuen, statt in den Schritt darunter
-  zu rutschen.
+- **Tippen ist ein Schritt je Besuch eines Felds — und nur Tippen** (`tippgruppen`): Jedes
+  `focusin` beginnt einen neuen Besuch. Das `Textfeld` reicht seine Eingabe über `tippe` aus dem
+  Sitzungskontext weiter; nur was darin geändert wird, trägt die Nummer des Besuchs und fasst
+  sich zusammen. Ziehen, Knöpfe und Tasten sind immer eigene Schritte, auch mit dem Fokus noch in
+  einem Feld — vorher galt „Fokus im Textfeld" als Tippen, und ein Zug im Mosaik landete im
+  Schritt des Satzes davor („Rückgängig" nahm beides, nachgebessert 2026-10-22). Dazu holt sich
+  der Griff von `Sortierbar` beim Drücken den Fokus (ohne Ring), den sein `preventDefault` sonst
+  verhindert. Getippt und wieder gelöscht ist kein Schritt; das Tippen danach beginnt einen
+  neuen, statt in den Schritt darunter zu rutschen.
 - **Der Stapel gehört zu `basis` und `sha`.** Nach Speichern, Neu laden, Wiederherstellen und wenn
   die Medien-Action einen neuen Stand bringt, beginnt er leer — ein Stand von vorher unter der
-  neuen `sha` schriebe beim Speichern still zurück, was inzwischen auf `main` steht. „Alles
-  verwerfen" (`inhalt = basis`) ist dagegen ein gewöhnlicher Schritt und lässt sich zurücknehmen.
+  neuen `sha` schriebe beim Speichern still zurück, was inzwischen auf `main` steht. Kam während
+  des Speicherns etwas dazu, bleibt genau ein Schritt zurück auf den eben gespeicherten Stand
+  (`stapelNachSpeichern`) — der trägt die neue `sha`, ist also sicher. Rückgängig und Wiederholen
+  (Knopf, Tasten, Meldung) sind während des Speicherns gesperrt. „Alles verwerfen"
+  (`inhalt = basis`) ist dagegen ein gewöhnlicher Schritt und lässt sich zurücknehmen.
 - **Tasten** (`tastenbefehl`): Strg/⌘+S ruft dasselbe `speichere` wie der Knopf, auch aus
   Textfeldern und dem Seitenpanel; geht es nicht, zeigt die Meldung den Grund. Strg/⌘+Z nur
   außerhalb von Textfeldern; bei offenem Dialog oder Panel tut es dort nichts. ⚠️ Jeder erkannte
@@ -234,10 +242,18 @@ Meldungen, Tasten".
   einem Knopf steht (nachgeprüft).
 - **Meldungen** (`aendereMitMeldung` im Sitzungskontext): Löschen, Ausblenden, Hero,
   Wiederherstellen, Absatz/Arbeit/Film entfernen. Die nächste Änderung löscht die Meldung, ihr
-  „Rückgängig" trifft also immer genau den Schritt, den sie nennt. Mit `nimmtWeg` zählt ein
-  zweiter solcher Aufruf innerhalb von 600 ms nicht, wenn dazwischen keine andere Änderung kam
-  (Doppelklick, während die Liste nachrückt).
-- **Kein Entwurf im Browser** (bewusst, 2026-10-21): Die Verwaltung wird nur am PC benutzt. Dort
+  „Rückgängig" trifft also immer genau den Schritt, den sie nennt. Sie steht in einer Zeile der
+  Leiste; bei offenem Seitenpanel rendert `Verwaltung` sie in dessen Fuß (`Dialog`, `fuss`). Beide
+  Orte sind immer da (Live-Regionen), die Meldung steht nur in einem. Ihre Zeit prüft sie alle
+  250 ms am DOM: Maus, Fokus oder ein offener `dialog`, zu dem sie nicht gehört, halten sie.
+- **Doppelklick** (`istDoppelklick`): Mit `nimmtWeg` zählt ein zweiter Mausklick innerhalb von
+  600 ms an derselben Stelle (höchstens 10 px daneben) nicht, wenn dazwischen keine andere
+  Änderung kam — die Liste rückt nach, er träfe den nächsten Eintrag. Wo geklickt wurde, merkt
+  sich ein `click`-Lauscher am Fenster (Capture, also vor den Knöpfen selbst); ein Klick per
+  Tastatur (`detail` 0) ist nie ein Doppelklick. Vorher genügte die Zeit allein, und ein schneller
+  Klick auf ein anderes Bild ging verloren. Der Knopf in der Meldung zählt einen Doppelklick
+  einmal (`detail` > 1): Er heißt nach dem ersten Klick „Wiederholen".
+- **Kein Entwurf im Browser** (bewusst, 2026-10-22): Die Verwaltung wird nur am PC benutzt. Dort
   warnt `beforeunload` beim Schließen und Neuladen, solange etwas ungespeichert ist oder
   hochlädt. Ein Entwurf in `localStorage` war für iPhone-Tabs gedacht, die das System im
   Hintergrund verwirft; am PC brächte er nur eine zweite Kopie des Inhalts (samt Kontaktadresse)

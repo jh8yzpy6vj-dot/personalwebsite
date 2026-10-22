@@ -21,6 +21,7 @@ import {
   fasseZusammen,
   gleich,
   gleicherCommit,
+  istDoppelklick,
   istTextfeld,
   legeAb,
   LEERER_STAPEL,
@@ -33,10 +34,13 @@ import {
   pruefeDatei,
   schrittVor,
   schrittZurueck,
+  stapelNachSpeichern,
   tagAus,
   tastenbefehl,
+  tippgruppen,
   verarbeitungsanzeige,
   werteAus,
+  type Klick,
   type Stapel,
   type Zielart,
 } from "@/lib/admin/werkzeuge";
@@ -99,10 +103,10 @@ const VERARBEITUNG_HOECHSTENS = 30 * 60_000;
 /** Nach dem Wiederherstellen: so oft den neuen Stand holen, in diesem Abstand (ms). */
 const NACH_WIEDERHERSTELLEN_VERSUCHE = 4;
 const NACH_WIEDERHERSTELLEN_ABSTAND = 1500;
-/** So lange steht eine Meldung über der Leiste (ms) — länger, solange Maus oder Fokus darin sind. */
+/** So lange steht eine Meldung in der Leiste (ms) — länger, solange Maus oder Fokus darin sind oder ein Dialog sie verdeckt. */
 const MELDUNG_DAUER = 8000;
-/** Ein zweites Wegnehmen so kurz danach (ms) ist der zweite Klick eines Doppelklicks. */
-const DOPPELKLICK = 600;
+/** So oft schaut die Meldung nach, ob sie noch stehen bleiben muss (ms). */
+const MELDUNG_TAKT = 250;
 
 type Geladen = {
   inhalt: Inhalt;
@@ -115,7 +119,7 @@ type Geladen = {
   stapel: Stapel;
 };
 
-/** Die Meldung über der Leiste; `knopf`: was ihr Knopf tut (oder keiner). */
+/** Die Meldung in der Leiste (oder im Seitenpanel); `knopf`: was ihr Knopf tut (oder keiner). */
 type Meldung = { id: number; text: string; knopf: "rueckgaengig" | "wiederholen" | null };
 
 type Speicherstand =
@@ -256,24 +260,41 @@ export default function Verwaltung() {
 
   /* ── Ändern und Rückgängig ─────────────────────────────────────────── */
 
-  /* Jeder Besuch eines Felds bekommt eine neue Nummer: Tippen darin ist ein
-     Schritt, bis der Fokus woanders hingeht (`legeAb`). */
-  const feldBesuch = useRef(0);
+  /* Tippen ist ein Schritt je Besuch eines Felds — aber nur, was aus dessen
+     Eingabe kommt (`tippe` im Sitzungskontext, gerufen vom `Textfeld`).
+     Jeder Fokuswechsel beginnt einen neuen Besuch. */
+  const [tippen] = useState(tippgruppen);
   useEffect(() => {
-    const neuerBesuch = () => {
-      feldBesuch.current += 1;
-    };
+    const neuerBesuch = () => tippen.neuerBesuch();
     document.addEventListener("focusin", neuerBesuch);
     return () => document.removeEventListener("focusin", neuerBesuch);
+  }, [tippen]);
+  const tippe = useCallback(
+    (feld: Element, f: () => void) => tippen.tippe(f, feld === document.activeElement),
+    [tippen],
+  );
+
+  /* Wo der letzte Mausklick war — `null` nach einem Klick per Tastatur
+     (Enter, Leertaste). Abgefangen vor den Knöpfen selbst, damit
+     `aendereMitMeldung` weiß, welcher Klick es auslöste. */
+  const letzterKlick = useRef<{ x: number; y: number } | null>(null);
+  useEffect(() => {
+    const merke = (e: MouseEvent) => {
+      letzterKlick.current = e.detail > 0 ? { x: e.clientX, y: e.clientY } : null;
+    };
+    window.addEventListener("click", merke, true);
+    return () => window.removeEventListener("click", merke, true);
   }, []);
 
-  /* Wann zuletzt etwas aus einer Liste genommen wurde — `0`, sobald danach
-     irgendetwas anderes geschah: Nur zwei Wegnahmen direkt hintereinander
-     sind ein Doppelklick. */
-  const zuletztWeg = useRef(0);
+  /* Wann und wo zuletzt etwas aus einer Liste genommen wurde — `null`,
+     sobald danach irgendetwas anderes geschah: Nur zwei Wegnahmen direkt
+     hintereinander an derselben Stelle sind ein Doppelklick. */
+  const zuletztWeg = useRef<Klick | null>(null);
 
   const legeUndAendere = useCallback((f: (i: Inhalt) => Inhalt) => {
-    const gruppe = istTextfeld(document.activeElement) ? feldBesuch.current : null;
+    /* Hier lesen, nicht im Updater: Den ruft React womöglich erst beim
+       Rendern, und dann ist `tippe` längst vorbei. */
+    const gruppe = tippen.gruppe();
     setGeladen((g) => {
       if (!g) return g;
       const neu = f(g.inhalt);
@@ -281,11 +302,11 @@ export default function Verwaltung() {
     });
     /* Die Meldung gehört zum Schritt davor — „Rückgängig" darin träfe jetzt diesen. */
     setMeldung(null);
-  }, []);
+  }, [tippen]);
 
   const aendere = useCallback(
     (f: (i: Inhalt) => Inhalt) => {
-      zuletztWeg.current = 0;
+      zuletztWeg.current = null;
       legeUndAendere(f);
     },
     [legeUndAendere],
@@ -300,9 +321,10 @@ export default function Verwaltung() {
 
   const aendereMitMeldung = useCallback(
     (f: (i: Inhalt) => Inhalt, text: string, nimmtWeg = false) => {
-      const jetzt = Date.now();
-      if (nimmtWeg && jetzt - zuletztWeg.current < DOPPELKLICK) return;
-      zuletztWeg.current = nimmtWeg ? jetzt : 0;
+      const ort = letzterKlick.current;
+      const klick = nimmtWeg && ort ? { ...ort, zeit: Date.now() } : null;
+      if (istDoppelklick(zuletztWeg.current, klick)) return;
+      zuletztWeg.current = klick;
       legeUndAendere(f);
       zeige(text, "rueckgaengig");
     },
@@ -393,17 +415,19 @@ export default function Verwaltung() {
       /* Die Papierkorb-Daten hat der Server festgelegt — in `basis` und, für
          dieselben Schlüssel, in `inhalt`, sonst stünde gleich wieder
          „ungespeichert" da. Rückgängig beginnt neu: Was gespeichert ist,
-         nimmt der Verlauf zurück. */
+         nimmt der Verlauf zurück — was währenddessen dazukam, aber noch
+         „Rückgängig" (`stapelNachSpeichern`). */
       const { papierkorb } = daten;
+      const basis = { ...gesendet, papierkorb };
       setGeladen((g) =>
         g
           ? {
               ...g,
-              basis: { ...gesendet, papierkorb },
+              basis,
               inhalt: mitPapierkorbDaten(g.inhalt, papierkorb),
               sha: daten.sha,
               commit: daten.commit,
-              stapel: LEERER_STAPEL,
+              stapel: stapelNachSpeichern(g.inhalt, gesendet, basis),
             }
           : g,
       );
@@ -425,13 +449,17 @@ export default function Verwaltung() {
     setSpeicher({ art: "fehler", text: netzText(status, daten), anmelden: status === 404 });
   };
 
-  /** Einen Schritt zurück oder wieder vor — die Meldung sagt, welcher es war, und bietet den Rückweg. */
+  /**
+   * Einen Schritt zurück oder wieder vor — die Meldung sagt, welcher es war,
+   * und bietet den Rückweg. Nicht während des Speicherns: Danach stünde der
+   * Schritt als ungespeicherte Rücknahme des eben Gespeicherten da.
+   */
   const geheSchritt = (richtung: "zurueck" | "vor") => {
-    if (!geladen) return;
+    if (!geladen || speicher.art === "laeuft") return;
     const g = geladen;
     const s = richtung === "zurueck" ? schrittZurueck(g.stapel, g.inhalt) : schrittVor(g.stapel, g.inhalt);
     if (!s) return;
-    zuletztWeg.current = 0;
+    zuletztWeg.current = null;
     /* Nur auf genau den Stand, von dem aus gerechnet wurde. */
     setGeladen((x) => (x === g ? { ...x, inhalt: s.inhalt, stapel: s.stapel } : x));
     if (richtung === "zurueck") zeige(`Rückgängig gemacht: ${fasseZusammen(s.inhalt, g.inhalt)}.`, "wiederholen");
@@ -440,7 +468,7 @@ export default function Verwaltung() {
 
   /** „Alles verwerfen": zurück auf den zuletzt gespeicherten Stand — als ein Schritt, den Rückgängig zurücknimmt. */
   const verwirfAlles = () => {
-    zuletztWeg.current = 0;
+    zuletztWeg.current = null;
     setGeladen((g) => g && { ...g, inhalt: g.basis, stapel: legeAb(g.stapel, g.inhalt, g.basis, null) });
     setEigeneNachricht(null);
     zeige("Alle Änderungen verworfen.", "rueckgaengig");
@@ -844,6 +872,7 @@ export default function Verwaltung() {
     konfiguration: geladen.konfiguration,
     aendere,
     aendereMitMeldung,
+    tippe,
     unterwegs,
     ladeHoch,
     ladeNeueHoch,
@@ -901,6 +930,17 @@ export default function Verwaltung() {
       else zeige(status, null);
     }
   };
+
+  /* Die Meldung — in der Leiste oder, bei offenem Seitenpanel, in dessen Fuß.
+     Ihr Knopf ist während des Speicherns gesperrt wie „Rückgängig". */
+  const meldungZeile = meldung && (
+    <MeldungZeile
+      meldung={meldung}
+      gesperrt={speicher.art === "laeuft"}
+      beiAblauf={meldungWeg}
+      beiKnopf={() => geheSchritt(meldung.knopf === "wiederholen" ? "vor" : "zurueck")}
+    />
+  );
 
   const wechsleMitTaste = (e: KeyboardEvent<HTMLButtonElement>, platz: number) => {
     const schritt = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
@@ -1178,15 +1218,11 @@ export default function Verwaltung() {
 
         <div className={styles.leiste}>
           {/* Immer da, auch leer: Eine Live-Region, die erst mit ihrem Text
-              erscheint, lesen Screenreader oft nicht vor. */}
+              erscheint, lesen Screenreader oft nicht vor. Bei offenem
+              Seitenpanel steht die Meldung in dessen Fuß — hier läge sie
+              unter dem Panel. */}
           <div className={styles.meldungOrt} role="status">
-            {meldung && (
-              <MeldungZeile
-                meldung={meldung}
-                beiAblauf={meldungWeg}
-                beiKnopf={() => geheSchritt(meldung.knopf === "wiederholen" ? "vor" : "zurueck")}
-              />
-            )}
+            {!panel && meldungZeile}
           </div>
           <div className={styles.leisteInnen}>
             <p className={styles.leisteStatus} role="status">
@@ -1233,7 +1269,7 @@ export default function Verwaltung() {
             <button
               type="button"
               className={styles.knopfLeise}
-              disabled={geladen.stapel.rueck.length === 0}
+              disabled={geladen.stapel.rueck.length === 0 || speicher.art === "laeuft"}
               onClick={() => geheSchritt("zurueck")}
               title={`Rückgängig (${mac ? "⌘Z" : "Strg+Z"})`}
               aria-keyshortcuts="Control+Z Meta+Z"
@@ -1254,7 +1290,7 @@ export default function Verwaltung() {
           </div>
         </div>
 
-        {panel && <BildPanel schluessel={panel} beiSchliessen={() => setPanel(null)} />}
+        {panel && <BildPanel schluessel={panel} beiSchliessen={() => setPanel(null)} meldung={meldungZeile} />}
 
         {verwerfen && (
           <VerwerfenDialog
@@ -1365,50 +1401,57 @@ function Tasten({ beiTaste }: { beiTaste: (e: globalThis.KeyboardEvent) => void 
 }
 
 /**
- * Die Meldung über der Leiste. Verschwindet nach `MELDUNG_DAUER` — nicht,
- * solange Maus oder Fokus darin sind (sie wird dann erneut geprüft), und
- * nach dem Verlassen beginnt die Zeit von vorn. Gefragt wird das DOM selbst
- * statt eines Zustands: Verschwindet ein Knopf mit dem Fokus, meldet der
- * Browser nicht immer ein `blur`, und die Meldung bliebe für immer stehen.
+ * Die Meldung in der Leiste (oder im Fuß des Seitenpanels). Verschwindet
+ * nach `MELDUNG_DAUER` — nicht, solange Maus oder Fokus darin sind oder ein
+ * Dialog sie verdeckt; danach beginnt die Zeit von vorn. Gefragt wird alle
+ * `MELDUNG_TAKT` das DOM selbst statt eines Zustands: Verschwindet ein
+ * Knopf mit dem Fokus, meldet der Browser nicht immer ein `blur`, und wann
+ * ein Dialog schließt, erfährt die Meldung sonst gar nicht.
  */
 function MeldungZeile({
   meldung,
+  gesperrt,
   beiAblauf,
   beiKnopf,
 }: {
   meldung: Meldung;
+  gesperrt: boolean;
   beiAblauf: (id: number) => void;
   beiKnopf: () => void;
 }) {
   const kasten = useRef<HTMLDivElement>(null);
-  const [neuBeginn, setNeuBeginn] = useState(0);
   const { id } = meldung;
 
   useEffect(() => {
-    let t = 0;
-    const pruefe = () => {
+    let frist = Date.now() + MELDUNG_DAUER;
+    const t = window.setInterval(() => {
       const k = kasten.current;
-      if (k && (k.matches(":hover") || k.contains(document.activeElement))) t = window.setTimeout(pruefe, MELDUNG_DAUER);
-      else beiAblauf(id);
-    };
-    t = window.setTimeout(pruefe, MELDUNG_DAUER);
-    return () => window.clearTimeout(t);
-  }, [id, neuBeginn, beiAblauf]);
-
-  const vonVorn = () => setNeuBeginn((n) => n + 1);
+      /* Verdeckt: Ein offener Dialog, zu dem sie nicht gehört, liegt darüber. */
+      const verdeckt = k !== null && [...document.querySelectorAll("dialog[open]")].some((d) => !d.contains(k));
+      if (k && (k.matches(":hover") || k.contains(document.activeElement) || verdeckt)) {
+        frist = Date.now() + MELDUNG_DAUER;
+      } else if (Date.now() >= frist) {
+        beiAblauf(id);
+      }
+    }, MELDUNG_TAKT);
+    return () => window.clearInterval(t);
+  }, [id, beiAblauf]);
 
   return (
-    <div
-      ref={kasten}
-      className={styles.meldung}
-      onMouseLeave={vonVorn}
-      onBlur={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget)) vonVorn();
-      }}
-    >
+    <div ref={kasten} className={styles.meldung}>
       <span>{meldung.text}</span>
       {meldung.knopf && (
-        <button type="button" className={styles.knopfLeise} onClick={beiKnopf}>
+        <button
+          type="button"
+          className={styles.knopfLeise}
+          disabled={gesperrt}
+          onClick={(e) => {
+            /* Derselbe Knopf heißt nach dem ersten Klick „Wiederholen" — der
+               zweite Klick eines Doppelklicks machte alles gleich wieder rückgängig. */
+            if (e.detail > 1) return;
+            beiKnopf();
+          }}
+        >
           {meldung.knopf === "wiederholen" ? "Wiederholen" : "Rückgängig"}
         </button>
       )}

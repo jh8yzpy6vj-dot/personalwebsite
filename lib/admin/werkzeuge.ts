@@ -649,7 +649,8 @@ export const STAPEL_MAX = 50;
  * Legt `alt` ab, bevor `neu` gilt. Ändert sich nichts, bleibt alles, wie es
  * ist. Jede echte Änderung verwirft „Wiederholen".
  *
- * `gruppe`: Tippen in einem Feld trägt eine Nummer je Besuch des Felds.
+ * `gruppe`: Tippen in einem Feld trägt eine Nummer je Besuch des Felds
+ * (`tippgruppen`), alles andere `null`.
  * Gehört schon der oberste Schritt zu ihr, bleibt der Stand vor dem ersten
  * Buchstaben oben liegen, statt dass jeder Buchstabe ein Schritt wird. Ist
  * danach alles wieder wie vorher (getippt und wieder gelöscht), fällt der
@@ -681,13 +682,88 @@ export function schrittVor(st: Stapel, jetzt: Inhalt): { stapel: Stapel; inhalt:
   return { stapel: { rueck: [...st.rueck, jetzt], vor: st.vor.slice(0, -1), gruppe: null }, inhalt };
 }
 
+/**
+ * Der Stapel nach erfolgreichem Speichern. Ist `jetzt` genau das Gesendete,
+ * beginnt er leer: Was gespeichert ist, nimmt der Verlauf zurück. Kam
+ * während des Speicherns etwas dazu, bleibt genau ein Schritt — zurück auf
+ * den eben gespeicherten Stand (`gespeichert`, mit der neuen `sha`, also
+ * sicher). Ältere Stände nicht: Sie lägen unter der neuen `sha` und nähmen
+ * beim nächsten Speichern still zurück, was gerade gespeichert wurde.
+ */
+export function stapelNachSpeichern(jetzt: Inhalt, gesendet: Inhalt, gespeichert: Inhalt): Stapel {
+  return gleich(jetzt, gesendet) ? LEERER_STAPEL : { rueck: [gespeichert], vor: [], gruppe: null };
+}
+
+/**
+ * Welche Änderung zu welchem Tippen gehört — die `gruppe` für `legeAb`.
+ *
+ * Zusammengefasst wird nur, was aus der Eingabe eines Felds selbst kommt
+ * (`tippe`, aus dessen `input`), und zwar je Besuch des Felds
+ * (`neuerBesuch` bei jedem Fokuswechsel). Alles andere — Ziehen, Knöpfe,
+ * Tasten — ist ein eigener Schritt, auch wenn der Fokus noch in einem Feld
+ * steht. Früher galt „Fokus im Textfeld" als Tippen: Ein Zug im Mosaik
+ * landete dann im Schritt des Satzes davor, und „Rückgängig" nahm beides
+ * zurück.
+ */
+export function tippgruppen() {
+  let besuch = 0;
+  let jetzt: number | null = null;
+  return {
+    /** Der Fokus ist woanders hingegangen — Tippen danach ist ein neuer Schritt. */
+    neuerBesuch() {
+      besuch += 1;
+    },
+    /**
+     * Führt `f` als Tippen aus: Was `f` ändert, gehört zur Gruppe dieses
+     * Besuchs. `imFokus`: Kommt die Eingabe aus einem Feld ohne Fokus
+     * (Autofill), ist sie ein eigener Schritt.
+     */
+    tippe(f: () => void, imFokus = true) {
+      jetzt = imFokus ? besuch : null;
+      try {
+        f();
+      } finally {
+        jetzt = null;
+      }
+    },
+    /** Die Gruppe der Änderung, die gerade abgelegt wird — `null` außerhalb von `tippe`. */
+    gruppe(): number | null {
+      return jetzt;
+    },
+  };
+}
+
+/** Ein Klick mit der Maus: wo (Pixel im Fenster) und wann (ms). */
+export type Klick = { x: number; y: number; zeit: number };
+
+/** So kurz nach dem ersten (ms) … */
+export const DOPPELKLICK_ZEIT = 600;
+/** … und so nah daneben (px) ist ein zweiter Klick Teil eines Doppelklicks. */
+export const DOPPELKLICK_ABSTAND = 10;
+
+/**
+ * Ist `jetzt` der zweite Klick eines Doppelklicks nach `vorher`? Nach
+ * Löschen & Co. rückt die Liste nach, und der zweite Klick träfe an
+ * derselben Stelle schon den nächsten Eintrag. Nur an derselben Stelle: Ein
+ * schneller Klick auf ein anderes Bild ist gewollt. `null` (per Tastatur,
+ * oder vorher nichts weggenommen) ist nie ein Doppelklick.
+ */
+export function istDoppelklick(vorher: Klick | null, jetzt: Klick | null): boolean {
+  if (!vorher || !jetzt) return false;
+  return (
+    jetzt.zeit - vorher.zeit < DOPPELKLICK_ZEIT &&
+    Math.abs(jetzt.x - vorher.x) <= DOPPELKLICK_ABSTAND &&
+    Math.abs(jetzt.y - vorher.y) <= DOPPELKLICK_ABSTAND
+  );
+}
+
 /** Eingaben, in denen man tippt. Datei, Knöpfe, Häkchen gehören nicht dazu. */
 const TEXTARTEN = new Set(["text", "email", "url", "search", "tel", "password", "number"]);
 
 /**
- * Ein Feld, in dem getippt wird — dort gilt das Rückgängig des Browsers,
- * und Tippen darin wird zu einem Schritt zusammengefasst. Nimmt ein
- * Element (oder alles mit denselben Feldern, für die Tests).
+ * Ein Feld, in dem getippt wird — dort gilt das Rückgängig des Browsers
+ * (`tastenbefehl`). Nimmt ein Element (oder alles mit denselben Feldern,
+ * für die Tests).
  */
 export function istTextfeld(el: { tagName: string; type?: string; isContentEditable?: boolean } | null): boolean {
   if (!el) return false;
