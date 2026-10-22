@@ -6,6 +6,47 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-22 — Verwaltung geprüft und überarbeitet (sieben Pakete)
+
+Jan: „Prüfe die gesamte admin Oberfläche auch leichte verwaltungsmöglichkeiten und verbessere
+die features" — später: „Die admin Page muss nur am pc laufen, handy ist egal."
+
+- **Prüfung:** fünf unabhängige Prüfer (Bedienung für Jakob, Fehler im Code, fehlende
+  Funktionen, Handy/Barrierefreiheit, Server/Sicherheit), jeder Befund gegengeprüft: 77 Befunde,
+  73 bestätigt. Daraus acht Pakete; je Paket Umsetzung → unabhängige Prüfung → Nachbesserung.
+- **1 Sicherheit (`c51baa4`):** Links aus „Über mich" werden im JSON-LD maskiert, die
+  Link-Prüfung lehnt Steuerzeichen ab (Skript-Einschleusung). JPEG-Säubern schneidet am echten
+  Bildende ab und filtert APPn/COM zwischen progressiven Scans (angehängte Bilder/Videos mit
+  GPS). Medien-Action ohne Token in `.git` (Credential-Helper), Git-Identität fest gesetzt.
+  Anmeldebremse 5/min je IP (Bindung `ANMELDUNG`). Dev-Server schreibt nur mit
+  `ADMIN_DEV_SCHREIBEN=1` auf GitHub bzw. in den Eingang.
+- **2 Speichern, Konflikt, Verlauf (`a8081a1`, `e0927b3`):** Papierkorb-Datum legt der Server
+  fest; Speichern schreibt zuerst mit der sha des Browsers, verschluckt keine Rücknahme;
+  Vorschau vor dem Wiederherstellen; Verlauf lädt nach jedem Speichern neu (vorher zeigte
+  „Letzte Speicherung zurücknehmen" danach auf den falschen Eintrag).
+- **3 Falsche Ergebnisse (`92b9a3d`, `2931dc7`):** Bildausschnitt am PC deckungsgleich mit dem
+  Klick; Startseite bietet nur zeigbare Bilder an; Hero nach Wiederherstellen vollständig; neuer
+  Film sperrt das Speichern nicht; Dialoge schließen nicht versehentlich und geben den Fokus
+  zurück; `https://` wird nur vor echten Adressen ergänzt.
+- **4 Hochladen (`112a090`, `6deefce`):** Abbrechen/Noch einmal, Stillstandswache, Warnung beim
+  Schließen, abgelaufene Anmeldung ohne Datenverlust, hängende Bilder verwerfen
+  (`DELETE /api/admin/hochladen`, nur im privaten Eingang), rote Läufe ohne Sackgasse.
+- **5 Sicherheitsnetz (`74d0439`, `68dd79b`):** Rückgängig/Wiederholen (Knopf, Strg/⌘+Z),
+  Meldung mit „Rückgängig" nach Löschen/Ausblenden, Doppelklick-Schutz, „Alles verwerfen",
+  Strg/⌘+S. Kein Browser-Entwurf (nur PC).
+- **6 Bild-Panel (`700c60b`):** Platz im Mosaik, An den Anfang/Ans Ende, Blättern, „Verwendet:
+  …", Rückfrage beim Ersetzen.
+- **7 Verständliche Texte (`0f86068`):** Befunde mit Namen und „Zeigen", „Zum Fehler",
+  Legende, ganze Arbeit ausblenden, einheitliche Startseiten-Begriffe.
+- **8 Handy/Darstellung:** entfällt bis auf PC-Reste (Jan: nur PC).
+- **Geprüft vor dem Livegang:** 429 Tests, `tsc`, ESLint, `next build`, `opennextjs-cloudflare
+  build`, `wrangler deploy --dry-run` (Bindung `ANMELDUNG` erkannt); im gebauten Worker
+  Anmeldung falsch/richtig, `/api/admin/stand` ohne Cookie 404, fremde Herkunft 403.
+- **Offen** (`TODO.md`): Nachbesserung der Randfälle aus der Prüfung von Paket 6, unabhängige
+  Prüfung von Paket 7, PC-Reste von Paket 8; Einrichtung im Dashboard.
+
+---
+
 ## 2026-10-17 — Verwaltung: Passwort statt Cloudflare Access
 
 Jan: „Ich will den zugang am liebsten nicht über cloudflare machen weil das nur Jakob anlegen
