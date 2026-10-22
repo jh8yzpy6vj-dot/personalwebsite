@@ -284,6 +284,27 @@ und Texte: `design/UI-SPEC.md`, „Bild-Panel").
 - **Mehrzeilige Felder wachsen mit:** CSS `field-sizing: content` mit `min-height`/`max-height`;
   wo der Browser das nicht kennt, misst `Textfeld` per `scrollHeight` nach.
 
+**Prüfung und „Zeigen"** (seit 2026-10-22; `Befunde.tsx`, Texte: `design/UI-SPEC.md`, „Prüfung").
+
+- **Orte wie in den Reitern:** `pruefeInhalt` nennt Felder so, wie sie in der Verwaltung
+  beschriftet sind („Startseite · Zeile unter dem Namen", „Über mich · Absatz 2", „Arbeit „{Titel}"
+  · Kunde"), die Bildplätze über `STARTPLATZ_NAMEN`. Ein Befund trägt optional `schluessel` (das
+  Bild — dann nennt `text` es nicht, die Verwaltung setzt `bildBezeichnung` davor) und `kennung`
+  (Arbeit bzw. Film). `schluessel` nur bei **Warnungen**: Die Build-Ausgabe in `lib/content.ts`
+  zeigt nur Fehler mit `ort` und `text` — dort muss der Schlüssel im Text stehen.
+- **„Zeigen":** `reiterFuerBefund` liest den Reiter am Kopf des Orts ab, `feldFuerBefund` den
+  Feldnamen dahinter. `Verwaltung` wechselt den Reiter, öffnet bei einem Bild aus dem Manifest das
+  Bild-Panel, klappt sonst über `aufgeklappt`/`klappe` im Sitzungskontext die Arbeit bzw. den Film
+  auf und sucht ein Bild später das Feld über seine `<label>` (Anfang genügt: „Kunde" findet
+  „Kunde (optional)"). ⚠️ Wer eine Feldbeschriftung ändert, ändert damit, was „Zeigen" findet —
+  der Test „jeder Befund … nennt ein Feld, das es dort gibt" in `werkzeuge.test.ts` führt die
+  Beschriftungen mit. Welche Arbeit bzw. welcher Film aufgeklappt ist, liegt deshalb in
+  `Verwaltung`, nicht im Reiter.
+- **Eine Arbeit ganz ausblenden:** `setzeAusgeblendet` (Papierkorb bleibt unberührt, keine
+  Dubletten); `wasDannFehlt` sagt, wie viele davon im Hero und auf der Startseite fehlen werden.
+- **In den Blick holen:** `holeInDenBlick` in `teile.tsx` rechnet Reiter- und Speicherleiste
+  heraus (auch für `zeigeKachel` nach dem Bild-Panel).
+
 **Hochladen und Ersetzen.**
 
 1. Die Oberfläche wählt das Ziel (den künftigen Bildschlüssel, z. B. `arbeiten/<id>/07`, `ueber/03`,
@@ -663,7 +684,7 @@ ein `GITHUB_TOKEN` dort zählt genauso wie einer in der Shell.
 | „lib/inhalt.json auf GitHub ist kein gültiges JSON — bitte Jan Bescheid geben." | Die Datei auf `main` ist kaputt, z. B. Konfliktmarker nach einem Merge von Hand. Die Verwaltung ist dann ganz blockiert | Datei im Repo reparieren (letzten guten Stand aus dem Git-Verlauf). Die genaue Stelle steht im Worker-Log („… kein gültiges JSON (SyntaxError: …)") |
 | Verlauf: „Dieser Stand passt nicht mehr zu den heutigen Regeln …" | Der alte Stand bricht eine Regel, die es damals noch nicht gab (z. B. ein Feld, das inzwischen Pflicht ist) | Die Befunde stehen in der Rückfrage. Den Stand bei Bedarf von Hand angleichen (`git show <commit>:lib/inhalt.json`) |
 | Im Worker-Log „… (SyntaxError: …)" oder eine andere Fehlerart vor dem Text | Seit 2026-10-20 steht im Log die Art und Meldung jedes Fehlers (`logText`); Jakob sieht weiter nur „Unerwarteter Fehler auf dem Server." | Die Meldung im Log führt zur Ursache |
-| Speichern gesperrt, rote Befunde | `pruefeInhalt` findet einen Fehler (z. B. doppelte Kennung, Link ohne `https://`, ohne Punkt im Host wie „@jakobsax" oder mit Leerzeichen, Anführungszeichen, `<`/`>`) | Befund lesen und beheben; der Build würde sonst abbrechen |
+| Speichern gesperrt, rote Befunde | `pruefeInhalt` findet einen Fehler (z. B. doppelte Kennung, Link ohne `https://`, ohne Punkt im Host wie „@jakobsax" oder mit Leerzeichen, Anführungszeichen, `<`/`>`) | Befund lesen und beheben — „Zeigen" daneben führt zum Feld, „Zum Fehler" in der Leiste zur Prüfung; der Build würde sonst abbrechen |
 | „Gespeichert, aber noch nicht live" | Cloudflare-Build gescheitert (Workers & Pages → Deployments), `BUILD_COMMIT` leer, oder die Medien-Action hat direkt danach committet und Cloudflare hat den späteren Commit gebaut | Build-Log ansehen; im letzten Fall ist alles online, nur die Meldung hinkt (bekannte Lücke) |
 | Bild bleibt auf „wartet" | Medien-Action nicht eingerichtet (läuft grün, tut nichts), `EINGANG_BUCKET` fehlt in GitHub, oder der Eingang ist gescheitert (Lauf rot) | Lauf rot → in der Verwaltung „Verwerfen" (erscheint unter „Die Verarbeitung ist fehlgeschlagen") und das Bild neu exportiert hochladen. Sonst Actions → Medien → letzten Lauf ansehen |
 | Im Log von „Eingang übernehmen": „Säubern unvollständig … — bleibt im Eingang." | Das JPEG endet nicht sauber, oder nach dem Abschneiden steckt noch ein zweites Bild darin (z. B. eine eingebettete Vorschau in einem behaltenen Block) | Das Bild am Rechner einmal neu als JPEG exportieren und erneut hochladen; die alte Datei im Eingang wird dabei ersetzt |

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import type { Bildquelle } from "@/lib/bilder";
 import type { Inhalt } from "@/lib/inhalt";
-import { pruefeInhalt, type Befund } from "@/lib/inhalt-pruefen";
+import { ORT_BESCHREIBUNGEN, pruefeInhalt, type Befund } from "@/lib/inhalt-pruefen";
 import {
   ZIEL,
   type HochladenAntwort,
@@ -19,6 +19,7 @@ import {
   bildBezeichnung,
   erwarteteBilder,
   fasseZusammen,
+  feldFuerBefund,
   gleich,
   gleicherCommit,
   istDoppelklick,
@@ -30,8 +31,11 @@ import {
   nachDemEingang,
   naechsteZiele,
   nachStufe,
+  ohneBeschreibung,
   ohneEmail,
   pruefeDatei,
+  REITER,
+  reiterFuerBefund,
   schrittVor,
   schrittZurueck,
   stapelNachSpeichern,
@@ -42,10 +46,11 @@ import {
   werteAus,
   type Folge,
   type Klick,
+  type Reiter,
   type Stapel,
   type Zielart,
 } from "@/lib/admin/werkzeuge";
-import { SitzungKontext, type Sitzung } from "./kontext";
+import { SitzungKontext, type Klappliste, type Sitzung } from "./kontext";
 import { holeJson, netzText, sendeDatei, sendeJson } from "./hochladen";
 import Befunde from "./Befunde";
 import BildPanel from "./BildPanel";
@@ -57,7 +62,7 @@ import Filme from "./Filme";
 import Startseite from "./Startseite";
 import Papierkorb from "./Papierkorb";
 import VerlaufReiter from "./Verlauf";
-import { Dialog, Zeichen } from "./teile";
+import { Dialog, holeInDenBlick, Zeichen } from "./teile";
 import styles from "./verwaltung.module.css";
 
 /**
@@ -80,18 +85,6 @@ import styles from "./verwaltung.module.css";
  * `lib/admin/werkzeuge.ts`). Er gehört zu `basis` und `sha`: Ändern die
  * sich (geladen, gespeichert, neuer Stand der Action), beginnt er leer.
  */
-
-const REITER = [
-  ["fotos", "Fotos"],
-  ["hero", "Hero"],
-  ["arbeiten", "Arbeiten"],
-  ["ueber", "Über mich"],
-  ["filme", "Filme"],
-  ["startseite", "Startseite"],
-  ["papierkorb", "Papierkorb"],
-  ["verlauf", "Verlauf"],
-] as const;
-type Reiter = (typeof REITER)[number][0];
 
 /** So oft fragt die Verwaltung nach, ob der neue Stand online ist (ms). */
 const LIVE_ABSTAND = 20_000;
@@ -190,6 +183,12 @@ export default function Verwaltung() {
   const [veraltet, setVeraltet] = useState(false);
   /* Das offene Bild-Panel: welches Bild, und wodurch es blättert. */
   const [panel, setPanel] = useState<{ schluessel: string; folge?: Folge } | null>(null);
+  /* Die aufgeklappte Arbeit bzw. der aufgeklappte Film (siehe `Sitzung`). */
+  const [aufgeklappt, setAufgeklappt] = useState<Record<Klappliste, string | null>>({ arbeiten: null, filme: null });
+  const klappe = useCallback(
+    (liste: Klappliste, kennung: string | null) => setAufgeklappt((a) => ({ ...a, [liste]: kennung })),
+    [],
+  );
 
   const [auftraege, setAuftraege] = useState<Auftrag[]>([]);
   const [hochgeladen, setHochgeladen] = useState<string[]>([]);
@@ -881,6 +880,44 @@ export default function Verwaltung() {
     heute,
     bearbeite: (schluessel, folge) => setPanel({ schluessel, folge }),
     ungespeichert,
+    aufgeklappt,
+    klappe,
+  };
+
+  /**
+   * „Zeigen" an einem Befund: in seinen Reiter und dort an die Stelle. Ein
+   * Bild, das es gibt, öffnet das Bild-Panel (aus dem Hero mit Blättern
+   * durch den Hero, aus dem Hinweis „Bildbeschreibungen" durch die Bilder
+   * ohne Beschreibung). Eine Arbeit oder ein Film wird aufgeklappt, das Feld
+   * fokussiert (`springeZu`, ein Bild später — dann steht der Reiter).
+   */
+  const zeigeBefund = (b: Befund) => {
+    const ziel = reiterFuerBefund(b);
+    if (!ziel) return;
+    setReiter(ziel);
+    if (b.ort === ORT_BESCHREIBUNGEN) {
+      const liste = ohneBeschreibung({ inhalt: geladen.inhalt, bilder: geladen.bilder });
+      const s = b.schluessel ?? liste[0];
+      if (s) setPanel({ schluessel: s, folge: liste });
+      return;
+    }
+    if (b.kennung && (ziel === "arbeiten" || ziel === "filme")) klappe(ziel, b.kennung);
+    if (b.schluessel && geladen.bilder[b.schluessel]) {
+      setPanel({ schluessel: b.schluessel, folge: ziel === "hero" ? geladen.inhalt.foto.hero : undefined });
+      return;
+    }
+    const feld = feldFuerBefund(b);
+    const kennung = b.kennung ?? null;
+    const schluessel = b.schluessel ?? null;
+    requestAnimationFrame(() => springeZu(feld, kennung, schluessel));
+  };
+
+  /** „Zum Fehler" in der Leiste: die Prüfung in den Blick, Fokus darauf. */
+  const zumFehler = () => {
+    const ort = document.getElementById("befunde");
+    if (!ort) return;
+    ort.focus({ preventScroll: true });
+    ort.scrollIntoView({ block: "start" });
   };
 
   const kannSpeichern =
@@ -892,13 +929,17 @@ export default function Verwaltung() {
       ? speicher
       : null;
 
+  /* Ein Fehler steht dem Speichern im Weg — dann sagt die Leiste das und bietet „Zum Fehler". */
+  const fehlerImWeg =
+    geladen.konfiguration.github && !veraltet && speicher.art !== "laeuft" && fehler.length > 0 && ungespeichert;
+
   const status = !geladen.konfiguration.github
     ? "Speichern ist noch nicht eingerichtet."
     : veraltet
       ? "Wiederhergestellt, aber der neue Stand ließ sich nicht laden. Bitte neu laden."
       : speicher.art === "laeuft"
         ? "Speichert …"
-        : fehler.length > 0 && ungespeichert
+        : fehlerImWeg
           ? `Erst ${fehler.length === 1 ? "den Fehler" : `die ${fehler.length} Fehler`} oben beheben, dann speichern.`
           : speicherFehler
             ? speicherFehler.text
@@ -976,7 +1017,7 @@ export default function Verwaltung() {
         <header className={styles.kopf}>
           <h1 className={styles.titel}>Verwaltung</h1>
           <div className={styles.wer}>
-            <a href="/" target="_blank" rel="noopener">
+            <a href="/" target="_blank" rel="noopener" aria-label="Seite ansehen (neuer Tab)">
               Seite ansehen ↗
             </a>
             <form
@@ -1051,6 +1092,7 @@ export default function Verwaltung() {
         <Befunde
           befunde={befunde}
           server={serverBefunde && serverBefunde.fuer === geladen.inhalt ? serverBefunde.befunde : []}
+          zeige={zeigeBefund}
         />
 
         {(offeneAuftraege.length > 0 || wartend.length > 0 || laufend || anzeige.rot || anstossFehler) && (
@@ -1198,7 +1240,8 @@ export default function Verwaltung() {
           ))}
         </div>
 
-        <div id="reiter-inhalt" role="tabpanel" aria-labelledby={`reiter-${reiter}`}>
+        {/* `tabIndex` -1: „Zeigen" setzt den Fokus an den Anfang des Reiters, wenn es keine genauere Stelle gibt. */}
+        <div id="reiter-inhalt" role="tabpanel" aria-labelledby={`reiter-${reiter}`} tabIndex={-1}>
           {reiter === "fotos" && <Fotos />}
           {reiter === "hero" && <Hero />}
           {reiter === "arbeiten" && <Arbeiten />}
@@ -1228,15 +1271,24 @@ export default function Verwaltung() {
             {!panel && meldungZeile}
           </div>
           <div className={styles.leisteInnen}>
-            <p className={styles.leisteStatus} role="status">
-              {status}
-              {speicherFehler?.anmelden && (
-                <>
-                  {" "}
-                  <AnmeldenLink />
-                </>
+            {/* Status und „Zum Fehler" teilen sich einen Platz — sonst rutschte
+                „Speichern" bei 1024px in eine zweite Zeile. */}
+            <div className={styles.leisteStatusZeile}>
+              <p className={styles.leisteStatus} role="status">
+                {status}
+                {speicherFehler?.anmelden && (
+                  <>
+                    {" "}
+                    <AnmeldenLink />
+                  </>
+                )}
+              </p>
+              {fehlerImWeg && (
+                <button type="button" className={styles.knopfLeise} onClick={zumFehler}>
+                  Zum Fehler
+                </button>
               )}
-            </p>
+            </div>
             {geladen.konfiguration.github && ungespeichert && (
               <div className={styles.leisteNachricht}>
                 <label className="nur-vorlesen" htmlFor="nachricht">
@@ -1408,12 +1460,32 @@ export default function Verwaltung() {
 function zeigeKachel(s: string) {
   if (document.querySelector("dialog[open]")) return;
   const knopf = document.querySelector<HTMLElement>(`[data-bild="${CSS.escape(s)}"]`);
-  if (!knopf) return;
-  const r = knopf.getBoundingClientRect();
-  const oben = document.querySelector(`.${CSS.escape(styles.reiter)}`)?.getBoundingClientRect().bottom ?? 0;
-  const unten = document.querySelector(`.${CSS.escape(styles.leiste)}`)?.getBoundingClientRect().top ?? window.innerHeight;
-  if (r.top < oben || r.bottom > unten) knopf.scrollIntoView({ block: "center" });
-  knopf.focus({ preventScroll: true });
+  if (knopf) holeInDenBlick(knopf);
+}
+
+/**
+ * Nach „Zeigen" (ein Bild später, wenn der Reiter steht): das Feld, um das
+ * es geht — gesucht über seine Beschriftung, bei einer Arbeit oder einem
+ * Film nur in deren aufgeklappter Zeile (`data-sortier`). Gibt es keins
+ * (oder ist es zugeklappt), die Zeile selbst (ihr Stift), sonst das Bild
+ * (`data-bild`; ist es gesperrt, ein Knopf seiner Zeile), sonst der Anfang
+ * des Reiters.
+ */
+function springeZu(feld: string | null, kennung: string | null, schluessel: string | null) {
+  const bereich = document.getElementById("reiter-inhalt");
+  if (!bereich) return;
+  const zeile = kennung ? bereich.querySelector<HTMLElement>(`[data-sortier="${CSS.escape(kennung)}"]`) : null;
+  const beschriftung = feld
+    ? [...(zeile ?? bereich).querySelectorAll("label")].find((l) => l.textContent?.startsWith(feld))
+    : undefined;
+  const eingabe = beschriftung?.htmlFor ? document.getElementById(beschriftung.htmlFor) : null;
+  const bild = schluessel ? bereich.querySelector<HTMLButtonElement>(`[data-bild="${CSS.escape(schluessel)}"]`) : null;
+  const ziel =
+    (eingabe && eingabe.getClientRects().length > 0 ? eingabe : null) ??
+    zeile?.querySelector<HTMLElement>("[aria-expanded]") ??
+    (bild && !bild.disabled ? bild : bild?.closest("li")?.querySelector<HTMLElement>("button:not(:disabled)"));
+  if (ziel) holeInDenBlick(ziel);
+  else holeInDenBlick(bereich, "anfang");
 }
 
 /**

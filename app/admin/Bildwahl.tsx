@@ -10,9 +10,14 @@ import styles from "./verwaltung.module.css";
  * Ein Bild wählen — für die Plätze der Startseite und zum Ergänzen des
  * Heros. Ein Tipp wählt und schließt. `leer` bietet zusätzlich „kein Bild"
  * an (`null`).
+ *
+ * `erscheint`: wo das Bild auf der Seite steht, leise unter dem Titel
+ * („Erscheint: Startseite, ganz oben.") — „Hero" allein hieß für Jakob
+ * mal die Blende auf /foto, mal den oberen Teil der Startseite.
  */
 export default function Bildwahl({
   titel,
+  erscheint,
   auswahl,
   aktuell,
   leer = false,
@@ -20,6 +25,7 @@ export default function Bildwahl({
   beiSchliessen,
 }: {
   titel: string;
+  erscheint: string;
   auswahl: Streckenbild[];
   aktuell: string | null;
   leer?: boolean;
@@ -31,6 +37,7 @@ export default function Bildwahl({
     <Dialog titel={titel} beiSchliessen={beiSchliessen}>
       {(schliesse) => (
         <>
+          <p className={styles.leise}>Erscheint: {erscheint}.</p>
           {leer && (
             <div className={styles.knopfreihe}>
               <button

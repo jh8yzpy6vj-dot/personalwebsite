@@ -16,17 +16,20 @@ import Ausschnitt from "./Ausschnitt";
 import Ersetzen from "./Ersetzen";
 import { useSitzung } from "./kontext";
 import Sortierbar from "./Sortierbar";
-import { Daumen, Dialog, Textfeld, Zeichen } from "./teile";
+import { Aufklappen, Daumen, Dialog, fokussiereInZeile, Textfeld, Zeichen } from "./teile";
 import styles from "./verwaltung.module.css";
 
 /**
  * **Reiter Filme** — die Filme auf `/film`, in dieser Reihenfolge. Der Film
  * selbst liegt bei YouTube, Vimeo oder in einer Mediathek; bei uns liegt
  * nur das Standbild (`film/<id>`). Ohne Standbild erscheint ein Film nicht.
+ *
+ * Aufklappen wie im Reiter Arbeiten: Der Stift bleibt der Stift, zu klappt
+ * „Fertig"; welcher Film offen ist, hält die Verwaltung (`aufgeklappt`).
  */
 export default function Filme() {
-  const { inhalt, bilder, aendere, aendereMitMeldung, konfiguration, unterwegs } = useSitzung();
-  const [offen, setOffen] = useState<string | null>(null);
+  const { inhalt, bilder, aendere, aendereMitMeldung, konfiguration, unterwegs, aufgeklappt, klappe } = useSitzung();
+  const offen = aufgeklappt.filme;
   const [neuTitel, setNeuTitel] = useState("");
   const [neuKunde, setNeuKunde] = useState("");
   const [neuLink, setNeuLink] = useState("");
@@ -51,11 +54,20 @@ export default function Filme() {
     if (!vollstaendig) return;
     const titel = neuTitel;
     const kunde = neuKunde;
+    const id = vorschauId;
     aendere((i) => neuerFilm(i, titel, standbilder, { kunde, link }).inhalt);
     setNeuTitel("");
     setNeuKunde("");
     setNeuLink("");
-    setOffen(vorschauId);
+    klappe("filme", id);
+    /* „Film anlegen" ist danach gesperrt — der Fokus geht in den Titel des neuen Films. */
+    requestAnimationFrame(() => fokussiereInZeile(id, "input"));
+  };
+
+  /** „Fertig": zuklappen, der Fokus zurück auf den Stift. */
+  const fertig = (id: string) => {
+    klappe("filme", null);
+    requestAnimationFrame(() => fokussiereInZeile(id, "[aria-expanded]"));
   };
 
   return (
@@ -108,9 +120,9 @@ export default function Filme() {
                     aria-expanded={ist}
                     aria-label={`${f.titel} bearbeiten`}
                     title="Bearbeiten"
-                    onClick={() => setOffen(ist ? null : f.id)}
+                    onClick={() => klappe("filme", ist ? null : f.id)}
                   >
-                    <Zeichen name={ist ? "hoch" : "stift"} />
+                    <Zeichen name="stift" />
                   </button>
                 </span>
               </div>
@@ -139,12 +151,6 @@ export default function Filme() {
                         if (mitHttps(w) !== w) aendere((i) => aendereFilm(i, f.id, { link: mitHttps(w) }));
                       }}
                       hinweis="Vollständige Adresse bei YouTube, Vimeo oder der Mediathek."
-                    />
-                    <Textfeld
-                      bezeichnung="Kennung"
-                      wert={f.id}
-                      nurLesen
-                      hinweis="Name des Standbilds im Bildspeicher — nicht mehr änderbar."
                     />
                   </div>
                   <Textfeld
@@ -181,6 +187,21 @@ export default function Filme() {
                       </button>
                     </div>
                   </div>
+
+                  <Aufklappen titel="Technisches" leise>
+                    <Textfeld
+                      bezeichnung="Kennung"
+                      wert={f.id}
+                      nurLesen
+                      hinweis="Name des Standbilds im Bildspeicher — nicht mehr änderbar."
+                    />
+                  </Aufklappen>
+
+                  <div className={styles.knopfreihe}>
+                    <button type="button" className={styles.knopf} onClick={() => fertig(f.id)}>
+                      Fertig
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -195,7 +216,7 @@ export default function Filme() {
             bezeichnung="Titel"
             wert={neuTitel}
             beiAenderung={setNeuTitel}
-            hinweis={vorschauId ? `Kennung wird „${vorschauId}“ — danach nicht mehr änderbar.` : undefined}
+            hinweis="Der Titel lässt sich später jederzeit ändern."
           />
           <Textfeld
             bezeichnung="Kunde"
@@ -236,7 +257,7 @@ export default function Filme() {
                   className={styles.knopfHaupt}
                   onClick={() => {
                     aendereMitMeldung((i) => entferneFilm(i, entfernen.id), `„${entfernen.titel}“ ist entfernt.`);
-                    setOffen(null);
+                    klappe("filme", null);
                     schliesse();
                   }}
                 >

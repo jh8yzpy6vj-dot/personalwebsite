@@ -107,7 +107,7 @@ export default function Hero() {
                     type="button"
                     className={styles.knopfSymbol}
                     aria-expanded={offen === s}
-                    aria-label="Ausschnitt wählen"
+                    aria-label={`${name(s)}: Ausschnitt wählen`}
                     title="Ausschnitt wählen"
                     onClick={() => setOffen((o) => (o === s ? null : s))}
                   >
@@ -116,7 +116,7 @@ export default function Hero() {
                   <button
                     type="button"
                     className={styles.knopfSymbol}
-                    aria-label="Aus dem Hero nehmen"
+                    aria-label={`${name(s)} aus dem Hero nehmen`}
                     title="Aus dem Hero nehmen"
                     onClick={() =>
                       aendereMitMeldung((i) => umschalteHero(i, s), `„${name(s)}“ ist nicht mehr im Hero.`, true)
@@ -139,6 +139,7 @@ export default function Hero() {
       {waehlen && (
         <Bildwahl
           titel="Bild für den Hero"
+          erscheint="oben auf /foto, in der Blende"
           auswahl={auswahl}
           aktuell={null}
           beiWahl={(s) => {

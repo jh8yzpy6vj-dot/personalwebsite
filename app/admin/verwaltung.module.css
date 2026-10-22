@@ -275,7 +275,10 @@
   background: var(--flaeche-hoch);
 }
 
-.knopfSymbol[aria-pressed="true"] {
+/* Gedrückt — und der Stift einer aufgeklappten Zeile (Arbeiten, Filme,
+   Hero): Er bleibt der Stift, die Fläche zeigt, dass offen ist. */
+.knopfSymbol[aria-pressed="true"],
+.knopfSymbol[aria-expanded="true"] {
   background: var(--flaeche-hoch);
 }
 
@@ -669,11 +672,23 @@ select.eingabe {
   border-left-width: 4px;
 }
 
+/* Mit eigenem Zeichen „›" statt des Dreiecks: Das verschwindet bei
+   `display: flex` — „Ein Hinweis" sah dann nicht aufklappbar aus. */
 .befundGruppe summary {
   display: flex;
   align-items: center;
+  gap: var(--space-sm);
   min-height: 44px;
+  list-style: none;
   cursor: pointer;
+}
+
+.befundGruppe summary::-webkit-details-marker {
+  display: none;
+}
+
+.befundGruppe[open] > summary .symbol {
+  transform: rotate(90deg);
 }
 
 .befundTitel {
@@ -691,12 +706,48 @@ select.eingabe {
   line-height: var(--leading-label);
 }
 
-.befundListe li + li {
+.befundListe > li + li {
   margin-top: var(--space-xs);
 }
 
 .ort {
   color: var(--leise);
+}
+
+/* In der Prüfung je Befund eine Zeile: der Text, rechts „Zeigen". Ohne
+   Aufzählungspunkte — die Zeilen trennt ihr Abstand. */
+.befundZeilen {
+  padding-left: 0;
+  list-style: none;
+}
+
+.befund {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0 var(--space-md);
+}
+
+.befundText {
+  flex: 1 1 30ch;
+  min-width: 0;
+}
+
+.befund > .knopfLeise {
+  flex: none;
+}
+
+/* Die Bilder ohne Beschreibung unter ihrem Hinweis — eine umbrechende
+   Reihe; der erste Name steht bündig unter dem Text. */
+.bildKnoepfe {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-xs);
+  margin: 0 0 0 calc(var(--space-md) * -1);
+  padding: 0;
+  list-style: none;
 }
 
 /* ── Speicherleiste ─────────────────────────────────────────────────── */
@@ -721,11 +772,25 @@ select.eingabe {
   margin: 0 auto;
 }
 
-.leisteStatus {
+/* Der Speicherstand, daneben (nur bei einem Fehler) „Zum Fehler". */
+.leisteStatusZeile {
   flex: 1 1 220px;
+  display: flex;
+  align-items: center;
+  gap: 0 var(--space-sm);
+  min-width: 0;
+}
+
+.leisteStatus {
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
   font-size: var(--text-label);
   line-height: var(--leading-label);
+}
+
+.leisteStatusZeile > .knopfLeise {
+  flex: none;
 }
 
 .leisteNachricht {
@@ -779,7 +844,7 @@ select.eingabe {
 
 @media (max-width: 700px) {
   .leisteNachricht,
-  .leisteStatus {
+  .leisteStatusZeile {
     flex-basis: 100%;
   }
 
@@ -1019,6 +1084,31 @@ select.eingabe {
   display: grid;
   gap: var(--space-sm);
   padding-top: var(--space-sm);
+}
+
+/* Leise („Technisches" in Arbeiten und Filmen): 14px, zurückgenommen. */
+.aufklappenLeise > .aufklappenKopf {
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--leise);
+}
+
+/* ── Legende der Symbole ────────────────────────────────────────────── */
+
+.legende {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-lg);
+  margin: 0 0 var(--space-md);
+  color: var(--leise);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+.legendeEintrag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
 }
 
 /* ── Bildausschnitt ─────────────────────────────────────────────────── */

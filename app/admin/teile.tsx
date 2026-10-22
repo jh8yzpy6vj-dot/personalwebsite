@@ -111,6 +111,86 @@ export function Zeichen({ name, voll = false }: { name: Zeichenname; voll?: bool
   );
 }
 
+/** Ein Eintrag der Legende: Zeichen, sein Wort (nur vorgelesen), was es tut. */
+type Legendeneintrag = readonly [Zeichenname, string, string];
+
+/** Die Symbole der Kacheln — im Reiter Fotos alle drei, in „Über mich" ohne Stern. */
+export const LEGENDE = {
+  auge: ["auge", "Auge", "auf der Seite zeigen oder verstecken"],
+  stern: ["stern", "Stern", "im Hero oben auf /foto"],
+  eimer: ["eimer", "Eimer", "in den Papierkorb (30 Tage)"],
+} as const satisfies Record<string, Legendeneintrag>;
+
+/**
+ * Was die Symbole auf den Kacheln bedeuten — eine leise Zeile über dem
+ * Raster. Am PC sagte es vorher nur der Tooltip, und den findet nur, wer
+ * schon ahnt, dass es einen gibt. Vorgelesen wird das Wort zum Zeichen
+ * („Auge: …"); das Zeichen selbst bleibt stumm wie überall.
+ */
+export function Legende({ eintraege }: { eintraege: readonly Legendeneintrag[] }) {
+  return (
+    <p className={styles.legende}>
+      {eintraege.map(([zeichen, wort, text]) => (
+        <span key={zeichen} className={styles.legendeEintrag}>
+          <Zeichen name={zeichen} />
+          <span className="nur-vorlesen">{wort}: </span>
+          {text}
+        </span>
+      ))}
+    </p>
+  );
+}
+
+/**
+ * Zum Aufklappen, mit eigenem Zeichen „›" (aufgeklappt nach unten gedreht)
+ * statt des Dreiecks des Browsers. `leise`: klein und zurückgenommen — für
+ * Technisches, das Jakob fast nie braucht.
+ */
+export function Aufklappen({ titel, leise = false, children }: { titel: string; leise?: boolean; children: ReactNode }) {
+  return (
+    <details className={`${styles.aufklappen} ${leise ? styles.aufklappenLeise : ""}`}>
+      <summary className={styles.aufklappenKopf}>
+        <Zeichen name="rechts" />
+        {titel}
+      </summary>
+      <div className={styles.aufklappenInhalt}>{children}</div>
+    </details>
+  );
+}
+
+/* ── In den Blick holen ─────────────────────────────────────────────── */
+
+/** So viel Luft (px) bleibt unter der Reiterleiste, wenn etwas an den Anfang geholt wird. */
+const LUFT = 16;
+
+/**
+ * Holt ein Element in den Blick und setzt den Fokus darauf. Reiterleiste
+ * (oben) und Speicherleiste (unten) liegen über der Seite: Was darunter
+ * steht, zählt nicht als sichtbar. `"mitte"`: nur wenn nötig, dann in die
+ * Mitte; `"anfang"`: direkt unter die Reiterleiste (Anfang eines Reiters).
+ */
+export function holeInDenBlick(el: HTMLElement, wohin: "mitte" | "anfang" = "mitte") {
+  const r = el.getBoundingClientRect();
+  const oben = document.querySelector(`.${CSS.escape(styles.reiter)}`)?.getBoundingClientRect().bottom ?? 0;
+  const unten =
+    document.querySelector(`.${CSS.escape(styles.leiste)}`)?.getBoundingClientRect().top ?? window.innerHeight;
+  if (wohin === "anfang") window.scrollBy({ top: r.top - oben - LUFT });
+  else if (r.top < oben || r.bottom > unten) el.scrollIntoView({ block: "center" });
+  el.focus({ preventScroll: true });
+}
+
+/**
+ * Nach dem Auf- oder Zuklappen einer Zeile (Arbeit, Film — ein Bild später,
+ * wenn sie gezeichnet ist): darin das erste Element zu `wahl` fokussieren
+ * (`"input"`: das Titelfeld, `"[aria-expanded]"`: der Stift) und in den
+ * Blick holen. Die Zeile ist der Eintrag in `Sortierbar` (`data-sortier`).
+ */
+export function fokussiereInZeile(kennung: string, wahl: string) {
+  const zeile = document.querySelector(`[data-sortier="${CSS.escape(kennung)}"]`);
+  const el = zeile?.querySelector<HTMLElement>(wahl);
+  if (el) holeInDenBlick(el);
+}
+
 /* ── Vorschaubild ───────────────────────────────────────────────────── */
 
 /**

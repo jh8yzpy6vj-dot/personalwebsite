@@ -53,6 +53,7 @@ export default function Papierkorb() {
                     <button
                       type="button"
                       className={styles.knopf}
+                      aria-label={`${bildBezeichnung(inhalt, s)} wiederherstellen`}
                       onClick={() =>
                         aendereMitMeldung(
                           (i) => stelleWiederHer(i, s),

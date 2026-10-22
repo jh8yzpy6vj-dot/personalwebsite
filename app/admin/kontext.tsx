@@ -58,7 +58,18 @@ export type Sitzung = {
   bearbeite: (schluessel: string, folge?: Folge) => void;
   /** Gibt es Ungespeichertes? */
   ungespeichert: boolean;
+  /**
+   * Die aufgeklappte Arbeit bzw. der aufgeklappte Film (Kennung), `null`:
+   * keine. Liegt hier und nicht im Reiter, damit „Zeigen" in der Prüfung
+   * eine Arbeit aufklappen kann — und sie offen bleibt, wenn Jakob kurz
+   * den Reiter wechselt.
+   */
+  aufgeklappt: Record<Klappliste, string | null>;
+  klappe: (liste: Klappliste, kennung: string | null) => void;
 };
+
+/** Die Reiter, deren Zeilen sich aufklappen lassen. */
+export type Klappliste = "arbeiten" | "filme";
 
 export const SitzungKontext = createContext<Sitzung | null>(null);
 

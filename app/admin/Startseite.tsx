@@ -20,28 +20,36 @@ import { Daumen, Textfeld } from "./teile";
 import styles from "./verwaltung.module.css";
 
 /**
- * **Reiter Startseite** — Name und Zeile, die Bildplätze (Ersatzbild im
- * Hero, die beiden Wege, vier Highlights) und das Hero-Video.
+ * **Reiter Startseite** — Name und Zeile, die Bildplätze (das große Bild
+ * oben, die Bilder zu den Bereichen Foto und Film, vier Highlights) und das
+ * Video oben.
+ *
+ * ⚠️ „Hero" sagt hier nichts: Der Reiter Hero und der Stern meinen die
+ * Blende auf /foto. Für den oberen Teil der Startseite heißt es „oben"
+ * (UI-SPEC, „Startseite, Begriffe").
  */
 
 /* Die Namen der Plätze sind überall dieselben (`startplatzName`) — auch in
-   „Verwendet: …" im Bild-Panel. */
+   „Verwendet: …" im Bild-Panel und in der Prüfung. `erscheint`: für die
+   Bildwahl („Erscheint: Startseite, ganz oben."). */
 const PLAETZE = (
   [
     {
       platz: "heroErsatz",
-      hinweis: "Trägt die Startseite, solange es kein Hero-Video gibt. Querformat, keine erkennbaren Gesichter.",
+      hinweis: "Steht oben, solange es dort kein Video gibt. Querformat, keine erkennbaren Gesichter.",
+      erscheint: "Startseite, ganz oben",
     },
-    { platz: "wegeFoto", hinweis: "Das Bild zum Weg nach /foto." },
+    { platz: "wegeFoto", hinweis: "Das Bild am Link zu /foto.", erscheint: "Startseite, im Bereich Foto" },
     {
       platz: "wegeFilm",
       hinweis: "Nur Rückfall: Gibt es einen Film mit Standbild, nimmt die Seite dessen Standbild.",
+      erscheint: "Startseite, im Bereich Film",
     },
-    { platz: { highlight: 0 }, hinweis: "Leer zeigt „Highlight folgt“." },
-    { platz: { highlight: 1 }, hinweis: "" },
-    { platz: { highlight: 2 }, hinweis: "" },
-    { platz: { highlight: 3 }, hinweis: "" },
-  ] satisfies { platz: Startplatz; hinweis: string }[]
+    { platz: { highlight: 0 }, hinweis: "Leer zeigt „Highlight folgt“.", erscheint: "Startseite, Highlight 1" },
+    { platz: { highlight: 1 }, hinweis: "", erscheint: "Startseite, Highlight 2" },
+    { platz: { highlight: 2 }, hinweis: "", erscheint: "Startseite, Highlight 3" },
+    { platz: { highlight: 3 }, hinweis: "", erscheint: "Startseite, Highlight 4" },
+  ] satisfies { platz: Startplatz; hinweis: string; erscheint: string }[]
 ).map((p) => ({ ...p, name: startplatzName(p.platz) }));
 
 const kennung = (p: Startplatz) => (typeof p === "string" ? p : `highlight-${p.highlight}`);
@@ -66,7 +74,7 @@ export default function Startseite() {
             hinweis="Bewusst klein geschrieben."
           />
           <Textfeld
-            bezeichnung="Zeile im Hero"
+            bezeichnung="Zeile unter dem Namen"
             wert={inhalt.seite.positioning}
             beiAenderung={(w) => aendere((i) => setzeSeite(i, "positioning", w))}
           />
@@ -76,14 +84,14 @@ export default function Startseite() {
             beiAenderung={(w) => aendere((i) => setzeSeite(i, "locations", w))}
           />
           <Textfeld
-            bezeichnung="Beschreibung des Hero-Bilds (optional)"
+            bezeichnung="Beschreibung des großen Bilds oben (optional)"
             mehrzeilig
             wert={st.heroAlt ?? ""}
             beiAenderung={(w) => aendere((i) => setzeStartText(i, "heroAlt", w))}
             hinweis="Leer heißt: reine Dekoration, Screenreader überspringen es."
           />
           <Textfeld
-            bezeichnung="Hero-Video von außerhalb (optional)"
+            bezeichnung="Video oben, von außerhalb (optional)"
             typ="url"
             wert={st.heroVideo ?? ""}
             platzhalter="https://"
@@ -122,7 +130,7 @@ export default function Startseite() {
                     type="button"
                     className={styles.platzBild}
                     disabled={!s || !bilder[s]}
-                    aria-label={s ? `${bildBezeichnung(inhalt, s)} bearbeiten` : "Leer"}
+                    aria-label={s ? `${bildBezeichnung(inhalt, s)} bearbeiten` : `${p.name}: leer`}
                     data-bild={s ?? undefined}
                     onClick={() => s && bearbeite(s)}
                   >
@@ -146,7 +154,12 @@ export default function Startseite() {
                     {p.hinweis && <span>{p.hinweis}</span>}
                   </span>
                   <span className={styles.zeileKnoepfe}>
-                    <button type="button" className={styles.knopf} onClick={() => setWahl(p)}>
+                    <button
+                      type="button"
+                      className={styles.knopf}
+                      aria-label={`${p.name} ändern`}
+                      onClick={() => setWahl(p)}
+                    >
                       Ändern
                     </button>
                   </span>
@@ -163,6 +176,7 @@ export default function Startseite() {
       {wahl && (
         <Bildwahl
           titel={wahl.name}
+          erscheint={wahl.erscheint}
           auswahl={auswahl}
           aktuell={startbild(inhalt, wahl.platz)}
           leer

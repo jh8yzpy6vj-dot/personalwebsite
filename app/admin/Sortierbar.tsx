@@ -35,7 +35,7 @@ type Knopf = { disabled: boolean; "aria-label": string; "data-sortier-ziel": str
 export type Steuerung = {
   /** Auf den Griff-Knopf spreizen. */
   griff: Knopf & { className: string };
-  /** Auf den Knopf „nach vorn" bzw. „nach oben". */
+  /** Auf den Knopf „nach vorn" bzw. „nach oben" (heißt „{Bezeichnung} nach vorn"). */
   vor: Knopf;
   /** Auf den Knopf „nach hinten" bzw. „nach unten". */
   zurueck: Knopf;
@@ -315,14 +315,16 @@ export default function Sortierbar<T>({
               className: styles.griff,
               disabled: gesperrt,
             },
+            /* Mit dem Namen: 38-mal „Nach vorn" sagte Screenreader und
+               Sprachsteuerung nicht, welches Bild gemeint ist. */
             vor: {
               disabled: gesperrt || platz === 0,
-              "aria-label": quer ? "Nach vorn" : "Nach oben",
+              "aria-label": `${bezeichnung(t)} ${quer ? "nach vorn" : "nach oben"}`,
               "data-sortier-ziel": "vor",
             },
             zurueck: {
               disabled: gesperrt || platz === angezeigt.length - 1,
-              "aria-label": quer ? "Nach hinten" : "Nach unten",
+              "aria-label": `${bezeichnung(t)} ${quer ? "nach hinten" : "nach unten"}`,
               "data-sortier-ziel": "zurueck",
             },
             platz,

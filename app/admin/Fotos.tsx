@@ -15,7 +15,7 @@ import {
 } from "@/lib/admin/werkzeuge";
 import { useSitzung } from "./kontext";
 import Sortierbar from "./Sortierbar";
-import { Auswahl, DateiKnopf, Daumen, Zeichen } from "./teile";
+import { Auswahl, DateiKnopf, Daumen, Legende, LEGENDE, Zeichen } from "./teile";
 import styles from "./verwaltung.module.css";
 
 /**
@@ -71,6 +71,7 @@ export default function Fotos() {
             Ausschnitt — dort kommt es auch mit einem Schritt an den Anfang oder auf einen bestimmten Platz.{" "}
             {sichtbar} von {fotos.length} Bildern sind sichtbar.
           </p>
+          <Legende eintraege={[LEGENDE.auge, LEGENDE.stern, LEGENDE.eimer]} />
 
           <Sortierbar<Streckenbild>
             name="Mosaik auf /foto"
@@ -122,13 +123,15 @@ export default function Fotos() {
                       <Zeichen name="rechts" />
                     </button>
                   </div>
+                  {/* Die Namen bleiben gleich, der Zustand steht in
+                      `aria-pressed`; ein Tooltip fehlt bewusst — die Legende
+                      über dem Raster sagt, was die Zeichen bedeuten. */}
                   <div className={styles.kachelLeiste}>
                     <button
                       type="button"
                       className={styles.knopfSymbol}
                       aria-pressed={aus}
-                      aria-label="Ausgeblendet"
-                      title={aus ? "Einblenden" : "Ausblenden"}
+                      aria-label={`${name(s)}: ausgeblendet`}
                       onClick={() =>
                         aendereMitMeldung(
                           (i) => umschalteAusgeblendet(i, s),
@@ -142,8 +145,7 @@ export default function Fotos() {
                       type="button"
                       className={styles.knopfSymbol}
                       aria-pressed={hero}
-                      aria-label="Im Hero"
-                      title={hero ? "Aus dem Hero nehmen" : "In den Hero"}
+                      aria-label={`${name(s)}: im Hero auf /foto`}
                       onClick={() =>
                         aendereMitMeldung(
                           (i) => umschalteHero(i, s),
@@ -156,8 +158,7 @@ export default function Fotos() {
                     <button
                       type="button"
                       className={styles.knopfSymbol}
-                      aria-label="Löschen"
-                      title="Löschen (Papierkorb, 30 Tage)"
+                      aria-label={`${name(s)} löschen`}
                       onClick={() =>
                         aendereMitMeldung((i) => legeInPapierkorb(i, s, heute), `„${name(s)}“ liegt im Papierkorb.`, true)
                       }

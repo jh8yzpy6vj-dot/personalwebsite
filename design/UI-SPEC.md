@@ -416,17 +416,20 @@ Umbaus abgehakt.
   „Zu viele Versuche. Warte eine Minute und versuch es dann noch einmal." — derselbe Fehlertext
   an derselben Stelle, ebenfalls `--rec`: Auch hier kommt Jakob nicht weiter, bis er etwas tut
   (warten), also gilt dieselbe Begründung wie für die blockierenden Fehler.
-- **Aufbau:** Kopf mit „Verwaltung", Link zur Seite und „Abmelden" (fragt nach, wenn noch
+- **Aufbau:** Kopf mit „Verwaltung", Link „Seite ansehen ↗" (neuer Tab; vorgelesen „Seite ansehen
+  (neuer Tab)") und „Abmelden" (fragt nach, wenn noch
   Ungespeichertes da ist oder Bilder hochgeladen werden — **genau einmal**: „Ungespeicherte
   Änderungen gehen verloren. Trotzdem abmelden?" bzw. „Es werden noch Bilder hochgeladen — das
   bricht ab. Trotzdem abmelden?", bei beidem „Ungespeicherte Änderungen gehen verloren, und das
   Hochladen bricht ab. Trotzdem abmelden?"; danach kein zweites „Seite verlassen?" des Browsers);
   darunter Reiter
   **Fotos · Hero · Arbeiten · Über mich · Filme · Startseite · Papierkorb · Verlauf**
-  (Pfeiltasten wechseln den Reiter); unten eine feste Leiste mit Speicherstand, optionaler
-  Nachricht, „Alles verwerfen" (nur solange Ungespeichertes da ist), „Rückgängig" und
-  „Speichern", darüber, solange eine steht, die Zeile mit der Meldung — siehe *Rückgängig,
-  Meldungen, Tasten*.
+  (Pfeiltasten wechseln den Reiter; der Reiter „Hero" heißt so, er meint die Blende oben auf
+  `/foto` — der obere Teil der Startseite heißt nirgends „Hero", siehe *Startseite*); unten eine
+  feste Leiste mit Speicherstand, „Zum Fehler" (nur neben „Erst den Fehler oben beheben …", siehe
+  *Prüfung*), optionaler Nachricht, „Alles verwerfen" (nur solange Ungespeichertes da ist),
+  „Rückgängig" und „Speichern", darüber, solange eine steht, die Zeile mit der Meldung — siehe
+  *Rückgängig, Meldungen, Tasten*.
 - **Rückgängig, Meldungen, Tasten** (seit 2026-10-22):
   - **„Rückgängig"** ist ein leiser Knopf mit dem Zeichen „zurück" links von „Speichern",
     gesperrt, solange es nichts zurückzunehmen gibt und solange gespeichert wird. Er und
@@ -451,7 +454,8 @@ Umbaus abgehakt.
     wieder sichtbar." · „„{Bild}" ist jetzt im Hero." · „„{Bild}" ist nicht mehr im Hero." ·
     „„{Bild}" ist wiederhergestellt." · „„{Bild}" steht jetzt auf Platz {n}." · „Absatz {n}
     entfernt." · „„{Titel}" ist gelöscht." (Arbeit) · „„{Titel}" ist entfernt." (Film) · „Alle
-    Änderungen verworfen." Nach Rückgängig:
+    Bilder von „{Titel}" sind ausgeblendet." · „Alle Bilder von „{Titel}" sind wieder sichtbar."
+    · „Alle Änderungen verworfen." Nach Rückgängig:
     „Rückgängig gemacht: {Zusammenfassung wie beim Speichern}." mit „Wiederholen", danach
     „Wiederholt: {…}." mit „Rückgängig". `{Bild}` wie im Papierkorb („STAMP · 02").
   - **Doppelklick:** Nach Löschen (Kachel und Panel), „Aus dem Hero nehmen", Wiederherstellen aus
@@ -484,11 +488,50 @@ Umbaus abgehakt.
     anderes Bild weniger als 0,6 Sekunden nach dem ersten zu löschen ging nicht. Während des
     Speicherns ließ sich zurücknehmen, was gerade gespeichert wurde, und was währenddessen
     dazukam, danach nicht mehr.
+- **Prüfung** (Befunde über den Reitern, seit 2026-10-22): Fehler offen und rot markiert,
+  Warnungen aufgeklappt, Hinweise zugeklappt. Warnungen und Hinweise klappen über ein eigenes
+  Zeichen „›" vor dem Text auf (aufgeklappt nach unten gedreht, wie „Ausschnitt anpassen").
+  - **Je Befund eine Zeile:** Ort leise, dann der Text, rechts der leise Knopf **„Zeigen"**
+    (vorgelesen „Zeigen: {Ort}", bei einem Bild „Zeigen: {Ort} · {Bild}"), wenn der Befund zu
+    einem Reiter gehört. Die Orte heißen wie in
+    den Reitern: „Startseite · Großes Bild oben", „Startseite · Zeile unter dem Namen", „Über mich
+    · Absatz 2", „Arbeit „{Titel}" · Kunde", „Film „{Titel}" · Link", „Hero auf /foto", „Mosaik ·
+    Reihenfolge". Bilder heißen wie überall („„STAMP · 02" ist ausgeblendet — der Platz bleibt auf
+    der Seite leer."), Arbeiten und Filme beim Titel, nie bei der Kennung (nur, wenn der Titel
+    fehlt). Kein Verweis auf interne Dokumente („UI-SPEC").
+  - **„Zeigen"** wechselt in den Reiter. Geht es um ein Bild, das es gibt, öffnet es das
+    Bild-Panel (aus dem Hero mit Blättern durch den Hero). Geht es um ein Feld, steht es im Blick
+    und hat den Fokus — bei Arbeiten und Filmen ist die Zeile dafür aufgeklappt. Sonst steht der
+    Anfang des Reiters (bzw. die Zeile der Arbeit) im Blick und hat den Fokus.
+  - **Hinweis „Bildbeschreibungen":** unter dem Text die Bilder ohne Beschreibung als leise Knöpfe
+    mit ihrem Namen, in einer umbrechenden Reihe. Ein Tipp öffnet das Bild-Panel und blättert
+    durch genau diese Bilder; „Zeigen" beginnt beim ersten.
+  - **„Zum Fehler"** (leiser Knopf in der Leiste neben „Erst den Fehler oben beheben, dann
+    speichern."): holt die Prüfung in den Blick und setzt den Fokus darauf.
+  - Begründung (2026-10-22): Die Meldungen nannten Bildschlüssel und Kennungen
+    („arbeiten/tete-a-tete/01", „kulturnacht-rastatt-2026") statt der Namen aus den Reitern,
+    hießen anders als die Felder („Ersatzbild", „Weg „foto"", „Standbild") und führten nirgendwohin
+    — Jakob musste Reiter und Feld selbst suchen, „oben" hieß bei langen Listen viele Bildschirme
+    scrollen. Ohne sichtbares Zeichen sah „Ein Hinweis" nicht aufklappbar aus.
 - **Ordnen** per Ziehen (Maus und Touch) und zusätzlich per Knöpfen „nach oben / nach unten"
   für Tastatur und Screenreader. Ausblenden statt Löschen ist der Normalfall; Gelöschtes liegt
   **30 Tage** im Papierkorb und lässt sich zurückholen. Weite Wege gehen im Bild-Panel mit einem
   Schritt: „An den Anfang", „Ans Ende" und das Feld „Platz" (siehe *Bild-Panel*); der Hilfetext
   über dem Mosaik und bei „Neue Bilder" sagt das.
+- **Symbole und ihre Namen** (seit 2026-10-22): Über dem Raster im Reiter Fotos eine leise
+  **Legende**: „[Auge] auf der Seite zeigen oder verstecken · [Stern] im Hero oben auf /foto ·
+  [Eimer] in den Papierkorb (30 Tage)", in „Bilder auf /ueber" dieselbe ohne Stern. Die Knöpfe
+  nennen ihr Bild, gleichbleibend, Umschalter mit gedrückt/nicht gedrückt: „{Bild}: ausgeblendet",
+  „{Bild}: im Hero auf /foto", „{Bild} löschen", „{Bild} nach vorn / hinten / oben / unten",
+  „{Bild}: Ausschnitt wählen", „{Bild} aus dem Hero nehmen", „{Bild} wiederherstellen", „{Platz}
+  ändern" (Startseite). Die Symbolknöpfe der Kacheln haben keinen Tooltip mehr — die Legende sagt
+  es. Bilder auf /ueber heißen überall „Über mich · 01" (Kachel, Griff, Pfeile). Begründung: Die
+  Bedeutung von Auge, Stern und Eimer stand nur im Tooltip, und 38 Knöpfe hießen für Screenreader
+  und Sprachsteuerung gleich „Löschen".
+- **Vorschau** gibt es für das Mosaik auf `/foto` (Reiter Fotos) und seit 2026-10-22 auch für die
+  Bilder auf `/ueber` (Knopf „Vorschau" in deren Abschnitt): dasselbe Mosaik wie auf der Seite, mit
+  dem ungespeicherten Stand. Begründung: Das Mosaik setzt in Spalten, das Raster der Verwaltung in
+  Zeilen — die echte Anordnung sah Jakob sonst erst nach Speichern und Build.
 - **Bild-Panel** („Bild bearbeiten", rechts, seit 2026-10-22), von oben nach unten:
   - **Kopf:** Bildname, daneben „‹" (Vorheriges Bild), leise „{n} von {m}", „›" (Nächstes Bild)
     und „Schließen". Geblättert wird durch die Liste, aus der das Bild geöffnet wurde: in den
@@ -564,6 +607,35 @@ Umbaus abgehakt.
   leer bleibt: „· ausgeblendet — der Platz bleibt auf der Seite leer", „· im Papierkorb — …",
   „· kein Foto aus /foto — …". Begründung (2026-10-21): Ein Bild von „Über mich" ließ sich wählen,
   der Platz blieb auf der Seite aber leer, ohne Warnung.
+- **Startseite, Begriffe** (seit 2026-10-22): Die Felder heißen „Name (Schriftzug)", „Zeile unter
+  dem Namen", „Orte", „Beschreibung des großen Bilds oben (optional)", „Video oben, von außerhalb
+  (optional)"; die Bildplätze wie unter *Bild-Panel* („Großes Bild oben" …). Die Bildwahl nennt
+  unter ihrem Titel leise, wo das Bild erscheint: „Erscheint: Startseite, ganz oben." · „…,
+  im Bereich Foto." · „…, im Bereich Film." · „…, Highlight {n}." — im Hero „Erscheint: oben auf
+  /foto, in der Blende.". Begründung: „Hero" hieß zweierlei — der Reiter und der Stern meinen die
+  Blende auf `/foto`, der Reiter Startseite sagte „Hero-Bild", „Zeile im Hero", „Hero-Video" zum
+  oberen Teil der Startseite. Jakob konnte glauben, der Stern bringe ein Bild auf die Startseite.
+- **Arbeiten und Filme** (Zeilen, seit 2026-10-22): Der Stift öffnet die Zeile und bleibt der Stift
+  (aufgeklappt mit der Fläche eines gedrückten Knopfs, `aria-expanded`; ebenso der Stift im Hero);
+  zu klappt sie der Knopf **„Fertig"** unten in der Zeile, danach steht der Fokus wieder auf dem
+  Stift. Die Kennung steht unter **„Technisches"** zum
+  Aufklappen (Zeichen „›", leise), nicht mehr als gesperrtes Feld zwischen Titel und Kunde. Beim
+  Anlegen steht unter dem Titel „Der Titel lässt sich später jederzeit ändern."; danach ist die
+  neue Zeile aufgeklappt und der Fokus steht in ihrem Titel. Text über den Arbeiten: „Die
+  Reihenfolge hier gilt nur für neu hochgeladene Bilder, die du im Reiter Fotos noch nicht
+  einsortiert hast."
+  - **Ganze Arbeit ausblenden:** unter ihren Bildern „Alle Bilder ausblenden" (Zeichen Auge zu),
+    solange eins sichtbar ist, und „Alle einblenden" (Zeichen Auge), solange eins ausgeblendet ist,
+    daneben leise „{x} von {y} ausgeblendet". Stehen sichtbare davon im Hero oder auf der
+    Startseite, darunter leise „{n} davon im Hero, {m} auf der Startseite — dort fehlen sie dann."
+    Gelöschte Bilder (Papierkorb) bleiben unberührt. Meldung mit „Rückgängig" (siehe oben).
+  - **„Arbeit löschen"** mit Bildern im Bildspeicher erklärt wie bisher, warum das noch nicht geht,
+    und bietet statt „Verstanden" den Hauptknopf „Alle Bilder ausblenden" und „Abbrechen" (sind
+    schon alle ausgeblendet: „Verstanden").
+  - Begründung: Aufgeklappt wurde der Stift zum Pfeil nach oben — zwei Plätze neben „Nach oben",
+    ein Fehltipp verschob die Arbeit. Das gesperrte Feld „Kennung … lässt sich nicht ändern" machte
+    Angst vor Tippfehlern im Titel. Der Löschdialog riet „Blende alle ihre Bilder aus", einen Knopf
+    dafür gab es nicht — bei neun Bildern neun Einzelklicks.
 - **Neuer Film:** Titel, Kunde und „Link zum Film" in einem Formular; „Film anlegen" ist erst frei,
   wenn alle drei da sind **und die Prüfung sie annähme**. Darunter steht leise, was noch fehlt:
   „Titel, Kunde und Link braucht jeder Film. Das Standbild lädst du danach hoch.", „Kunde ohne

@@ -1,7 +1,16 @@
 import { alleBilderDerArbeit, fotosFuerMosaik, nachWunsch, type Kontext } from "../arbeiten";
 import { AUSSCHNITT_MITTIG, type Streckenbild } from "../bilder";
 import { arbeitZu, bildName, istVerborgen, type Film, type Fotoarbeit, type Inhalt, type Link } from "../inhalt";
-import { ID, istHttps, nurFehler, pruefeInhalt, RECHTSFORM, STARTPLATZ_NAMEN, type Befund } from "../inhalt-pruefen";
+import {
+  ID,
+  istHttps,
+  nurFehler,
+  ORT_BESCHREIBUNGEN,
+  pruefeInhalt,
+  RECHTSFORM,
+  STARTPLATZ_NAMEN,
+  type Befund,
+} from "../inhalt-pruefen";
 import { BILDTYPEN, MAX_UPLOAD_BYTES, ZIEL, type Lauf, type Verarbeitung } from "./vertrag";
 
 /**
@@ -271,6 +280,21 @@ const kopie = (i: Inhalt): Inhalt => structuredClone(i);
 export function umschalteAusgeblendet(i: Inhalt, s: string): Inhalt {
   const n = kopie(i);
   n.ausgeblendet = n.ausgeblendet.includes(s) ? n.ausgeblendet.filter((x) => x !== s) : [...n.ausgeblendet, s];
+  return n;
+}
+
+/**
+ * Blendet mehrere Bilder auf einmal aus (`an`) oder wieder ein — „Alle
+ * Bilder ausblenden" einer Arbeit. Gelöschte (Papierkorb) bleiben, wie sie
+ * sind: Wiederhergestellt kämen sie sonst still anders zurück, als sie
+ * gegangen sind. Was schon ausgeblendet ist, steht nicht doppelt da.
+ */
+export function setzeAusgeblendet(i: Inhalt, schluessel: string[], an: boolean): Inhalt {
+  const betroffen = new Set(schluessel.filter((s) => !(s in i.papierkorb)));
+  const n = kopie(i);
+  n.ausgeblendet = an
+    ? [...n.ausgeblendet, ...[...betroffen].filter((s) => !n.ausgeblendet.includes(s))]
+    : n.ausgeblendet.filter((s) => !betroffen.has(s));
   return n;
 }
 
@@ -665,6 +689,71 @@ export function nachStufe(befunde: Befund[]) {
     warnungen: befunde.filter((b) => b.stufe === "warnung"),
     hinweise: befunde.filter((b) => b.stufe === "hinweis"),
   };
+}
+
+/* ── Reiter und „Zeigen" ────────────────────────────────────────────── */
+
+/** Die Reiter der Verwaltung, in dieser Reihenfolge (UI-SPEC, „Aufbau"). */
+export const REITER = [
+  ["fotos", "Fotos"],
+  ["hero", "Hero"],
+  ["arbeiten", "Arbeiten"],
+  ["ueber", "Über mich"],
+  ["filme", "Filme"],
+  ["startseite", "Startseite"],
+  ["papierkorb", "Papierkorb"],
+  ["verlauf", "Verlauf"],
+] as const;
+export type Reiter = (typeof REITER)[number][0];
+
+/** Der erste Teil eines Orts („Arbeit „STAMP“ · Kunde" → „Arbeit „STAMP“"). */
+const ortKopf = (b: Befund) => b.ort.split(" · ")[0];
+
+/**
+ * In welchem Reiter steht, worum es in einem Befund geht — für „Zeigen".
+ * Abgelesen am Ort, der so heißt wie in den Reitern. `null`: in keinem
+ * (Form des Inhalts kaputt — das kann Jakob ohnehin nicht beheben).
+ */
+export function reiterFuerBefund(b: Befund): Reiter | null {
+  const kopf = ortKopf(b);
+  if (kopf === "Startseite" || kopf === "Seite") return "startseite";
+  if (kopf === "Hero auf /foto") return "hero";
+  if (kopf.startsWith("Arbeit") || kopf === "Kategorien") return "arbeiten";
+  if (kopf.startsWith("Film")) return "filme";
+  if (kopf === "Über mich") return "ueber";
+  if (kopf === "Mosaik" || b.ort === ORT_BESCHREIBUNGEN) return "fotos";
+  if (kopf === "Papierkorb") return "papierkorb";
+  return null;
+}
+
+/**
+ * Der Name des Felds, um das es geht — so, wie er über dem Feld steht (oder
+ * wie es beginnt: „Kunde" für „Kunde (optional)"). Steht nach dem Kopf des
+ * Orts: „Startseite · Zeile unter dem Namen", „Über mich · Instagram ·
+ * Adresse", „Film „X“ · Link". Bei Arbeiten und Filmen nach dem Titel —
+ * der darf selbst „ · " enthalten. `null`, wenn der Ort kein Feld nennt.
+ */
+export function feldFuerBefund(b: Befund): string | null {
+  const kopf = ortKopf(b);
+  if (/^(Arbeit|Film) „/.test(kopf)) {
+    const ende = b.ort.indexOf("“ · ");
+    return ende < 0 ? null : b.ort.slice(ende + 4);
+  }
+  return b.ort.length > kopf.length ? b.ort.slice(kopf.length + 3) : null;
+}
+
+/**
+ * Was beim Ausblenden dieser Bilder anderswo fehlt: „2 davon im Hero, 1 auf
+ * der Startseite — dort fehlen sie dann." `null`, wenn keins im Hero oder
+ * auf der Startseite steht.
+ */
+export function wasDannFehlt(i: Inhalt, schluessel: string[]): string | null {
+  const hero = schluessel.filter((s) => i.foto.hero.includes(s)).length;
+  const start = schluessel.filter((s) => aufDerStartseite(i, s)).length;
+  if (hero + start === 0) return null;
+  const orte = [hero > 0 && `${hero} davon im Hero`, start > 0 && `${start} ${hero > 0 ? "" : "davon "}auf der Startseite`];
+  const satz = orte.filter(Boolean).join(", ");
+  return `${satz} — dort ${hero + start === 1 ? "fehlt es" : "fehlen sie"} dann.`;
 }
 
 /* ── Rückgängig und Tasten ──────────────────────────────────────────── */

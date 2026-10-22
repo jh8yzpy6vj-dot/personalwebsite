@@ -12,26 +12,44 @@ import {
   neueArbeit,
   ordneArbeiten,
   platzhalter,
+  setzeAusgeblendet,
+  wasDannFehlt,
 } from "@/lib/admin/werkzeuge";
 import { useSitzung } from "./kontext";
 import Sortierbar from "./Sortierbar";
-import { Auswahl, DateiKnopf, Daumen, Dialog, Textfeld, Zeichen } from "./teile";
+import { Aufklappen, Auswahl, DateiKnopf, Daumen, Dialog, fokussiereInZeile, Textfeld, Zeichen } from "./teile";
 import styles from "./verwaltung.module.css";
 
 /**
  * **Reiter Arbeiten** — Titel, Kunde, Kategorie und Notiz je Arbeit, neue
- * Arbeiten, Bilder hochladen.
+ * Arbeiten, Bilder hochladen, eine ganze Arbeit aus- und einblenden.
  *
  * Die Reihenfolge hier ordnet nur noch Bilder, die (noch) nicht in der
  * Mosaik-Reihenfolge stehen — die eigentliche Ordnung auf `/foto` macht der
  * Reiter Fotos.
+ *
+ * Welche Arbeit aufgeklappt ist, hält die Verwaltung (`aufgeklappt`) — so
+ * kann „Zeigen" in der Prüfung sie öffnen. Der Stift bleibt der Stift; zu
+ * klappt „Fertig" unten. Vorher wurde er zum Pfeil nach oben, gleich dem
+ * Knopf „Nach oben" daneben, und ein Fehltipp verschob die Arbeit.
  */
 export default function Arbeiten() {
-  const { inhalt, bilder, aendere, konfiguration, unterwegs, ladeNeueHoch, bearbeite } = useSitzung();
-  const [offen, setOffen] = useState<string | null>(null);
+  const {
+    inhalt,
+    bilder,
+    aendere,
+    aendereMitMeldung,
+    konfiguration,
+    unterwegs,
+    ladeNeueHoch,
+    bearbeite,
+    aufgeklappt,
+    klappe,
+  } = useSitzung();
   const [neuTitel, setNeuTitel] = useState("");
   const [neuKategorie, setNeuKategorie] = useState(inhalt.foto.kategorien[0] ?? "");
   const [loeschen, setLoeschen] = useState<Fotoarbeit | null>(null);
+  const offen = aufgeklappt.arbeiten;
 
   const arbeiten = inhalt.foto.arbeiten;
   /* Ordner, die es im Bildspeicher schon gibt — auch ohne Arbeit dazu. Eine
@@ -44,9 +62,18 @@ export default function Arbeiten() {
     /* Dieselbe Rechnung wie in `neueArbeit` — so lässt sich die neue Arbeit
        gleich aufklappen, ohne auf das nächste Rendern zu warten. */
     const titel = neuTitel;
+    const id = vorschauId;
     aendere((i) => neueArbeit(i, titel, neuKategorie, ordner).inhalt);
     setNeuTitel("");
-    setOffen(vorschauId);
+    klappe("arbeiten", id);
+    /* Der Knopf „Arbeit anlegen" ist danach gesperrt — der Fokus geht in den Titel der neuen Arbeit. */
+    requestAnimationFrame(() => fokussiereInZeile(id, "input"));
+  };
+
+  /** „Fertig": zuklappen, der Fokus zurück auf den Stift — „Fertig" selbst gibt es dann nicht mehr. */
+  const fertig = (id: string) => {
+    klappe("arbeiten", null);
+    requestAnimationFrame(() => fokussiereInZeile(id, "[aria-expanded]"));
   };
 
   return (
@@ -57,8 +84,9 @@ export default function Arbeiten() {
         </h2>
       </div>
       <p className={styles.text}>
-        {arbeiten.length} Arbeiten. Tipp auf eine, um sie zu bearbeiten oder Bilder hochzuladen. Die Reihenfolge hier
-        bestimmt nur, wo neue Bilder im Mosaik landen.
+        {arbeiten.length} Arbeiten. Tipp auf den Stift, um eine zu bearbeiten, Bilder hochzuladen oder alle ihre
+        Bilder auszublenden. Die Reihenfolge hier gilt nur für neu hochgeladene Bilder, die du im Reiter Fotos noch
+        nicht einsortiert hast.
       </p>
 
       <Sortierbar<Fotoarbeit>
@@ -72,8 +100,10 @@ export default function Arbeiten() {
           const alle = alleBilderDerArbeit(a, { inhalt, bilder });
           const vorhanden = alle.filter((b) => !(b.schluessel in inhalt.papierkorb));
           const sichtbar = vorhanden.filter((b) => !istVerborgen(inhalt, b.schluessel));
+          const aus = vorhanden.length - sichtbar.length;
           const warten = platzhalter(unterwegs, bilder, `arbeiten/${a.id}`).filter((s) => arbeitZu(s) === a.id);
           const ist = offen === a.id;
+          const fehlt = wasDannFehlt(inhalt, sichtbar.map((b) => b.schluessel));
           return (
             <div className={styles.zeile}>
               <div className={styles.zeileKopf}>
@@ -103,9 +133,9 @@ export default function Arbeiten() {
                     aria-expanded={ist}
                     aria-label={`${a.titel} bearbeiten`}
                     title="Bearbeiten"
-                    onClick={() => setOffen(ist ? null : a.id)}
+                    onClick={() => klappe("arbeiten", ist ? null : a.id)}
                   >
-                    <Zeichen name={ist ? "hoch" : "stift"} />
+                    <Zeichen name="stift" />
                   </button>
                 </span>
               </div>
@@ -131,12 +161,6 @@ export default function Arbeiten() {
                       optionen={inhalt.foto.kategorien}
                       beiAenderung={(w) => aendere((i) => aendereArbeit(i, a.id, { kategorie: w }))}
                     />
-                    <Textfeld
-                      bezeichnung="Kennung"
-                      wert={a.id}
-                      nurLesen
-                      hinweis="Der Ordnername im Bildspeicher. Lässt sich nicht ändern — sonst fänden sich die Bilder nicht mehr."
-                    />
                   </div>
                   <Textfeld
                     bezeichnung="Notiz (nur hier sichtbar, nie auf der Seite)"
@@ -145,7 +169,7 @@ export default function Arbeiten() {
                     beiAenderung={(w) => aendere((i) => aendereArbeit(i, a.id, { notiz: w }))}
                   />
 
-                  <div>
+                  <div className={styles.panelAbschnitt}>
                     <h3 className={styles.abschnittTitel}>Bilder</h3>
                     {vorhanden.length === 0 && warten.length === 0 ? (
                       <p className={styles.leise}>Noch keine Bilder. Ohne Bild erscheint die Arbeit nicht.</p>
@@ -177,6 +201,47 @@ export default function Arbeiten() {
                         ))}
                       </ul>
                     )}
+                    {/* Die ganze Arbeit auf einmal — etwa, wenn ein Auftraggeber
+                        eine Serie vorübergehend offline haben will. Gelöschte
+                        bleiben, wie sie sind (`setzeAusgeblendet`). */}
+                    {vorhanden.length > 0 && (
+                      <div className={styles.knopfreihe}>
+                        {sichtbar.length > 0 && (
+                          <button
+                            type="button"
+                            className={styles.knopf}
+                            onClick={() =>
+                              aendereMitMeldung(
+                                (i) => setzeAusgeblendet(i, vorhanden.map((b) => b.schluessel), true),
+                                `Alle Bilder von „${a.titel}“ sind ausgeblendet.`,
+                              )
+                            }
+                          >
+                            <Zeichen name="augeZu" />
+                            Alle Bilder ausblenden
+                          </button>
+                        )}
+                        {aus > 0 && (
+                          <button
+                            type="button"
+                            className={styles.knopf}
+                            onClick={() =>
+                              aendereMitMeldung(
+                                (i) => setzeAusgeblendet(i, vorhanden.map((b) => b.schluessel), false),
+                                `Alle Bilder von „${a.titel}“ sind wieder sichtbar.`,
+                              )
+                            }
+                          >
+                            <Zeichen name="auge" />
+                            Alle einblenden
+                          </button>
+                        )}
+                        <span className={styles.leise}>
+                          {aus} von {vorhanden.length} ausgeblendet
+                        </span>
+                      </div>
+                    )}
+                    {fehlt && <p className={styles.leise}>{fehlt}</p>}
                   </div>
 
                   <div className={styles.knopfreihe}>
@@ -193,6 +258,21 @@ export default function Arbeiten() {
                     </button>
                   </div>
                   {!konfiguration.eingang && <p className={styles.leise}>Hochladen ist noch nicht eingerichtet.</p>}
+
+                  <Aufklappen titel="Technisches" leise>
+                    <Textfeld
+                      bezeichnung="Kennung"
+                      wert={a.id}
+                      nurLesen
+                      hinweis="Der Ordnername im Bildspeicher. Lässt sich nicht ändern — sonst fänden sich die Bilder nicht mehr."
+                    />
+                  </Aufklappen>
+
+                  <div className={styles.knopfreihe}>
+                    <button type="button" className={styles.knopf} onClick={() => fertig(a.id)}>
+                      Fertig
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -207,7 +287,7 @@ export default function Arbeiten() {
             bezeichnung="Titel"
             wert={neuTitel}
             beiAenderung={setNeuTitel}
-            hinweis={vorschauId ? `Kennung wird „${vorschauId}“ — danach nicht mehr änderbar.` : undefined}
+            hinweis="Der Titel lässt sich später jederzeit ändern."
           />
           <Auswahl
             bezeichnung="Kategorie"
@@ -225,7 +305,11 @@ export default function Arbeiten() {
       </div>
 
       {loeschen && (
-        <LoeschDialog arbeit={loeschen} beiSchliessen={() => setLoeschen(null)} beiLoeschen={() => setOffen(null)} />
+        <LoeschDialog
+          arbeit={loeschen}
+          beiSchliessen={() => setLoeschen(null)}
+          beiLoeschen={() => klappe("arbeiten", null)}
+        />
       )}
     </section>
   );
@@ -240,8 +324,14 @@ function LoeschDialog({
   beiSchliessen: () => void;
   beiLoeschen: () => void;
 }) {
-  const { bilder, unterwegs, aendereMitMeldung } = useSitzung();
+  const { inhalt, bilder, unterwegs, aendereMitMeldung } = useSitzung();
   const nochBilder = hatBilder(arbeit.id, [...Object.keys(bilder), ...unterwegs]);
+  /* Was sich ausblenden ließe: alles, was nicht im Papierkorb liegt. */
+  const vorhanden = alleBilderDerArbeit(arbeit, { inhalt, bilder })
+    .map((b) => b.schluessel)
+    .filter((s) => !(s in inhalt.papierkorb));
+  const sichtbar = vorhanden.filter((s) => !istVerborgen(inhalt, s));
+  const fehlt = wasDannFehlt(inhalt, sichtbar);
   return (
     <Dialog titel={`„${arbeit.titel}“ löschen?`} beiSchliessen={beiSchliessen}>
       {(schliesse) =>
@@ -251,15 +341,42 @@ function LoeschDialog({
               Das geht erst, wenn keine Bilder dieser Arbeit mehr im Bildspeicher liegen. Gelöschte Bilder bleiben dort
               noch bis zu 30 Tage (Papierkorb).
             </p>
-            <p className={styles.text}>
-              Soll die Arbeit sofort verschwinden: Blende alle ihre Bilder aus — ohne sichtbares Bild erscheint sie
-              nicht.
-            </p>
-            <div className={styles.knopfreihe}>
-              <button type="button" className={styles.knopf} onClick={schliesse}>
-                Verstanden
-              </button>
-            </div>
+            {sichtbar.length > 0 ? (
+              <>
+                <p className={styles.text}>
+                  Soll die Arbeit sofort verschwinden: Blende alle ihre Bilder aus — ohne sichtbares Bild erscheint sie
+                  nicht.
+                </p>
+                {fehlt && <p className={styles.leise}>{fehlt}</p>}
+                <div className={styles.knopfreihe}>
+                  <button
+                    type="button"
+                    className={styles.knopfHaupt}
+                    onClick={() => {
+                      aendereMitMeldung(
+                        (i) => setzeAusgeblendet(i, vorhanden, true),
+                        `Alle Bilder von „${arbeit.titel}“ sind ausgeblendet.`,
+                      );
+                      schliesse();
+                    }}
+                  >
+                    Alle Bilder ausblenden
+                  </button>
+                  <button type="button" className={styles.knopf} onClick={schliesse}>
+                    Abbrechen
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className={styles.text}>Alle ihre Bilder sind schon ausgeblendet — auf der Seite erscheint sie nicht.</p>
+                <div className={styles.knopfreihe}>
+                  <button type="button" className={styles.knopf} onClick={schliesse}>
+                    Verstanden
+                  </button>
+                </div>
+              </>
+            )}
           </>
         ) : (
           <>

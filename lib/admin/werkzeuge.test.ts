@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import manifest from "../bilder-manifest.json";
 import type { Bildquelle } from "../bilder";
 import { INHALT, istVerborgen, type Inhalt } from "../inhalt";
-import { nurFehler, pruefeInhalt, type Befund } from "../inhalt-pruefen";
+import { nurFehler, ORT_BESCHREIBUNGEN, pruefeInhalt, type Befund } from "../inhalt-pruefen";
 import { fotosFuerHero, fotosFuerMosaik } from "../arbeiten";
 import {
   aendereArbeit,
@@ -94,6 +94,11 @@ import {
   STARTPLAETZE,
   verschiebeAufPlatz,
   verwendung,
+  feldFuerBefund,
+  REITER,
+  reiterFuerBefund,
+  setzeAusgeblendet,
+  wasDannFehlt,
 } from "./werkzeuge";
 import type { Lauf } from "./vertrag";
 
@@ -229,6 +234,52 @@ describe("Änderungen am Inhalt", () => {
     setzeBildtext(i, "arbeiten/stamp/01", "alt", "x");
     entferneArbeit(i, "stamp");
     expect(stabil(i)).toBe(vorher);
+  });
+
+  it("blendet viele Bilder auf einmal aus und ein — ohne Dubletten, Gelöschtes bleibt, wie es ist", () => {
+    const i = kopie();
+    const eigene = Object.keys(BILDER).filter((s) => s === "arbeiten/stamp" || s.startsWith("arbeiten/stamp/"));
+    expect(eigene.length).toBeGreaterThan(3);
+    const [schon, geloescht, ...rest] = eigene;
+    i.ausgeblendet = [...i.ausgeblendet, schon];
+    i.papierkorb[geloescht] = "2026-10-20";
+    const vorher = stabil(i);
+
+    const aus = setzeAusgeblendet(i, eigene, true);
+    expect(stabil(i)).toBe(vorher);
+    /* Was schon da war, bleibt vorn und einmal; das Gelöschte kommt nicht dazu. */
+    expect(aus.ausgeblendet).toEqual([...i.ausgeblendet, ...rest]);
+    expect(aus.ausgeblendet.filter((s) => s === schon)).toHaveLength(1);
+    expect(aus.ausgeblendet).not.toContain(geloescht);
+    expect(eigene.filter((s) => !istVerborgen(aus, s))).toEqual([]);
+    /* Noch einmal: nichts doppelt. */
+    expect(setzeAusgeblendet(aus, eigene, true).ausgeblendet).toEqual(aus.ausgeblendet);
+
+    /* Einblenden nimmt nur diese heraus — fremde Ausgeblendete bleiben. */
+    const fremd = i.ausgeblendet.filter((s) => !eigene.includes(s));
+    const ein = setzeAusgeblendet(aus, eigene, false);
+    expect(ein.ausgeblendet).toEqual(fremd);
+    /* Ein gelöschtes, zugleich ausgeblendetes Bild bleibt beim Einblenden ausgeblendet. */
+    const beides = setzeAusgeblendet({ ...aus, ausgeblendet: [...aus.ausgeblendet, geloescht] }, eigene, false);
+    expect(beides.ausgeblendet).toEqual([...fremd, geloescht]);
+    /* Hin und zurück: derselbe Inhalt bis auf die Reihenfolge der Liste. */
+    expect(gleich(setzeAusgeblendet(setzeAusgeblendet(i, rest, true), rest, false), i)).toBe(true);
+  });
+
+  it("sagt, was beim Ausblenden anderswo fehlt", () => {
+    const i = kopie();
+    const reihe = alleFotos(k(i)).map((x) => x.schluessel);
+    const [a, b, c] = reihe;
+    i.foto.hero = [a, b, reihe[5]];
+    i.startseite.heroErsatz = null;
+    i.startseite.wege = { foto: null, film: null };
+    i.startseite.highlights = [c, null, null, null];
+    expect(wasDannFehlt(i, [a, b, c])).toBe("2 davon im Hero, 1 auf der Startseite — dort fehlen sie dann.");
+    expect(wasDannFehlt(i, [a])).toBe("1 davon im Hero — dort fehlt es dann.");
+    expect(wasDannFehlt(i, [c])).toBe("1 davon auf der Startseite — dort fehlt es dann.");
+    expect(wasDannFehlt(i, [a, c])).toBe("1 davon im Hero, 1 auf der Startseite — dort fehlen sie dann.");
+    expect(wasDannFehlt(i, [reihe[6], reihe[7]])).toBeNull();
+    expect(wasDannFehlt(i, [])).toBeNull();
   });
 
   it("schaltet Ausblenden und Hero hin und zurück", () => {
@@ -812,6 +863,97 @@ describe("Dialoge", () => {
   });
 });
 
+describe("Prüfung: „Zeigen“", () => {
+  const befund = (ort: string): Befund => ({ stufe: "fehler", ort, text: "ist leer." });
+
+  it("findet zu jedem Ort den Reiter", () => {
+    const faelle: [string, string | null][] = [
+      ["Startseite · Name", "startseite"],
+      ["Startseite · Großes Bild oben", "startseite"],
+      ["Startseite · Highlight 3", "startseite"],
+      ["Hero auf /foto", "hero"],
+      ["Arbeit „STAMP“ · Kunde", "arbeiten"],
+      ["Arbeit „Film · Fest“", "arbeiten"],
+      ["Arbeiten", "arbeiten"],
+      ["Kategorien", "arbeiten"],
+      ["Film „Arbeit“ · Link", "filme"],
+      ["Filme", "filme"],
+      ["Über mich · Absatz 2", "ueber"],
+      ["Über mich · Instagram · Adresse", "ueber"],
+      ["Mosaik · Reihenfolge", "fotos"],
+      [ORT_BESCHREIBUNGEN, "fotos"],
+      ["Papierkorb", "papierkorb"],
+      ["Inhalt", null],
+      ["Bildausschnitte", null],
+      ["Ausgeblendet", null],
+    ];
+    for (const [ort, reiter] of faelle) expect(reiterFuerBefund(befund(ort)), ort).toBe(reiter);
+    /* Nur Reiter, die es gibt. */
+    const gibt = new Set<string>(REITER.map(([r]) => r));
+    for (const [, reiter] of faelle) if (reiter) expect(gibt.has(reiter)).toBe(true);
+  });
+
+  it("liest den Namen des Felds aus dem Ort — auch, wenn der Titel „ · “ enthält", () => {
+    expect(feldFuerBefund(befund("Startseite · Zeile unter dem Namen"))).toBe("Zeile unter dem Namen");
+    expect(feldFuerBefund(befund("Über mich · Instagram · Adresse"))).toBe("Instagram · Adresse");
+    expect(feldFuerBefund(befund("Arbeit „STAMP“ · Kunde"))).toBe("Kunde");
+    expect(feldFuerBefund(befund("Arbeit „Film · Fest“ · Titel"))).toBe("Titel");
+    expect(feldFuerBefund(befund("Film „X“ · Link"))).toBe("Link");
+    expect(feldFuerBefund(befund("Arbeit „STAMP“"))).toBeNull();
+    expect(feldFuerBefund(befund("Hero auf /foto"))).toBeNull();
+  });
+
+  it("jeder Befund der Prüfung zu Startseite, Über mich, Arbeiten und Filmen nennt ein Feld, das es dort gibt", () => {
+    /* Die Beschriftungen der Felder in den Reitern (Anfang genügt — „Kunde (optional)"). */
+    const felder = [
+      "Name (Schriftzug)",
+      "Zeile unter dem Namen",
+      "Orte",
+      "Beschreibung des großen Bilds oben (optional)",
+      "Video oben, von außerhalb (optional)",
+      "Absatz 1",
+      "Absatz 2",
+      "Beschreibung des Porträts (Alt-Text)",
+      "E-Mail",
+      "Instagram · Bezeichnung",
+      "Instagram · Adresse",
+      "SWR · Bezeichnung",
+      "SWR · Adresse",
+      "Titel",
+      "Kunde (optional)",
+      "Kategorie",
+      "Link zum Film",
+      "Notiz (nur hier sichtbar, nie auf der Seite)",
+    ];
+    const i = kopie();
+    i.seite.name = "";
+    i.seite.positioning = "";
+    i.seite.locations = "";
+    i.startseite.heroAlt = "x".repeat(500);
+    i.startseite.heroVideo = "kein Link";
+    i.ueber.zeilen[1] = "";
+    i.ueber.portraitAlt = "";
+    i.ueber.email = "keine";
+    i.ueber.instagram = { label: "", url: "http://x" };
+    i.ueber.swr = { label: "", url: "" };
+    i.foto.arbeiten[0].titel = "";
+    i.foto.arbeiten[0].kunde = "A GmbH";
+    i.foto.arbeiten[0].kategorie = "gibtsnicht";
+    i.foto.arbeiten[0].notiz = "x".repeat(2000);
+    i.filme.push({ id: "f", titel: "F", kunde: "K e.V.", link: "http://x" });
+    const befunde = nurFehler(pruefeInhalt(i, Object.keys(BILDER)));
+    expect(befunde.length).toBeGreaterThan(15);
+    for (const b of befunde) {
+      const feld = feldFuerBefund(b);
+      expect(feld, b.ort).not.toBeNull();
+      expect(
+        felder.some((f) => f.startsWith(feld as string)),
+        `${b.ort}: kein Feld „${feld}“`,
+      ).toBe(true);
+    }
+  });
+});
+
 describe("Anzeige", () => {
   it("benennt Bilder für Jakob", () => {
     const i = kopie();
@@ -1060,8 +1202,8 @@ describe("Bild-Panel: Verwendung und Beschreibungen", () => {
 
   it("zählt Bilder ohne Beschreibung genau wie der Hinweis der Prüfung", () => {
     const anzahlImHinweis = (i: Inhalt) => {
-      const h = pruefeInhalt(i, Object.keys(BILDER)).find((b) => b.ort === "Bildbeschreibungen");
-      return h ? Number(h.text.match(/^(\d+)/)?.[1]) : 0;
+      const h = pruefeInhalt(i, Object.keys(BILDER)).find((b) => b.ort === ORT_BESCHREIBUNGEN);
+      return !h ? 0 : h.text.startsWith("Ein ") ? 1 : Number(h.text.match(/^(\d+)/)?.[1]);
     };
     let i = kopie();
     expect(ohneBeschreibung(k(i))).toHaveLength(anzahlImHinweis(i));
