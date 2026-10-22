@@ -6,6 +6,24 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-22 — Filme und neuer Text „Über mich“ von Jakob
+
+Jakob hat (per WhatsApp, über Jan) acht Filme mit Link und einen neuen Text für „Über mich“
+geschickt, außerdem das Header-Video (WeTransfer) und den Wunsch, ein anderes Porträt zu nehmen.
+
+- **`ueber.zeilen`** ersetzt die beiden vorläufigen Absätze durch Jakobs Text in drei Absätzen.
+  Nur Rechtschreibung angepasst („unter anderem“, Kommas, Artikel vor den Sendungen), und das
+  „Hey, ich bin Jakob“ steht als erster Satz im ersten Absatz. Der Anriss auf `/` zeigt
+  denselben Text (eine Quelle).
+- **`filme`**: acht Einträge in Jakobs Reihenfolge. Bei den YouTube-Links ist der
+  Tracking-Parameter `?si=` entfernt. „Tödliches Gold“ hatte keinen Link; eingetragen ist der Trailer
+  aus der ARD Mediathek (aus Jakobs Nachricht), mit Notiz. ⚠️ Es gibt noch **kein Standbild** zu einem
+  der Filme, deshalb bleibt `/film` leer, bis sie in der Verwaltung hochgeladen sind. Die
+  Prüfung warnt dazu je Film.
+- **Nicht erledigt, weil aus der Cloud-Sitzung nicht erreichbar** (WeTransfer, YouTube und
+  `medien.jakobsax.de` blockiert, keine R2-Zugangsdaten): Header-Video in den Bucket legen,
+  Standbilder von YouTube holen, Porträt tauschen. Steht in `TODO.md` unter „Jakob“.
+
 ## 2026-10-22 — Verwaltung geprüft und überarbeitet (sieben Pakete)
 
 Jan: „Prüfe die gesamte admin Oberfläche auch leichte verwaltungsmöglichkeiten und verbessere
