@@ -15,7 +15,7 @@ import {
   type VerarbeitenAntwort,
 } from "@/lib/admin/vertrag";
 import {
-  angekommen,
+  ausgewertet,
   bildBezeichnung,
   erwarteteBilder,
   fasseZusammen,
@@ -26,6 +26,7 @@ import {
   LEERER_STAPEL,
   letzterFehlschlag,
   mitPapierkorbDaten,
+  nachDemEingang,
   naechsteZiele,
   nachStufe,
   ohneEmail,
@@ -34,6 +35,7 @@ import {
   schrittZurueck,
   tagAus,
   tastenbefehl,
+  verarbeitungsanzeige,
   werteAus,
   type Stapel,
   type Zielart,
@@ -499,11 +501,13 @@ export default function Verwaltung() {
 
   /* Lauf-ids, die schon ausgewertet sind; `null` bis zum ersten Blick. */
   const erledigt = useRef<Set<number> | null>(null);
+  /* Wie oft ein roter Lauf schon ausgewertet werden sollte, ohne dass etwas ankam (`ausgewertet`). */
+  const rotRunde = useRef(0);
   const beobachtetSeit = useRef(0);
 
   /**
-   * Nach fertiger Verarbeitung den neuen Stand übernehmen: das Manifest
-   * immer. Hat die Action auch `lib/inhalt.json` geändert (Papierkorb
+   * Nach einem fertigen Lauf (grün oder rot) den neuen Stand übernehmen: das
+   * Manifest immer. Hat die Action auch `lib/inhalt.json` geändert (Papierkorb
    * geleert), den Inhalt nur, wenn dabei nichts Ungespeichertes verloren
    * geht — sonst ein Band, denn das nächste Speichern läuft auf einen
    * Konflikt. Eine `sha`, die schon einmal da war, ist kein neuer Stand,
@@ -559,28 +563,45 @@ export default function Verwaltung() {
       if (rot) setLaufFehler({ url: rot.url });
     }
     const auswertung = werteAus(daten, erledigt.current);
-    for (const l of auswertung.fehlgeschlagen) erledigt.current.add(l.id);
-    /* Ein erfolgreicher Lauf gilt erst als ausgewertet, wenn seine Bilder im
-       geholten Manifest stehen — sonst nächste Runde noch einmal. */
+    const fertigeLaeufe = [...auswertung.erfolgreich, ...auswertung.fehlgeschlagen];
+    const roterLauf = auswertung.fehlgeschlagen[0] ?? null;
+    /* Grün und rot gleich: Stand holen, übernehmen, was angekommen ist. Auch
+       ein roter Lauf committet, was fertig ist (`ausgewertet`) — ohne den
+       Stand kämen dessen gute Bilder nie an. Ausgewertet erst, wenn das
+       geholte Manifest dazu passt, sonst nächste Runde noch einmal. */
     let offen = false;
-    if (auswertung.erfolgreich.length > 0) {
-      const bisher = [...vorher.hochgeladen, ...vorher.wartend].filter((s) => !verworfen.current.has(s));
-      const erwartet = erwarteteBilder(bisher, daten.wartend, vorher.geladen?.bilder ?? {});
+    let manifest = vorher.geladen?.bilder ?? {};
+    const bisher = vorher.hochgeladen.filter((s) => !verworfen.current.has(s));
+    if (fertigeLaeufe.length > 0) {
+      const erwartet = erwarteteBilder(
+        [...bisher, ...vorher.wartend.filter((s) => !verworfen.current.has(s))],
+        daten.wartend,
+        manifest,
+      );
+      const runde = roterLauf ? ++rotRunde.current : 0;
       const erg = await holeStand();
-      if ("stand" in erg && angekommen(erwartet, erg.stand.bilder)) {
-        for (const l of auswertung.erfolgreich) erledigt.current.add(l.id);
+      if ("stand" in erg && ausgewertet(erwartet, erg.stand.bilder, roterLauf !== null, runde)) {
+        for (const l of fertigeLaeufe) erledigt.current.add(l.id);
+        rotRunde.current = 0;
         nimmStand(erg.stand);
-        /* Was nicht mehr im Eingang liegt, ist verarbeitet. Nur, was vor der
-           Abfrage schon hochgeladen war — Späteres stand noch gar nicht darin. */
-        const fertig = new Set(vorher.hochgeladen.filter((s) => !daten.wartend.includes(s)));
-        setHochgeladen((h) => h.filter((s) => !fertig.has(s)));
-        setLaufFehler(null);
+        manifest = erg.stand.bilder;
+        /* Verarbeitet ist, was den Eingang verlassen hat und im Manifest
+           steht. Nur, was vor der Abfrage schon hochgeladen war — Späteres
+           stand noch gar nicht darin. */
+        const { fertig } = nachDemEingang(vorher.hochgeladen, daten.wartend, manifest);
+        setHochgeladen((h) => h.filter((s) => !fertig.includes(s)));
+        if (!roterLauf) setLaufFehler(null);
       } else {
         offen = true;
       }
     }
-    if (auswertung.fehlgeschlagen.length > 0) setLaufFehler({ url: auswertung.fehlgeschlagen[0].url });
-    const weiter = daten.wartend.length > 0 || auswertung.laufend || offen;
+    /* Was nach einem roten Lauf dazwischen hängt, braucht einen neuen Lauf —
+       so lange weiter nachsehen, damit der auch ankommt. */
+    const { vermisst } = nachDemEingang(bisher, daten.wartend, manifest);
+    /* Ein roter Lauf, nach dem nichts mehr wartet oder fehlt, betrifft Jakobs
+       Bilder nicht (etwa nur die Vorschaukarte) — tun kann er dann nichts. */
+    if (roterLauf) setLaufFehler(daten.wartend.length > 0 || vermisst.length > 0 ? { url: roterLauf.url } : null);
+    const weiter = daten.wartend.length > 0 || auswertung.laufend || offen || vermisst.length > 0;
     setBeobachten(weiter && Date.now() - beobachtetSeit.current < VERARBEITUNG_HOECHSTENS);
   }, [nimmStand]);
 
@@ -620,6 +641,9 @@ export default function Verwaltung() {
       void schaueNach();
       return;
     }
+    /* Ein neuer Lauf ist angestoßen — der rote davor ist erledigt; bis die
+       Abfrage den neuen sieht, gälte sonst noch dessen Knopf. */
+    setLaufFehler(null);
     beobachtetSeit.current = Date.now();
     setBeobachten(true);
   }, [schaueNach]);
@@ -669,6 +693,20 @@ export default function Verwaltung() {
             ? { zustand: "abgebrochen", datei }
             : { zustand: "fehler", text: antwort.text, anmelden: "anmelden" in antwort, datei },
         );
+        if ("anmelden" in antwort) {
+          /* Abgemeldet: Jede weitere Datei scheiterte genauso. Der Rest der
+             Schlange steht deshalb auf „abgebrochen" — nach der Anmeldung im
+             anderen Tab holt „Noch einmal" ihn nach. */
+          const rest = new Map(schlange.current.map((x) => [x.id, x]));
+          schlange.current = [];
+          for (const x of rest.values()) vergeben.current.delete(x.ziel);
+          setAuftraege((liste) =>
+            liste.map((x) => {
+              const r = rest.get(x.id);
+              return r ? { ...x, zustand: "abgebrochen", datei: r.datei } : x;
+            }),
+          );
+        }
       }
     }
     pumpeLaeuft.current = false;
@@ -746,6 +784,14 @@ export default function Verwaltung() {
     else ladeNeueHoch(a.art, [datei]);
   };
 
+  /* Was „Noch einmal" anbietet — ab zwei auch „Alle noch einmal". */
+  const wiederholbar = auftraege.filter((a) => gescheitert(a) && a.datei);
+
+  /** „Alle noch einmal", etwa nach einer abgelaufenen Anmeldung mitten im Stapel. */
+  const allesNochEinmal = () => {
+    for (const a of wiederholbar) nochEinmal(a);
+  };
+
   const blendeAus = (id: number) => setAuftraege((liste) => liste.filter((x) => x.id !== id));
 
   /** Nach „Verwerfen": Der Schlüssel ist aus dem Eingang — sofort aus der Anzeige, dann frisch nachsehen. */
@@ -754,8 +800,15 @@ export default function Verwaltung() {
     vergeben.current.delete(s);
     setHochgeladen((h) => h.filter((x) => x !== s));
     setVerarbeitung((v) => v && { ...v, wartend: v.wartend.filter((x) => x !== s) });
-    /* Nichts wartet mehr: Dann ist auch der rote Lauf erledigt. */
-    if ((verarbeitung?.wartend ?? []).every((x) => x === s)) setLaufFehler(null);
+    /* Nichts wartet mehr und nichts hängt dazwischen: Dann ist auch der rote
+       Lauf erledigt. Hängt noch etwas, bleibt er — mit ihm der Knopf. */
+    const rest = (verarbeitung?.wartend ?? []).filter((x) => x !== s);
+    const { vermisst } = nachDemEingang(
+      hochgeladen.filter((x) => x !== s),
+      rest,
+      geladen?.bilder ?? {},
+    );
+    if (rest.length === 0 && vermisst.length === 0) setLaufFehler(null);
     void schaueNach();
   };
 
@@ -861,12 +914,18 @@ export default function Verwaltung() {
   const offeneAuftraege = auftraege.filter((a) => a.zustand !== "fertig" || unterwegs.has(a.ziel));
   const wartend = verarbeitung?.wartend ?? [];
   const laufend = verarbeitung?.laeufe.some((l) => l.status !== "completed") ?? false;
-  /* Einmal für den ganzen Bereich, nicht in jeder Zeile. */
+  /* Text und Link einmal für den ganzen Bereich, nicht in jeder Zeile. */
   const abgemeldet = anstossFehler?.anmelden || offeneAuftraege.some((a) => a.zustand === "fehler" && a.anmelden);
-  /* Anstoßen geht, wenn etwas wartet — oder wenn eben Hochgeladenes nicht
-     angestoßen werden konnte und der Blick in den Eingang auch scheiterte. */
-  const anstossbar =
-    !laufend && geladen.konfiguration.github && (wartend.length > 0 || (anstossFehler !== null && hochgeladen.length > 0));
+  const anzeige = verarbeitungsanzeige({
+    github: geladen.konfiguration.github,
+    laufend,
+    wartend: wartend.length,
+    vermisst: nachDemEingang(hochgeladen, wartend, geladen.bilder).vermisst.length,
+    hochgeladen: hochgeladen.length,
+    fertigeZeile: offeneAuftraege.some((a) => a.zustand === "fertig"),
+    rot: laufFehler !== null,
+    anstossFehler: anstossFehler !== null,
+  });
 
   return (
     <SitzungKontext.Provider value={sitzung}>
@@ -951,7 +1010,7 @@ export default function Verwaltung() {
           server={serverBefunde && serverBefunde.fuer === geladen.inhalt ? serverBefunde.befunde : []}
         />
 
-        {(offeneAuftraege.length > 0 || wartend.length > 0 || laufend || laufFehler || anstossFehler) && (
+        {(offeneAuftraege.length > 0 || wartend.length > 0 || laufend || anzeige.rot || anstossFehler) && (
           <section className={styles.auftraege} aria-label="Hochladen und Verarbeitung">
             {offeneAuftraege.length > 0 && (
               <ul>
@@ -1004,47 +1063,49 @@ export default function Verwaltung() {
                     {a.zustand === "laeuft" && (
                       <progress className={styles.fortschritt} max={1} value={a.anteil} aria-label={`${a.name} lädt`} />
                     )}
-                    {a.zustand === "fehler" && a.text && <p className={`${styles.fehlerText} ${styles.auftragText}`}>{a.text}</p>}
+                    {/* Die abgelaufene Anmeldung steht einmal unten, nicht in jeder Zeile. */}
+                    {a.zustand === "fehler" && a.text && !a.anmelden && (
+                      <p className={`${styles.fehlerText} ${styles.auftragText}`}>{a.text}</p>
+                    )}
                   </li>
                 ))}
               </ul>
             )}
+            {wiederholbar.length > 1 && (
+              <div className={styles.knopfreihe}>
+                <button type="button" className={styles.knopf} onClick={allesNochEinmal}>
+                  Alle noch einmal
+                </button>
+              </div>
+            )}
             <p className={styles.leise} aria-live="polite">
-              {laufend
-                ? "Die Bilder werden verarbeitet (Standortdaten entfernen, Größen rechnen). Das dauert ein paar Minuten — du kannst weiterarbeiten."
-                : wartend.length > 0
-                  ? `${wartend.length === 1 ? "Ein Bild wartet" : `${wartend.length} Bilder warten`} auf die Verarbeitung.`
-                  : offeneAuftraege.some((a) => a.zustand === "fertig")
-                    ? anstossFehler
-                      ? "Hochgeladen, aber die Verarbeitung ließ sich nicht starten."
-                      : "Hochgeladen. Die Verarbeitung startet gleich."
-                    : ""}
+              {anzeige.satz}
             </p>
-            {laufFehler && (
+            {laufFehler && anzeige.rot && (
               <p className={styles.fehlerText}>
-                Die Verarbeitung ist fehlgeschlagen. Die Bilder liegen weiter sicher im Eingang.{" "}
+                Die Verarbeitung ist fehlgeschlagen. {anzeige.rot}{" "}
                 <a href={laufFehler.url} target="_blank" rel="noopener noreferrer">
                   Lauf ansehen ↗
                 </a>
               </p>
             )}
-            {anstossFehler && <p className={styles.fehlerText}>{anstossFehler.text}</p>}
+            {anstossFehler && !anstossFehler.anmelden && <p className={styles.fehlerText}>{anstossFehler.text}</p>}
             {abgemeldet && (
-              <p className={styles.leise}>
-                <AnmeldenLink />
+              <p className={styles.fehlerText}>
+                {netzText(404, null)} <AnmeldenLink />
               </p>
             )}
-            {anstossbar && (
+            {anzeige.knopf && (
               <div className={styles.knopfreihe}>
                 <button type="button" className={styles.knopf} disabled={startet} onClick={() => void stosseAn()}>
-                  {startet ? "Startet …" : anstossFehler ? "Noch einmal versuchen" : "Verarbeitung starten"}
+                  {startet ? "Startet …" : anzeige.knopf}
                 </button>
               </div>
             )}
             {/* Scheitert ein Bild immer wieder, hängt es sonst für immer im
                 Eingang — und jeder Lauf endet rot. Während eines Laufs nicht:
                 Dann liest die Action gerade daraus. */}
-            {laufFehler && !laufend && wartend.length > 0 && (
+            {anzeige.verwerfen && (
               <>
                 <p className={styles.leise}>
                   Scheitert es immer wieder, liegt es meist an einem Bild. Verwirf es und lade es neu als JPEG exportiert
@@ -1416,7 +1477,8 @@ function VerwerfenDialog({
             >
               {laeuft ? "Verwirft …" : "Verwerfen"}
             </button>
-            <button type="button" className={styles.knopf} onClick={schliesse}>
+            {/* Gesperrt, solange es läuft: Das Löschen ist dann schon unterwegs. */}
+            <button type="button" className={styles.knopf} disabled={laeuft} onClick={schliesse}>
               Abbrechen
             </button>
           </div>

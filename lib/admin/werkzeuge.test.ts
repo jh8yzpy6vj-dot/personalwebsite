@@ -9,8 +9,12 @@ import {
   aendereFilm,
   alleFotos,
   angekommen,
+  ausgewertet,
   erwarteteBilder,
   letzterFehlschlag,
+  nachDemEingang,
+  ROT_RUNDEN,
+  verarbeitungsanzeige,
   alleUeberBilder,
   ausschnittAus,
   ausserhalb,
@@ -768,6 +772,117 @@ describe("Hochladen und Verarbeitung", () => {
     expect(angekommen([], {})).toBe(true);
     // Nur eigene Schlüssel zählen, nichts aus dem Prototyp.
     expect(angekommen(["toString"], {})).toBe(false);
+  });
+
+  it("wertet einen roten Lauf aus, sobald etwas angekommen ist — sonst nach ROT_RUNDEN", () => {
+    const neu = { "ueber/06": {} };
+    // Grün: erst, wenn alles da ist — egal, wie lange.
+    expect(ausgewertet(["ueber/06", "ueber/07"], neu, false, 1)).toBe(false);
+    expect(ausgewertet(["ueber/06", "ueber/07"], neu, false, 99)).toBe(false);
+    expect(ausgewertet(["ueber/06"], neu, false, 1)).toBe(true);
+    // Rot mit Teil-Commit: das gute ist da, das andere kommt mit diesem Lauf nie.
+    expect(ausgewertet(["ueber/06", "ueber/07"], neu, true, 1)).toBe(true);
+    // Rot, nichts da: GitHub hinkt vielleicht hinterher — erst nach ROT_RUNDEN aufgeben.
+    expect(ausgewertet(["ueber/07"], neu, true, 1)).toBe(false);
+    expect(ausgewertet(["ueber/07"], neu, true, ROT_RUNDEN - 1)).toBe(false);
+    expect(ausgewertet(["ueber/07"], neu, true, ROT_RUNDEN)).toBe(true);
+    // Nichts erwartet (alles liegt noch im Eingang): sofort.
+    expect(ausgewertet([], {}, true, 1)).toBe(true);
+    expect(ausgewertet(["toString"], {}, true, 1)).toBe(false);
+  });
+
+  it("teilt Hochgeladenes außerhalb des Eingangs in fertig und vermisst", () => {
+    const manifest = { "ueber/01": {}, "ueber/06": {} };
+    // ueber/07 liegt noch im Eingang, ueber/01 ist ersetzt und fertig, ueber/08 hängt dazwischen.
+    expect(nachDemEingang(["ueber/01", "ueber/06", "ueber/07", "ueber/08", "ueber/08"], ["ueber/07"], manifest)).toEqual({
+      fertig: ["ueber/01", "ueber/06"],
+      vermisst: ["ueber/08"],
+    });
+    expect(nachDemEingang([], ["ueber/07"], manifest)).toEqual({ fertig: [], vermisst: [] });
+    expect(nachDemEingang(["toString"], [], {}).vermisst).toEqual(["toString"]);
+  });
+
+  describe("verarbeitungsanzeige", () => {
+    const ruhe = {
+      github: true,
+      laufend: false,
+      wartend: 0,
+      vermisst: 0,
+      hochgeladen: 0,
+      fertigeZeile: false,
+      rot: false,
+      anstossFehler: false,
+    };
+
+    it("sagt nichts und bietet nichts, wenn nichts ist", () => {
+      expect(verarbeitungsanzeige(ruhe)).toEqual({ satz: "", rot: null, knopf: null, verwerfen: false });
+    });
+
+    it("nach dem Hochladen: startet gleich, ohne Knopf", () => {
+      const a = verarbeitungsanzeige({ ...ruhe, hochgeladen: 1, fertigeZeile: true, vermisst: 1 });
+      expect(a.satz).toBe("Hochgeladen. Die Verarbeitung startet gleich.");
+      expect(a.knopf).toBeNull();
+    });
+
+    it("roter Lauf mit Teil-Commit: das kaputte wartet, im Eingang, mit Verwerfen", () => {
+      const a = verarbeitungsanzeige({ ...ruhe, wartend: 1, hochgeladen: 1, fertigeZeile: true, rot: true });
+      expect(a.satz).toBe("Ein Bild wartet auf die Verarbeitung.");
+      expect(a.rot).toBe("Das Bild liegt weiter sicher im Eingang.");
+      expect(a.knopf).toBe("Noch einmal versuchen");
+      expect(a.verwerfen).toBe(true);
+      expect(verarbeitungsanzeige({ ...ruhe, wartend: 2, rot: true }).rot).toBe("Die Bilder liegen weiter sicher im Eingang.");
+    });
+
+    it("roter Lauf, Eingang leer, Bild nicht im Manifest: kein „startet gleich“, kein „im Eingang“, aber ein Knopf", () => {
+      const a = verarbeitungsanzeige({ ...ruhe, vermisst: 1, hochgeladen: 1, fertigeZeile: true, rot: true });
+      expect(a.satz).toBe("");
+      expect(a.rot).toBe("Verloren ist nichts — versuch es noch einmal.");
+      expect(a.knopf).toBe("Noch einmal versuchen");
+      expect(a.verwerfen).toBe(false);
+      // Wartet daneben noch etwas, stimmt „im Eingang“ nur halb — dann der allgemeine Satz.
+      expect(verarbeitungsanzeige({ ...ruhe, wartend: 1, vermisst: 1, rot: true }).rot).toBe(
+        "Verloren ist nichts — versuch es noch einmal.",
+      );
+    });
+
+    it("roter Lauf, der nichts mehr betrifft, oder während ein neuer läuft: kein roter Lauf", () => {
+      // Alles angekommen, nichts wartet (etwa nur die Vorschaukarte gescheitert).
+      expect(verarbeitungsanzeige({ ...ruhe, rot: true })).toEqual({ satz: "", rot: null, knopf: null, verwerfen: false });
+      // Ein neuer Lauf läuft: dessen Ergebnis zählt, kein Knopf, kein Verwerfen.
+      const a = verarbeitungsanzeige({ ...ruhe, laufend: true, wartend: 1, vermisst: 1, rot: true });
+      expect(a.satz).toMatch(/^Die Bilder werden verarbeitet/);
+      expect(a.rot).toBeNull();
+      expect(a.knopf).toBeNull();
+      expect(a.verwerfen).toBe(false);
+    });
+
+    it("Anstoß gescheitert: Grund im Satz, Knopf zum Wiederholen", () => {
+      const a = verarbeitungsanzeige({ ...ruhe, hochgeladen: 1, fertigeZeile: true, anstossFehler: true });
+      expect(a.satz).toBe("Hochgeladen, aber die Verarbeitung ließ sich nicht starten.");
+      expect(a.knopf).toBe("Noch einmal versuchen");
+      expect(verarbeitungsanzeige({ ...ruhe, wartend: 2 }).knopf).toBe("Verarbeitung starten");
+    });
+
+    it("widerspricht sich nie und lässt nichts ohne Weg weiter", () => {
+      const ja = [false, true];
+      for (const laufend of ja)
+        for (const rot of ja)
+          for (const anstossFehler of ja)
+            for (const fertigeZeile of ja)
+              for (const wartend of [0, 1, 2])
+                for (const vermisst of [0, 1]) {
+                  const l = { ...ruhe, laufend, rot, anstossFehler, fertigeZeile, wartend, vermisst, hochgeladen: vermisst };
+                  const a = verarbeitungsanzeige(l);
+                  // „startet gleich“ nie zusammen mit einem roten Lauf oder gescheitertem Anstoß.
+                  if (a.satz.includes("startet gleich")) expect(a.rot === null && !anstossFehler).toBe(true);
+                  // „im Eingang“ nur, wenn dort etwas liegt und nichts dazwischen hängt.
+                  if (a.rot?.includes("im Eingang")) expect(wartend > 0 && vermisst === 0).toBe(true);
+                  // Ein roter Lauf, der etwas betrifft, hat immer einen Knopf.
+                  if (a.rot !== null) expect(a.knopf).toBe("Noch einmal versuchen");
+                  // Ohne GitHub nie ein Knopf.
+                  expect(verarbeitungsanzeige({ ...l, github: false }).knopf).toBeNull();
+                }
+    });
   });
 
   it("schreibt Größen deutsch", () => {

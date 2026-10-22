@@ -811,8 +811,11 @@ select.eingabe {
   gap: var(--space-xs) var(--space-md);
 }
 
-/* „Abbrechen", „Noch einmal", „Ausblenden", „Verwerfen" — rechts in der Zeile. */
+/* „Abbrechen", „Noch einmal", „Ausblenden", „Verwerfen" — rechts in der Zeile.
+   Immer in der letzten Spalte: Die wartenden Bilder haben keinen Zustand
+   dazwischen, sonst stünde „Verwerfen" um einen Abstand nach links versetzt. */
 .auftragKnoepfe {
+  grid-column: -2 / -1;
   display: flex;
   justify-content: flex-end;
   gap: var(--space-xs);

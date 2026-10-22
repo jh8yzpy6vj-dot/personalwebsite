@@ -262,6 +262,9 @@ Seit 2026-10-21 ohne Sackgassen (`app/admin/hochladen.ts`, `Verwaltung.tsx`):
   schreibt nur noch der Server; hängt der, hilft „Abbrechen".
 - **„Abbrechen", „Noch einmal", „Ausblenden"** je Zeile. „Noch einmal" schickt dieselbe Datei; ein
   neues Bild bekommt dabei die nächste freie Nummer (die alte kann inzwischen vergeben sein).
+  Antwortet der Server beim Hochladen mit 404 (Anmeldung abgelaufen), geht der Rest der Schlange
+  nicht mehr hinaus, sondern steht auf „abgebrochen"; ab zwei solchen Zeilen gibt es „Alle noch
+  einmal".
 - Solange etwas wartet oder lädt, **warnt der Browser beim Schließen** und „Abmelden" fragt nach
   — genau einmal (`verlassenErlaubt`).
 - **Anstoß gescheitert** (`POST /api/admin/verarbeiten`): Die Verwaltung schaut sofort nach, was
@@ -273,8 +276,19 @@ Seit 2026-10-21 ohne Sackgassen (`app/admin/hochladen.ts`, `Verwaltung.tsx`):
 - **Nach einem grünen Lauf** holt die Verwaltung `/api/admin/stand` und wertet den Lauf erst aus,
   wenn die neuen Bilder im Manifest stehen (`erwarteteBilder`/`angekommen` in
   `lib/admin/werkzeuge.ts`) — GitHub liefert direkt nach dem Commit der Action manchmal noch das
-  alte. Sonst nächste Runde noch einmal. Bringt der Stand eine neue `sha` (die Action hat den
-  Papierkorb geleert), übernimmt sie Inhalt und `sha`, wenn nichts ungespeichert ist; sonst nur die
+  alte. Sonst nächste Runde noch einmal.
+- **Nach einem roten Lauf genauso** (seit 2026-10-22, `ausgewertet`): ⚠️ Auch ein roter Lauf
+  committet, was fertig ist — „Eingang übernehmen" hat `continue-on-error`, „Änderungen
+  committen" läuft trotz Fehlern, erst „Ergebnis des Eingangs" färbt rot. Vorher holte die
+  Verwaltung nach Rot keinen Stand, die guten Bilder kamen nie an, und nach dem Verwerfen des
+  kaputten blieb „startet gleich" ohne Knopf stehen. Ausgewertet ist ein roter Lauf, sobald
+  wenigstens eins der erwarteten Bilder im Manifest steht, sonst nach höchstens `ROT_RUNDEN`
+  Runden. Aus `hochgeladen` fällt nur, was den Eingang verlassen hat **und** im Manifest steht
+  (`nachDemEingang`). Was dazwischen hängt (übernommen, aber Varianten oder Push gescheitert —
+  das Original liegt schon im Bucket, verloren ist nichts), hält die Abfrage am Laufen und bietet
+  „Noch einmal versuchen". Was der Bereich dazu sagt, legt `verarbeitungsanzeige` fest.
+- **Neue `sha` nach einem Lauf** (die Action hat den Papierkorb geleert): Die Verwaltung übernimmt
+  Inhalt und `sha`, wenn nichts ungespeichert ist (Rückgängig beginnt dann neu); sonst nur die
   Bilder, und ein Band kündigt die Rückfrage beim Speichern an. Eine `sha`, die die Verwaltung
   schon hatte, gilt als „GitHub hinkt hinterher" und wird nicht übernommen — sonst drehte ein
   verspäteter Abruf eine eigene Speicherung in der Anzeige zurück.

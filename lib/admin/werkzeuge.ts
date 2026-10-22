@@ -930,7 +930,7 @@ export function letzterFehlschlag(v: Verarbeitung): Lauf | null {
 }
 
 /**
- * Welche Bilder nach einem erfolgreichen Lauf im Manifest stehen **müssen**:
+ * Welche Bilder nach einem fertigen Lauf im Manifest stehen **müssen**:
  * die, die bisher unterwegs waren (hochgeladen oder im Eingang), jetzt nicht
  * mehr im Eingang liegen und vorher nicht im Manifest standen. Ersetzte
  * Bilder zählen nicht — ihr Schlüssel steht ohnehin schon darin.
@@ -945,12 +945,126 @@ export function erwarteteBilder(
 
 /**
  * Stehen alle erwarteten Bilder im geholten Manifest? Erst dann gilt ein
- * Lauf als ausgewertet. ⚠️ Status 200 allein reicht nicht: GitHub liefert
+ * grüner Lauf als ausgewertet. ⚠️ Status 200 allein reicht nicht: GitHub liefert
  * kurz nach dem Commit der Action manchmal noch das alte Manifest — dann
  * verschwänden die Platzhalter, ohne dass die neuen Bilder erscheinen.
  */
 export function angekommen(erwartet: readonly string[], bilder: Record<string, unknown>): boolean {
   return erwartet.every((s) => Object.hasOwn(bilder, s));
+}
+
+/** Nach einem roten Lauf: so viele Runden höchstens, in denen keins der erwarteten Bilder ankommt. */
+export const ROT_RUNDEN = 3;
+
+/**
+ * Gilt ein fertiger Lauf mit diesem Manifest als ausgewertet? Grün erst,
+ * wenn alle erwarteten Bilder darin stehen (`angekommen`).
+ *
+ * ⚠️ Auch ein **roter** Lauf committet, was fertig ist (`medien.yml`: „Eingang
+ * übernehmen" mit continue-on-error, „Änderungen committen" trotz Fehlern) —
+ * die guten Bilder können also schon im Manifest stehen, nur der Rest kommt
+ * mit diesem Lauf nie. Rot gilt deshalb schon als ausgewertet, wenn
+ * **wenigstens eins** angekommen ist: Dann ist es das neue Manifest. Kommt
+ * keins, hinkt GitHub vielleicht nur hinterher — oder der Lauf hat nichts
+ * geschafft; nach `ROT_RUNDEN` Runden (`runde` zählt ab 1) zählt er trotzdem.
+ */
+export function ausgewertet(
+  erwartet: readonly string[],
+  bilder: Record<string, unknown>,
+  rot: boolean,
+  runde: number,
+): boolean {
+  if (angekommen(erwartet, bilder)) return true;
+  return rot && (erwartet.some((s) => Object.hasOwn(bilder, s)) || runde >= ROT_RUNDEN);
+}
+
+/**
+ * Hochgeladenes, das nicht mehr im Eingang liegt: `fertig` steht im
+ * Manifest, `vermisst` nicht. Nach einem grünen Lauf ist `vermisst` leer.
+ * Nach einem roten kann etwas dazwischen hängen — übernommen, aber Varianten
+ * oder Commit sind gescheitert. Verloren ist es nicht (das Original liegt
+ * schon im Bucket, der nächste Lauf rechnet nach), es braucht nur einen
+ * neuen Lauf.
+ */
+export function nachDemEingang(
+  hochgeladen: Iterable<string>,
+  wartend: readonly string[],
+  bilder: Record<string, unknown>,
+): { fertig: string[]; vermisst: string[] } {
+  const draussen = [...new Set(hochgeladen)].filter((s) => !wartend.includes(s));
+  return {
+    fertig: draussen.filter((s) => Object.hasOwn(bilder, s)),
+    vermisst: draussen.filter((s) => !Object.hasOwn(bilder, s)),
+  };
+}
+
+/** Was der Bereich „Hochladen und Verarbeitung" sagt und anbietet. */
+export type Verarbeitungsanzeige = {
+  /** Der leise Satz zum Stand (`""`: keiner). */
+  satz: string;
+  /** Was hinter „Die Verarbeitung ist fehlgeschlagen." steht — `null`: kein roter Lauf zu zeigen. */
+  rot: string | null;
+  /** Die Beschriftung des Knopfs zum Anstoßen — `null`: keiner. */
+  knopf: string | null;
+  /** Die wartenden Bilder mit „Verwerfen" zeigen. */
+  verwerfen: boolean;
+};
+
+/**
+ * Satz, roter Lauf und Knopf des Bereichs an einer Stelle, damit sich nichts
+ * widerspricht. Vorher stand nach einem roten Lauf zugleich „Die Verarbeitung
+ * startet gleich." und „… liegen weiter sicher im Eingang" da, obwohl nichts
+ * startete und der Eingang leer war — und kein Knopf führte weiter.
+ *
+ * Ein roter Lauf zählt nur, solange er etwas betrifft, das wartet oder
+ * dazwischen hängt (wie beim ersten Blick, `letzterFehlschlag`), und nicht,
+ * während ein neuer läuft — dann zählt dessen Ergebnis.
+ */
+export function verarbeitungsanzeige(l: {
+  /** Speichern ist eingerichtet — ohne GitHub lässt sich nichts anstoßen. */
+  github: boolean;
+  laufend: boolean;
+  wartend: number;
+  /** Hochgeladen, weder im Eingang noch im Manifest (`nachDemEingang`). */
+  vermisst: number;
+  /** In dieser Sitzung hochgeladen, noch nicht im Manifest angekommen. */
+  hochgeladen: number;
+  /** Eine Zeile steht auf „hochgeladen". */
+  fertigeZeile: boolean;
+  /** Der letzte Lauf war rot. */
+  rot: boolean;
+  /** Der Anstoß ist gescheitert. */
+  anstossFehler: boolean;
+}): Verarbeitungsanzeige {
+  const rot = l.rot && !l.laufend && (l.wartend > 0 || l.vermisst > 0);
+  const satz = l.laufend
+    ? "Die Bilder werden verarbeitet (Standortdaten entfernen, Größen rechnen). Das dauert ein paar Minuten — du kannst weiterarbeiten."
+    : l.wartend > 0
+      ? `${l.wartend === 1 ? "Ein Bild wartet" : `${l.wartend} Bilder warten`} auf die Verarbeitung.`
+      : !l.fertigeZeile
+        ? ""
+        : l.anstossFehler
+          ? "Hochgeladen, aber die Verarbeitung ließ sich nicht starten."
+          : rot
+            ? ""
+            : "Hochgeladen. Die Verarbeitung startet gleich.";
+  /* Anstoßen geht, wenn etwas wartet, wenn eben Hochgeladenes nicht
+     angestoßen werden konnte — oder wenn nach einem roten Lauf etwas
+     dazwischen hängt: Sonst käme es erst mit dem nächtlichen Lauf. */
+  const anstossbar =
+    l.github && !l.laufend && (l.wartend > 0 || (l.anstossFehler && l.hochgeladen > 0) || (rot && l.vermisst > 0));
+  return {
+    satz,
+    rot: !rot
+      ? null
+      : l.vermisst > 0
+        ? "Verloren ist nichts — versuch es noch einmal."
+        : l.wartend === 1
+          ? "Das Bild liegt weiter sicher im Eingang."
+          : "Die Bilder liegen weiter sicher im Eingang.",
+    knopf: !anstossbar ? null : l.anstossFehler || rot ? "Noch einmal versuchen" : "Verarbeitung starten",
+    verwerfen: rot && l.wartend > 0,
+  };
 }
 
 /** Megabyte, auf eine Stelle: „12,3 MB". */

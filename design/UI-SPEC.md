@@ -521,11 +521,12 @@ Umbaus abgehakt.
 - **Abgelaufene Anmeldung** (seit 2026-10-21): „Die Anmeldung ist abgelaufen. Melde dich in einem
   neuen Tab neu an, komm hierher zurück und versuch es noch einmal — deine Änderungen hier
   bleiben erhalten." Steht der Text in der Leiste (Speichern gescheitert), folgt dahinter der Link
-  **„In neuem Tab anmelden ↗"** (`/admin`, neuer Tab); ebenso einmal unten im Bereich
-  „Hochladen und Verarbeitung" und in der Rückfrage zum Verwerfen — **nicht** in jeder
-  Hochlade-Zeile. Begründung: Vorher hieß es „Lade die Seite neu" — wer dem folgte, verlor alles
-  Ungespeicherte. Das Sitzungs-Cookie gilt für alle Tabs; nach der Anmeldung im zweiten Tab
-  klappt es hier wieder.
+  **„In neuem Tab anmelden ↗"** (`/admin`, neuer Tab); ebenso in der Rückfrage zum Verwerfen und
+  im Bereich „Hochladen und Verarbeitung" — dort Text und Link **einmal unten**, nicht in jeder
+  Hochlade-Zeile (die Zeile sagt nur „nicht hochgeladen"; seit 2026-10-22 auch der Text, vorher
+  stand er in jeder gescheiterten Zeile). Begründung: Vorher hieß es „Lade die Seite neu" — wer
+  dem folgte, verlor alles Ungespeicherte. Das Sitzungs-Cookie gilt für alle Tabs; nach der
+  Anmeldung im zweiten Tab klappt es hier wieder.
 - **Hochladen und Verarbeitung** (Bereich über den Reitern, seit 2026-10-21): Je Datei eine Zeile —
   Name, Zustand leise („wartet" · „{n} %" · „hochgeladen" · „abgebrochen"; „nicht hochgeladen"
   normal, der Grund darunter als Fehlertext) und rechts leise Knöpfe (44px): **„Abbrechen"**
@@ -535,19 +536,35 @@ Umbaus abgehakt.
   Standbild), verschwinden dessen alte Fehlerzeilen. Kommt 90 Sekunden lang kein Fortschritt:
   „Die Übertragung kam 90 Sekunden lang nicht voran — vermutlich ist die Verbindung weg. Versuch
   es noch einmal." — bewusst kein festes Zeitlimit, 40 MB über eine langsame Leitung dürfen dauern.
+  Scheitert eine Datei an der abgelaufenen Anmeldung, wird der Rest der Schlange nicht mehr
+  geschickt, sondern steht auf „abgebrochen" (mit „Noch einmal"). Sind zwei oder mehr Zeilen
+  wiederholbar, steht unter der Liste der Knopf **„Alle noch einmal"** (seit 2026-10-22).
   Ließ sich die Verarbeitung nicht anstoßen: „Hochgeladen, aber die Verarbeitung ließ sich nicht
   starten." (bzw. „{n} Bilder warten auf die Verarbeitung."), darunter der Grund als Fehlertext
   und der Knopf **„Noch einmal versuchen"** (sonst „Verarbeitung starten"). War der letzte Lauf
-  rot und läuft gerade keiner, folgt unter „Die Verarbeitung ist fehlgeschlagen …" leise
+  rot und läuft gerade keiner, steht als Fehlertext „Die Verarbeitung ist fehlgeschlagen." und
+  dahinter — liegt nur noch etwas im Eingang — „Das Bild liegt / Die Bilder liegen weiter sicher
+  im Eingang.", hängt dagegen Hochgeladenes zwischen Eingang und Manifest (übernommen, aber
+  Varianten oder Commit gescheitert) „Verloren ist nichts — versuch es noch einmal."; je mit
+  „Lauf ansehen ↗" und dem Knopf **„Noch einmal versuchen"**. „Die Verarbeitung startet gleich."
+  steht dann nicht da. Ein roter Lauf, nach dem nichts mehr wartet oder fehlt, wird nicht gezeigt
+  (wie beim Öffnen). Wartet etwas, folgt leise
   „Scheitert es immer wieder, liegt es meist an einem Bild. Verwirf es und lade es neu als JPEG
   exportiert noch einmal hoch:" und die wartenden Bilder (Bezeichnung wie im Papierkorb), je mit
-  **„Verwerfen"**. Rückfrage „„{Bild}" verwerfen?" mit „Das Bild wurde noch nicht verarbeitet.
-  Verwerfen löscht es aus dem Eingang; auf der Seite ändert sich nichts. Exportier es am besten
-  neu als JPEG und lade es noch einmal hoch.", Knöpfe „Verwerfen" (Hauptknopf) und „Abbrechen";
-  sie schließt erst nach Erfolg, sonst steht der Grund darin. Begründung: Ein hängender Upload
+  **„Verwerfen"** — bündig mit den Knöpfen der Hochlade-Zeilen. Rückfrage „„{Bild}" verwerfen?"
+  mit „Das Bild wurde noch nicht verarbeitet. Verwerfen löscht es aus dem Eingang; auf der Seite
+  ändert sich nichts. Exportier es am besten neu als JPEG und lade es noch einmal hoch.", Knöpfe
+  „Verwerfen" (Hauptknopf) und „Abbrechen", beide gesperrt, solange „Verwirft …" läuft; sie
+  schließt erst nach Erfolg, sonst steht der Grund darin. Begründung: Ein hängender Upload
   hielt die ganze Schlange für immer auf, Fehlerzeilen ließen sich nicht entfernen, nach einem
   gescheiterten Anstoß gab es keinen Knopf (und gleichzeitig „Die Verarbeitung startet gleich."),
   und ein Bild, an dem die Action scheitert, konnte nur Jan im R2-Dashboard entfernen.
+  Nachgebessert 2026-10-22: Ein roter Lauf hat die guten Bilder oft schon committet — die
+  Verwaltung holte sie nicht, und nach dem Verwerfen des kaputten blieb „Hochgeladen. Die
+  Verarbeitung startet gleich." ohne Knopf für immer stehen; bei leerem Eingang stand „startet
+  gleich" neben „… liegen weiter sicher im Eingang", ebenfalls ohne Knopf. Nach einer
+  abgelaufenen Anmeldung lief jede weitere Datei des Stapels in denselben Fehler, jede Zeile mit
+  dem langen Text.
 - **Band „Inzwischen wurde der Inhalt anderswo geändert (zum Beispiel hat die Bildverarbeitung
   den Papierkorb geleert). Beim Speichern gibt es deshalb eine Rückfrage."** (seit 2026-10-21) —
   wie „nicht eingerichtet", keine eigene Farbe. Erscheint, wenn die Verarbeitung eine neue Fassung
