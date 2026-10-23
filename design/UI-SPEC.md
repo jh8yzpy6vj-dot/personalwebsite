@@ -406,7 +406,18 @@ Umbaus abgehakt.
 - **Dieselben Tokens wie die Seite:** dunkle Fläche `--grund`, eine Schriftfarbe `--schrift`,
   `--leise` für Zurückgenommenes, Schrift `--font-text`, nur die Größen **14px** (Label) und
   **18px** (Text). Flächen und Linien sind Mischungen aus `--schrift` und `--grund`
-  (6 %, 11 %, 22 %), keine neuen Farben.
+  (6 %, 11 %, 22 %), keine neuen Farben. Zwei begründete Mischungen dazu (seit 2026-10-23, beide
+  aus denselben Tokens):
+  - **Rahmen der Eingabefelder: `--schrift` 40 %** in `--grund` — gemessen 3,56:1 auf dem
+    Feldgrund (`--grund`), 3,14:1 auf `--flaeche` daneben. WCAG 1.4.11 verlangt für die
+    Begrenzung eines Bedienelements 3:1; mit `--linie` (22 %) waren es 1,87:1 bzw. 1,66:1, ein
+    leeres Feld war kaum zu sehen. Gestrichelt bleibt der Rahmen bei schreibgeschützten Feldern. Die Rahmen von
+    Kacheln, Zeilen und Knöpfen bleiben `--linie` — sie sind Gliederung, kein Bedienelement.
+  - **`--leise` auf Flächen** (Zeilen, Kacheln, Befunde, Bänder, „Hochladen und Verarbeitung",
+    Meldung): `color-mix(in srgb, var(--leise) 85%, var(--schrift))` — gemessen 5,58:1 auf
+    `--flaeche`, 4,88:1 auf `--flaeche-hoch`. `--leise` selbst erreicht dort nur 4,46:1 bzw.
+    3,89:1, unter den 4,5:1 der Qualitätsuntergrenze (Feldbeschriftungen, Unterzeilen, Orte der
+    Befunde). Auf `--grund` bleibt es `--leise` (5,04:1). Alle Werte im Browser nachgemessen.
 - ⚠️ **Einzige Ausnahme von der Farbregel: `--rec` markiert in der Verwaltung Fehler**, die das
   Speichern blockieren. Begründung: Die Verwaltung sieht kein Besucher, und ein solcher Fehler muss
   sofort auffallen. Sonst auch hier kein Rot — Löschen-Knöpfe bleiben farblos.
@@ -424,12 +435,16 @@ Umbaus abgehakt.
   Hochladen bricht ab. Trotzdem abmelden?"; danach kein zweites „Seite verlassen?" des Browsers);
   darunter Reiter
   **Fotos · Hero · Arbeiten · Über mich · Filme · Startseite · Papierkorb · Verlauf**
-  (Pfeiltasten wechseln den Reiter; der Reiter „Hero" heißt so, er meint die Blende oben auf
-  `/foto` — der obere Teil der Startseite heißt nirgends „Hero", siehe *Startseite*); unten eine
-  feste Leiste mit Speicherstand, „Zum Fehler" (nur neben „Erst den Fehler oben beheben …", siehe
-  *Prüfung*), optionaler Nachricht, „Alles verwerfen" (nur solange Ungespeichertes da ist),
-  „Rückgängig" und „Speichern", darüber, solange eine steht, die Zeile mit der Meldung — siehe
-  *Rückgängig, Meldungen, Tasten*.
+  (Pfeiltasten, Pos1 und Ende wechseln den Reiter; der Reiter „Hero" heißt so, er meint die
+  Blende oben auf `/foto` — der obere Teil der Startseite heißt nirgends „Hero", siehe
+  *Startseite*); unten eine feste Leiste mit Speicherstand, „Zum Fehler" (nur neben „Erst den
+  Fehler oben beheben …", siehe *Prüfung*), dem Feld **„Notiz für den Verlauf (optional)"**
+  (sichtbare Beschriftung darüber, 14px wie die Leiste; vorgefüllt mit der Zusammenfassung,
+  solange Ungespeichertes da ist), „Alles verwerfen" (nur solange Ungespeichertes da ist),
+  „Rückgängig" und „Speichern", unten bündig mit dem Feld, darüber, solange eine steht, die
+  Zeile mit der Meldung — siehe *Rückgängig, Meldungen, Tasten*. Passt die Reiterleiste nicht
+  ganz ins Fenster, rückt sie den aktiven Reiter beim Wechsel in den Blick (nur sie, nie die
+  Seite). Einen Ausblendverlauf am Rand gibt es nicht: Ab 1024px passen alle acht Reiter.
 - **Rückgängig, Meldungen, Tasten** (seit 2026-10-22):
   - **„Rückgängig"** ist ein leiser Knopf mit dem Zeichen „zurück" links von „Speichern",
     gesperrt, solange es nichts zurückzunehmen gibt und solange gespeichert wird. Er und
@@ -531,7 +546,12 @@ Umbaus abgehakt.
   für Tastatur und Screenreader. Ausblenden statt Löschen ist der Normalfall; Gelöschtes liegt
   **30 Tage** im Papierkorb und lässt sich zurückholen. Weite Wege gehen im Bild-Panel mit einem
   Schritt: „An den Anfang", „Ans Ende" und das Feld „Platz" (siehe *Bild-Panel*); der Hilfetext
-  über dem Mosaik und bei „Neue Bilder" sagt das.
+  über dem Mosaik und bei „Neue Bilder" sagt das. Beim Ziehen scrollt die Seite mit, sobald der
+  Zeiger 72px vor die Reiterleiste oder die Speicherleiste kommt (oder darauf) — gemessen an den
+  Leisten, nicht am Fensterrand; je näher, desto schneller. Steht der Zeiger auf einer Leiste,
+  zählt der Platz direkt davor. Begründung (2026-10-23): Die Zone begann erst am Fensterrand,
+  also hinter der Speicherleiste; knapp darüber geschah nichts, und auf der Leiste scrollte die
+  Seite, ohne dass das Bild mitwanderte.
 - **Symbole und ihre Namen** (seit 2026-10-22): Über dem Raster im Reiter Fotos eine leise
   **Legende**: „[Auge] auf der Seite zeigen oder verstecken · [Stern] im Hero oben auf /foto ·
   [Eimer] in den Papierkorb (30 Tage)", in „Bilder auf /ueber" dieselbe ohne Stern. Die Knöpfe
@@ -801,14 +821,51 @@ Umbaus abgehakt.
   zurückholen." — Knöpfe weiter gesperrt. Begründung (2026-10-21): Die alte Liste blieb stehen,
   und „Letzte Speicherung zurücknehmen" zeigte auf den Eintrag davor.
 - **Zeilenlisten** (Hero, Arbeiten, Filme, Papierkorb, Verlauf): eine Spalte, so breit wie der
-  Platz; lange Titel enden mit „…" (im Verlauf brechen sie um). Kein waagerechtes Scrollen
-  zwischen 320 und 414px — vorher legte der längste Titel die Breite der Liste fest.
+  Platz; lange Titel enden mit „…" (im Verlauf brechen sie um). Kein waagerechtes Scrollen —
+  vorher legte der längste Titel die Breite der Liste fest.
 - **Band im Entwicklungsmodus** (nur `next dev` mit Schreibfreigabe, nie in Produktion):
   „Entwicklungsmodus — Speichern schreibt auf {Repo}@{Branch}. Ist das main, geht es sofort
   live." Dasselbe Band wie „Speichern ist noch nicht eingerichtet", keine eigene Farbe — es ist
   ein Hinweis für Jan, kein Fehler.
-- **Qualitätsuntergrenze wie oben:** Trefferflächen ≥ 44px, sichtbarer Fokus, nutzbar ab
-  **375px** Breite, `:hover` nur unter `(hover: hover) and (pointer: fine)`.
+- **Knöpfe: überfahren, gedrückt, Fokus** (seit 2026-10-23):
+  - **Überfahren** nur unter `(hover: hover) and (pointer: fine)` und nur die Fläche: Knöpfe,
+    leise Knöpfe, Symbolknöpfe und der Griff bekommen `--flaeche-hoch` (auch auf Kacheln und
+    Zeilen, die selbst `--flaeche` sind, noch zu sehen; der Griff dazu `--schrift`), der leise
+    Knopf in der Meldung `--flaeche`, der Hauptknopf `--schrift` 85 %, die Reiter `--schrift` als
+    Schriftfarbe.
+  - **Gedrückt** (`aria-pressed`, auch der Stift einer aufgeklappten Zeile, `aria-expanded`):
+    `--flaeche-hoch` **und ein 1px-Rahmen innen in `--schrift`** — gedrückt sieht nie aus wie
+    überfahren.
+  - **Fokusring** (2px `--schrift`) nur bei `:focus-visible` — nach einem Mausklick bleibt keiner
+    stehen. Am Dateiknopf erscheint er am sichtbaren Knopf, sobald das versteckte Dateifeld per
+    Tastatur den Fokus hat.
+  - Begründung: Überfahren setzte dieselbe Fläche wie gedrückt — ein Auge, das man eben
+    eingeblendet hatte, sah unter der Maus weiter gedrückt aus; nach einem Klick auf „Vorschau"
+    blieb ein Rahmen wie „ausgewählt" stehen. Keine `:hover`-Regel stand in der Media-Query, die
+    die Qualitätsuntergrenze verlangt.
+- **Fokus unter den Leisten** (seit 2026-10-23): Reiter- und Speicherleiste messen ihre Höhe
+  (`ResizeObserver`, als `--reiter-h` und `--leiste-h` am `<html>`). Daraus der Scroll-Abstand
+  (`scroll-padding` oben Reiterleiste + 8px, unten Speicherleiste + 8px): Ein Element, das den
+  Fokus bekommt, liegt nie darunter. Oben gilt er nicht, solange ein Reiter selbst den Fokus hat
+  — die Reiterleiste klebt und läge sonst im eigenen Abstand; die Seite sprang dann bei jeder
+  Pfeiltaste in der Reiterleiste nach oben. Der freie Platz unter der Seite ist die Höhe der
+  Leiste plus 24px, mindestens 160px. Ebenso in Dialogen und im Seitenpanel: Ihr Kopf und die Meldung im
+  Panel kleben, ein fokussiertes Element liegt nie darunter (fester Scroll-Abstand aus Kopf- bzw.
+  Meldungshöhe plus 8px). Begründung: Beim Tab-Durchlauf im Reiter Fotos nach einer Änderung
+  lagen bei 1280×800 und 1024×768 je nach Lauf 29 bis 56 von 120 fokussierten Elementen zur
+  Hälfte oder ganz unter der Speicherleiste (WCAG 2.4.11); im Panel verschwanden „In den Hero"
+  und „Fertig" unter Kopf bzw. Meldung. Mit dem Abstand: keins. „Zum Fehler" holt die Prüfung
+  weiterhin ganz nach oben — sie steht über der Reiterleiste, der Abstand gilt dort nicht.
+- **Ausgeblendete Kacheln:** Gedimmt (35 %) wird nur das Bild; die Marken („ausgeblendet", „Hero",
+  „wird ersetzt") bleiben voll deckend. Vorher wurden sie mitgedimmt — ausgerechnet die Marke,
+  die den Zustand erklärt, lag bei 2,2:1.
+- **Qualitätsuntergrenze wie oben:** Trefferflächen ≥ 44px, sichtbarer Fokus, `:hover` nur unter
+  `(hover: hover) and (pointer: fine)`, Kontraste ≥ 4,5:1 (Text) und ≥ 3:1 (Rahmen von Feldern).
+  **Nur am PC** (ab 1024px Fensterbreite) — Jans Entscheidung vom 2026-10-21: Jakob pflegt die
+  Seite am Rechner; eine eigene Fassung fürs Handy (kompakte Leiste, Zoom- und
+  Tastatur-Feinheiten) kostet Aufwand, den niemand braucht. Am Handy darf nichts kaputtgehen,
+  was am PC funktioniert, es wird aber nicht eigens geprüft. Bis dahin hieß es „nutzbar ab
+  375px".
 
 ---
 

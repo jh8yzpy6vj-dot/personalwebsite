@@ -11,24 +11,69 @@
  * niemand außer Jakob, und ein Fehler, der Speichern blockiert, muss sofort
  * auffallen. Sonst nirgends Rot — auch nicht für Löschen-Knöpfe.
  *
- * Trefferflächen mindestens 44px, nutzbar ab 375px Breite.
+ * Trefferflächen mindestens 44px. Nur am PC (ab 1024px Fensterbreite) —
+ * am Handy darf nichts kaputtgehen, eigens gebaut wird dafür nichts.
+ *
+ * `:hover` steht **nur** im Block `(hover: hover) and (pointer: fine)` unten
+ * (UI-SPEC, Qualitätsuntergrenze) — und sieht nie aus wie gedrückt.
  */
 
 .seite {
   --flaeche: color-mix(in srgb, var(--schrift) 6%, var(--grund));
   --flaeche-hoch: color-mix(in srgb, var(--schrift) 11%, var(--grund));
   --linie: color-mix(in srgb, var(--schrift) 22%, var(--grund));
+  /* Rahmen der Eingabefelder: 3,56:1 auf --grund, 3,14:1 auf --flaeche
+     (WCAG 1.4.11) — --linie hätte 1,87:1. */
+  --linie-feld: color-mix(in srgb, var(--schrift) 40%, var(--grund));
+  /* --leise auf Flächen: 5,58:1 auf --flaeche, 4,88:1 auf --flaeche-hoch
+     (--leise selbst: 4,46:1 bzw. 3,89:1). Hier berechnet, an .seite —
+     darum kein Zyklus, wenn die Flächen unten --leise damit überschreiben. */
+  --leise-flaeche: color-mix(in srgb, var(--leise) 85%, var(--schrift));
 
   min-height: 100vh;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 var(--rand) 160px;
+  /* Unten frei für die Speicherleiste (gemessen in `Verwaltung.tsx`) —
+     mindestens 160px, damit die Seite nicht springt, wenn die Meldung kommt
+     und geht. */
+  padding: 0 var(--rand) max(160px, calc(var(--leiste-h, 136px) + var(--space-lg)));
   font-family: var(--font-text);
   font-size: var(--text-body);
   line-height: var(--leading-body);
   /* Die Seite trennt nach Sprachregeln — in Eingabefeldern und Knöpfen
      stört das nur. */
   hyphens: manual;
+}
+
+/*
+ * Ein fokussiertes Element liegt nie unter Reiter- oder Speicherleiste: Der
+ * Browser rechnet beim Fokussieren (und bei `scrollIntoView`) mit diesem
+ * Abstand. Die Höhen misst `Verwaltung.tsx` und setzt sie am <html>. Die
+ * Knöpfe der Speicherleiste verschieben die Seite nicht — sie ist fest.
+ *
+ * ⚠️ Oben nicht, solange ein Reiter den Fokus hat: Die Reiterleiste klebt
+ * und läge selbst im Abstand — bekam ein Reiter den Fokus (Pfeiltaste,
+ * Umschalt+Tab), sprang die Seite nach oben. (`scroll-margin` an den
+ * Elementen statt des Abstands hier hilft nicht: Chromium holt beim
+ * Fokussieren damit nur, was schon halb aus dem Fenster ragt.)
+ */
+:global(html):has(.seite) {
+  scroll-padding-top: calc(var(--reiter-h, 61px) + var(--space-sm));
+  scroll-padding-bottom: calc(var(--leiste-h, 61px) + var(--space-sm));
+}
+
+:global(html):has(.seite [role="tab"]:focus) {
+  scroll-padding-top: 0;
+}
+
+/* Auf Flächen ist --leise etwas heller — sonst unter 4,5:1. */
+.zeile,
+.kachel,
+.befundGruppe,
+.band,
+.auftraege,
+.meldung {
+  --leise: var(--leise-flaeche);
 }
 
 /* ── Kopf ───────────────────────────────────────────────────────────── */
@@ -112,10 +157,6 @@
   font: inherit;
   font-size: var(--text-label);
   cursor: pointer;
-}
-
-.reiterKnopf:hover {
-  color: var(--schrift);
 }
 
 .reiterKnopf[aria-selected="true"] {
@@ -203,12 +244,6 @@
   cursor: pointer;
 }
 
-.knopf:hover,
-.knopfHaupt:hover,
-.knopfLeise:hover {
-  background: var(--flaeche-hoch);
-}
-
 .knopfLeise {
   border-color: transparent;
   background: none;
@@ -219,10 +254,6 @@
   border-color: var(--schrift);
   background: var(--schrift);
   color: var(--grund);
-}
-
-.knopfHaupt:hover {
-  background: color-mix(in srgb, var(--schrift) 85%, var(--grund));
 }
 
 .knopf:disabled,
@@ -239,21 +270,14 @@
   cursor: not-allowed;
 }
 
-.knopfHaupt:disabled:hover {
-  background: var(--schrift);
-}
-
-/* Das echte Datei-Feld im Dateiknopf ist unsichtbar — der Fokus muss am
-   sichtbaren Knopf erscheinen. */
-.knopf:focus-within,
-.knopfLeise:focus-within {
+/* Den Fokusring tragen Knöpfe über :focus-visible (globals.css) — nach
+   einem Mausklick also keinen. Das echte Datei-Feld im Dateiknopf ist
+   unsichtbar: Hat es per Tastatur den Fokus, erscheint der Ring am
+   sichtbaren Knopf. */
+.knopf:has(input:focus-visible),
+.knopfLeise:has(input:focus-visible) {
   outline: 2px solid var(--schrift);
   outline-offset: 2px;
-}
-
-.knopf:has(input:focus:not(:focus-visible)),
-.knopfLeise:has(input:focus:not(:focus-visible)) {
-  outline: none;
 }
 
 .knopfSymbol {
@@ -271,15 +295,14 @@
   cursor: pointer;
 }
 
-.knopfSymbol:hover {
-  background: var(--flaeche-hoch);
-}
-
 /* Gedrückt — und der Stift einer aufgeklappten Zeile (Arbeiten, Filme,
-   Hero): Er bleibt der Stift, die Fläche zeigt, dass offen ist. */
+   Hero): Er bleibt der Stift, Fläche und Rahmen zeigen, dass offen ist.
+   Der Rahmen innen unterscheidet gedrückt von überfahren. */
+.knopf[aria-pressed="true"],
 .knopfSymbol[aria-pressed="true"],
 .knopfSymbol[aria-expanded="true"] {
   background: var(--flaeche-hoch);
+  box-shadow: inset 0 0 0 1px var(--schrift);
 }
 
 .symbol {
@@ -325,7 +348,7 @@
   width: 100%;
   min-height: 44px;
   padding: var(--space-sm) var(--space-md);
-  border: 1px solid var(--linie);
+  border: 1px solid var(--linie-feld);
   border-radius: var(--space-sm);
   background: var(--grund);
   color: var(--schrift);
@@ -392,8 +415,9 @@ select.eingabe {
   overflow: hidden;
 }
 
-/* Ausgeblendet: gedimmt, aber erkennbar — es ist ja noch da. */
-.kachelAus .kachelBild {
+/* Ausgeblendet: das Bild gedimmt, aber erkennbar — es ist ja noch da. Die
+   Marken darüber bleiben voll deckend: Sie erklären den Zustand. */
+.kachelAus .kachelBild img {
   opacity: 0.35;
 }
 
@@ -615,11 +639,6 @@ select.eingabe {
   touch-action: none;
 }
 
-.griff:hover {
-  color: var(--schrift);
-  background: var(--flaeche-hoch);
-}
-
 .griff:active {
   cursor: grabbing;
 }
@@ -763,10 +782,12 @@ select.eingabe {
   padding: var(--space-sm) var(--rand) calc(var(--space-sm) + env(safe-area-inset-bottom));
 }
 
+/* Unten bündig: Status und Knöpfe stehen auf der Höhe des Notizfelds, seine
+   Beschriftung darüber. */
 .leisteInnen {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
   gap: var(--space-sm) var(--space-md);
   max-width: 1400px;
   margin: 0 auto;
@@ -779,6 +800,8 @@ select.eingabe {
   align-items: center;
   gap: 0 var(--space-sm);
   min-width: 0;
+  /* So hoch wie Knöpfe und Feld: Der Text steht mittig zu ihnen. */
+  min-height: 44px;
 }
 
 .leisteStatus {
@@ -793,6 +816,7 @@ select.eingabe {
   flex: none;
 }
 
+/* Das Notizfeld mit sichtbarer Beschriftung — 14px wie die ganze Leiste. */
 .leisteNachricht {
   flex: 3 1 260px;
 }
@@ -805,7 +829,7 @@ select.eingabe {
    über Speicherstand und Knöpfen. Die Leiste wächst dafür nach oben —
    Status und „Speichern" bleiben, wo sie sind —, und nichts schwebt über
    den Kacheln. Leer ist die Zeile 0px hoch. Der freie Platz unter der
-   Seite (`.seite`, 160px) reicht für Leiste und Meldung. */
+   Seite (`.seite`) wächst mit der gemessenen Höhe der Leiste. */
 .meldungOrt {
   max-width: 1400px;
   margin: 0 auto;
@@ -836,10 +860,6 @@ select.eingabe {
 .meldung .knopfLeise {
   margin-left: auto;
   border-color: var(--linie);
-}
-
-.meldung .knopfLeise:hover {
-  background: var(--flaeche);
 }
 
 @media (max-width: 700px) {
@@ -936,6 +956,18 @@ select.eingabe {
 .dialog::backdrop,
 .panel::backdrop {
   background: rgba(14, 14, 16, 0.75);
+}
+
+/* Kopf und (im Panel) Meldung kleben — ein fokussiertes Element liegt nie
+   darunter, wie unter den Leisten der Seite. Kopf: Knopf 44px, 2 × 4px,
+   Linie; Meldung: 44px, 2 × 8px, Linie; je 8px Luft. */
+.dialog,
+.panel {
+  scroll-padding-top: calc(44px + 2 * var(--space-xs) + 1px + var(--space-sm));
+}
+
+.panel {
+  scroll-padding-bottom: calc(44px + 2 * var(--space-sm) + 1px + var(--space-sm));
 }
 
 .dialog {
@@ -1324,7 +1356,7 @@ select.eingabe {
   justify-content: flex-end;
 }
 
-.zeileBild.kachelAus {
+.zeileBild.kachelAus img {
   opacity: 0.35;
 }
 
@@ -1373,4 +1405,42 @@ select.eingabe {
    echte Form des Fotos sehen — sie bestimmt, wie das Mosaik fällt. */
 .daumenGanz {
   background-image: none !important;
+}
+
+/* ── Überfahren — nur mit Maus oder Trackpad ────────────────────────── */
+
+/*
+ * Auf Touch bliebe :hover nach dem Antippen hängen. Überfahren hellt nur die
+ * Fläche auf (--flaeche-hoch — auch auf Kacheln und Zeilen, die selbst
+ * --flaeche sind, noch zu sehen); gedrückt hat dazu den Rahmen innen und
+ * sieht deshalb nie aus wie überfahren.
+ */
+@media (hover: hover) and (pointer: fine) {
+  .reiterKnopf:hover {
+    color: var(--schrift);
+  }
+
+  .knopf:hover,
+  .knopfLeise:hover,
+  .knopfSymbol:hover {
+    background: var(--flaeche-hoch);
+  }
+
+  .knopfHaupt:hover {
+    background: color-mix(in srgb, var(--schrift) 85%, var(--grund));
+  }
+
+  .knopfHaupt:disabled:hover {
+    background: var(--schrift);
+  }
+
+  .griff:hover {
+    color: var(--schrift);
+    background: var(--flaeche-hoch);
+  }
+
+  /* Die Meldung steht auf --flaeche-hoch — ihr leiser Knopf wird dort dunkler, nicht heller. */
+  .meldung .knopfLeise:hover {
+    background: var(--flaeche);
+  }
 }

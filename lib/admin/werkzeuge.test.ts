@@ -105,6 +105,7 @@ import {
   nichtsZuSehen,
   startplatzZustand,
   zeigeziel,
+  scrollSchritt,
 } from "./werkzeuge";
 import type { Lauf } from "./vertrag";
 
@@ -186,6 +187,27 @@ describe("Reihenfolgen", () => {
     expect(verschiebe(["a", "b", "c", "d"], 0, 2)).toEqual(["b", "c", "a", "d"]);
     expect(verschiebe(["a", "b", "c"], 2, 0)).toEqual(["c", "a", "b"]);
     expect(verschiebe(["a", "b"], 1, 9)).toEqual(["a", "b"]);
+  });
+
+  it("scrollt beim Ziehen an den Leisten mit, nicht erst am Fensterrand", () => {
+    /* 1280×800 nach einer Änderung: Reiterleiste bis 61, Speicherleiste ab 715. */
+    const [oben, unten, rand] = [61, 715, 72];
+    expect(scrollSchritt(400, oben, unten, rand)).toBe(0);
+    expect(scrollSchritt(oben + rand, oben, unten, rand)).toBe(0);
+    expect(scrollSchritt(unten - rand, oben, unten, rand)).toBe(0);
+    /* Knapp über der Speicherleiste — bisher tot, weil die Zone erst bei 800 - 72 = 728 begann. */
+    expect(scrollSchritt(705, oben, unten, rand)).toBe(Math.ceil((705 - (unten - rand)) / 4));
+    expect(scrollSchritt(705, oben, unten, rand)).toBeGreaterThan(0);
+    expect(scrollSchritt(80, oben, unten, rand)).toBeLessThan(0);
+    /* Je näher, desto schneller — auf der Leiste und darüber hinaus höchstens rand / 4. */
+    expect(scrollSchritt(700, oben, unten, rand)).toBeGreaterThan(scrollSchritt(660, oben, unten, rand));
+    expect(scrollSchritt(unten, oben, unten, rand)).toBe(rand / 4);
+    expect(scrollSchritt(790, oben, unten, rand)).toBe(rand / 4);
+    expect(scrollSchritt(oben, oben, unten, rand)).toBe(-rand / 4);
+    expect(scrollSchritt(10, oben, unten, rand)).toBe(-rand / 4);
+    /* Ohne Leisten: der Fensterrand, wie früher. */
+    expect(scrollSchritt(10, 0, 800, rand)).toBe(-Math.ceil((rand - 10) / 4));
+    expect(scrollSchritt(790, 0, 800, rand)).toBe(Math.ceil((790 - 728) / 4));
   });
 
   it("lässt bei einer Teilfolge die anderen Plätze stehen", () => {

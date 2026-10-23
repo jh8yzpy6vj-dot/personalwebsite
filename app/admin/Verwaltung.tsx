@@ -641,6 +641,49 @@ export default function Verwaltung() {
     return () => window.clearTimeout(t);
   }, [bereit, konf?.github, konf?.eingang, schaueNach]);
 
+  /* ── Reiter- und Speicherleiste ────────────────────────────────────── */
+
+  const reiterleiste = useRef<HTMLDivElement>(null);
+  const speicherleiste = useRef<HTMLDivElement>(null);
+
+  /* Wie hoch die beiden Leisten gerade sind — als `--reiter-h` und
+     `--leiste-h` am <html>. Daran hängen der Scroll-Abstand (ein
+     fokussiertes Feld liegt nie darunter) und der freie Platz unter der
+     Seite. Die Speicherleiste wächst mit Meldung und Notizfeld, deshalb
+     beobachtet, nicht einmal gemessen. */
+  useEffect(() => {
+    if (!bereit) return;
+    const html = document.documentElement;
+    const miss = () => {
+      const r = reiterleiste.current;
+      const l = speicherleiste.current;
+      if (r) html.style.setProperty("--reiter-h", `${r.offsetHeight}px`);
+      if (l) html.style.setProperty("--leiste-h", `${l.offsetHeight}px`);
+    };
+    const beobachter = new ResizeObserver(miss);
+    for (const el of [reiterleiste.current, speicherleiste.current]) if (el) beobachter.observe(el);
+    miss();
+    return () => {
+      beobachter.disconnect();
+      html.style.removeProperty("--reiter-h");
+      html.style.removeProperty("--leiste-h");
+    };
+  }, [bereit]);
+
+  /* Der aktive Reiter steht im Blick: Passt die Reiterleiste nicht ganz ins
+     Fenster, scrollt sie waagerecht mit. Von Hand statt `scrollIntoView` —
+     das schöbe auch die Seite, denn der Reiter liegt im Scroll-Abstand oben. */
+  useEffect(() => {
+    const leiste = reiterleiste.current;
+    const knopf = document.getElementById(`reiter-${reiter}`);
+    if (!leiste || !knopf || leiste.scrollWidth <= leiste.clientWidth) return;
+    const l = leiste.getBoundingClientRect();
+    const k = knopf.getBoundingClientRect();
+    const rand = parseFloat(getComputedStyle(leiste).paddingLeft) || 0;
+    if (k.left < l.left + rand) leiste.scrollBy({ left: k.left - l.left - rand });
+    else if (k.right > l.right - rand) leiste.scrollBy({ left: k.right - l.right + rand });
+  }, [reiter, bereit]);
+
   useEffect(() => {
     if (!beobachten) return;
     const t = window.setInterval(() => {
@@ -904,12 +947,14 @@ export default function Verwaltung() {
     requestAnimationFrame(() => springeZu(feld, aufklappen, bild));
   };
 
-  /** „Zum Fehler" in der Leiste: die Prüfung in den Blick, Fokus darauf. */
+  /** „Zum Fehler" in der Leiste: die Prüfung ganz oben in den Blick, Fokus darauf. */
   const zumFehler = () => {
     const ort = document.getElementById("befunde");
     if (!ort) return;
     ort.focus({ preventScroll: true });
-    ort.scrollIntoView({ block: "start" });
+    /* Von Hand statt `scrollIntoView`: Der Scroll-Abstand für die
+       Reiterleiste gälte auch hier — die Prüfung steht aber über ihr. */
+    window.scrollBy({ top: ort.getBoundingClientRect().top });
   };
 
   const kannSpeichern =
@@ -978,11 +1023,22 @@ export default function Verwaltung() {
     />
   );
 
+  /* Pfeile wechseln zum Nachbarn (im Kreis), Pos1 und Ende zum ersten bzw.
+     letzten Reiter — wie in jeder Reiterleiste. */
   const wechsleMitTaste = (e: KeyboardEvent<HTMLButtonElement>, platz: number) => {
-    const schritt = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
-    if (!schritt) return;
+    const ziel =
+      e.key === "ArrowRight"
+        ? platz + 1
+        : e.key === "ArrowLeft"
+          ? platz - 1
+          : e.key === "Home"
+            ? 0
+            : e.key === "End"
+              ? REITER.length - 1
+              : null;
+    if (ziel === null) return;
     e.preventDefault();
-    const neu = REITER[(platz + schritt + REITER.length) % REITER.length][0];
+    const neu = REITER[(ziel + REITER.length) % REITER.length][0];
     setReiter(neu);
     document.getElementById(`reiter-${neu}`)?.focus();
   };
@@ -1210,7 +1266,7 @@ export default function Verwaltung() {
           </section>
         )}
 
-        <div className={styles.reiter} role="tablist" aria-label="Bereiche">
+        <div ref={reiterleiste} className={styles.reiter} role="tablist" aria-label="Bereiche">
           {REITER.map(([schluessel, name], platz) => (
             <button
               key={schluessel}
@@ -1254,7 +1310,7 @@ export default function Verwaltung() {
 
         <Tasten beiTaste={beiTaste} />
 
-        <div className={styles.leiste}>
+        <div ref={speicherleiste} className={styles.leiste} data-leiste>
           {/* Immer da, auch leer: Eine Live-Region, die erst mit ihrem Text
               erscheint, lesen Screenreader oft nicht vor. Bei offenem
               Seitenpanel steht die Meldung in dessen Fuß — hier läge sie
@@ -1282,9 +1338,9 @@ export default function Verwaltung() {
               )}
             </div>
             {geladen.konfiguration.github && ungespeichert && (
-              <div className={styles.leisteNachricht}>
-                <label className="nur-vorlesen" htmlFor="nachricht">
-                  Was hast du geändert? (steht im Verlauf)
+              <div className={`${styles.feld} ${styles.leisteNachricht}`}>
+                <label className={styles.feldName} htmlFor="nachricht">
+                  Notiz für den Verlauf (optional)
                 </label>
                 <input
                   id="nachricht"

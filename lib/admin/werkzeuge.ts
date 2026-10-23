@@ -173,6 +173,20 @@ export function verschiebe<T>(liste: T[], von: number, nach: number): T[] {
 }
 
 /**
+ * Wie weit die Seite beim Ziehen in diesem Bild scrollt (px; negativ: nach
+ * oben). `oben` und `unten` begrenzen, was zu sehen ist — die Unterkante der
+ * Reiterleiste und die Oberkante der Speicherleiste, nicht der Fensterrand:
+ * Dazwischen liegt die Speicherleiste, und knapp über ihr geschah sonst
+ * nichts. Die Zone beginnt `rand` px vor der Kante; je näher (oder schon
+ * darauf), desto schneller, höchstens `rand / 4` je Bild.
+ */
+export function scrollSchritt(y: number, oben: number, unten: number, rand: number): number {
+  if (y < oben + rand) return -Math.ceil(Math.min(rand, oben + rand - y) / 4);
+  if (y > unten - rand) return Math.ceil(Math.min(rand, y - (unten - rand)) / 4);
+  return 0;
+}
+
+/**
  * Setzt eine umsortierte **Teilmenge** zurück in die ganze Folge: Die Plätze,
  * die ihre Elemente in `gesamt` hatten, bekommen sie in der neuen Ordnung;
  * alles andere bleibt, wo es ist.

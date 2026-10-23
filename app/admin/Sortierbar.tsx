@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { verschiebe } from "@/lib/admin/werkzeuge";
+import { scrollSchritt, verschiebe } from "@/lib/admin/werkzeuge";
 import styles from "./verwaltung.module.css";
 
 /**
@@ -78,12 +78,26 @@ type Zug = {
 
 /** Ab so viel Bewegung (px) wird aus dem Drücken ein Ziehen. */
 const SCHWELLE = 5;
-/** So nah am Fensterrand (px) scrollt die Seite beim Ziehen mit. */
+/** So nah an Reiter- oder Speicherleiste (px) scrollt die Seite beim Ziehen mit. */
 const RAND = 72;
+/** Ein Punkt auf einer der Leisten zählt so weit (px) davor — dort liegt das Nächste, was sich treffen lässt. */
+const INNEN = 8;
 /* Fokus ohne Ring und ohne Scrollen. Als Konstante, weil TypeScripts
    DOM-Typen `focusVisible` noch nicht kennen; ein Browser ohne die Option
    zeigt eben den Ring. */
 const OHNE_RING = { preventScroll: true, focusVisible: false };
+
+/**
+ * Was zwischen den Leisten zu sehen ist: oben die Unterkante der
+ * Reiterleiste (sie klebt oben), unten die Oberkante der Speicherleiste.
+ * Jedes Bild neu gemessen — die Reiterleiste klebt erst, wenn man an ihr
+ * vorbei ist, und die Speicherleiste wächst mit der Meldung.
+ */
+function sichtbar() {
+  const oben = document.querySelector('[role="tablist"]')?.getBoundingClientRect().bottom ?? 0;
+  const unten = document.querySelector("[data-leiste]")?.getBoundingClientRect().top ?? window.innerHeight;
+  return { oben: Math.max(0, oben), unten: Math.min(window.innerHeight, unten) };
+}
 
 /** Element mit `data-sortier-ziel` unter dem Ereignis, samt Schlüssel des Eintrags. */
 function ziel(e: { target: EventTarget | null; currentTarget: HTMLElement }) {
@@ -149,7 +163,13 @@ export default function Sortierbar<T>({
     const treffe = (x: number, y: number) => {
       const z = zugRef.current;
       if (!z?.aktiv) return;
-      const el = document.elementFromPoint(x, y)?.closest<HTMLElement>("[data-sortier]");
+      /* Auf einer Leiste träfe `elementFromPoint` die Leiste — gezählt wird
+         der Platz direkt davor. Sonst scrollte die Seite, und das Bild
+         wanderte nicht mit. */
+      const { oben, unten } = sichtbar();
+      const el = document
+        .elementFromPoint(x, Math.min(Math.max(y, oben + INNEN), unten - INNEN))
+        ?.closest<HTMLElement>("[data-sortier]");
       if (!el || !liste.current?.contains(el)) return;
       const ueber = el.dataset.sortier;
       if (!ueber || ueber === z.s) return;
@@ -167,14 +187,13 @@ export default function Sortierbar<T>({
       treffe(e.clientX, e.clientY);
     };
 
-    /* Am Rand mitscrollen — sonst lässt sich am Telefon kein Bild über
-       mehr als einen Bildschirm hinweg verschieben. */
+    /* An den Leisten mitscrollen — sonst lässt sich kein Bild über mehr als
+       einen Bildschirm hinweg verschieben. */
     const scrolle = () => {
       const z = zugRef.current;
       if (z?.aktiv) {
-        let v = 0;
-        if (z.y < RAND) v = -Math.ceil((RAND - z.y) / 4);
-        else if (z.y > window.innerHeight - RAND) v = Math.ceil((z.y - (window.innerHeight - RAND)) / 4);
+        const { oben, unten } = sichtbar();
+        const v = scrollSchritt(z.y, oben, unten, RAND);
         if (v !== 0) {
           window.scrollBy(0, v);
           treffe(z.x, z.y);

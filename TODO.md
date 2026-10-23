@@ -257,8 +257,6 @@ ist mit der Neuausrichtung hinfällig.
 
 ## Kurzfristig
 
-- [ ] **Verwaltung — Rest aus der Prüfung vom 2026-10-22** (Log-Eintrag vom selben Tag). Nichts davon blockiert die Nutzung:
-  - Paket 8 (Darstellung): nur noch die PC-Teile (Kontraste von `--leise` auf Flächen, Fokus unter den festen Leisten); im UI-SPEC „nutzbar ab 375px" auf „nur PC" umstellen.
 - [ ] **⚠️ Ersten echten Medien-Lauf abschließen.** Bucket `websitebucket` steht (Stand 2026-08-30), Bilder sind hochgeladen — **aber flach im Wurzelverzeichnis, mit Kameranamen und 11–12 MB**. So findet die Pipeline nichts. Zu tun:
   1. **Public access → Custom Domain** setzen, z. B. `medien.jakobsax.de`. ⚠️ Nicht die `…r2.dev`-Adresse.
   2. **Token** mit **Object Read & Write** für diesen Bucket, dann `.dev.vars` füllen (`R2_BUCKET=websitebucket`). Die Datei ist von Git ausgenommen — **nichts davon committen**.
