@@ -1,10 +1,11 @@
 "use client";
 
 import { useContext, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { flushSync } from "react-dom";
 import Bild from "../components/Bild";
 import type { Bildquelle } from "@/lib/bilder";
 import { BILDTYPEN } from "@/lib/admin/vertrag";
-import { ausserhalb } from "@/lib/admin/werkzeuge";
+import { ausserhalb, tastenbefehl } from "@/lib/admin/werkzeuge";
 import { SitzungKontext } from "./kontext";
 import styles from "./verwaltung.module.css";
 
@@ -417,6 +418,8 @@ export function Textfeld({
   nurLesen = false,
   zahl = false,
   beiEnter,
+  beiEsc,
+  autoFokus = false,
 }: {
   bezeichnung: string;
   wert: string;
@@ -430,8 +433,15 @@ export function Textfeld({
   nurLesen?: boolean;
   /** Ziffern-Tastatur (Feld „Platz"). */
   zahl?: boolean;
-  /** Enter in einem einzeiligen Feld — z. B. um eine Eingabe zu übernehmen. */
+  /**
+   * Enter in einem einzeiligen Feld — z. B. um eine Eingabe zu übernehmen.
+   * Auch vor Strg/⌘+S: Das Speichern nimmt die Eingabe dann mit.
+   */
   beiEnter?: (w: string) => void;
+  /** Esc in einem einzeiligen Feld — z. B. um eine noch nicht übernommene Eingabe zu verwerfen. */
+  beiEsc?: () => void;
+  /** Beim Erscheinen den Fokus hineinsetzen (nach „Nächstes Bild ohne Beschreibung"). */
+  autoFokus?: boolean;
 }) {
   const kennung = useId();
   const hinweisKennung = `${kennung}-hinweis`;
@@ -455,6 +465,7 @@ export function Textfeld({
     value: wert,
     placeholder: platzhalter,
     readOnly: nurLesen,
+    autoFocus: autoFokus,
     "aria-describedby": hinweis ? hinweisKennung : undefined,
     onChange: (e: { currentTarget: HTMLInputElement | HTMLTextAreaElement }) => {
       const w = e.currentTarget.value;
@@ -475,11 +486,24 @@ export function Textfeld({
           type={typ}
           inputMode={zahl ? "numeric" : undefined}
           onKeyDown={
-            beiEnter &&
+            (beiEnter || beiEsc) &&
             ((e) => {
-              if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
-              e.preventDefault();
-              beiEnter(e.currentTarget.value);
+              if (e.nativeEvent.isComposing) return;
+              const w = e.currentTarget.value;
+              if (beiEnter && e.key === "Enter") {
+                e.preventDefault();
+                beiEnter(w);
+              } else if (beiEnter && tastenbefehl(e, { imTextfeld: true, dialog: "keiner" }) === "speichern") {
+                /* Gespeichert wird danach, am Fenster (`Verwaltung`) — mit dem
+                   Stand des letzten Renderns. Deshalb sofort zeichnen, sonst
+                   ginge die Eingabe nicht mit. */
+                flushSync(() => beiEnter(w));
+              } else if (beiEsc && e.key === "Escape") {
+                /* Sofort zeichnen: Esc schließt danach den Dialog, und das
+                   Verlassen des Felds (`beiVerlassen`) übernähme sonst, was
+                   eben noch darin stand. */
+                flushSync(beiEsc);
+              }
             })
           }
           {...gemeinsam}

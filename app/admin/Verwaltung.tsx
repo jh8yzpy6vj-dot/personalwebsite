@@ -903,7 +903,7 @@ export default function Verwaltung() {
     }
     if (b.kennung && (ziel === "arbeiten" || ziel === "filme")) klappe(ziel, b.kennung);
     if (b.schluessel && geladen.bilder[b.schluessel]) {
-      setPanel({ schluessel: b.schluessel, folge: ziel === "hero" ? geladen.inhalt.foto.hero : undefined });
+      setPanel({ schluessel: b.schluessel, folge: ziel === "hero" ? "hero" : undefined });
       return;
     }
     const feld = feldFuerBefund(b);
@@ -1349,11 +1349,11 @@ export default function Verwaltung() {
           <BildPanel
             schluessel={panel.schluessel}
             folge={panel.folge}
-            beiSchliessen={() => {
+            beiSchliessen={(nachbar) => {
               setPanel(null);
               /* Ein Bild später: Erst dann ist das Panel weg und der Fokus zurück. */
               const zuletzt = panel.schluessel;
-              requestAnimationFrame(() => zeigeKachel(zuletzt));
+              requestAnimationFrame(() => zeigeKachel(zuletzt, nachbar));
             }}
             meldung={meldungZeile}
           />
@@ -1454,12 +1454,19 @@ export default function Verwaltung() {
  * Bilds in den Blick holen und fokussieren — nach dem Blättern ist das nicht
  * mehr die, die das Panel geöffnet hat und auf die der Browser den Fokus
  * zurückgibt. Liegt sie unter der Reiter- oder der Speicherleiste, zählt
- * sie nicht als sichtbar. Gibt es sie nicht (gelöscht, anderer Reiter),
- * bleibt alles, wie es ist.
+ * sie nicht als sichtbar.
+ *
+ * Steht das Bild auf mehreren Plätzen (Startseite: oben und als Highlight),
+ * bleibt der, auf dem der Fokus schon steht — der hat das Panel geöffnet.
+ * Gibt es die Kachel nicht mehr (nach „Löschen" im Mosaik), die von
+ * `nachbar`; gibt es keine (anderer Reiter), bleibt alles, wie es ist.
  */
-function zeigeKachel(s: string) {
+function zeigeKachel(s: string, nachbar: string | null) {
   if (document.querySelector("dialog[open]")) return;
-  const knopf = document.querySelector<HTMLElement>(`[data-bild="${CSS.escape(s)}"]`);
+  const fokus = document.activeElement;
+  const finde = (x: string) => document.querySelector<HTMLElement>(`[data-bild="${CSS.escape(x)}"]`);
+  const knopf =
+    fokus instanceof HTMLElement && fokus.dataset.bild === s ? fokus : (finde(s) ?? (nachbar ? finde(nachbar) : null));
   if (knopf) holeInDenBlick(knopf);
 }
 

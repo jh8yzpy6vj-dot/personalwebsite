@@ -1,4 +1,4 @@
-import { alleBilderDerArbeit, fotosFuerMosaik, nachWunsch, type Kontext } from "../arbeiten";
+import { alleBilderDerArbeit, filmeMitStandbild, fotosFuerMosaik, nachWunsch, type Kontext } from "../arbeiten";
 import { AUSSCHNITT_MITTIG, type Streckenbild } from "../bilder";
 import { arbeitZu, bildName, istVerborgen, type Film, type Fotoarbeit, type Inhalt, type Link } from "../inhalt";
 import {
@@ -745,11 +745,11 @@ export function feldFuerBefund(b: Befund): string | null {
 /**
  * Was beim Ausblenden dieser Bilder anderswo fehlt: „2 davon im Hero, 1 auf
  * der Startseite — dort fehlen sie dann." `null`, wenn keins im Hero oder
- * auf der Startseite steht.
+ * auf einem Platz der Startseite steht, den sie zurzeit zeigt.
  */
-export function wasDannFehlt(i: Inhalt, schluessel: string[]): string | null {
-  const hero = schluessel.filter((s) => i.foto.hero.includes(s)).length;
-  const start = schluessel.filter((s) => aufDerStartseite(i, s)).length;
+export function wasDannFehlt(k: Kontext, schluessel: string[]): string | null {
+  const hero = schluessel.filter((s) => k.inhalt.foto.hero.includes(s)).length;
+  const start = schluessel.filter((s) => aufDerStartseite(k, s)).length;
   if (hero + start === 0) return null;
   const orte = [hero > 0 && `${hero} davon im Hero`, start > 0 && `${start} ${hero > 0 ? "" : "davon "}auf der Startseite`];
   const satz = orte.filter(Boolean).join(", ");
@@ -1100,30 +1100,46 @@ export function waehlbareBilder(k: Kontext): Streckenbild[] {
 /* ── Bild-Panel ─────────────────────────────────────────────────────── */
 
 /**
- * Wodurch das Bild-Panel blättert: `"mosaik"` — das Mosaik, in dem das Bild
- * steht, **so, wie es gerade geordnet ist** (Reiter Fotos, Über mich) —
- * oder eine Liste, gemerkt beim Öffnen (eine Arbeit, der Hero, die Bilder
- * ohne Beschreibung). Ohne Folge kein Blättern (Startseite).
+ * Wodurch das Bild-Panel blättert: `"mosaik"` ist das Mosaik, in dem das
+ * Bild steht, **so, wie es gerade geordnet ist** (Reiter Fotos, Über mich),
+ * `"hero"` ebenso der Hero; sonst eine Liste, gemerkt beim Öffnen (eine
+ * Arbeit, die Bilder ohne Beschreibung). Ohne Folge kein Blättern
+ * (Startseite).
  *
- * Das Mosaik bewusst nicht als gemerkte Liste: Holt Jakob ein Bild über
+ * Mosaik und Hero bewusst nicht als gemerkte Liste: Holt Jakob ein Bild über
  * „Platz" nach vorn, stünde sonst „35 von 38" neben „Platz 1", und „›"
- * führte zu dem Bild, das vorher dahinter lag.
+ * führte zu dem Bild, das vorher dahinter lag. Nach „Im Hero — herausnehmen"
+ * zählte der Kopf weiter „von 7", obwohl der Hero nur noch sechs hat.
  */
-export type Folge = "mosaik" | readonly string[];
+export type Folge = "mosaik" | "hero" | readonly string[];
 
 /** Die Liste zum Blättern — leer, wenn es keine gibt. */
 export function blaetterListe(k: Kontext, s: string, folge: Folge | undefined): readonly string[] {
   if (folge === "mosaik") return mosaikVon(k, s) ?? [];
+  if (folge === "hero") return k.inhalt.foto.hero;
   return folge ?? [];
 }
 
-export type Blaetterstelle = { nr: number; anzahl: number; vorher: string | null; nachher: string | null };
+/** `nr` ist `null`, wenn das Bild nicht mehr in der Liste steht (aus dem Hero genommen). */
+export type Blaetterstelle = { nr: number | null; anzahl: number; vorher: string | null; nachher: string | null };
 
-/** Wo das Bild in der Liste steht (ab 1) und wohin „‹" und „›" führen — `null`: nichts zu blättern. */
-export function blaettern(liste: readonly string[], s: string): Blaetterstelle | null {
+/**
+ * Wo das Bild in der Liste steht (ab 1) und wohin „‹" und „›" führen —
+ * `null`: nichts zu blättern.
+ *
+ * `zuletzt`: wo es zuletzt stand (ab 0). Steht es nicht mehr darin — eben
+ * aus dem Hero genommen —, geht es von dort aus weiter: „‹" zu dem davor,
+ * „›" zu dem, das dahinter stand und jetzt auf seinen Platz gerückt ist.
+ */
+export function blaettern(liste: readonly string[], s: string, zuletzt: number | null = null): Blaetterstelle | null {
   const p = liste.indexOf(s);
-  if (p < 0 || liste.length < 2) return null;
-  return { nr: p + 1, anzahl: liste.length, vorher: liste[p - 1] ?? null, nachher: liste[p + 1] ?? null };
+  if (p >= 0) {
+    if (liste.length < 2) return null;
+    return { nr: p + 1, anzahl: liste.length, vorher: liste[p - 1] ?? null, nachher: liste[p + 1] ?? null };
+  }
+  if (zuletzt === null || zuletzt < 0 || liste.length === 0) return null;
+  const q = Math.min(zuletzt, liste.length);
+  return { nr: null, anzahl: liste.length, vorher: liste[q - 1] ?? null, nachher: liste[q] ?? null };
 }
 
 /**
@@ -1143,21 +1159,39 @@ export function blaetterTaste(
   return t.key === "ArrowLeft" ? -1 : t.key === "ArrowRight" ? 1 : null;
 }
 
-/** Steht das Bild auf einem Platz der Startseite? */
-export function aufDerStartseite(i: Inhalt, s: string): boolean {
-  return STARTPLAETZE.some((p) => startbild(i, p) === s);
+/**
+ * Zeigt die Startseite diesen Platz zurzeit? Zwei Plätze sind Rückfälle,
+ * genau wie in `app/page.tsx`: Das große Bild oben steht nur da, solange es
+ * kein eigenes Standbild oben gibt (`hero/standbild`), das Bild zum Bereich
+ * Film nur, solange kein Film ein Standbild hat — sonst nimmt die Seite das
+ * des ersten (`filmeMitStandbild`, dieselbe Funktion wie dort).
+ */
+export function startplatzZuSehen(k: Kontext, p: Startplatz): boolean {
+  if (p === "heroErsatz") return !k.bilder["hero/standbild"];
+  if (p === "wegeFilm") return filmeMitStandbild(k).length === 0;
+  return true;
+}
+
+/** Steht das Bild auf einem Platz der Startseite, den sie zurzeit zeigt? */
+export function aufDerStartseite(k: Kontext, s: string): boolean {
+  return STARTPLAETZE.some((p) => startbild(k.inhalt, p) === s && startplatzZuSehen(k, p));
 }
 
 /**
  * Wo ein Bild außer im Mosaik noch steht — für „Verwendet: …" im Bild-Panel:
  * „Hero auf /foto, Platz 3", „Startseite: Highlight 2". Auch bei
- * ausgeblendeten und gelöschten Bildern: Gerade dann fehlt dort etwas.
+ * ausgeblendeten und gelöschten Bildern: Gerade dann fehlt dort etwas. Ein
+ * Platz, den die Startseite zurzeit nicht zeigt (`startplatzZuSehen`), steht
+ * mit „(Rückfall, zurzeit nicht zu sehen)" da.
  */
-export function verwendung(i: Inhalt, s: string): string[] {
+export function verwendung(k: Kontext, s: string): string[] {
   const orte: string[] = [];
-  const imHero = i.foto.hero.indexOf(s);
+  const imHero = k.inhalt.foto.hero.indexOf(s);
   if (imHero >= 0) orte.push(`Hero auf /foto, Platz ${imHero + 1}`);
-  for (const p of STARTPLAETZE) if (startbild(i, p) === s) orte.push(`Startseite: ${startplatzName(p)}`);
+  for (const p of STARTPLAETZE) {
+    if (startbild(k.inhalt, p) !== s) continue;
+    orte.push(`Startseite: ${startplatzName(p)}${startplatzZuSehen(k, p) ? "" : " (Rückfall, zurzeit nicht zu sehen)"}`);
+  }
   return orte;
 }
 

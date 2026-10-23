@@ -73,7 +73,7 @@ export default function Hero() {
                   data-bild={s}
                   disabled={!bilder[s]}
                   aria-label={`${name(s)} bearbeiten`}
-                  onClick={() => bearbeite(s, hero)}
+                  onClick={() => bearbeite(s, "hero")}
                 >
                   <Daumen
                     quelle={bilder[s]}

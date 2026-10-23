@@ -3,7 +3,7 @@ import manifest from "../bilder-manifest.json";
 import type { Bildquelle } from "../bilder";
 import { INHALT, istVerborgen, type Inhalt } from "../inhalt";
 import { nurFehler, ORT_BESCHREIBUNGEN, pruefeInhalt, type Befund } from "../inhalt-pruefen";
-import { fotosFuerHero, fotosFuerMosaik } from "../arbeiten";
+import { filmeMitStandbild, fotosFuerHero, fotosFuerMosaik } from "../arbeiten";
 import {
   aendereArbeit,
   aendereFilm,
@@ -91,6 +91,7 @@ import {
   ohneBeschreibung,
   platzImMosaik,
   startplatzName,
+  startplatzZuSehen,
   STARTPLAETZE,
   verschiebeAufPlatz,
   verwendung,
@@ -274,12 +275,18 @@ describe("Änderungen am Inhalt", () => {
     i.startseite.heroErsatz = null;
     i.startseite.wege = { foto: null, film: null };
     i.startseite.highlights = [c, null, null, null];
-    expect(wasDannFehlt(i, [a, b, c])).toBe("2 davon im Hero, 1 auf der Startseite — dort fehlen sie dann.");
-    expect(wasDannFehlt(i, [a])).toBe("1 davon im Hero — dort fehlt es dann.");
-    expect(wasDannFehlt(i, [c])).toBe("1 davon auf der Startseite — dort fehlt es dann.");
-    expect(wasDannFehlt(i, [a, c])).toBe("1 davon im Hero, 1 auf der Startseite — dort fehlen sie dann.");
-    expect(wasDannFehlt(i, [reihe[6], reihe[7]])).toBeNull();
-    expect(wasDannFehlt(i, [])).toBeNull();
+    expect(wasDannFehlt(k(i), [a, b, c])).toBe("2 davon im Hero, 1 auf der Startseite — dort fehlen sie dann.");
+    expect(wasDannFehlt(k(i), [a])).toBe("1 davon im Hero — dort fehlt es dann.");
+    expect(wasDannFehlt(k(i), [c])).toBe("1 davon auf der Startseite — dort fehlt es dann.");
+    expect(wasDannFehlt(k(i), [a, c])).toBe("1 davon im Hero, 1 auf der Startseite — dort fehlen sie dann.");
+    expect(wasDannFehlt(k(i), [reihe[6], reihe[7]])).toBeNull();
+    expect(wasDannFehlt(k(i), [])).toBeNull();
+    /* Ein Rückfall, den die Seite zurzeit nicht zeigt, fehlt dort auch nicht. */
+    const d = reihe[6];
+    i.startseite.wege.film = d;
+    expect(wasDannFehlt(k(i), [d])).toBe("1 davon auf der Startseite — dort fehlt es dann.");
+    const mitStandbild = { inhalt: i, bilder: { ...BILDER, [`film/${i.filme[0].id}`]: BILDER[a] } };
+    expect(wasDannFehlt(mitStandbild, [d])).toBeNull();
   });
 
   it("schaltet Ausblenden und Hero hin und zurück", () => {
@@ -1130,12 +1137,52 @@ describe("Bild-Panel: Blättern", () => {
     expect(blaettern(liste, "c")).toEqual({ nr: 3, anzahl: 3, vorher: "b", nachher: null });
   });
 
+  it("blättert durch den Hero, wie er gerade ist — ein herausgenommenes Bild von seiner alten Stelle aus", () => {
+    const i = kopie();
+    const hero = [...i.foto.hero];
+    const s = hero[1];
+    expect(blaetterListe(k(i), s, "hero")).toEqual(hero);
+    expect(blaettern(blaetterListe(k(i), s, "hero"), s)).toEqual({
+      nr: 2,
+      anzahl: hero.length,
+      vorher: hero[0],
+      nachher: hero[2],
+    });
+    /* „Im Hero — herausnehmen": Der Kopf zählt den kleineren Hero, „›“
+       führt zu dem Bild, das dahinter stand, „‹“ zu dem davor. */
+    const ohne = umschalteHero(i, s);
+    const liste = blaetterListe(k(ohne), s, "hero");
+    expect(liste).toEqual(hero.filter((x) => x !== s));
+    expect(blaettern(liste, s, 1)).toEqual({ nr: null, anzahl: hero.length - 1, vorher: hero[0], nachher: hero[2] });
+    /* Stand es zuletzt am Ende oder am Anfang, führt nur eine Richtung weiter. */
+    const letztes = hero.at(-1) as string;
+    const ohneLetztes = umschalteHero(i, letztes).foto.hero;
+    expect(blaettern(ohneLetztes, letztes, hero.length - 1)).toEqual({
+      nr: null,
+      anzahl: hero.length - 1,
+      vorher: hero.at(-2),
+      nachher: null,
+    });
+    expect(blaettern(umschalteHero(i, hero[0]).foto.hero, hero[0], 0)?.vorher).toBeNull();
+    /* Wieder hinein: Es steht am Ende und zählt wieder mit. */
+    const wieder = umschalteHero(ohne, s);
+    expect(blaettern(blaetterListe(k(wieder), s, "hero"), s, 1)).toEqual({
+      nr: hero.length,
+      anzahl: hero.length,
+      vorher: hero.at(-1),
+      nachher: null,
+    });
+  });
+
   it("nichts zu blättern: ohne Folge, ein einziges Bild, oder das Bild steht nicht darin", () => {
     const i = kopie();
     expect(blaetterListe(k(i), "arbeiten/stamp/01", undefined)).toEqual([]);
     expect(blaettern(blaetterListe(k(i), "arbeiten/stamp/01", undefined), "arbeiten/stamp/01")).toBeNull();
     expect(blaettern(["a"], "a")).toBeNull();
     expect(blaettern(["a", "b"], "x")).toBeNull();
+    /* … und stand nie darin (keine alte Stelle), oder die Liste ist leer. */
+    expect(blaettern(["a", "b"], "x", -1)).toBeNull();
+    expect(blaettern([], "x", 0)).toBeNull();
     expect(blaetterListe(k(i), "portrait", "mosaik")).toEqual([]);
     /* Eine gemerkte Liste bleibt, wie sie ist. */
     expect(blaetterListe(k(i), "b", ["c", "b", "a"])).toEqual(["c", "b", "a"]);
@@ -1171,21 +1218,76 @@ describe("Bild-Panel: Verwendung und Beschreibungen", () => {
     i.startseite.heroErsatz = a;
     i.startseite.wege = { foto: b, film: b };
     i.startseite.highlights = [null, a, null, b];
-    expect(verwendung(i, a)).toEqual(["Hero auf /foto, Platz 3", "Startseite: Großes Bild oben", "Startseite: Highlight 2"]);
-    expect(verwendung(i, b)).toEqual([
+    expect(verwendung(k(i), a)).toEqual([
+      "Hero auf /foto, Platz 3",
+      "Startseite: Großes Bild oben",
+      "Startseite: Highlight 2",
+    ]);
+    expect(verwendung(k(i), b)).toEqual([
       "Startseite: Bild zum Bereich Foto",
       "Startseite: Bild zum Bereich Film",
       "Startseite: Highlight 4",
     ]);
-    expect(verwendung(umschalteAusgeblendet(i, a), a)).toEqual(verwendung(i, a));
-    expect(verwendung(i, c)).toEqual([]);
-    expect(aufDerStartseite(i, a)).toBe(true);
-    expect(aufDerStartseite(i, c)).toBe(false);
+    expect(verwendung(k(umschalteAusgeblendet(i, a)), a)).toEqual(verwendung(k(i), a));
+    expect(verwendung(k(i), c)).toEqual([]);
+    expect(aufDerStartseite(k(i), a)).toBe(true);
+    expect(aufDerStartseite(k(i), c)).toBe(false);
     i.foto.hero = [];
     i.startseite.heroErsatz = null;
     i.startseite.highlights = [null, null, null, null];
-    expect(verwendung(i, a)).toEqual([]);
-    expect(aufDerStartseite(i, a)).toBe(false);
+    expect(verwendung(k(i), a)).toEqual([]);
+    expect(aufDerStartseite(k(i), a)).toBe(false);
+  });
+
+  it("nennt Rückfälle, die die Startseite zurzeit nicht zeigt — wie app/page.tsx", () => {
+    const i = kopie();
+    const reihe = alleFotos(k(i)).map((x) => x.schluessel);
+    const [a, b, c] = reihe;
+    i.foto.hero = [];
+    i.startseite.heroErsatz = a;
+    i.startseite.wege = { foto: null, film: b };
+    i.startseite.highlights = [null, null, c, null];
+    /* Der eingecheckte Stand: kein Standbild oben, kein Film mit Standbild. */
+    expect(BILDER["hero/standbild"]).toBeUndefined();
+    expect(filmeMitStandbild(k(i))).toEqual([]);
+    expect(startplatzZuSehen(k(i), "heroErsatz")).toBe(true);
+    expect(startplatzZuSehen(k(i), "wegeFilm")).toBe(true);
+    expect(verwendung(k(i), a)).toEqual(["Startseite: Großes Bild oben"]);
+    expect(verwendung(k(i), b)).toEqual(["Startseite: Bild zum Bereich Film"]);
+    expect(aufDerStartseite(k(i), a)).toBe(true);
+    expect(aufDerStartseite(k(i), b)).toBe(true);
+
+    /* Mit eigenem Standbild oben zeigt die Seite das große Bild oben nicht. */
+    const standbild = { inhalt: i, bilder: { ...BILDER, "hero/standbild": BILDER[c] } };
+    expect(startplatzZuSehen(standbild, "heroErsatz")).toBe(false);
+    expect(verwendung(standbild, a)).toEqual(["Startseite: Großes Bild oben (Rückfall, zurzeit nicht zu sehen)"]);
+    expect(aufDerStartseite(standbild, a)).toBe(false);
+    expect(aufDerStartseite(standbild, b)).toBe(true);
+
+    /* Hat ein Film ein Standbild, nimmt die Seite das statt des Bilds zum Bereich Film. */
+    const film = { inhalt: i, bilder: { ...BILDER, [`film/${i.filme[0].id}`]: BILDER[c] } };
+    expect(filmeMitStandbild(film)).toHaveLength(1);
+    expect(startplatzZuSehen(film, "wegeFilm")).toBe(false);
+    expect(verwendung(film, b)).toEqual(["Startseite: Bild zum Bereich Film (Rückfall, zurzeit nicht zu sehen)"]);
+    expect(aufDerStartseite(film, b)).toBe(false);
+    expect(aufDerStartseite(film, a)).toBe(true);
+    /* Ein Standbild ohne Film in der Liste zählt nicht — die Seite fände es auch nicht. */
+    const fremd = { inhalt: i, bilder: { ...BILDER, "film/gibt-es-nicht": BILDER[c] } };
+    expect(startplatzZuSehen(fremd, "wegeFilm")).toBe(true);
+    expect(aufDerStartseite(fremd, b)).toBe(true);
+
+    /* Steht dasselbe Bild zugleich auf einem Platz, den die Seite zeigt, bleibt es auf der Startseite. */
+    i.startseite.highlights = [null, null, c, a];
+    expect(verwendung(standbild, a)).toEqual([
+      "Startseite: Großes Bild oben (Rückfall, zurzeit nicht zu sehen)",
+      "Startseite: Highlight 4",
+    ]);
+    expect(aufDerStartseite(standbild, a)).toBe(true);
+    /* Die anderen Plätze zeigt die Seite immer. */
+    for (const p of STARTPLAETZE.filter((p) => p !== "heroErsatz" && p !== "wegeFilm")) {
+      expect(startplatzZuSehen(standbild, p)).toBe(true);
+      expect(startplatzZuSehen(film, p)).toBe(true);
+    }
   });
 
   it("hat für jeden Bildplatz der Startseite einen Namen", () => {

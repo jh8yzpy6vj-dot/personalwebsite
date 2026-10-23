@@ -258,7 +258,6 @@ ist mit der Neuausrichtung hinfällig.
 ## Kurzfristig
 
 - [ ] **Verwaltung — Rest aus der Prüfung vom 2026-10-22** (Log-Eintrag vom selben Tag). Nichts davon blockiert die Nutzung:
-  - Paket 6 (Bild-Panel), sechs kleine Randfälle aus der unabhängigen Prüfung: „Verwendet: …" berücksichtigt Film-Standbild und `hero/standbild` nicht (erst relevant, sobald es Filme bzw. ein Standbild gibt); Fokus nach dem Schließen bei doppelt belegten Startseiten-Plätzen und nach Löschen im Panel nach dem Blättern; Fokus fällt auf `body`, wenn „Nächstes Bild ohne Beschreibung" verschwindet; Hero-Zähler nach „Im Hero — herausnehmen"; Platz-Feld bei Strg+S bzw. Esc.
   - Paket 7 (verständliche Texte): unabhängige Prüfung steht noch aus.
   - Paket 8 (Darstellung): nur noch die PC-Teile (Kontraste von `--leise` auf Flächen, Fokus unter den festen Leisten); im UI-SPEC „nutzbar ab 375px" auf „nur PC" umstellen.
 - [ ] **⚠️ Ersten echten Medien-Lauf abschließen.** Bucket `websitebucket` steht (Stand 2026-08-30), Bilder sind hochgeladen — **aber flach im Wurzelverzeichnis, mit Kameranamen und 11–12 MB**. So findet die Pipeline nichts. Zu tun:

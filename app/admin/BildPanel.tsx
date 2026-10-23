@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { arbeitZu } from "@/lib/inhalt";
 import { ZIEL } from "@/lib/admin/vertrag";
 import {
@@ -49,6 +49,10 @@ import styles from "./verwaltung.module.css";
  *
  * `meldung`: die Meldung mit „Rückgängig" — solange das Panel offen ist,
  * steht sie unten darin statt in der Leiste, die es verdeckt.
+ *
+ * `beiSchliessen(nachbar)`: `nachbar` ist nach „Löschen" das Bild daneben
+ * in der Folge — gibt es die Kachel des gelöschten nicht mehr, zeigt die
+ * Verwaltung dessen Kachel statt der, die das Panel geöffnet hat.
  */
 export default function BildPanel({
   schluessel,
@@ -58,7 +62,7 @@ export default function BildPanel({
 }: {
   schluessel: string;
   folge: Folge | undefined;
-  beiSchliessen: () => void;
+  beiSchliessen: (nachbar: string | null) => void;
   meldung: ReactNode;
 }) {
   const { inhalt, bilder, aendere, aendereMitMeldung, konfiguration, unterwegs, heute, bearbeite } = useSitzung();
@@ -71,11 +75,26 @@ export default function BildPanel({
   const imHero = inhalt.foto.hero.includes(schluessel);
   const geloescht = schluessel in inhalt.papierkorb;
   const titel = arbeit ? inhalt.foto.arbeiten.find((a) => a.id === arbeit)?.titel : undefined;
-  const orte = verwendung(inhalt, schluessel);
-  const stelle = blaettern(blaetterListe(k, schluessel, folge), schluessel);
+  const orte = verwendung(k, schluessel);
+  const liste = blaetterListe(k, schluessel, folge);
+  const hier = liste.indexOf(schluessel);
   const platz = platzImMosaik(k, schluessel);
   const ohne = arbeit ? ohneBeschreibung(k) : [];
   const naechstesOhne = arbeit ? naechstesOhneBeschreibung(k, schluessel) : null;
+
+  /* Wo das Bild zuletzt in der Folge stand: Nimmt Jakob es aus dem Hero,
+     blättert das Panel von dort aus weiter (`blaettern`). */
+  const [zuletzt, setZuletzt] = useState({ fuer: schluessel, platz: hier });
+  if (hier >= 0 && (zuletzt.fuer !== schluessel || zuletzt.platz !== hier)) {
+    setZuletzt({ fuer: schluessel, platz: hier });
+  }
+  const stelle = blaettern(liste, schluessel, zuletzt.fuer === schluessel ? zuletzt.platz : null);
+  /* Nach „Löschen": das Bild daneben (siehe `beiSchliessen`). */
+  const nachbar = useRef<string | null>(null);
+  /* Das Bild, zu dem „Nächstes Bild ohne Beschreibung" eben sprang — dort
+     steht der Fokus dann im Feld Bildbeschreibung. Blättern setzt es
+     zurück, sonst spränge der Fokus beim nächsten Besuch wieder hinein. */
+  const [sprung, setSprung] = useState<string | null>(null);
 
   /* Was im Feld „Platz" getippt, aber noch nicht übernommen ist — nur für
      das Bild, zu dem es getippt wurde; nach dem Blättern steht dort wieder
@@ -94,7 +113,9 @@ export default function BildPanel({
   }
 
   const geheZu = (ziel: string | null) => {
-    if (ziel) bearbeite(ziel, folge);
+    if (!ziel) return;
+    setSprung(null);
+    bearbeite(ziel, folge);
   };
 
   const setzePlatz = (ziel: number) => {
@@ -138,7 +159,11 @@ export default function BildPanel({
         <Zeichen name="links" />
       </button>
       <span className={styles.leise} aria-live="polite">
-        {stelle.nr} von {stelle.anzahl}
+        {stelle.nr !== null
+          ? `${stelle.nr} von ${stelle.anzahl}`
+          : folge === "hero"
+            ? "nicht mehr im Hero"
+            : "nicht mehr dabei"}
         <span className="nur-vorlesen">: {name}</span>
       </span>
       <button
@@ -156,7 +181,7 @@ export default function BildPanel({
   return (
     <Dialog
       titel={name}
-      beiSchliessen={beiSchliessen}
+      beiSchliessen={() => beiSchliessen(nachbar.current)}
       art="seite"
       kopf={kopf}
       beiTaste={beiTaste}
@@ -234,6 +259,7 @@ export default function BildPanel({
                   type="button"
                   className={styles.knopf}
                   onClick={() => {
+                    nachbar.current = stelle?.nachher ?? stelle?.vorher ?? null;
                     aendereMitMeldung(
                       (i) => legeInPapierkorb(i, schluessel, heute),
                       `„${name}“ liegt im Papierkorb.`,
@@ -248,7 +274,7 @@ export default function BildPanel({
               </div>
               {/* Die Startseite zeigt nur sichtbare Fotos — ein verborgenes
                   lässt seinen Platz dort leer. */}
-              {aufDerStartseite(inhalt, schluessel) ? (
+              {aufDerStartseite(k, schluessel) ? (
                 <p className={styles.leise}>
                   Ausgeblendet oder gelöscht bleibt sein Platz auf der Startseite leer — dort dann ein anderes Bild
                   wählen.
@@ -276,6 +302,7 @@ export default function BildPanel({
                   beiAenderung={(w) => setEntwurf({ fuer: schluessel, text: w })}
                   beiEnter={uebernimmPlatz}
                   beiVerlassen={uebernimmPlatz}
+                  beiEsc={() => setEntwurf(null)}
                 />
                 <span className={styles.leise}>von {platz.anzahl}</span>
                 <button
@@ -311,6 +338,7 @@ export default function BildPanel({
                 key={`${schluessel}:alt`}
                 bezeichnung="Bildbeschreibung (Alt-Text)"
                 mehrzeilig
+                autoFokus={sprung === schluessel}
                 wert={bildtext(inhalt, schluessel, "alt")}
                 beiAenderung={(w) => aendere((i) => setzeBildtext(i, schluessel, "alt", w))}
                 hinweis="Was ist zu sehen? Für Menschen, die das Bild nicht sehen können, und für Suchmaschinen."
@@ -319,7 +347,14 @@ export default function BildPanel({
                   Lücke nach der anderen schließen. */}
               {naechstesOhne && (
                 <div className={styles.knopfreihe}>
-                  <button type="button" className={styles.knopfLeise} onClick={() => bearbeite(naechstesOhne, ohne)}>
+                  <button
+                    type="button"
+                    className={styles.knopfLeise}
+                    onClick={() => {
+                      setSprung(naechstesOhne);
+                      bearbeite(naechstesOhne, ohne);
+                    }}
+                  >
                     Nächstes Bild ohne Beschreibung ({ohne.filter((s) => s !== schluessel).length})
                   </button>
                 </div>

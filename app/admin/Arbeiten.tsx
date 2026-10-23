@@ -103,7 +103,7 @@ export default function Arbeiten() {
           const aus = vorhanden.length - sichtbar.length;
           const warten = platzhalter(unterwegs, bilder, `arbeiten/${a.id}`).filter((s) => arbeitZu(s) === a.id);
           const ist = offen === a.id;
-          const fehlt = wasDannFehlt(inhalt, sichtbar.map((b) => b.schluessel));
+          const fehlt = wasDannFehlt({ inhalt, bilder }, sichtbar.map((b) => b.schluessel));
           return (
             <div className={styles.zeile}>
               <div className={styles.zeileKopf}>
@@ -331,7 +331,7 @@ function LoeschDialog({
     .map((b) => b.schluessel)
     .filter((s) => !(s in inhalt.papierkorb));
   const sichtbar = vorhanden.filter((s) => !istVerborgen(inhalt, s));
-  const fehlt = wasDannFehlt(inhalt, sichtbar);
+  const fehlt = wasDannFehlt({ inhalt, bilder }, sichtbar);
   return (
     <Dialog titel={`„${arbeit.titel}“ löschen?`} beiSchliessen={beiSchliessen}>
       {(schliesse) =>
