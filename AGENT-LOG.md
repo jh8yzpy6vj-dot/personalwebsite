@@ -6,6 +6,37 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-23 — Verwaltung: Reste der Prüfung abgeschlossen, Darstellung am PC
+
+Jan: „Mach die fehlenden packets."
+
+- **Nachbesserung Paket 6 (`b45f284`):** „Verwendet: …" und die Startseite kennen die Rückfälle
+  (großes Bild oben nur ohne `hero/standbild`, Bild zum Bereich Film nur, solange kein Film ein
+  Standbild hat); Fokus nach dem Panel am richtigen Platz, auch nach Blättern und Löschen;
+  Hero-Zähler nach „herausnehmen"; Platz-Feld übernimmt bei Strg+S, verwirft bei Esc.
+- **Nachbesserung Paket 7 (`4069339`)** nach unabhängiger Prüfung: „Zeigen" ohne genaue Stelle
+  holt den Reiter unter die klebende Reiterleiste (vorher scrollte es kaum); Panel-Felder heißen
+  wie in der Verwaltung („Über mich · 02 · Beschriftung") und „Zeigen" öffnet das Panel; Fokus
+  nach „Alle Bilder ausblenden"; Löschdialog nach Lage; „Regel E10" aus dem Fehlertext;
+  Feldnamen als gemeinsame Konstanten (`FELDNAMEN`).
+- **Paket 8, nur PC (`387b07a`):** Hover nur mit Maus, „gedrückt" sichtbar anders; fokussierte
+  Felder nie unter den Leisten (gemessene Leistenhöhen, scroll-padding); Notizfeld beschriftet;
+  Marken auf ausgeblendeten Kacheln lesbar; Kontraste nachgemessen (`--leise` auf Flächen
+  5,58:1, Feldrahmen ≥ 3,1:1); Pos1/Ende in der Reiterleiste; Ziehen scrollt an den Leisten
+  mit. UI-SPEC: „nur am PC (ab 1024px)" statt „nutzbar ab 375px" (Jans Entscheidung 2026-10-21).
+- **Geprüft vor dem Livegang:** 441 Tests, `tsc`, ESLint, `next build`, `opennextjs-cloudflare
+  build`, `wrangler deploy --dry-run`; im gebauten Worker alle Seiten 200, Anmeldung
+  falsch/richtig, `/api/admin/stand` ohne Cookie 404, fremde Herkunft 403.
+- **Nebenbei geklärt (Cloudflare):** Builds scheiterten mit „entry-point file … not found",
+  weil der Build-Befehl nicht lief bzw. „Retry" alte Einstellungen nahm; außerdem lag
+  `ADMIN_PASSWORT` im Build-Kasten statt bei den Laufzeit-Variablen und der API-Token für
+  Workers Builds fehlte. Im Dashboard behoben (Fehlerbild in `TECH-STACK.md`). Builds des
+  Arbeits-Branches scheitern weiter (dort läuft der Build-Befehl nicht) — harmlos.
+- **Offen:** Einrichtung für Speichern (`GITHUB_TOKEN`) und Hochladen (Eingangs-Bucket,
+  Worker-Variablen, Action-Secrets) — nur im Dashboard möglich, Anleitung in `TECH-STACK.md`.
+
+---
+
 ## 2026-10-22 — Filme und neuer Text „Über mich“ von Jakob
 
 Jakob hat (per WhatsApp, über Jan) acht Filme mit Link und einen neuen Text für „Über mich“
