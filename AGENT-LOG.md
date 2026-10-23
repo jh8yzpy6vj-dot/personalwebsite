@@ -6,6 +6,45 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-23 — Startseite: oben Foto oder Video, Video selbst hochladen
+
+Jan, mit Jakobs Video (`261017_jakobsax.de_Header_v1.mov`): „Ich möchte das Video hier als hero
+auf der website haben. Bestenfalls soll der admin in der Oberfläche einfach zwischen Fotos und
+Filmen für die hero section switchen können und dann einen hochladen Button haben."
+
+- **Schalter:** `startseite.heroArt` (`"foto"` | `"video"`) in `lib/inhalt.json`, steht auf
+  `"video"`. Fehlt er (alle Stände im Verlauf von vorher), heißt er „video" (`heroArtVon`) — sonst
+  ließe sich kein älterer Stand mehr wiederherstellen. `app/page.tsx`: bei „Foto" kein Video; bei
+  „Video" unter dem Video dessen erstes Bild (`hero/film`), sonst wie bisher Standbild → Foto.
+- **Verwaltung, Reiter Startseite:** neuer Abschnitt „Oben auf der Startseite" mit „Foto" /
+  „Video" (gedrückte Knöpfe, Meldung mit Rückgängig) und bei Video die Zeile „Video oben" mit
+  Vorschau, Zustand und „Video hochladen" / „Video ersetzen" (mit Rückfrage). Prüfung: „Video"
+  ohne Video ist ein Hinweis, „Zeigen" führt zum Knopf; mit Video ist „Großes Bild oben" Rückfall.
+- **Hochladen:** neues Ziel `hero/film` (`VIDEO_ZIEL`), nur MP4/MOV, 40 MB wie bei Bildern; der
+  Worker erkennt das Video an den ersten Bytes (`erkenneVideotyp`) und nimmt die Endung daraus.
+- **Medien-Action:** `scripts/video.mjs` rechnet mit ffmpeg um — nur Bildspur, keine
+  Metadaten (Autor, Ort), H.264/MP4 `+faststart`, max. 1920 breit, Datenrate aus der Länge unter
+  7 MB — und schreibt das erste Bild als `original/hero/film.jpg`. Es steht danach unter
+  demselben Schlüssel im Bild-Manifest; daran sieht die Verwaltung, dass das Video fertig ist.
+  ffmpeg kommt per apt auf den Läufer (kein npm-Paket). Video-Adressen im Manifest tragen jetzt
+  einen Fingerabdruck (`?v=`), damit ein ersetztes Video nicht aus dem Cache kommt.
+- **Jakobs Video** testweise umgerechnet: 30 MB → 7,1 MB, 1920×1080, 18,1 s, ohne Ton und
+  Metadaten, optisch wie das Original. Lokal eingehängt lief es auf der Startseite (●REC blinkt,
+  Pause-Knopf), bei „Foto" kein `<video>`. Danach wieder ausgehängt — die Manifeste sind
+  unverändert.
+- **Doku:** `TECH-STACK.md` („Hochladen und Ersetzen", „Medien" → „Videos", Tabelle „Wohin welche
+  Datei"), `design/UI-SPEC.md` (Startseite, Bildbehandlung, Verwaltung „Startseite, oben: Foto
+  oder Video", Meldungstexte), `TODO.md` („Hero-Video live bringen").
+- **Geprüft:** `tsc`, ESLint, 458 Tests (neu u. a. `scripts/video.test.mjs` mit echter
+  Umrechnung durch ffmpeg), `opennextjs-cloudflare build`; Verwaltung bei 1280 und 390 px im
+  Browser.
+- **Offen:** Hochladen ist noch nicht eingerichtet (Eingangs-Bucket, Secrets) — bis dahin ist der
+  Knopf gesperrt. Dann entweder einrichten oder Jan legt `film.mp4` und `film.jpg` von Hand nach
+  `original/hero/` und lässt `npm run medien` laufen. Die Action selbst mit ffmpeg ist erst beim
+  ersten echten Lauf geprüft.
+
+---
+
 ## 2026-10-23 — Verwaltung: Reste der Prüfung abgeschlossen, Darstellung am PC
 
 Jan: „Mach die fehlenden packets."

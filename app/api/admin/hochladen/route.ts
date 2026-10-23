@@ -1,8 +1,15 @@
 import { fehlerText, json, leseBegrenzt, logText } from "@/lib/admin/antwort";
-import { entferne, erkenneBildtyp, legeAb, liste, ohneEndung } from "@/lib/admin/eingang";
+import { entferne, erkenneBildtyp, erkenneVideotyp, legeAb, liste, ohneEndung } from "@/lib/admin/eingang";
 import { eingangZugang, umgebung } from "@/lib/admin/umgebung";
 import { pruefeHerkunft, zugangOder404 } from "@/lib/admin/zugang";
-import { BILDTYPEN, MAX_UPLOAD_BYTES, ZIEL, type HochladenAntwort } from "@/lib/admin/vertrag";
+import {
+  BILDTYPEN,
+  MAX_UPLOAD_BYTES,
+  VIDEO_ZIEL,
+  VIDEOTYPEN,
+  ZIEL,
+  type HochladenAntwort,
+} from "@/lib/admin/vertrag";
 
 /**
  * `PUT /api/admin/hochladen?ziel=<schluessel>` — ein Bild in den privaten
@@ -12,6 +19,10 @@ import { BILDTYPEN, MAX_UPLOAD_BYTES, ZIEL, type HochladenAntwort } from "@/lib/
  *
  * Verarbeitet wird hier nichts — das macht die Medien-Action, sobald die
  * Verwaltung `verarbeiten` aufruft (Metadaten weg, Varianten rechnen).
+ *
+ * Seit dem 2026-10-23 nimmt das Ziel `hero/film` (`VIDEO_ZIEL`) statt eines
+ * Bildes ein **Video** an — das Video oben auf der Startseite. Gleicher
+ * Weg, gleiche Grenze; umgerechnet wird es in der Action (ffmpeg).
  *
  * `DELETE /api/admin/hochladen?ziel=<schluessel>` — ein Bild, das noch im
  * Eingang liegt, verwerfen (siehe unten).
@@ -42,8 +53,10 @@ export async function PUT(request: Request): Promise<Response> {
   if (!ZIEL.test(ziel)) return abgelehnt("Unbekanntes Ziel für das Bild.", 400);
 
   const typ = (request.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
-  const endung = BILDTYPEN[typ];
-  if (!endung) return abgelehnt("Nur JPEG, PNG, WebP oder TIFF.", 415);
+  const video = ziel === VIDEO_ZIEL;
+  if (video ? !VIDEOTYPEN[typ] : !BILDTYPEN[typ]) {
+    return abgelehnt(video ? "Nur Videos als MP4 oder MOV." : "Nur JPEG, PNG, WebP oder TIFF.", 415);
+  }
 
   const megabyte = Math.round(MAX_UPLOAD_BYTES / 1024 / 1024);
   const angegeben = Number(request.headers.get("content-length"));
@@ -56,13 +69,29 @@ export async function PUT(request: Request): Promise<Response> {
   if (!bytes) return abgelehnt(`Die Datei ist größer als ${megabyte} MB.`, 413);
   if (bytes.byteLength === 0) return abgelehnt("Die Datei ist leer.", 400);
 
-  // Der Inhalt muss zum angegebenen Typ passen — sonst stimmt die Endung nicht.
-  if (erkenneBildtyp(bytes) !== typ) {
-    return abgelehnt("Die Datei ist kein Bild dieses Typs (oder beschädigt).", 415);
+  /*
+   * Der Inhalt muss zum angegebenen Typ passen — sonst stimmt die Endung
+   * nicht. Beim Video genügt, dass es eines ist; die Endung kommt aus dem
+   * Inhalt (Begründung bei `erkenneVideotyp`).
+   */
+  const erkannt = video ? erkenneVideotyp(bytes) : erkenneBildtyp(bytes);
+  if (video ? !erkannt : erkannt !== typ) {
+    return abgelehnt(
+      video ? "Die Datei ist kein MP4- oder MOV-Video (oder beschädigt)." : "Die Datei ist kein Bild dieses Typs (oder beschädigt).",
+      415,
+    );
   }
+  const endung = video ? VIDEOTYPEN[erkannt!] : BILDTYPEN[typ];
 
   try {
-    await legeAb(eingang, `${ziel}.${endung}`, bytes, typ);
+    /* Erst das neue ablegen, dann ein älteres Video mit anderer Endung aus
+       dem Eingang nehmen: Sonst übernähme die Action vielleicht das alte. */
+    await legeAb(eingang, `${ziel}.${endung}`, bytes, erkannt!);
+    if (video) {
+      for (const key of await liste(eingang)) {
+        if (ohneEndung(key) === ziel && key !== `${ziel}.${endung}`) await entferne(eingang, key);
+      }
+    }
   } catch (e) {
     console.error(`Verwaltung: Hochladen fehlgeschlagen (${logText(e)})`);
     return abgelehnt(fehlerText(e), 502);

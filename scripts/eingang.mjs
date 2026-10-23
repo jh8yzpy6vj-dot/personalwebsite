@@ -28,6 +28,14 @@
  * `portrait` — welches gewinnt, hinge an der Sortierung des Buckets. Ersetzt
  * Jakob ein JPEG durch ein PNG, muss das alte JPEG also weg.
  *
+ * **Das Video oben** (`hero/film.<mp4|mov>`, seit 2026-10-23) geht einen
+ * eigenen Weg: ffmpeg rechnet es um (`scripts/video.mjs` — ohne Ton und
+ * Metadaten, klein genug für Mobilfunk), es liegt danach als
+ * `original/hero/film.mp4` im öffentlichen Bucket und sein erstes Bild als
+ * `original/hero/film.jpg`. Dieses Standbild rechnet `npm run medien` wie
+ * jedes Bild — und weil es unter **demselben Schlüssel** im Bild-Manifest
+ * steht, erkennt die Verwaltung daran, dass das Video fertig ist.
+ *
  * Aufrufe:
  *   npm run eingang              verarbeiten
  *   npm run eingang -- --probe   nur zeigen, was zu tun wäre
@@ -36,7 +44,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { ordneEingang, originaleVon } from "../lib/inhalt-regeln.mjs";
+import { VIDEO_ENDUNGEN, VIDEO_ZIEL, ordneEingang, originaleVon } from "../lib/inhalt-regeln.mjs";
 import {
   KURZ_ZWISCHENSPEICHERN,
   eingangEingerichtet,
@@ -48,12 +56,49 @@ import {
   zugangEingang,
 } from "./r2.mjs";
 import { saeubere } from "./saeubern.mjs";
+import { rechneVideo } from "./video.mjs";
 
 const probe = process.argv.includes("--probe");
 
-/** Ein Ziel als Bucket-Schlüssel des Originals. Immer `.jpg` — `saeubere` liefert JPEG. */
+/**
+ * Ein Ziel als Bucket-Schlüssel des Originals. Immer `.jpg` — `saeubere`
+ * liefert JPEG. Das Video oben immer `.mp4` — `rechneVideo` liefert MP4.
+ */
 export function originalSchluessel(ziel) {
-  return `original/${ziel}.jpg`;
+  return `original/${ziel}.${ziel === VIDEO_ZIEL ? "mp4" : "jpg"}`;
+}
+
+/**
+ * Das Video oben übernehmen: umrechnen, Video und Standbild ablegen, ältere
+ * Fassungen mit anderer Endung löschen. Gibt die Zeile fürs Log zurück.
+ */
+async function uebernimmVideo(oeffentlich, roh) {
+  const ziel = originalSchluessel(VIDEO_ZIEL);
+  const standbildZiel = `original/${VIDEO_ZIEL}.jpg`;
+  const { video, standbild, breite, hoehe, dauer, rate } = await rechneVideo(roh);
+  // Auch das Standbild durch die Säuberung — es kommt zwar aus ffmpeg, aber derselbe Weg für jedes Bild.
+  const bild = await saeubere(standbild);
+
+  /* Erst das Standbild, dann das Video: Bricht es dazwischen ab, zeigt die
+     Seite schlimmstenfalls das neue Standbild zum alten Video, nie ein
+     Video ohne Standbild. */
+  await lege(oeffentlich, standbildZiel, bild.datei, "image/jpeg", KURZ_ZWISCHENSPEICHERN);
+  await lege(oeffentlich, ziel, video, "video/mp4", KURZ_ZWISCHENSPEICHERN);
+
+  const vorhanden = (await liste(oeffentlich, `original/${VIDEO_ZIEL}.`)).map((o) => o.key);
+  const andere = [
+    ...originaleVon(vorhanden, VIDEO_ZIEL, VIDEO_ENDUNGEN).filter((key) => key !== ziel),
+    ...originaleVon(vorhanden, VIDEO_ZIEL).filter((key) => key !== standbildZiel),
+  ];
+  for (const key of andere) {
+    await loesche(oeffentlich, key);
+    console.log(`    – ${key} (alte Fassung ersetzt)`);
+  }
+
+  return (
+    `${ziel} + ${standbildZiel}  ${breite}×${hoehe}, ${dauer.toFixed(1)} s, ` +
+    `${menschlich(roh.length)} → ${menschlich(video.length)} (höchstens ${rate} kbit/s, ohne Ton und Metadaten)`
+  );
 }
 
 function menschlich(bytes) {
@@ -79,7 +124,7 @@ async function main() {
     console.warn(
       `  ! ${key}: kein gültiges Ziel — bleibt im Eingang liegen. ` +
         `Erwartet: arbeiten/<id>, arbeiten/<id>/NN, ueber/NN, film/<id> oder portrait, ` +
-        `mit Endung jpg, png, webp oder tif.`,
+        `mit Endung jpg, png, webp oder tif — oder hero/film als mp4 oder mov.`,
     );
   }
 
@@ -107,6 +152,19 @@ async function main() {
     const ziel = originalSchluessel(d.ziel);
     try {
       const roh = await hole(eingang, d.key);
+
+      if (d.ziel === VIDEO_ZIEL) {
+        const zeile = await uebernimmVideo(oeffentlich, roh);
+        await loesche(eingang, d.key);
+        for (const u of d.ueberholt) {
+          await loesche(eingang, u);
+          console.log(`    – ${u} (überholt durch ${d.key})`);
+        }
+        console.log(`  ✓ ${d.key} → ${zeile}`);
+        uebernommen += 1;
+        continue;
+      }
+
       const { datei, format, neuKodiert, verworfen, anhang, breite, hoehe } = await saeubere(roh);
 
       await lege(oeffentlich, ziel, datei, "image/jpeg", KURZ_ZWISCHENSPEICHERN);

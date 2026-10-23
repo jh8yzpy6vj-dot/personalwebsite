@@ -315,6 +315,22 @@ und Texte: `design/UI-SPEC.md`, „Bild-Panel").
    `<ziel>.<endung>` in den **privaten Eingangs-Bucket**.
 3. Danach stößt die Verwaltung die Medien-Action an und zeigt, was noch wartet.
 
+**Das Video oben auf der Startseite** (seit 2026-10-23) geht denselben Weg mit dem Ziel
+`hero/film` (`VIDEO_ZIEL` in `lib/admin/vertrag.ts`, doppelt in `lib/inhalt-regeln.mjs`). Nur
+dieses Ziel nimmt ein Video, und es nimmt nur eins: MP4 oder MOV (`VIDEOTYPEN`), gleiche Grenze
+von 40 MB. Der Worker prüft die ersten Bytes (`erkenneVideotyp` in `lib/admin/eingang.ts`: `ftyp`
+an Byte 4, Marke `qt  ` = MOV, sonst MP4) und nimmt die Endung **aus dem Inhalt**, nicht vom
+Browser — ob ein Programm `.mov` oder `.mp4` schreibt, sagt wenig, ffmpeg liest beides. Ein
+älteres Video mit anderer Endung im Eingang löscht er nach dem Ablegen, damit die Action nicht
+das alte nimmt. In der Action rechnet `scripts/eingang.mjs` es mit ffmpeg um
+(`scripts/video.mjs`, siehe „Medien" → „Videos") und legt zwei Dateien ab:
+`original/hero/film.mp4` und sein **erstes Bild** als `original/hero/film.jpg`. Das Bild rechnet
+`npm run medien` wie jedes andere — es steht danach unter **demselben Schlüssel** `hero/film` im
+Bild-Manifest wie das Video im Video-Manifest. Daran erkennt die Verwaltung ohne eigene Logik,
+dass das Video fertig ist („verarbeitet ist, was im Manifest steht"), und zeigt es als Vorschau.
+⚠️ Die 40 MB bleiben bewusst: Der Worker hält jede Datei ganz im Speicher (128 MB je Isolate).
+Größere Videos vorher kürzer oder mit geringerer Datenrate exportieren — verkleinert wird ohnehin.
+
 ⚠️ **Ersetzen ist endgültig — es gibt keinen Papierkorb dafür.** Die Action schreibt
 `original/<ziel>.jpg` neu und löscht andere Endungen desselben Schlüssels, `npm run medien` räumt
 die alten Varianten weg; R2 hat keine Objektversionen, und der Verlauf stellt nur
@@ -731,8 +747,9 @@ im öffentlichen Bucket, rechnet mit `npm run medien` die Varianten und committe
 Niemand muss etwas lokal laufen lassen. Ablauf, Secrets und Einrichtung: Abschnitt
 „Verwaltung (/admin)" oben.
 
-Der Weg von Hand unten bleibt gültig — für Jan, für Videos (die Verwaltung lädt nur Bilder) und
-für den Fall, dass die Action nicht eingerichtet ist. Beide Wege schreiben dieselben Dateien.
+Der Weg von Hand unten bleibt gültig — für Jan, für Videos außer dem oben auf der Startseite
+(das lädt Jakob seit 2026-10-23 selbst hoch, die Action rechnet es mit ffmpeg um) und für den
+Fall, dass die Action nicht eingerichtet ist. Beide Wege schreiben dieselben Dateien.
 ⚠️ **Wer lokal `npm run medien` laufen lässt und committet, vorher `git pull`** — die Action
 committet dasselbe Manifest.
 
@@ -795,7 +812,7 @@ Alles unter dem Präfix `original/` im Bucket:
 | **Kontaktbogen** — alle Frames derselben Aufnahmeserie | `original/arbeiten/<id>/serie/` | `01.jpg`, `02.jpg`, … und beim Treffer `03-gewaehlt.jpg` |
 | Film zu einer Arbeit (Aftermovie) | `original/video/` | `<id>.mp4` |
 | Hero-Standbild | `original/hero/` | `standbild.jpg` |
-| Hero-Video | `original/hero/` | `film.mp4` |
+| Hero-Video (seit 2026-10-23 über die Verwaltung, Reiter Startseite) | `original/hero/` | `film.mp4` und sein erstes Bild `film.jpg` — beide schreibt die Action |
 | **Porträt von Jakob** | `original/` (direkt darin) | `portrait.jpg` |
 
 Die `id` steht in `lib/inhalt.json` bei jeder Arbeit (`"id": "..."`, in der Verwaltung
@@ -1043,7 +1060,42 @@ Titel, Auftraggeber und Jahr ein — die ist korrekt, aber nichts wert.
 sein. Bei Auftritten im öffentlichen Raum betrifft das Künstlerinnen, Künstler **und** Publikum.
 Siehe `TODO.md` — das sind Launch-Blocker.
 
-### Videos — sie werden nicht umgerechnet
+### Videos — das Video oben rechnet die Action um, alles andere nicht
+
+**Seit dem 2026-10-23 lädt Jakob das Video oben auf der Startseite selbst hoch** (Verwaltung →
+Reiter Startseite → „Oben auf der Startseite: Foto | Video" → „Video hochladen"). Was ein
+Schnittprogramm ausgibt, kommt so ungefiltert an — das erste war eine `.mov` mit 13 Mbit/s,
+Tonspur, Zeitcode und „Jakob Sax" als Autor: 30 MB für 18 s. Deshalb rechnet die Medien-Action
+es beim Übernehmen um (`scripts/video.mjs`, aus `scripts/eingang.mjs`):
+
+| | Was | Warum |
+|---|---|---|
+| Spuren | nur die Bildspur (`-map 0:v:0`) | kein Ton, kein Zeitcode — das Video läuft stumm |
+| Metadaten | alle weg (`-map_metadata -1`, `-map_chapters -1`) | Autor, Titel und vor allem der **Aufnahmeort**, den Telefone in Videos schreiben |
+| Format | H.264 High, `yuv420p`, MP4 mit `+faststart` | spielt überall, startet vor dem Ende des Ladens |
+| Größe | höchstens 1920 breit, nie hochskaliert | breiter ist kein Bildschirm, den es lohnt |
+| Datenrate | CRF 23, gedeckelt auf 7 MB ÷ Länge (1,5–5 Mbit/s) | bleibt unter dem Budget von 8 MB in `scripts/medien.mjs`; das erste Video: 7,1 MB bei 3,2 Mbit/s, mit bloßem Auge wie das Original |
+| Standbild | das **erste Bild** des fertigen Videos → `original/hero/film.jpg` | steht da, bis das Video läuft (und auf iPhones im Energiesparmodus ganz ohne); die Schleife beginnt dort, das Anlaufen springt nicht |
+
+ffmpeg kommt auf dem Läufer aus den Ubuntu-Paketen (Schritt „ffmpeg bereitstellen" in
+`.github/workflows/medien.yml`, nur wenn es fehlt) — **kein npm-Paket**, nichts davon landet im
+Build. Umrechnen dauert für 18 s rund 20 s. Die Länge bleibt, wie sie ist: Die schneidet Jakob,
+nicht die Pipeline. Getestet in `scripts/video.test.mjs` (mit ffmpeg auch die echte Umrechnung).
+
+Die Adresse im Video-Manifest trägt seit demselben Tag einen Fingerabdruck aus der ETag
+(`?v=…`, wie die Bildvarianten): Ersetzt Jakob das Video, bleibt der Name `hero/film.mp4`, und
+ohne den Fingerabdruck liefen Browser und Edge noch eine Weile das alte.
+
+**Was oben steht, entscheidet `startseite.heroArt`** (`"foto"` oder `"video"`, Schalter in der
+Verwaltung; fehlt der Eintrag — Stände von vorher —, heißt er `"video"`, `heroArtVon` in
+`lib/inhalt.ts`). Bei „Foto" läuft kein Video, auch wenn eins im Bucket liegt. Bei „Video" ohne
+fertiges Video steht dort das Foto, mit einem leisen Hinweis in der Verwaltung. Bei „Video" mit
+Video ist „Großes Bild oben" nur noch Rückfall (`videoObenZuSehen`, `platzZuSehen` in
+`lib/inhalt-pruefen.ts`, dieselbe Regel wie `app/page.tsx`). Die Vorschaukarte (OpenGraph) bleibt
+beim Foto — ein Bild aus dem Video wäre oft verwischt, und die Karte entsteht nur in der Action,
+nicht beim Umschalten.
+
+**Für alle anderen Videos gilt weiter:** Die Pipeline rührt sie nicht an.
 
 > ⏳ **Mit dem Umbau bleibt nur das Hero-Video.** Filme zu Arbeiten werden verlinkt, nicht mehr
 > ausgeliefert; die rechte Spalte der Tabelle und der Absatz zu Untertiteln entfallen. Für das
@@ -1051,9 +1103,9 @@ Siehe `TODO.md` — das sind Launch-Blocker.
 > unter dem Schriftzug — ein sichtbarer Sprung alle zwölf Sekunden fällt mehr auf als jeder
 > Schnitt.
 
-Anders als Bilder rührt die Pipeline Videos nicht an. Sie verzeichnet nur, was da ist, und die
-Datei wird direkt aus dem Bucket ausgeliefert. Umrechnen bräuchte ffmpeg im Werkzeugkasten und
-gehört ohnehin in die Hand dessen, der den Schnitt gemacht hat. **Also bitte fertig exportieren:**
+`npm run medien` verzeichnet nur, was unter `original/` liegt, und die Datei wird direkt aus
+dem Bucket ausgeliefert. Wer ein Video **von Hand** in den Bucket legt (auch das Video oben, am
+Weg über die Verwaltung vorbei), muss es also fertig exportieren:
 
 | | Hero-Video (`original/hero/film.mp4`) | Film zu einer Arbeit (`original/video/<id>.mp4`) |
 |---|---|---|
@@ -1070,16 +1122,18 @@ ffmpeg -i original.mov -an -t 12 -vf "scale=1920:-2" \
   -c:v libx264 -profile:v high -pix_fmt yuv420p \
   -crf 26 -preset slow -movflags +faststart film.mp4
 
-# Standbild daraus (kommt in den Bucket nach original/hero/standbild.jpg)
-ffmpeg -i film.mp4 -ss 2 -vframes 1 -q:v 2 standbild.jpg
+# Standbild daraus — das erste Bild (kommt in den Bucket nach original/hero/film.jpg)
+ffmpeg -i film.mp4 -frames:v 1 -q:v 2 film.jpg
 ```
 
 `-an` entfernt die Tonspur komplett, `-movflags +faststart` lässt das Video starten, bevor es
 fertig geladen ist.
 
 **Das Hero-Poster ist nicht optional** — iPhones spielen im Energiesparmodus gar kein Video ab,
-auch kein stummes. Ohne `original/hero/standbild.jpg` sehen diese Besucher eine schwarze Fläche.
-Dasselbe Standbild dient, solange kein Video da ist, auch selbst als Hero.
+auch kein stummes. Über die Verwaltung entsteht es von selbst (`original/hero/film.jpg`). Von
+Hand: ohne `hero/film.jpg` nimmt die Seite `original/hero/standbild.jpg`, dann das Foto aus
+„Großes Bild oben". `hero/standbild` dient, solange kein Video da ist oder „Foto" gewählt ist,
+auch selbst als Hero.
 
 Filme zu Arbeiten laufen **nicht** von selbst und laden nur ihre Metadaten vor. Sie haben
 **keine Untertitel** — sobald eine `.vtt` vorliegt, gehört sie als `<track>` in

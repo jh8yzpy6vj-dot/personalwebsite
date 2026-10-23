@@ -6,6 +6,7 @@ import UeberAnriss from "./components/UeberAnriss";
 import styles from "./page.module.css";
 import {
   HERO_ALT,
+  HERO_ART,
   HERO_ERSATZ,
   HERO_VIDEO,
   HIGHLIGHTS,
@@ -29,19 +30,30 @@ import { filmeMitStandbild, fotosFuerMosaik } from "@/lib/arbeiten";
  * Hero-Rückfälle, alle gültig: Video → Standbild → ein Foto aus `/foto`
  * (`HERO_ERSATZ`) → Verlauf. Das Standbild muss allein tragen — iPhones im
  * Energiesparmodus spielen kein Video automatisch ab.
+ *
+ * Seit dem 2026-10-23 wählt Jakob in der Verwaltung, ob oben **Foto oder
+ * Video** steht (`HERO_ART`). Bei „Foto" läuft kein Video, auch wenn eins
+ * im Bucket liegt. Bei „Video" steht unter dem Video dessen erstes Bild
+ * (`hero/film` im Bild-Manifest, von der Medien-Action erzeugt) — es
+ * gleicht dem ersten Bild der Schleife, das Anlaufen springt also nicht.
  */
 export default function Home() {
   const fotos = fotosFuerMosaik();
   const finde = (schluessel: string | null) =>
     schluessel ? (fotos.find((b) => b.schluessel === schluessel) ?? null) : null;
 
-  const standbild = bild("hero/standbild");
+  /* Normalfall ist der Bucket; `HERO_VIDEO` ist der Ausnahmeweg für ein
+     extern gehostetes Video und hat Vorrang. Bei „Foto" gar keins. */
+  const ausDemBucket = HERO_ART === "video" && !HERO_VIDEO ? heroVideo() : null;
+  const film = HERO_ART === "video" ? (HERO_VIDEO ?? ausDemBucket?.url ?? null) : null;
+  /* Das erste Bild des Videos — nur zu dem Video, aus dem es stammt. Dieselbe
+     Regel wie `videoObenZuSehen` in der Prüfung. */
+  const anfang = ausDemBucket ? bild("hero/film") : null;
+  const standbild = anfang ?? bild("hero/standbild");
+  const standbildSchluessel = anfang ? "hero/film" : "hero/standbild";
   /* Ohne eigenes Standbild trägt ein Foto aus `/foto` — mit seinem Alt-Text,
      denn anders als das Hero-Standbild ist es Inhalt, keine Dekoration. */
   const ersatz = standbild ? null : finde(HERO_ERSATZ);
-  /* Normalfall ist der Bucket; `HERO_VIDEO` ist der Ausnahmeweg für ein
-     extern gehostetes Video und hat Vorrang. */
-  const film = HERO_VIDEO ?? heroVideo()?.url ?? null;
   const hatMedien = Boolean(film || standbild || ersatz);
 
   const fotoWeg = finde(WEGE.foto);
@@ -68,7 +80,7 @@ export default function Home() {
               quelle={standbild}
               alt={HERO_ALT ?? ""}
               sizes={heroSizes(standbild, "start")}
-              ausschnitt={ausschnittAus("hero/standbild")}
+              ausschnitt={ausschnittAus(standbildSchluessel)}
               vorrang
             />
           ) : ersatz ? (

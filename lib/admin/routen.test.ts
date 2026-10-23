@@ -755,6 +755,48 @@ describe("hochladen", () => {
     const a = await hochladen.PUT(anfrage("portrait", JPEG, "image/jpeg", { origin: "https://boese.example" }));
     expect(a.status).toBe(403);
   });
+
+  /* Kopf einer ISO-Mediendatei: Blockgröße, `ftyp`, Marke. */
+  const iso = (marke: string) =>
+    new Uint8Array([0, 0, 0, 0x14, ...new TextEncoder().encode(`ftyp${marke}`), 0, 0, 0, 0, 1, 2, 3, 4]);
+
+  it("hero/film nimmt ein Video an; die Endung kommt aus dem Inhalt, ein älteres Video fliegt raus", async () => {
+    anmelden();
+    mitEingang();
+    fakeFetch((_, methode) =>
+      methode === "GET"
+        ? new Response(
+            `<ListBucketResult><IsTruncated>false</IsTruncated><Contents><Key>hero/film.mp4</Key></Contents><Contents><Key>hero/film.mov</Key></Contents><Contents><Key>portrait.jpg</Key></Contents></ListBucketResult>`,
+          )
+        : new Response(null, { status: 200 }),
+    );
+    /* Ein iPhone-Video, das der Browser als MP4 ausgibt: liegt trotzdem als .mov. */
+    const a = await hochladen.PUT(anfrage("hero/film", iso("qt  "), "video/mp4"));
+    expect(a.status).toBe(200);
+    expect(await a.json()).toEqual({ ok: true, schluessel: "hero/film" });
+    expect(aufrufe[0]).toMatchObject({
+      url: "https://abc123.r2.cloudflarestorage.com/eingang/hero/film.mov",
+      methode: "PUT",
+    });
+    expect(aufrufe.filter((x) => x.methode === "DELETE").map((x) => x.url)).toEqual([
+      "https://abc123.r2.cloudflarestorage.com/eingang/hero/film.mp4",
+    ]);
+  });
+
+  it("hero/film: nur Videos — und nur echte; andere Ziele nehmen kein Video", async () => {
+    anmelden();
+    mitEingang();
+    fakeFetch(() => new Response(null, { status: 200 }));
+    expect((await hochladen.PUT(anfrage("hero/film", JPEG))).status).toBe(415);
+    expect((await hochladen.PUT(anfrage("hero/film", JPEG, "video/mp4"))).status).toBe(415);
+    expect((await hochladen.PUT(anfrage("hero/film", iso("isom"), "video/webm"))).status).toBe(415);
+    expect((await hochladen.PUT(anfrage("portrait", iso("isom"), "video/mp4"))).status).toBe(415);
+    const a = await hochladen.PUT(anfrage("hero/film", iso("isom"), "video/quicktime"));
+    expect(a.status).toBe(200);
+    expect(aufrufe.find((x) => x.methode === "PUT")?.url).toBe(
+      "https://abc123.r2.cloudflarestorage.com/eingang/hero/film.mp4",
+    );
+  });
 });
 
 describe("hochladen: Verwerfen (DELETE)", () => {

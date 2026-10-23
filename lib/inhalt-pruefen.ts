@@ -77,9 +77,34 @@ export const STARTPLATZ_NAMEN = {
 } as const;
 
 /**
+ * Der Schlüssel des Videos oben — im Video-Manifest das Video, im
+ * Bild-Manifest sein erstes Bild (`scripts/eingang.mjs`). Wie `VIDEO_ZIEL`
+ * in `lib/admin/vertrag.ts`.
+ */
+export const HERO_FILM = "hero/film";
+
+/**
+ * Wo „Zeigen" beim Hinweis „noch kein Video" hinführt: zum Knopf
+ * „Video hochladen" im Reiter Startseite (`feldFuerBefund`).
+ */
+export const ORT_VIDEO_OBEN = "Startseite · Video hochladen";
+
+/**
+ * Zeigt die Startseite oben das Video aus dem Bucket? Nur, wenn dort
+ * „Video" gewählt ist, kein Video von außerhalb Vorrang hat und das Video
+ * fertig verarbeitet ist (sein Standbild steht im Manifest). Dieselbe Regel
+ * wie in `app/page.tsx`.
+ */
+export function videoObenZuSehen(startseite: unknown, gibt: (schluessel: string) => boolean): boolean {
+  /* Fehlt `heroArt`, heißt das „Video" (`heroArtVon` in `lib/inhalt.ts`). */
+  return istObjekt(startseite) && startseite.heroArt !== "foto" && startseite.heroVideo === null && gibt(HERO_FILM);
+}
+
+/**
  * Zeigt die Startseite diesen Bildplatz zurzeit? Zwei Plätze sind Rückfälle,
  * genau wie in `app/page.tsx`: das große Bild oben nur, solange es kein
- * eigenes Standbild oben gibt (`hero/standbild`), das Bild zum Bereich Film
+ * eigenes Standbild oben gibt (`hero/standbild`) und oben nicht das Video
+ * mit seinem ersten Bild steht (`videoObenZuSehen`), das Bild zum Bereich Film
  * nur, solange kein Film ein Standbild hat (`film/{id}` im Manifest, wie
  * `filmeMitStandbild`) — sonst nimmt die Seite das des ersten.
  *
@@ -90,10 +115,11 @@ export const STARTPLATZ_NAMEN = {
  */
 export function platzZuSehen(
   platz: keyof typeof STARTPLATZ_NAMEN,
-  filme: unknown,
+  inhalt: { filme?: unknown; startseite?: unknown },
   gibt: (schluessel: string) => boolean,
 ): boolean {
-  if (platz === "heroErsatz") return !gibt("hero/standbild");
+  const { filme } = inhalt;
+  if (platz === "heroErsatz") return !gibt("hero/standbild") && !videoObenZuSehen(inhalt.startseite, gibt);
   if (platz === "wegeFilm") {
     return !(Array.isArray(filme) && filme.some((f) => istObjekt(f) && istText(f.id) && gibt(`film/${f.id}`)));
   }
@@ -253,10 +279,18 @@ export function pruefeInhalt(eingabe: unknown, bilder: Iterable<string>): Befund
   const startNamen: [string, string | null, boolean][] = [];
   const platz = (art: keyof typeof STARTPLATZ_NAMEN, name: string, w: unknown) => {
     const ort = `Startseite · ${name}`;
-    startNamen.push([ort, einSchluessel(ort, w, true), platzZuSehen(art, i.filme, (k) => vorhanden.has(k))]);
+    startNamen.push([ort, einSchluessel(ort, w, true), platzZuSehen(art, i, (k) => vorhanden.has(k))]);
   };
   if (istObjekt(i.startseite)) {
     const s = i.startseite;
+    /* Fehlen darf es (Stände vor dem 2026-10-23, heißt „Video"), Unsinn nicht. */
+    if (s.heroArt !== undefined && s.heroArt !== "foto" && s.heroArt !== "video") {
+      fehler("Startseite · Oben", `muss „foto“ oder „video“ sein: ${JSON.stringify(s.heroArt)}.`);
+    } else if (s.heroArt !== "foto" && s.heroVideo === null && !vorhanden.has(HERO_FILM)) {
+      /* Leise: Gerade gewählt, das Video kommt erst — oder es wird noch
+         verarbeitet. Die Seite zeigt solange das Foto, nichts ist kaputt. */
+      hinweis(ORT_VIDEO_OBEN, "Oben ist „Video“ gewählt, es gibt aber noch keins (oder es wird gerade verarbeitet) — bis dahin steht dort das Foto.");
+    }
     if (s.heroVideo !== null && !istHttps(s.heroVideo)) {
       fehler("Startseite · Video oben", `muss leer sein oder eine https://-Adresse, ${OHNE_ZEICHEN}.`);
     }

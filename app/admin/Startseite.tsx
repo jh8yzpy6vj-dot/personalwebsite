@@ -2,10 +2,13 @@
 
 import { useState } from "react";
 import { AUSSCHNITT_MITTIG } from "@/lib/bilder";
+import { heroArtVon } from "@/lib/inhalt";
+import { MAX_UPLOAD_BYTES, VIDEO_ZIEL } from "@/lib/admin/vertrag";
 import {
   bildBezeichnung,
   FELDNAMEN,
   mitHttps,
+  setzeHeroArt,
   setzeSeite,
   setzeStartbild,
   setzeStartText,
@@ -16,14 +19,16 @@ import {
   type Startplatz,
 } from "@/lib/admin/werkzeuge";
 import Bildwahl from "./Bildwahl";
+import Ersetzen from "./Ersetzen";
 import { useSitzung } from "./kontext";
-import { Daumen, Textfeld } from "./teile";
+import { Daumen, Textfeld, VIDEO_ANNEHMEN } from "./teile";
 import styles from "./verwaltung.module.css";
 
 /**
- * **Reiter Startseite** — Name und Zeile, die Bildplätze (das große Bild
+ * **Reiter Startseite** — was oben steht (Foto oder Video, seit 2026-10-23,
+ * mit „Video hochladen"), Name und Zeile, die Bildplätze (das große Bild
  * oben, die Bilder zu den Bereichen Foto und Film, vier Highlights) und das
- * Video oben.
+ * Video von außerhalb.
  *
  * ⚠️ „Hero" sagt hier nichts: Der Reiter Hero und der Stern meinen die
  * Blende auf /foto. Für den oberen Teil der Startseite heißt es „oben"
@@ -56,13 +61,97 @@ const PLAETZE = (
 const kennung = (p: Startplatz) => (typeof p === "string" ? p : `highlight-${p.highlight}`);
 
 export default function Startseite() {
-  const { inhalt, bilder, aendere, bearbeite } = useSitzung();
+  const { inhalt, bilder, aendere, aendereMitMeldung, bearbeite, konfiguration, unterwegs } = useSitzung();
   const [wahl, setWahl] = useState<(typeof PLAETZE)[number] | null>(null);
   const st = inhalt.startseite;
+  const art = heroArtVon(st);
   const auswahl = waehlbareBilder({ inhalt, bilder });
+  /* Fertig ist das Video, sobald sein erstes Bild im Manifest steht
+     (`scripts/eingang.mjs` legt es unter demselben Schlüssel ab). */
+  const film = bilder[VIDEO_ZIEL];
+  const filmUnterwegs = unterwegs.has(VIDEO_ZIEL);
 
   return (
     <>
+      <section className={styles.abschnitt} aria-labelledby="start-oben">
+        <h2 id="start-oben" className={`${styles.abschnittTitel} ${styles.unterTitel}`}>
+          Oben auf der Startseite
+        </h2>
+        {/* Zwei gedrückte Knöpfe statt Optionsfeldern — wie „Vorschau" im Reiter Fotos. */}
+        <div className={styles.knopfreihe} role="group" aria-label="Oben auf der Startseite">
+          {(
+            [
+              ["foto", "Foto"],
+              ["video", "Video"],
+            ] as const
+          ).map(([wert, name]) => (
+            <button
+              key={wert}
+              type="button"
+              className={styles.knopf}
+              aria-pressed={art === wert}
+              onClick={() => {
+                if (art !== wert) {
+                  aendereMitMeldung((i) => setzeHeroArt(i, wert), `Oben steht jetzt ${wert === "foto" ? "das Foto" : "das Video"}.`);
+                }
+              }}
+            >
+              {name}
+            </button>
+          ))}
+        </div>
+        <p className={`${styles.leise} ${styles.unterTitel}`}>
+          {art === "foto"
+            ? "Oben steht ein Foto — welches, wählst du unten unter Bilder („Großes Bild oben“)."
+            : "Oben läuft das Video in Schleife, ohne Ton. Gibt es noch keins, steht dort solange das Foto."}
+        </p>
+
+        {art === "video" && (
+          <ul className={`${styles.reihen} ${styles.unterTitel}`}>
+            <li className={styles.zeile}>
+              <div className={styles.zeileKopf}>
+                <span className={styles.platzBild}>
+                  {film ? (
+                    <Daumen quelle={film} art="voll" breite="96px" />
+                  ) : (
+                    <span className={styles.daumenLeer}>{filmUnterwegs ? "kommt" : "leer"}</span>
+                  )}
+                </span>
+                <span className={styles.zeileName}>
+                  <strong>Video oben</strong>
+                  <span>
+                    {filmUnterwegs
+                      ? "Wird hochgeladen und verarbeitet — das dauert ein paar Minuten."
+                      : film
+                        ? "Fertig. Das Bild links ist sein erstes Bild — es steht da, bis das Video läuft."
+                        : "Noch keins. Bis dahin steht oben das Foto."}
+                    {st.heroVideo ? " Zurzeit hat das Video von außerhalb (unter Texte) Vorrang." : ""}
+                  </span>
+                  <span>
+                    MP4 oder MOV, bis {Math.round(MAX_UPLOAD_BYTES / 1024 / 1024)} MB. Ton und Metadaten werden
+                    entfernt, und es wird fürs Handy verkleinert. Anfang und Ende sollten ineinander übergehen.
+                  </span>
+                </span>
+                <span className={styles.zeileKnoepfe}>
+                  <Ersetzen
+                    ziel={VIDEO_ZIEL}
+                    gesperrt={!konfiguration.eingang}
+                    fragen={Boolean(film)}
+                    titel="Video ersetzen?"
+                    was="Das bisherige Video"
+                    bleibt="„Foto oder Video“ bleibt, wie es ist."
+                    annehmen={VIDEO_ANNEHMEN}
+                    kennung="video-oben"
+                  >
+                    {film ? FELDNAMEN.videoErsetzen : FELDNAMEN.videoHochladen}
+                  </Ersetzen>
+                </span>
+              </div>
+            </li>
+          </ul>
+        )}
+      </section>
+
       <section className={styles.abschnitt} aria-labelledby="start-texte">
         <h2 id="start-texte" className={`${styles.abschnittTitel} ${styles.unterTitel}`}>
           Texte

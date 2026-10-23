@@ -5,7 +5,8 @@
 # PRIVATEN Eingangs-Bucket, und diese Action macht den Rest:
 #
 #   1. npm run eingang     Eingang → Metadaten (GPS!) entfernen → original/ im
-#                          öffentlichen Bucket
+#                          öffentlichen Bucket. Das Video oben (hero/film,
+#                          seit 2026-10-23) rechnet dabei ffmpeg um.
 #   2. npm run papierkorb  Bilder, die länger als 30 Tage im Papierkorb liegen,
 #                          endgültig löschen (Original + Eintrag in inhalt.json)
 #   3. npm run medien      Varianten rechnen, verwaiste wegräumen, Manifest und
@@ -103,6 +104,19 @@ jobs:
       - name: Abhängigkeiten installieren
         if: steps.bereit.outputs.bereit == 'true'
         run: npm ci
+
+      # Für das Video oben (scripts/video.mjs). Aus den Paketquellen von
+      # Ubuntu statt als npm-Paket: keine neue Abhängigkeit im Projekt, und
+      # nichts davon landet im Build. Liegt es auf dem Läufer schon, geht
+      # das in einer Sekunde.
+      - name: ffmpeg bereitstellen
+        if: steps.bereit.outputs.bereit == 'true'
+        run: |
+          if ! command -v ffmpeg >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq --no-install-recommends ffmpeg >/dev/null
+          fi
+          ffmpeg -version | head -n 1
 
       # continue-on-error: Ein kaputtes Bild im Eingang soll Papierkorb und
       # Manifest nicht aufhalten. Ob es geklappt hat, prüft der letzte Schritt

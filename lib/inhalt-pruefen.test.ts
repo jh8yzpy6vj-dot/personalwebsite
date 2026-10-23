@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import manifest from "./bilder-manifest.json";
 import { INHALT, type Inhalt } from "./inhalt";
-import { istHttps, nurFehler, platzZuSehen, pruefeInhalt, type Befund } from "./inhalt-pruefen";
+import { istHttps, nurFehler, ORT_VIDEO_OBEN, platzZuSehen, pruefeInhalt, videoObenZuSehen, type Befund } from "./inhalt-pruefen";
 import { alsJsonLd } from "./site";
 
 /**
@@ -329,16 +329,47 @@ describe("pruefeInhalt — Regeln", () => {
 
   it("platzZuSehen: nur die beiden Rückfälle hängen vom Manifest ab", () => {
     const gibt = (...k: string[]) => (s: string) => k.includes(s);
-    expect(platzZuSehen("heroErsatz", INHALT.filme, gibt())).toBe(true);
-    expect(platzZuSehen("heroErsatz", INHALT.filme, gibt("hero/standbild"))).toBe(false);
-    expect(platzZuSehen("wegeFilm", INHALT.filme, gibt(`film/${INHALT.filme[0].id}`))).toBe(false);
-    expect(platzZuSehen("wegeFilm", INHALT.filme, gibt("film/gibt-es-nicht"))).toBe(true);
+    expect(platzZuSehen("heroErsatz", INHALT, gibt())).toBe(true);
+    expect(platzZuSehen("heroErsatz", INHALT, gibt("hero/standbild"))).toBe(false);
+    expect(platzZuSehen("wegeFilm", INHALT, gibt(`film/${INHALT.filme[0].id}`))).toBe(false);
+    expect(platzZuSehen("wegeFilm", INHALT, gibt("film/gibt-es-nicht"))).toBe(true);
     /* Überlebt jede Form der Filmliste. */
-    expect(platzZuSehen("wegeFilm", null, gibt("film/x"))).toBe(true);
-    expect(platzZuSehen("wegeFilm", [null, 3, { id: 4 }], gibt("film/4"))).toBe(true);
+    expect(platzZuSehen("wegeFilm", { filme: null }, gibt("film/x"))).toBe(true);
+    expect(platzZuSehen("wegeFilm", { filme: [null, 3, { id: 4 }] }, gibt("film/4"))).toBe(true);
     for (const p of ["wegeFoto", "highlight"] as const) {
-      expect(platzZuSehen(p, INHALT.filme, gibt("hero/standbild", `film/${INHALT.filme[0].id}`))).toBe(true);
+      expect(platzZuSehen(p, INHALT, gibt("hero/standbild", `film/${INHALT.filme[0].id}`))).toBe(true);
     }
+  });
+
+  it("platzZuSehen: Mit dem Video oben trägt dessen erstes Bild, nicht das große Bild oben", () => {
+    const gibt = (...k: string[]) => (s: string) => k.includes(s);
+    const mit = (heroArt: string, heroVideo: string | null = null) => ({
+      ...INHALT,
+      startseite: { ...INHALT.startseite, heroArt, heroVideo },
+    });
+    expect(platzZuSehen("heroErsatz", mit("video"), gibt("hero/film"))).toBe(false);
+    /* Noch kein Video, „Foto" gewählt oder ein Video von außerhalb: Das große Bild oben steht da. */
+    expect(platzZuSehen("heroErsatz", mit("video"), gibt())).toBe(true);
+    expect(platzZuSehen("heroErsatz", mit("foto"), gibt("hero/film"))).toBe(true);
+    expect(platzZuSehen("heroErsatz", mit("video", "https://example.com/film.mp4"), gibt("hero/film"))).toBe(true);
+    expect(videoObenZuSehen(null, gibt("hero/film"))).toBe(false);
+  });
+
+  it("Foto oder Video oben: nur diese zwei Werte; „Video“ ohne Video ist ein leiser Hinweis", () => {
+    const i = kopie();
+    i.startseite.heroArt = "video";
+    const ohne = pruefeInhalt(i, BILDER);
+    expect(ohne.filter((b) => b.ort === ORT_VIDEO_OBEN).map((b) => b.stufe)).toEqual(["hinweis"]);
+    expect(pruefeInhalt(i, [...BILDER, "hero/film"]).filter((b) => b.ort === ORT_VIDEO_OBEN)).toEqual([]);
+    i.startseite.heroArt = "foto";
+    expect(pruefeInhalt(i, BILDER).filter((b) => b.ort === ORT_VIDEO_OBEN)).toEqual([]);
+    (i.startseite as { heroArt: unknown }).heroArt = "film";
+    expect(nurFehler(pruefeInhalt(i, BILDER)).map((b) => b.ort)).toEqual(["Startseite · Oben"]);
+    /* Stände von vor dem Schalter haben das Feld nicht — sie bleiben gültig und heißen „Video". */
+    delete i.startseite.heroArt;
+    expect(nurFehler(pruefeInhalt(i, BILDER))).toEqual([]);
+    expect(pruefeInhalt(i, BILDER).filter((b) => b.ort === ORT_VIDEO_OBEN)).toHaveLength(1);
+    expect(platzZuSehen("heroErsatz", i, (k) => k === "hero/film")).toBe(false);
   });
 
   it("zählt den Hinweis auf fehlende Beschreibungen auch für ein einziges Bild richtig", () => {

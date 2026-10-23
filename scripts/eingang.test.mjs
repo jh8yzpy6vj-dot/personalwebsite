@@ -17,4 +17,9 @@ describe("eingang", () => {
       expect(originalSchluessel(ziel)).toBe(`original/${ziel}.jpg`);
     }
   });
+
+  it("legt das Video oben als MP4 ab", () => {
+    expect(ZIEL.test("hero/film")).toBe(true);
+    expect(originalSchluessel("hero/film")).toBe("original/hero/film.mp4");
+  });
 });

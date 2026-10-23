@@ -91,6 +91,20 @@ export type Inhalt = {
   };
   startseite: {
     /**
+     * **Was oben auf der Startseite steht** (seit 2026-10-23, Schalter in der
+     * Verwaltung): `"video"` — das Video aus dem Bucket (`hero/film`, in der
+     * Verwaltung hochgeladen) bzw. `heroVideo`; `"foto"` — nur das Standbild
+     * bzw. `heroErsatz`, auch wenn es ein Video gibt. Fehlt bei `"video"` das
+     * Video, steht dort ebenfalls das Foto — gültig, kein Fehler.
+     *
+     * ⚠️ **Darf fehlen und heißt dann `"video"`** — so verhielt sich die Seite
+     * vor dem Schalter (Video, sobald eins da ist). Sonst passte kein Stand
+     * aus dem Verlauf von vor dem 2026-10-23 mehr zur Prüfung, und
+     * „Wiederherstellen" ginge für alle älteren Stände nicht mehr. Lesen
+     * immer über `heroArtVon`.
+     */
+    heroArt?: "foto" | "video";
+    /**
      * **Ausnahmeweg** für das Hero-Video: eine vollständige, externe
      * `https://`-Adresse. Normalfall `null` — dann kommt das Video aus dem
      * Bucket (`original/hero/film.mp4`). Ein Eintrag hier hat Vorrang.
@@ -193,6 +207,11 @@ export type Inhalt = {
  * die Form stimmt, prüft `pruefeInhalt` beim Build (`lib/content.ts`).
  */
 export const INHALT = roh as unknown as Inhalt;
+
+/** Foto oder Video oben — fehlt der Eintrag (Stand vor dem 2026-10-23), heißt das „Video". */
+export function heroArtVon(startseite: Pick<Inhalt["startseite"], "heroArt">): "foto" | "video" {
+  return startseite.heroArt ?? "video";
+}
 
 /**
  * Der Dateiname eines Bildes innerhalb seiner Arbeit: `"leitbild"` für

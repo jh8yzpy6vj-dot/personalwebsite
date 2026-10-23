@@ -4,6 +4,7 @@ import {
   EingangFehler,
   entferne,
   erkenneBildtyp,
+  erkenneVideotyp,
   legeAb,
   liste,
   ohneEndung,
@@ -145,5 +146,17 @@ describe("Hilfen", () => {
     expect(erkenneBildtyp(b("RIFF", 0, 0, 0, 0, "WAVE"))).toBeNull();
     expect(erkenneBildtyp(b(0xff, 0xd8))).toBeNull();
     expect(erkenneBildtyp(new Uint8Array(0))).toBeNull();
+  });
+
+  it("erkennt Videos an den ersten Bytes — QuickTime an der Marke, sonst MP4", () => {
+    const b = (...x: (number | string)[]) =>
+      new Uint8Array(x.flatMap((t) => (typeof t === "string" ? [...t].map((z) => z.charCodeAt(0)) : [t])));
+    expect(erkenneVideotyp(b(0, 0, 0, 0x14, "ftypqt  ", 0, 0, 0, 0))).toBe("video/quicktime");
+    expect(erkenneVideotyp(b(0, 0, 0, 0x20, "ftypisom", 0, 0, 2, 0))).toBe("video/mp4");
+    expect(erkenneVideotyp(b(0, 0, 0, 0x20, "ftypM4V ", 0, 0, 0, 0))).toBe("video/mp4");
+    expect(erkenneVideotyp(b(0, 0, 0, 8, "wide", 0, 0, 0, 0))).toBe("video/quicktime");
+    expect(erkenneVideotyp(b(0xff, 0xd8, 0xff, 0xe0, 0, 0, 0, 0, 0, 0, 0, 0))).toBeNull();
+    expect(erkenneVideotyp(b(0x1a, 0x45, 0xdf, 0xa3, 0, 0, 0, 0, 0, 0, 0, 0))).toBeNull();
+    expect(erkenneVideotyp(b(0, 0, 0, 0x14, "ftyp"))).toBeNull();
   });
 });

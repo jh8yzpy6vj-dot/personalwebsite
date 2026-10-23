@@ -188,3 +188,24 @@ export function erkenneBildtyp(bytes: Uint8Array): string | null {
   if (bytes.length >= 4 && ascii(0, "MM") && b(2) === 0x00 && b(3) === 0x2a) return "image/tiff";
   return null;
 }
+
+/**
+ * Welcher Videotyp steckt in den Bytes — wie `erkenneBildtyp`, für das
+ * Video oben (`VIDEO_ZIEL`). MP4 und QuickTime sind beide ISO-Mediendateien:
+ * Bei Byte 4 steht `ftyp`, dahinter die Marke. `qt  ` ist QuickTime (.mov
+ * vom iPhone, aus Final Cut), jede andere Marke MP4 (`isom`, `mp42`, `M4V `
+ * …). Sehr alte .mov beginnen ohne `ftyp` gleich mit einem dieser Blöcke.
+ *
+ * ⚠️ Anders als bei Bildern wird der Typ **nicht** mit dem verglichen, den
+ * der Browser nennt: Ob ein Programm `.mov` oder `.mp4` schreibt, sagt über
+ * den Inhalt wenig, und ffmpeg liest beides. Entscheidend ist nur, dass es
+ * wirklich ein Video ist — die Endung im Eingang kommt von hier.
+ */
+export function erkenneVideotyp(bytes: Uint8Array): string | null {
+  if (bytes.length < 12) return null;
+  const text = (von: number, laenge: number) => String.fromCharCode(...bytes.slice(von, von + laenge));
+  const block = text(4, 4);
+  if (block === "ftyp") return text(8, 4) === "qt  " ? "video/quicktime" : "video/mp4";
+  if (["moov", "mdat", "wide", "free", "skip"].includes(block)) return "video/quicktime";
+  return null;
+}

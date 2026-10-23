@@ -787,7 +787,7 @@ export default function Verwaltung() {
     const neu: Auftrag[] = [];
     for (const { datei, ziel } of liste) {
       const auftrag = { id: naechsteId.current++, name: datei.name, ziel, art, anteil: 0 };
-      const pruefung = pruefeDatei(datei);
+      const pruefung = pruefeDatei(datei, ziel);
       if (!pruefung.ok) {
         neu.push({ ...auftrag, zustand: "fehler", text: pruefung.text });
       } else if (!ZIEL.test(ziel)) {

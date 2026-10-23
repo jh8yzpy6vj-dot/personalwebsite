@@ -121,7 +121,9 @@ export const COMMIT = /^[0-9a-f]{7,40}$/;
  *
  * `ziel` ist der künftige Bildschlüssel und muss einer dieser Formen
  * entsprechen (`ZIEL` unten): `arbeiten/<id>` (Startbild),
- * `arbeiten/<id>/NN`, `ueber/NN`, `film/<id>`, `portrait`. Die Datei landet
+ * `arbeiten/<id>/NN`, `ueber/NN`, `film/<id>`, `portrait` — oder
+ * `hero/film`, das Video oben auf der Startseite (seit 2026-10-23, siehe
+ * `VIDEO_ZIEL`; dann `Content-Type` video/mp4|quicktime). Die Datei landet
  * im **privaten** Eingangs-Bucket als `<ziel>.<endung>`; die Medien-Action
  * entfernt Standort- und andere Metadaten und legt sie nach `original/`.
  * Ein vorhandenes Bild mit demselben Schlüssel wird dabei **ersetzt**.
@@ -135,7 +137,18 @@ export type HochladenAntwort = { ok: true; schluessel: string } | { ok: false; t
 
 /** Erlaubte Ziele beim Hochladen. Die id-Regel ist dieselbe wie in `inhalt-pruefen.ts`. */
 export const ZIEL =
-  /^(arbeiten\/[a-z0-9][a-z0-9-]{0,59}(\/\d{2})?|ueber\/\d{2}|film\/[a-z0-9][a-z0-9-]{0,59}|portrait)$/;
+  /^(arbeiten\/[a-z0-9][a-z0-9-]{0,59}(\/\d{2})?|ueber\/\d{2}|film\/[a-z0-9][a-z0-9-]{0,59}|portrait|hero\/film)$/;
+
+/**
+ * Das einzige Ziel, das ein **Video** annimmt: das Video oben auf der
+ * Startseite (seit 2026-10-23). Jedes andere Ziel nimmt nur Bilder.
+ *
+ * Die Medien-Action rechnet es mit ffmpeg um (ohne Ton und Metadaten, klein
+ * genug für Mobilfunk) und legt dazu das erste Bild als Standbild unter
+ * **demselben Schlüssel** ins Bild-Manifest — daran sieht die Verwaltung,
+ * dass das Video fertig ist, und zeigt es als Vorschau.
+ */
+export const VIDEO_ZIEL = "hero/film";
 
 /** Größte Datei beim Hochladen. Der Worker hält sie kurz im Speicher. */
 export const MAX_UPLOAD_BYTES = 40 * 1024 * 1024;
@@ -146,6 +159,12 @@ export const BILDTYPEN: Record<string, string> = {
   "image/png": "png",
   "image/webp": "webp",
   "image/tiff": "tif",
+};
+
+/** Erlaubte Videotypen (nur für `VIDEO_ZIEL`) und ihre Endung im Eingang. */
+export const VIDEOTYPEN: Record<string, string> = {
+  "video/mp4": "mp4",
+  "video/quicktime": "mov",
 };
 
 /** `POST /api/admin/verarbeiten` — stößt die Medien-Action an. */

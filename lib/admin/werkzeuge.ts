@@ -12,7 +12,7 @@ import {
   STARTPLATZ_NAMEN,
   type Befund,
 } from "../inhalt-pruefen";
-import { BILDTYPEN, MAX_UPLOAD_BYTES, ZIEL, type Lauf, type Verarbeitung } from "./vertrag";
+import { BILDTYPEN, MAX_UPLOAD_BYTES, VIDEO_ZIEL, VIDEOTYPEN, ZIEL, type Lauf, type Verarbeitung } from "./vertrag";
 
 /**
  * **Reine Hilfsfunktionen der Verwaltung** (`app/admin`).
@@ -141,9 +141,27 @@ export function dateiTyp(datei: { name: string; type: string }): string | null {
   return nachEndung[endung] ?? null;
 }
 
-/** Prüft eine Datei **vor** dem Hochladen, damit nichts 40 MB weit umsonst reist. */
-export function pruefeDatei(datei: { name: string; type: string; size: number }): { ok: true; typ: string } | { ok: false; text: string } {
-  const typ = dateiTyp(datei);
+/** Der Videotyp einer Datei — notfalls aus der Endung, wie bei `dateiTyp`. */
+export function videoTyp(datei: { name: string; type: string }): string | null {
+  if (datei.type in VIDEOTYPEN) return datei.type;
+  if (datei.type && datei.type !== "application/octet-stream") return null;
+  const endung = datei.name.toLowerCase().split(".").pop() ?? "";
+  return ({ mp4: "video/mp4", m4v: "video/mp4", mov: "video/quicktime" } as Record<string, string>)[endung] ?? null;
+}
+
+/**
+ * Prüft eine Datei **vor** dem Hochladen, damit nichts 40 MB weit umsonst
+ * reist. `ziel`: Für das Video oben (`VIDEO_ZIEL`) gilt die Prüfung für
+ * Videos — jedes andere Ziel nimmt nur Bilder.
+ */
+export function pruefeDatei(
+  datei: { name: string; type: string; size: number },
+  ziel?: string,
+): { ok: true; typ: string } | { ok: false; text: string } {
+  const typ = ziel === VIDEO_ZIEL ? videoTyp(datei) : dateiTyp(datei);
+  if (!typ && ziel === VIDEO_ZIEL) {
+    return { ok: false, text: `„${datei.name}“ ist kein Video als MP4 oder MOV.` };
+  }
   if (!typ) {
     const heic = /\.(heic|heif)$/i.test(datei.name) || /hei[cf]/i.test(datei.type);
     return {
@@ -154,7 +172,14 @@ export function pruefeDatei(datei: { name: string; type: string; size: number })
     };
   }
   if (datei.size > MAX_UPLOAD_BYTES) {
-    return { ok: false, text: `„${datei.name}“ ist größer als ${Math.round(MAX_UPLOAD_BYTES / 1024 / 1024)} MB.` };
+    const mb = Math.round(MAX_UPLOAD_BYTES / 1024 / 1024);
+    return {
+      ok: false,
+      text:
+        ziel === VIDEO_ZIEL
+          ? `„${datei.name}“ ist größer als ${mb} MB. Exportier das Video kürzer oder mit geringerer Datenrate — verkleinert wird es danach ohnehin.`
+          : `„${datei.name}“ ist größer als ${mb} MB.`,
+    };
   }
   if (datei.size === 0) return { ok: false, text: `„${datei.name}“ ist leer.` };
   return { ok: true, typ };
@@ -754,6 +779,9 @@ export const FELDNAMEN = {
   orte: "Orte",
   heroAlt: "Beschreibung des großen Bilds oben (optional)",
   heroVideo: "Video oben, von außerhalb (optional)",
+  /** Der Knopf im Reiter Startseite — „Zeigen" beim Hinweis „noch kein Video" führt dorthin (`ORT_VIDEO_OBEN`). */
+  videoHochladen: "Video hochladen",
+  videoErsetzen: "Video ersetzen",
   absatz: (n: number) => `Absatz ${n}`,
   portraitAlt: "Beschreibung des Porträts (Alt-Text)",
   email: "E-Mail",
@@ -1092,6 +1120,7 @@ export function bildBezeichnung(i: Inhalt, s: string): string {
     return `${a?.titel ?? id} · ${name === "leitbild" ? "Startbild" : name}`;
   }
   if (s === "portrait") return "Porträt";
+  if (s === VIDEO_ZIEL) return "Video oben";
   if (s.startsWith("ueber/")) return `Über mich · ${s.slice(6)}`;
   if (s.startsWith("film/")) {
     const f = i.filme.find((x) => `film/${x.id}` === s);
@@ -1142,6 +1171,13 @@ export function setzeSeite(i: Inhalt, feld: keyof Inhalt["seite"], wert: string)
 export function setzeStartText(i: Inhalt, feld: "heroAlt" | "heroVideo", wert: string): Inhalt {
   const n = kopie(i);
   n.startseite[feld] = wert.trim() === "" ? null : wert;
+  return n;
+}
+
+/** Foto oder Video oben auf der Startseite (`startseite.heroArt`). */
+export function setzeHeroArt(i: Inhalt, art: Inhalt["startseite"]["heroArt"]): Inhalt {
+  const n = kopie(i);
+  n.startseite.heroArt = art;
   return n;
 }
 
@@ -1299,7 +1335,7 @@ export function blaetterTaste(
  * damit die Prüfung dieselbe benutzt.
  */
 export function startplatzZuSehen(k: Kontext, p: Startplatz): boolean {
-  return platzZuSehen(typeof p === "string" ? p : "highlight", k.inhalt.filme, (s) => Boolean(k.bilder[s]));
+  return platzZuSehen(typeof p === "string" ? p : "highlight", k.inhalt, (s) => Boolean(k.bilder[s]));
 }
 
 /**

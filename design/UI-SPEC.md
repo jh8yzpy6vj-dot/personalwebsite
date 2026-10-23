@@ -70,7 +70,7 @@ erreichbar" sein (§ 5 DDG).
 
 | Block | Inhalt | Fläche |
 |-------|--------|--------|
-| **Hero** | Wie vor dem Umbau: Medium in voller Fensterhöhe (Video → Standbild → `HERO_ERSATZ` → Verlauf), unten links als `<h1>` die Positionierungszeile „fotografie für kultur & theater im öffentlichen raum", darunter ●-Punkt und „rastatt · stuttgart". Pause-Knopf unten rechts, sobald ein Video läuft | dunkel, Verlauf unter dem Text deckend 0.80 |
+| **Hero** | Wie vor dem Umbau: Medium in voller Fensterhöhe (Video → Standbild → `HERO_ERSATZ` → Verlauf; seit 2026-10-23 wählt Jakob in der Verwaltung **Foto oder Video** — bei „Foto" läuft kein Video, bei „Video" steht unter dem Video dessen erstes Bild, siehe *Bildbehandlung*), unten links als `<h1>` die Positionierungszeile „fotografie für kultur & theater im öffentlichen raum", darunter ●-Punkt und „rastatt · stuttgart". Pause-Knopf unten rechts, sobald ein Video läuft | dunkel, Verlauf unter dem Text deckend 0.80 |
 | **Über-mich-Anriss** | Wie vor dem Umbau: Porträt links (420px, ohne Zuschnitt), rechts „jakob.", die zwei Sätze aus `ABOUT.zeilen`, darunter „→ mehr erfahren" nach `/ueber`. Fehlt das Porträt: Platzhalter „Porträt folgt" | **hell** (`--schrift` als Fläche, `--grund` als Schrift) |
 | **Wege** | Zwei große Bild-Buttons nebeneinander (untereinander ≤ 700px): „foto" und „film", je mit einem Bild als Grund und „→". Bild für foto: `WEGE.foto` aus `lib/content.ts`; für film das Standbild des ersten Films, sonst eine dunkle Fläche mit ▶ | dunkel |
 | **Highlights** | Überschrift „highlights.", darunter vier Fotos im Hochformat 4:5 nebeneinander (2×2 bis 900px). Welche, steht in `HIGHLIGHTS` in `lib/content.ts`; fehlt ein Bild, steht dort ein Platzhalter „Highlight folgt". Jede Kachel führt nach `/foto` (am 2026-10-14 ein paar Stunden lang auf die Detailseite) | dunkel |
@@ -141,8 +141,8 @@ Punkt wie im ●REC: hier wird gerade aufgenommen.
 
 | Element | Regel |
 |---------|-------|
-| **Hero-Video** | **Volle Fensterhöhe** (`100svh`, `min-height: 420px`), randlos, `object-fit: cover`. `autoplay muted loop playsinline`, Standbild als `poster`. ⚠️ `svh`, nicht `vh` — mit `vh` ragt es auf dem Telefon unter der ein- und ausfahrenden Browserleiste heraus. |
-| Hero ohne Video | Das Standbild allein, gleiche Regeln. **Das Standbild muss für sich tragen**: iPhones im Energiesparmodus spielen gar kein Video ab. |
+| **Hero-Video** | **Volle Fensterhöhe** (`100svh`, `min-height: 420px`), randlos, `object-fit: cover`. `autoplay muted loop playsinline`, Standbild als `poster`. **Standbild ist das erste Bild des Videos** (`hero/film`, seit 2026-10-23 von der Medien-Action erzeugt): Die Schleife beginnt dort, das Anlaufen springt also nicht. Fehlt es, `hero/standbild`, dann `HERO_ERSATZ`. Nur, wenn oben „Video" gewählt ist (`startseite.heroArt`). ⚠️ `svh`, nicht `vh` — mit `vh` ragt es auf dem Telefon unter der ein- und ausfahrenden Browserleiste heraus. |
+| Hero ohne Video (oder „Foto" gewählt) | Das Standbild allein, gleiche Regeln. **Das Standbild muss für sich tragen**: iPhones im Energiesparmodus spielen gar kein Video ab. |
 | Hero ohne beides | **Ein Foto aus `/foto` trägt das Hero** (`HERO_ERSATZ` in `lib/content.ts`), gleiche Regeln wie das Standbild. Begründung: Eine schwarze Fläche ist als erster Eindruck einer Seite, die durch Bilder überzeugen soll, das Schwächste, was es gibt. Querformat, möglichst ohne erkennbare Gesichter. Sobald `hero/standbild` im Bucket liegt, hat es Vorrang. |
 | Hero ohne alles | Fläche `--grund` mit Schriftzug. Gültiger Zustand, kein Fehler. |
 | **Mosaik** (`/foto`, `/ueber`) | Die Bilder in **drei ungleich breiten Spalten** (bei weniger als drei Bildern so viele Spalten wie Bilder) (Gewichte 1.18 / 0.9 / 1.12); **auf `/foto` vier** (dazu 0.96) — seit 2026-10-15, Jakob: „die Bilder noch nen Ticken kleiner", verteilt **in die jeweils kürzeste Spalte** (seit 2026-10-16; gerechnet aus Seitenverhältnis und Spaltengewicht beim Rendern, nicht im Browser). Die erste Reihe liest sich damit weiterhin 1-2-3(-4). **Kein Bild wird beschnitten** — jedes steht in seiner eigenen Form. Unter 860px eine Spalte, die Bilder tragen dann `order`, damit die Reihenfolge stimmt. Kein JavaScript im Layout. |
@@ -472,7 +472,7 @@ Umbaus abgehakt.
     „„{Bild}" ist wiederhergestellt." · „„{Bild}" steht jetzt auf Platz {n}." · „Absatz {n}
     entfernt." · „„{Titel}" ist gelöscht." (Arbeit) · „„{Titel}" ist entfernt." (Film) · „Alle
     Bilder von „{Titel}" sind ausgeblendet." · „Alle Bilder von „{Titel}" sind wieder sichtbar."
-    · „Alle Änderungen verworfen." Nach Rückgängig:
+    · „Oben steht jetzt das Foto." bzw. „… das Video." · „Alle Änderungen verworfen." Nach Rückgängig:
     „Rückgängig gemacht: {Zusammenfassung wie beim Speichern}." mit „Wiederholen", danach
     „Wiederholt: {…}." mit „Rückgängig". `{Bild}` wie im Papierkorb („STAMP · 02").
   - **Doppelklick:** Nach Löschen (Kachel und Panel), „Aus dem Hero nehmen", Wiederherstellen aus
@@ -668,6 +668,32 @@ Umbaus abgehakt.
     oben, solange es dort kein eigenes Standbild gibt. …" bzw. „Gibt es einen Film mit Standbild,
     nimmt die Seite dessen Standbild."). Begründung: Zeile und Prüfung warnten „der Platz bleibt
     auf der Seite leer" für Plätze, die die Seite gar nicht zeigt.
+- **Startseite, oben: Foto oder Video** (seit 2026-10-23, Jakob: „zwischen Fotos und Filmen
+  switchen und dann einen Hochladen-Button"): Ganz oben im Reiter der Abschnitt **„Oben auf der
+  Startseite"** mit zwei Knöpfen **„Foto"** und **„Video"** (`aria-pressed`, Gruppe „Oben auf der
+  Startseite", gestaltet wie „Vorschau" im Reiter Fotos — keine Optionsfelder, keine neue Form).
+  Darunter leise: bei Foto „Oben steht ein Foto — welches, wählst du unten unter Bilder („Großes
+  Bild oben")."; bei Video „Oben läuft das Video in Schleife, ohne Ton. Gibt es noch keins, steht
+  dort solange das Foto." Umschalten ist ein eigener Schritt mit Meldung „Oben steht jetzt das
+  Foto." bzw. „… das Video." und „Rückgängig".
+  - **Nur bei Video** folgt eine Zeile wie die Bildplätze: links die Vorschau (das erste Bild des
+    Videos, 96px) bzw. „leer" / „kommt", daneben **„Video oben"** und leise der Zustand — „Noch
+    keins. Bis dahin steht oben das Foto." · „Wird hochgeladen und verarbeitet — das dauert ein
+    paar Minuten." · „Fertig. Das Bild links ist sein erstes Bild — es steht da, bis das Video
+    läuft." (steht ein Video von außerhalb drin, dahinter „Zurzeit hat das Video von außerhalb
+    (unter Texte) Vorrang.") — und „MP4 oder MOV, bis 40 MB. Ton und Metadaten werden entfernt,
+    und es wird fürs Handy verkleinert. Anfang und Ende sollten ineinander übergehen."; rechts der
+    Dateiknopf **„Video hochladen"** bzw. **„Video ersetzen"**. Ersetzen fragt wie jedes Ersetzen
+    („Video ersetzen?", „Das bisherige Video wird durch „{Datei}" ersetzt … „Foto oder Video"
+    bleibt, wie es ist."). Unter den wartenden Dateien (mit „Verwerfen") heißt es „Video oben".
+  - **Prüfung:** „Video" ohne fertiges Video ist ein **Hinweis** (kein Fehler, keine Warnung —
+    die Seite zeigt das Foto, nichts ist kaputt): „Startseite · Video hochladen — Oben ist
+    „Video" gewählt, es gibt aber noch keins (oder es wird gerade verarbeitet) — bis dahin steht
+    dort das Foto."; „Zeigen" führt zum Knopf „Video hochladen". Mit fertigem Video ist „Großes
+    Bild oben" Rückfall („· Rückfall, zurzeit nicht zu sehen", siehe *Rückfälle*).
+  - Begründung: Das Video kam bisher nur über Jan ins Bucket, und ob oben Foto oder Video steht,
+    hing allein daran, ob eine Datei dort lag. Jetzt entscheidet Jakob beides selbst; das Foto
+    bleibt als gültiger Zustand, auch wenn ein Video da ist.
 - **Startseite, Begriffe** (seit 2026-10-22): Die Felder heißen „Name (Schriftzug)", „Zeile unter
   dem Namen", „Orte", „Beschreibung des großen Bilds oben (optional)", „Video oben, von außerhalb
   (optional)"; die Bildplätze wie unter *Bild-Panel* („Großes Bild oben" …). Die Bildwahl nennt

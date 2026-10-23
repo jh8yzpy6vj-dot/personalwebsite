@@ -4,7 +4,7 @@ import { useContext, useEffect, useId, useLayoutEffect, useRef, useState, type R
 import { flushSync } from "react-dom";
 import Bild from "../components/Bild";
 import type { Bildquelle } from "@/lib/bilder";
-import { BILDTYPEN } from "@/lib/admin/vertrag";
+import { BILDTYPEN, VIDEOTYPEN } from "@/lib/admin/vertrag";
 import { ausserhalb, tastenbefehl } from "@/lib/admin/werkzeuge";
 import { SitzungKontext } from "./kontext";
 import styles from "./verwaltung.module.css";
@@ -369,6 +369,8 @@ export function Dialog({
 /* ── Dateiknopf ─────────────────────────────────────────────────────── */
 
 const ANNEHMEN = [...Object.keys(BILDTYPEN), ".tif", ".tiff"].join(",");
+/** Fürs Video oben: MP4 und MOV — die Endungen dazu, weil Windows .mov oft ohne Typ meldet. */
+export const VIDEO_ANNEHMEN = [...Object.keys(VIDEOTYPEN), ".mp4", ".m4v", ".mov"].join(",");
 
 /**
  * Ein Knopf, der die Dateiauswahl öffnet. Das echte `<input type="file">`
@@ -381,19 +383,29 @@ export function DateiKnopf({
   beiDateien,
   children,
   leise = false,
+  annehmen = ANNEHMEN,
+  kennung,
 }: {
   mehrere?: boolean;
   gesperrt?: boolean;
   beiDateien: (dateien: File[]) => void;
   children: ReactNode;
   leise?: boolean;
+  /** Was der Dateidialog anbietet — sonst Bilder (`VIDEO_ANNEHMEN` fürs Video oben). */
+  annehmen?: string;
+  /**
+   * `id` des Datei-Felds. Damit findet „Zeigen" den Knopf über seine
+   * Beschriftung (`feldMit` in `Verwaltung.tsx` braucht `htmlFor`).
+   */
+  kennung?: string;
 }) {
   return (
-    <label className={`${leise ? styles.knopfLeise : styles.knopf} ${gesperrt ? styles.gesperrt : ""}`}>
+    <label className={`${leise ? styles.knopfLeise : styles.knopf} ${gesperrt ? styles.gesperrt : ""}`} htmlFor={kennung}>
       <input
         type="file"
+        id={kennung}
         className="nur-vorlesen"
-        accept={ANNEHMEN}
+        accept={annehmen}
         multiple={mehrere}
         disabled={gesperrt}
         onChange={(e) => {

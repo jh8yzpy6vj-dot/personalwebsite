@@ -28,6 +28,8 @@ export default function Ersetzen({
   titel,
   was,
   bleibt,
+  annehmen,
+  kennung,
   children,
 }: {
   ziel: string;
@@ -36,6 +38,9 @@ export default function Ersetzen({
   titel: string;
   was: string;
   bleibt: string;
+  /** Weiter an `DateiKnopf`. */
+  annehmen?: string;
+  kennung?: string;
   children: ReactNode;
 }) {
   const { ladeHoch } = useSitzung();
@@ -46,9 +51,11 @@ export default function Ersetzen({
     <>
       <DateiKnopf
         gesperrt={gesperrt}
+        annehmen={annehmen}
+        kennung={kennung}
         beiDateien={(dateien) => {
           const datei = dateien[0];
-          if (fragen && pruefeDatei(datei).ok) setFrage({ datei, ziel });
+          if (fragen && pruefeDatei(datei, ziel).ok) setFrage({ datei, ziel });
           else ladeHoch([{ datei, ziel }]);
         }}
       >

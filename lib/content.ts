@@ -1,4 +1,4 @@
-import { INHALT, type Film, type Fotoarbeit } from "./inhalt";
+import { heroArtVon, INHALT, type Film, type Fotoarbeit } from "./inhalt";
 import { nurFehler, pruefeInhalt } from "./inhalt-pruefen";
 import { BILDER } from "./bilder";
 
@@ -36,6 +36,7 @@ export type { Film, Fotoarbeit };
 /** Seit 2026-10-17 frei benennbar (in der Verwaltung), also `string`. */
 export type Kategorie = string;
 
+export const HERO_ART: "foto" | "video" = heroArtVon(INHALT.startseite);
 export const HERO_VIDEO: string | null = INHALT.startseite.heroVideo;
 export const HERO_ALT: string | null = INHALT.startseite.heroAlt;
 export const HERO_ERSATZ: string | null = INHALT.startseite.heroErsatz;

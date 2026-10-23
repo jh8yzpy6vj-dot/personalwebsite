@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ZIEL as ZIEL_VERTRAG } from "./admin/vertrag";
+import { VIDEO_ZIEL as VIDEO_ZIEL_VERTRAG, VIDEOTYPEN, ZIEL as ZIEL_VERTRAG } from "./admin/vertrag";
 import { fotosFuerMosaik } from "./arbeiten";
 import type { Bildquelle } from "./bilder";
 import manifest from "./bilder-manifest.json";
@@ -17,6 +17,8 @@ import {
   ordneEingang,
   originaleVon,
   planePapierkorb,
+  VIDEO_ENDUNGEN,
+  VIDEO_ZIEL,
   ZIEL,
   zerlegeEingang,
 } from "./inhalt-regeln.mjs";
@@ -35,6 +37,12 @@ describe("doppelt geführte Regeln", () => {
   it("ZIEL ist dieselbe Regel wie im Vertrag", () => {
     expect(ZIEL.source).toBe(ZIEL_VERTRAG.source);
     expect(ZIEL.flags).toBe(ZIEL_VERTRAG.flags);
+  });
+
+  it("das Video-Ziel ist dasselbe, und jede Endung des Worker kennt die Action", () => {
+    expect(VIDEO_ZIEL).toBe(VIDEO_ZIEL_VERTRAG);
+    expect(ZIEL.test(VIDEO_ZIEL)).toBe(true);
+    for (const endung of Object.values(VIDEOTYPEN)) expect(VIDEO_ENDUNGEN.has(endung), endung).toBe(true);
   });
 
   it("bildName und arbeitZu stimmen mit lib/inhalt.ts überein", () => {
@@ -74,8 +82,8 @@ describe("doppelt geführte Regeln", () => {
 });
 
 describe("ZIEL und zerlegeEingang", () => {
-  it("nimmt die fünf Formen an", () => {
-    for (const z of ["arbeiten/at-tension", "arbeiten/at-tension/03", "ueber/01", "film/gold-2026", "portrait"]) {
+  it("nimmt die sechs Formen an", () => {
+    for (const z of ["arbeiten/at-tension", "arbeiten/at-tension/03", "ueber/01", "film/gold-2026", "portrait", "hero/film"]) {
       expect(ZIEL.test(z), z).toBe(true);
     }
   });
@@ -91,6 +99,8 @@ describe("ZIEL und zerlegeEingang", () => {
       "arbeiten/x/3",
       "arbeiten/x/serie/03",
       "hero/standbild",
+      "hero/film/01",
+      "hero",
       "ueber/1",
       "original/portrait",
       "portrait\n",
@@ -107,6 +117,20 @@ describe("ZIEL und zerlegeEingang", () => {
     expect(zerlegeEingang("../portrait.jpg")).toBeNull();
     expect(zerlegeEingang("hero/standbild.jpg")).toBeNull();
     expect(zerlegeEingang(".jpg")).toBeNull();
+  });
+
+  it("hero/film nimmt nur Videos, alle anderen Ziele nur Bilder", () => {
+    expect(zerlegeEingang("hero/film.mov")).toEqual({ ziel: "hero/film", endung: "mov" });
+    expect(zerlegeEingang("hero/film.MP4")).toEqual({ ziel: "hero/film", endung: "mp4" });
+    expect(zerlegeEingang("hero/film.jpg")).toBeNull();
+    expect(zerlegeEingang("portrait.mp4")).toBeNull();
+    expect(zerlegeEingang("film/gold.mov")).toBeNull();
+  });
+
+  it("originaleVon trennt Video und Standbild unter demselben Schlüssel", () => {
+    const keys = ["original/hero/film.mp4", "original/hero/film.mov", "original/hero/film.jpg"];
+    expect(originaleVon(keys, "hero/film")).toEqual(["original/hero/film.jpg"]);
+    expect(originaleVon(keys, "hero/film", VIDEO_ENDUNGEN)).toEqual(["original/hero/film.mp4", "original/hero/film.mov"]);
   });
 });
 

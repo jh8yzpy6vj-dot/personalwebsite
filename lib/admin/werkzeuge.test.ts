@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import manifest from "../bilder-manifest.json";
 import type { Bildquelle } from "../bilder";
 import { INHALT, istVerborgen, type Inhalt } from "../inhalt";
-import { nurFehler, ORT_BESCHREIBUNGEN, pruefeInhalt, type Befund } from "../inhalt-pruefen";
+import { nurFehler, ORT_BESCHREIBUNGEN, ORT_VIDEO_OBEN, pruefeInhalt, type Befund } from "../inhalt-pruefen";
 import { filmeMitStandbild, fotosFuerHero, fotosFuerMosaik } from "../arbeiten";
 import {
   aendereArbeit,
@@ -106,6 +106,7 @@ import {
   startplatzZustand,
   zeigeziel,
   scrollSchritt,
+  setzeHeroArt,
 } from "./werkzeuge";
 import type { Lauf } from "./vertrag";
 
@@ -179,6 +180,52 @@ describe("Dateien", () => {
     expect(pruefeDatei({ name: "a.jpg", type: "image/jpeg", size: 41 * 1024 * 1024 }).ok).toBe(false);
     const heic = pruefeDatei({ name: "IMG_1.HEIC", type: "image/heic", size: 1000 });
     expect(heic.ok === false && heic.text).toContain("JPEG");
+  });
+
+  it("das Video oben nimmt nur MP4 und MOV — und kein anderes Ziel ein Video", () => {
+    const mov = { name: "Header_v1.mov", type: "video/quicktime", size: 30 * 1024 * 1024 };
+    expect(pruefeDatei(mov, "hero/film")).toEqual({ ok: true, typ: "video/quicktime" });
+    /* Windows meldet .mov oft ohne Typ: dann nach der Endung. */
+    expect(pruefeDatei({ ...mov, type: "" }, "hero/film")).toEqual({ ok: true, typ: "video/quicktime" });
+    expect(pruefeDatei({ name: "a.mp4", type: "video/mp4", size: 1 }, "hero/film")).toEqual({ ok: true, typ: "video/mp4" });
+    expect(pruefeDatei({ name: "a.webm", type: "video/webm", size: 1 }, "hero/film").ok).toBe(false);
+    expect(pruefeDatei({ name: "a.jpg", type: "image/jpeg", size: 1 }, "hero/film").ok).toBe(false);
+    expect(pruefeDatei(mov, "portrait").ok).toBe(false);
+    expect(pruefeDatei(mov).ok).toBe(false);
+    const gross = pruefeDatei({ ...mov, size: 41 * 1024 * 1024 }, "hero/film");
+    expect(gross.ok === false && gross.text).toContain("Exportier das Video");
+  });
+});
+
+describe("Foto oder Video oben", () => {
+  it("setzeHeroArt stellt um, ohne die Eingabe anzufassen", () => {
+    const i = kopie();
+    i.startseite.heroArt = "foto";
+    const neu = setzeHeroArt(i, "video");
+    expect(neu.startseite.heroArt).toBe("video");
+    expect(i.startseite.heroArt).toBe("foto");
+  });
+
+  it("mit fertigem Video oben ist das große Bild oben nur Rückfall", () => {
+    const i = kopie();
+    const reihe = alleFotos(k(i)).map((x) => x.schluessel);
+    i.startseite.heroErsatz = reihe[0];
+    const mitVideo = { inhalt: i, bilder: { ...BILDER, "hero/film": BILDER[reihe[1]] } };
+    i.startseite.heroArt = "video";
+    expect(startplatzZuSehen(mitVideo, "heroErsatz")).toBe(false);
+    expect(startplatzZustand(mitVideo, "heroErsatz")).toBe(" · Rückfall, zurzeit nicht zu sehen");
+    expect(startplatzZuSehen(k(i), "heroErsatz")).toBe(true);
+    i.startseite.heroArt = "foto";
+    expect(startplatzZuSehen(mitVideo, "heroErsatz")).toBe(true);
+    expect(bildBezeichnung(i, "hero/film")).toBe("Video oben");
+  });
+
+  it("„Zeigen“ beim Hinweis „noch kein Video“ führt zum Knopf „Video hochladen“", () => {
+    const i = kopie();
+    i.startseite.heroArt = "video";
+    const b = pruefeInhalt(i, Object.keys(BILDER)).find((x) => x.ort === ORT_VIDEO_OBEN);
+    expect(b).toBeDefined();
+    expect(zeigeziel(b!, k(i))).toMatchObject({ reiter: "startseite", feld: FELDNAMEN.videoHochladen });
   });
 });
 

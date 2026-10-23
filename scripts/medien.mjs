@@ -514,15 +514,20 @@ async function main() {
 
     if (VIDEO_ENDUNGEN.has(endung)) {
       /*
-       * Videos werden **nicht** umgerechnet. Das bräuchte ffmpeg und gehört
-       * ohnehin in die Hand dessen, der den Schnitt gemacht hat (Vorgaben in
-       * TECH-STACK.md). Hier wird nur verzeichnet, was im Bucket liegt — die
-       * Datei wird direkt von dort ausgeliefert, nicht kopiert.
+       * Videos werden **hier nicht** umgerechnet — hier wird nur verzeichnet,
+       * was im Bucket liegt; die Datei wird direkt von dort ausgeliefert.
+       * Umgerechnet wird das Video oben schon beim Übernehmen aus der
+       * Verwaltung (`scripts/eingang.mjs` → `scripts/video.mjs`). Von Hand
+       * Abgelegtes muss fertig exportiert sein (TECH-STACK.md, „Medien").
        */
       videos[name] = {
         // Kodiert wie bei den Bildern — hier reicht `encodeURI`, weil der
         // Schlüssel als ganzer Pfad mit seinen Schrägstrichen gemeint ist.
-        url: `${basisUrl}/${encodeURI(objekt.key)}`,
+        // Mit Fingerabdruck aus der ETag, wie bei den Bildvarianten: Seit
+        // Jakob das Video in der Verwaltung ersetzen kann (2026-10-23),
+        // bleibt die Adresse dieselbe — ohne ihn liefen Browser und Edge
+        // noch eine Weile das alte.
+        url: `${basisUrl}/${encodeURI(objekt.key)}?v=${createHash("sha1").update(objekt.etag).digest("hex").slice(0, 8)}`,
         typ: TYPEN[endung] ?? "video/mp4",
         bytes: objekt.groesse,
       };
