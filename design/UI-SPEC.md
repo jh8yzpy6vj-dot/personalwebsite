@@ -680,8 +680,13 @@ Umbaus abgehakt.
     Videos, 96px) bzw. „leer" / „kommt", daneben **„Video oben"** und leise der Zustand — „Noch
     keins. Bis dahin steht oben das Foto." · „Wird hochgeladen und verarbeitet — das dauert ein
     paar Minuten." · „Fertig. Das Bild links ist sein erstes Bild — es steht da, bis das Video
-    läuft." (steht ein Video von außerhalb drin, dahinter „Zurzeit hat das Video von außerhalb
-    (unter Texte) Vorrang.") — und „MP4 oder MOV, bis 40 MB. Ton und Metadaten werden entfernt,
+    läuft." · solange die Übergangsfassung läuft (TECH-STACK, „Übergang") „Läuft — vorerst als
+    Fassung, die Jan direkt eingespielt hat. Ein hochgeladenes Video ersetzt sie." (steht ein
+    Video von außerhalb drin, dahinter „Zurzeit hat das Video von außerhalb (unter Texte)
+    Vorrang."); ist Hochladen nicht eingerichtet, zusätzlich „Hochladen ist noch nicht
+    eingerichtet — ein Versuch scheitert, bis Jan es eingerichtet hat." — der Knopf bleibt
+    trotzdem bedienbar (Jan, 2026-10-23: „Blende das in der UI schon ein, auch wenn's noch am
+    Hochladen scheitert"), der Grund steht dann in der Hochlade-Zeile — und „MP4 oder MOV, bis 40 MB. Ton und Metadaten werden entfernt,
     und es wird fürs Handy verkleinert. Anfang und Ende sollten ineinander übergehen."; rechts der
     Dateiknopf **„Video hochladen"** bzw. **„Video ersetzen"**. Ersetzen fragt wie jedes Ersetzen
     („Video ersetzen?", „Das bisherige Video wird durch „{Datei}" ersetzt … „Foto oder Video"

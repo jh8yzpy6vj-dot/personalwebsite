@@ -1095,6 +1095,31 @@ Video ist „Großes Bild oben" nur noch Rückfall (`videoObenZuSehen`, `platzZu
 beim Foto — ein Bild aus dem Video wäre oft verwischt, und die Karte entsteht nur in der Action,
 nicht beim Umschalten.
 
+#### ⚠️ Übergang: das Video oben liegt vorerst im Repo (seit 2026-10-23)
+
+Einmalige, bewusste Ausnahme von „kein Video im Git" — Jan: „Setze, wenn du es manuell einmalig
+kannst, das komprimierte Video bitte selbst direkt in den hero und push live." Hochladen war
+noch nicht eingerichtet, und aus der Cloud-Sitzung gibt es keinen Zugang zum Bucket. Deshalb:
+
+- `public/uebergang/hero/`: das umgerechnete Video (`film.mp4`, 7,1 MB) und sein erstes Bild
+  (`standbild-1920.jpg`, `standbild-960.webp`, `standbild-1920.webp`).
+- `lib/uebergang.ts`: `mitUebergang` legt das Standbild unter `hero/film` in `BILDER` und in den
+  Stand der Verwaltung, `heroVideo()` (`lib/video.ts`) nimmt das Video — **beides nur, solange
+  der Bucket nichts hat.** Lädt Jakob ein Video hoch, gilt das, ohne dass jemand etwas umstellt.
+- Ausgeliefert wird das Video über **`app/uebergang/film.mp4/route.ts`**, nicht direkt aus
+  `public/`: Die statischen Dateien des Workers beantworten `Range` nicht (immer 200 mit der
+  ganzen Datei, in `wrangler dev` nachgeprüft), und Safari/iOS spielen ein Video nur mit 206.
+  Die Route holt die Datei über die Bindung `ASSETS` und schneidet den Teil heraus (`lib/bereich.ts`).
+  OpenNext schickt die Antwort ohne `Content-Length` (chunked); über HTTP/2 an den Browser ist
+  das ohne Belang, auf einem echten iPhone aber noch nachzusehen.
+- `/uebergang/` ist von der Regel „HTML immer nachfragen" in `next.config.mjs` ausgenommen; die
+  Route setzt `immutable`, die Adresse trägt einen Fingerabdruck.
+
+**Aufräumen, sobald das Video im Bucket liegt:** `public/uebergang/`, `lib/uebergang.ts`
+(+ Test), `lib/bereich.ts`, `app/uebergang/` und die Aufrufe von `mitUebergang`/`UEBERGANG_FILM`
+löschen (`TODO.md`). ⚠️ Aus dem Git-Verlauf verschwinden die gut 8 MB damit nicht — das war der
+Preis für „sofort live".
+
 **Für alle anderen Videos gilt weiter:** Die Pipeline rührt sie nicht an.
 
 > ⏳ **Mit dem Umbau bleibt nur das Hero-Video.** Filme zu Arbeiten werden verlinkt, nicht mehr

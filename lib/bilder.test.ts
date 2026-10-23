@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { istUebergang } from "./uebergang";
 import {
   BREITEN,
   breitenFuer,
@@ -330,6 +331,8 @@ describe("das eingecheckte Manifest", () => {
     const { BILDER } = await import("./bilder");
 
     for (const [schluessel, e] of Object.entries(BILDER)) {
+      /* Die Übergangsfassung des Videos oben stammt nicht aus dem Manifest (`lib/uebergang.ts`). */
+      if (istUebergang(e)) continue;
       expect(e.breite, schluessel).toBeGreaterThan(0);
       expect(e.hoehe, schluessel).toBeGreaterThan(0);
       /* Jeder Eintrag im `srcset` mit Fingerabdruck — das sind die Adressen,

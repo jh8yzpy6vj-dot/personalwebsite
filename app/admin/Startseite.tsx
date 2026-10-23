@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AUSSCHNITT_MITTIG } from "@/lib/bilder";
 import { heroArtVon } from "@/lib/inhalt";
+import { istUebergang } from "@/lib/uebergang";
 import { MAX_UPLOAD_BYTES, VIDEO_ZIEL } from "@/lib/admin/vertrag";
 import {
   bildBezeichnung,
@@ -122,11 +123,16 @@ export default function Startseite() {
                   <span>
                     {filmUnterwegs
                       ? "Wird hochgeladen und verarbeitet — das dauert ein paar Minuten."
-                      : film
-                        ? "Fertig. Das Bild links ist sein erstes Bild — es steht da, bis das Video läuft."
-                        : "Noch keins. Bis dahin steht oben das Foto."}
+                      : istUebergang(film)
+                        ? "Läuft — vorerst als Fassung, die Jan direkt eingespielt hat. Ein hochgeladenes Video ersetzt sie."
+                        : film
+                          ? "Fertig. Das Bild links ist sein erstes Bild — es steht da, bis das Video läuft."
+                          : "Noch keins. Bis dahin steht oben das Foto."}
                     {st.heroVideo ? " Zurzeit hat das Video von außerhalb (unter Texte) Vorrang." : ""}
                   </span>
+                  {!konfiguration.eingang && (
+                    <span>Hochladen ist noch nicht eingerichtet — ein Versuch scheitert, bis Jan es eingerichtet hat.</span>
+                  )}
                   <span>
                     MP4 oder MOV, bis {Math.round(MAX_UPLOAD_BYTES / 1024 / 1024)} MB. Ton und Metadaten werden
                     entfernt, und es wird fürs Handy verkleinert. Anfang und Ende sollten ineinander übergehen.
@@ -135,7 +141,6 @@ export default function Startseite() {
                 <span className={styles.zeileKnoepfe}>
                   <Ersetzen
                     ziel={VIDEO_ZIEL}
-                    gesperrt={!konfiguration.eingang}
                     fragen={Boolean(film)}
                     titel="Video ersetzen?"
                     was="Das bisherige Video"

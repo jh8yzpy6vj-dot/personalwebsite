@@ -87,7 +87,8 @@ export default function Bild({
         <source type="image/webp" media={SPARSAM} srcSet={sparsamWebp} sizes={sizes} />
       )}
 
-      <source type="image/avif" srcSet={quelle.avif} sizes={sizes} />
+      {/* Ohne AVIF (die Übergangsfassung oben, `lib/uebergang.ts`) keine leere Quelle. */}
+      {quelle.avif && <source type="image/avif" srcSet={quelle.avif} sizes={sizes} />}
       <source type="image/webp" srcSet={quelle.webp} sizes={sizes} />
       <img
         className={[styles.bild, className].filter(Boolean).join(" ")}

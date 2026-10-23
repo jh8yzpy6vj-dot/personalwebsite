@@ -1,5 +1,6 @@
 import { BILDER, type Bildquelle } from "@/lib/bilder";
 import { INHALT, type Inhalt } from "@/lib/inhalt";
+import { mitUebergang } from "@/lib/uebergang";
 import { fehlerText, INHALT_PFAD, json, logText, MANIFEST_PFAD } from "@/lib/admin/antwort";
 import { leseDatei } from "@/lib/admin/github";
 import { githubZugang, konfiguration, umgebung } from "@/lib/admin/umgebung";
@@ -60,7 +61,8 @@ export async function GET(request: Request): Promise<Response> {
       }
     }
     inhalt = werte[0] as Inhalt;
-    bilder = werte[1] as Record<string, Bildquelle>;
+    /* Wie `BILDER` mit der Übergangsfassung des Videos oben (`lib/uebergang.ts`). */
+    bilder = mitUebergang(werte[1] as Record<string, Bildquelle>);
     sha = datei.sha;
   }
 

@@ -31,10 +31,12 @@ const nextConfig = {
        *
        * Ausgenommen: `/_next/static` (Dateinamen mit Fingerabdruck, Next.js
        * setzt dort selbst `immutable`) und die Vorschaukarten unter `/og`.
-       * Die Bilder liegen ohnehin auf der Medien-Domain.
+       * Die Bilder liegen ohnehin auf der Medien-Domain. Ebenso `/uebergang/`
+       * (das Video oben, `lib/uebergang.ts`): Adresse mit Fingerabdruck, die
+       * Route setzt `immutable` — sonst lüde jeder Besuch die 7 MB neu.
        */
       {
-        source: "/((?!_next/static|_next/image|og/).*)",
+        source: "/((?!_next/static|_next/image|og/|uebergang/).*)",
         headers: [
           { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
         ],

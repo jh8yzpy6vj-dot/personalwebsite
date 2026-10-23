@@ -6,6 +6,27 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-23 — Hero-Video live (Übergangsfassung aus dem Repo)
+
+Jan: „Blende das in der UI schon ein auch wenns noch am hochladen scheitert. Setze, wenn du es
+manuell einmalig kannst, das komprimierte Video bitte selbst direkt in den hero und push live."
+
+- **Verwaltung:** „Video hochladen" ist nicht mehr gesperrt, wenn Hochladen fehlt; die Zeile
+  sagt dann „Hochladen ist noch nicht eingerichtet — ein Versuch scheitert, …". Läuft die
+  Übergangsfassung, steht „Läuft — vorerst als Fassung, die Jan direkt eingespielt hat. …".
+- **Video im Repo, einmalig:** `public/uebergang/hero/` (Video 7,1 MB, Standbild in drei
+  Dateien), eingehängt über `lib/uebergang.ts` — nur solange der Bucket kein `hero/film` hat.
+  Bewusste Ausnahme von „kein Video im Git", begründet in TECH-STACK („Übergang").
+- **Range:** Die statischen Dateien des Workers antworteten in `wrangler dev` auf `Range` mit 200
+  und der ganzen Datei — Safari/iOS spielten so nicht. Deshalb `app/uebergang/film.mp4/route.ts`
+  (holt über `ASSETS`, liefert 206/416, `lib/bereich.ts` mit Tests). Im lokalen Worker
+  geprüft: 206 mit `Content-Range`, ganze Datei bytegleich, 416 hinter dem Ende.
+- **Geprüft:** `tsc`, ESLint, 463 Tests, `opennextjs-cloudflare build`, `wrangler dev --local`
+  (Startseite mit `<video>` und Standbild). Direkt auf `main` gepusht (live).
+- **Offen:** echtes iPhone; Übergangsdateien löschen, sobald das Video im Bucket liegt (`TODO.md`).
+
+---
+
 ## 2026-10-23 — Startseite: oben Foto oder Video, Video selbst hochladen
 
 Jan, mit Jakobs Video (`261017_jakobsax.de_Header_v1.mov`): „Ich möchte das Video hier als hero

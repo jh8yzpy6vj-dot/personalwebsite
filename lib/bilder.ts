@@ -1,5 +1,6 @@
 import manifest from "./bilder-manifest.json";
 import { BILDAUSSCHNITTE } from "./bildausschnitte";
+import { mitUebergang } from "./uebergang";
 
 /**
  * Zugriff auf die Bilder im R2-Bucket.
@@ -158,10 +159,8 @@ export function kastenSizes(quelle: Bildquelle): string {
   return `min(100vw, calc((100vh - 140px) * ${verhaeltnis}))`;
 }
 
-export const BILDER: Record<string, Bildquelle> = manifest as Record<
-  string,
-  Bildquelle
->;
+/* Mit der Übergangsfassung des Videos oben, solange der Bucket keins hat (`lib/uebergang.ts`). */
+export const BILDER: Record<string, Bildquelle> = mitUebergang(manifest as Record<string, Bildquelle>);
 
 /**
  * Bild zu einem Schlüssel, oder `null`.

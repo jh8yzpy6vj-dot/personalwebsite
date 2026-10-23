@@ -1,4 +1,5 @@
 import manifest from "./video-manifest.json";
+import { UEBERGANG_FILM } from "./uebergang";
 
 /**
  * Zugriff auf die Videos im R2-Bucket.
@@ -40,9 +41,10 @@ export function video(schluessel: string | null | undefined): Videoquelle | null
 /**
  * Das Hero-Video: `original/hero/film.mp4` im Bucket.
  *
- * Fehlt es, fällt die Startseite auf das Standbild zurück und darunter auf
- * den Farbverlauf — beides sind gültige Zustände, kein Fehler.
+ * Fehlt es, gilt die Übergangsfassung aus dem Repo (`lib/uebergang.ts`,
+ * seit 2026-10-23). Ohne die fiele die Startseite auf das Standbild zurück
+ * und darunter auf den Farbverlauf — gültige Zustände, kein Fehler.
  */
 export function heroVideo(): Videoquelle | null {
-  return video("hero/film");
+  return video("hero/film") ?? UEBERGANG_FILM;
 }
