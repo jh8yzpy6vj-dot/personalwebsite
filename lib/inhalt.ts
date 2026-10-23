@@ -66,8 +66,8 @@ export type Fotoarbeit = {
 /**
  * Ein Film. Er liegt **nicht** bei uns, sondern bei YouTube, Vimeo oder in
  * einer Mediathek — die Seite verlinkt nur. Bei uns liegt allein das
- * Standbild: `original/film/<id>.jpg` im Bucket. Ohne Standbild erscheint
- * der Film nicht.
+ * Standbild: `original/film/<id>.jpg` im Bucket. Ohne Standbild zeigt
+ * `/film` eine dunkle Kachel mit ▶ (seit 2026-10-23).
  */
 export type Film = {
   /** Name des Standbilds im Bucket (`original/film/<id>.jpg`). */

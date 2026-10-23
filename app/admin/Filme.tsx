@@ -23,7 +23,7 @@ import styles from "./verwaltung.module.css";
 /**
  * **Reiter Filme** — die Filme auf `/film`, in dieser Reihenfolge. Der Film
  * selbst liegt bei YouTube, Vimeo oder in einer Mediathek; bei uns liegt
- * nur das Standbild (`film/<id>`). Ohne Standbild erscheint ein Film nicht.
+ * nur das Standbild (`film/<id>`). Ohne Standbild zeigt `/film` eine dunkle Kachel mit ▶.
  *
  * Aufklappen wie im Reiter Arbeiten: Der Stift bleibt der Stift, zu klappt
  * „Fertig"; welcher Film offen ist, hält die Verwaltung (`aufgeklappt`).
@@ -105,7 +105,7 @@ export default function Filme() {
                   <strong>{f.titel || f.id}</strong>
                   <span>
                     {f.kunde || "ohne Kunde"}
-                    {!bilder[s] ? (unterwegs.has(s) ? " · Standbild wird verarbeitet" : " · ohne Standbild, erscheint nicht") : ""}
+                    {!bilder[s] ? (unterwegs.has(s) ? " · Standbild wird verarbeitet" : " · ohne Standbild, zeigt eine dunkle Kachel") : ""}
                   </span>
                 </span>
                 <span className={styles.zeileKnoepfe}>
@@ -167,7 +167,7 @@ export default function Filme() {
                       <Ausschnitt schluessel={s} />
                     ) : (
                       <p className={styles.leise}>
-                        {unterwegs.has(s) ? "Wird verarbeitet." : "Noch keins. Ohne Standbild erscheint der Film nicht."}
+                        {unterwegs.has(s) ? "Wird verarbeitet." : "Noch keins. Bis dahin zeigt /film eine dunkle Kachel mit ▶."}
                       </p>
                     )}
                     <div className={`${styles.knopfreihe} ${styles.unterTitel}`}>

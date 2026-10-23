@@ -408,7 +408,7 @@ export function pruefeInhalt(eingabe: unknown, bilder: Iterable<string>): Befund
       kunde(`${ort} · Kunde`, film.kunde, true);
       if (!istHttps(film.link)) fehler(`${ort} · Link`, KEINE_ADRESSE);
       if (istText(film.id) && !vorhanden.has(`film/${film.id}`)) {
-        warnung(ort, "hat (noch) kein Standbild und erscheint deshalb nicht.");
+        warnung(ort, "hat (noch) kein Standbild — auf /film steht bis dahin eine dunkle Kachel mit ▶.");
       }
       if (film.notiz !== undefined) text(`${ort} · Notiz`, film.notiz, { leer: true, max: MAX.notiz });
       gehoertZu(ab, film.id);

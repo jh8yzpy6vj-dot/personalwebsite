@@ -15,6 +15,7 @@ import {
   beschriftung,
   bilderDerArbeit,
   bilderFuerUeber,
+  filmeFuerSeite,
   filmeMitStandbild,
   filmeOhneStandbild,
   fotoarbeitenOhneBild,
@@ -248,6 +249,14 @@ describe("Was kein Bild hat, erscheint nicht", () => {
     expect(kacheln[0].beschriftung).toBe("B – K");
     expect(kacheln[0].ziel).toBe("auf YouTube");
     expect(filmeOhneStandbild(k).map((f) => f.id)).toEqual(["a"]);
+
+    // /film zeigt beide, in Jakobs Reihenfolge; ohne Standbild mit `null`.
+    const seite = filmeFuerSeite(k);
+    expect(seite.map((f) => [f.id, f.standbild !== null])).toEqual([
+      ["a", false],
+      ["b", true],
+    ]);
+    expect(seite[0].ziel).toBe("auf Vimeo");
   });
 });
 

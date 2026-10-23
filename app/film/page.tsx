@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Seite, { seitenStyles } from "../components/Seite";
 import Bild from "../components/Bild";
-import { filmeMitStandbild } from "@/lib/arbeiten";
+import { filmeFuerSeite } from "@/lib/arbeiten";
 import { FILM_SIZES } from "@/lib/bilder";
 import styles from "./film.module.css";
 
@@ -24,7 +24,7 @@ const SOFORT = 2;
  * öffnen ist eine Barriere.
  */
 export default function Filme() {
-  const filme = filmeMitStandbild();
+  const filme = filmeFuerSeite();
 
   return (
     <Seite titel="Filme von Jakob Sax" aktuell="/film" breite="film">
@@ -34,14 +34,26 @@ export default function Filme() {
             <li key={film.id}>
               <a className={styles.kachel} href={film.link} rel="noreferrer">
                 <span className={styles.rahmen}>
-                  <Bild
-                    className={styles.bild}
-                    quelle={film.standbild}
-                    alt=""
-                    sizes={FILM_SIZES}
-                    ausschnitt={film.ausschnitt}
-                    vorrang={i < SOFORT}
-                  />
+                  {film.standbild ? (
+                    <Bild
+                      className={styles.bild}
+                      quelle={film.standbild}
+                      alt=""
+                      sizes={FILM_SIZES}
+                      ausschnitt={film.ausschnitt}
+                      vorrang={i < SOFORT}
+                    />
+                  ) : (
+                    /* Noch kein Standbild: die dunkle Fläche mit ▶ wie bei
+                       der Wege-Kachel auf / (UI-SPEC, „Ausnahme: Film ohne
+                       Standbild"). */
+                    <span className={styles.leer} aria-hidden="true">
+                      <svg className={styles.play} viewBox="0 0 64 64">
+                        <circle cx="32" cy="32" r="31" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                        <path d="M26 20 L46 32 L26 44 Z" fill="currentColor" />
+                      </svg>
+                    </span>
+                  )}
                 </span>
                 <span className={styles.zeile}>
                   {film.beschriftung}

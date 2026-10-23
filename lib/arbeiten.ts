@@ -193,8 +193,8 @@ export type Filmkachel = Film & {
 };
 
 /**
- * Die Filme **in der Reihenfolge von `filme`** in `lib/inhalt.json`. Ohne Standbild erscheint ein
- * Film nicht — auch dann nicht, wenn der Link stimmt.
+ * Die Filme **mit Standbild**, in der Reihenfolge von `filme` in `lib/inhalt.json` — für die
+ * Wege-Kachel auf `/`. `/film` nimmt `filmeFuerSeite`.
  */
 export function filmeMitStandbild(k: Kontext = STANDARD): Filmkachel[] {
   return k.inhalt.filme.flatMap((film) => {
@@ -210,6 +210,25 @@ export function filmeMitStandbild(k: Kontext = STANDARD): Filmkachel[] {
       },
     ];
   });
+}
+
+/** Ein Film auf `/film` — mit Standbild oder, solange keins da ist, ohne (`null`). */
+export type Filmeintrag = Omit<Filmkachel, "standbild"> & { standbild: Bildquelle | null };
+
+/**
+ * **Alle** Filme für `/film`, in der Reihenfolge von `filme`. Seit dem
+ * 2026-10-23 steht ein Film auch ohne Standbild da — als dunkle Kachel mit ▶
+ * (UI-SPEC, „Ausnahme: Film ohne Standbild"). Die Startseite nimmt weiter
+ * nur `filmeMitStandbild`.
+ */
+export function filmeFuerSeite(k: Kontext = STANDARD): Filmeintrag[] {
+  return k.inhalt.filme.map((film) => ({
+    ...film,
+    beschriftung: beschriftung(film),
+    standbild: k.bilder[`film/${film.id}`] ?? null,
+    ausschnitt: ausschnitt(k, `film/${film.id}`),
+    ziel: zielDesLinks(film.link),
+  }));
 }
 
 /** Filme ohne Standbild — für Warnungen. */

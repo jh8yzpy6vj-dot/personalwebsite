@@ -37,6 +37,24 @@ Jan: „Mach die fehlenden packets."
 
 ---
 
+## 2026-10-23 — `/film`: dunkle Kachel mit ▶, solange ein Standbild fehlt
+
+Jan: „Unter admin kann man noch nichts speichern — kannst du nicht irgendwie das scrapen […]
+Oder du nutzt einfach einen Platzhalter?“ Die acht Filme vom Vortag standen in
+`lib/inhalt.json`, `/film` blieb aber leer, weil es zu keinem ein Standbild gibt.
+
+- **Vertrag zuerst:** `design/UI-SPEC.md` hat jetzt die „Ausnahme: Film ohne Standbild“ mit
+  Begründung. Die Regel „Was kein Bild hat, erscheint nicht“ gilt weiter für Fotoarbeiten.
+- **Code:** `filmeFuerSeite()` (`lib/arbeiten.ts`) liefert alle Filme, das Standbild darf `null`
+  sein. `/film` zeigt dann dieselbe dunkle Fläche mit ▶ wie die Wege-Kachel auf `/`. Die
+  Wege-Kachel nimmt weiter nur Filme mit Standbild. Hinweistexte in der Verwaltung und in der
+  Prüfung angepasst. Test ergänzt.
+- **Nicht gemacht: Vorschaubilder von YouTube holen.** Aus der Cloud-Sitzung ist YouTube
+  gesperrt, und die Medien-Action läuft mangels R2-Secrets nur wenige Sekunden (sie meldet „nicht
+  eingerichtet“). Ein Vorschaubild direkt von YouTube einzubinden, verbietet das UI-SPEC weiter
+  (Anfrage an Dritte bei jedem Aufruf).
+- Geprüft: Typecheck, Lint, 441 Tests, Build, Screenshot `/film` bei 1440 px und 390 px.
+
 ## 2026-10-22 — Filme und neuer Text „Über mich“ von Jakob
 
 Jakob hat (per WhatsApp, über Jan) acht Filme mit Link und einen neuen Text für „Über mich“
