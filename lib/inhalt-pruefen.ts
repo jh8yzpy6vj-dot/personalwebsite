@@ -42,6 +42,13 @@ export type Befund = {
   schluessel?: string;
   /** Die Kennung der Arbeit bzw. des Films, um die es geht — „Zeigen" klappt sie auf. */
   kennung?: string;
+  /**
+   * Das Bild, zu dessen Text der Befund gehört (Bildtitel, Bildbeschreibung,
+   * Beschriftung auf /ueber). Anders als bei `schluessel` nennt der Ort es
+   * schon („Über mich · 02 · Beschriftung") — auch für die Build-Ausgabe.
+   * „Zeigen" öffnet das Bild-Panel und setzt den Fokus ins Feld.
+   */
+  bild?: string;
 };
 
 /** Der Ort des leisen Hinweises auf Bilder ohne Beschreibung — die Verwaltung listet sie dort auf. */
@@ -68,6 +75,30 @@ export const STARTPLATZ_NAMEN = {
   wegeFilm: "Bild zum Bereich Film",
   highlight: (n: number) => `Highlight ${n}`,
 } as const;
+
+/**
+ * Zeigt die Startseite diesen Bildplatz zurzeit? Zwei Plätze sind Rückfälle,
+ * genau wie in `app/page.tsx`: das große Bild oben nur, solange es kein
+ * eigenes Standbild oben gibt (`hero/standbild`), das Bild zum Bereich Film
+ * nur, solange kein Film ein Standbild hat (`film/{id}` im Manifest, wie
+ * `filmeMitStandbild`) — sonst nimmt die Seite das des ersten.
+ *
+ * Die eine Stelle für diese Regel: Die Prüfung warnt nur bei Plätzen, die
+ * die Seite zeigt, vor einem leeren Platz; die Verwaltung nennt die anderen
+ * „Rückfall, zurzeit nicht zu sehen" (`startplatzZuSehen` in
+ * `lib/admin/werkzeuge.ts`). `gibt` sagt, ob ein Bild im Manifest steht.
+ */
+export function platzZuSehen(
+  platz: keyof typeof STARTPLATZ_NAMEN,
+  filme: unknown,
+  gibt: (schluessel: string) => boolean,
+): boolean {
+  if (platz === "heroErsatz") return !gibt("hero/standbild");
+  if (platz === "wegeFilm") {
+    return !(Array.isArray(filme) && filme.some((f) => istObjekt(f) && istText(f.id) && gibt(`film/${f.id}`)));
+  }
+  return true;
+}
 
 /** Obergrenzen gegen Versehen (eingefügter Roman) — keine Stilregeln. */
 const MAX = { kurz: 120, zeile: 800, alt: 400, notiz: 1000, liste: 2000 };
@@ -130,8 +161,9 @@ const KEINE_ADRESSE = `muss eine vollständige https://-Adresse sein, ${OHNE_ZEI
  */
 export function pruefeInhalt(eingabe: unknown, bilder: Iterable<string>): Befund[] {
   const befunde: Befund[] = [];
-  type Bezug = Pick<Befund, "schluessel" | "kennung">;
-  const fehler = (ort: string, text: string) => befunde.push({ stufe: "fehler", ort, text });
+  type Bezug = Pick<Befund, "schluessel" | "kennung" | "bild">;
+  const fehler = (ort: string, text: string, bezug: Bezug = {}) =>
+    befunde.push({ stufe: "fehler", ort, text, ...bezug });
   const warnung = (ort: string, text: string, bezug: Bezug = {}) =>
     befunde.push({ stufe: "warnung", ort, text, ...bezug });
   const hinweis = (ort: string, text: string) => befunde.push({ stufe: "hinweis", ort, text });
@@ -149,13 +181,13 @@ export function pruefeInhalt(eingabe: unknown, bilder: Iterable<string>): Befund
 
   /* ── Hilfen ─────────────────────────────────────────────────────── */
 
-  function text(ort: string, w: unknown, opt: { leer?: boolean; max?: number } = {}): w is string {
+  function text(ort: string, w: unknown, opt: { leer?: boolean; max?: number } = {}, bezug: Bezug = {}): w is string {
     if (!istText(w)) {
-      fehler(ort, "fehlt oder ist kein Text.");
+      fehler(ort, "fehlt oder ist kein Text.", bezug);
       return false;
     }
-    if (!opt.leer && w.trim() === "") fehler(ort, "ist leer.");
-    if (w.length > (opt.max ?? MAX.kurz)) fehler(ort, `ist länger als ${opt.max ?? MAX.kurz} Zeichen.`);
+    if (!opt.leer && w.trim() === "") fehler(ort, "ist leer.", bezug);
+    if (w.length > (opt.max ?? MAX.kurz)) fehler(ort, `ist länger als ${opt.max ?? MAX.kurz} Zeichen.`, bezug);
     return true;
   }
 
@@ -201,7 +233,7 @@ export function pruefeInhalt(eingabe: unknown, bilder: Iterable<string>): Befund
     if (w === undefined && !pflicht) return;
     if (!text(ort, w)) return;
     if (RECHTSFORM.test(w)) {
-      fehler(ort, `ohne Rechtsform schreiben (kein „e.V.“, keine „GmbH“) — Regel E10: „${w}“.`);
+      fehler(ort, `ohne Rechtsform schreiben (kein „e.V.“, keine „GmbH“): „${w}“.`);
     }
   }
 
@@ -215,10 +247,13 @@ export function pruefeInhalt(eingabe: unknown, bilder: Iterable<string>): Befund
     text("Startseite · Orte", i.seite.locations);
   } else fehler("Seite", "fehlt.");
 
-  const startNamen: [string, string | null][] = [];
-  const platz = (name: string, w: unknown) => {
+  /* Je Bildplatz der Ort, das Bild und ob die Seite den Platz zurzeit zeigt
+     (`platzZuSehen`) — ein Rückfall, den sie nicht zeigt, bleibt auch
+     nicht leer. */
+  const startNamen: [string, string | null, boolean][] = [];
+  const platz = (art: keyof typeof STARTPLATZ_NAMEN, name: string, w: unknown) => {
     const ort = `Startseite · ${name}`;
-    startNamen.push([ort, einSchluessel(ort, w, true)]);
+    startNamen.push([ort, einSchluessel(ort, w, true), platzZuSehen(art, i.filme, (k) => vorhanden.has(k))]);
   };
   if (istObjekt(i.startseite)) {
     const s = i.startseite;
@@ -228,13 +263,13 @@ export function pruefeInhalt(eingabe: unknown, bilder: Iterable<string>): Befund
     if (s.heroAlt !== null) {
       text("Startseite · Beschreibung des großen Bilds oben", s.heroAlt, { max: MAX.alt });
     }
-    platz(STARTPLATZ_NAMEN.heroErsatz, s.heroErsatz);
+    platz("heroErsatz", STARTPLATZ_NAMEN.heroErsatz, s.heroErsatz);
     if (istObjekt(s.wege)) {
-      platz(STARTPLATZ_NAMEN.wegeFoto, s.wege.foto);
-      platz(STARTPLATZ_NAMEN.wegeFilm, s.wege.film);
+      platz("wegeFoto", STARTPLATZ_NAMEN.wegeFoto, s.wege.foto);
+      platz("wegeFilm", STARTPLATZ_NAMEN.wegeFilm, s.wege.film);
     } else fehler("Startseite · Bilder zu Foto und Film", "fehlen.");
     if (Array.isArray(s.highlights) && s.highlights.length === 4) {
-      s.highlights.forEach((h, n) => platz(STARTPLATZ_NAMEN.highlight(n + 1), h));
+      s.highlights.forEach((h, n) => platz("highlight", STARTPLATZ_NAMEN.highlight(n + 1), h));
     } else fehler("Startseite · Highlights", "müssen genau vier Plätze sein (leere Plätze als null).");
   } else fehler("Startseite", "fehlt.");
 
@@ -287,8 +322,16 @@ export function pruefeInhalt(eingabe: unknown, bilder: Iterable<string>): Befund
             continue;
           }
           for (const [name, wert] of Object.entries(w)) {
-            if (!BILDNAME.test(name)) fehler(`${ort} · ${wort}`, `„${name}“ ist kein Bildname (leitbild, 01, 02 …).`);
-            text(`${ort} · ${wort} „${name}“`, wert, { max: feld === "alt" ? MAX.alt : MAX.kurz });
+            const max = { max: feld === "alt" ? MAX.alt : MAX.kurz };
+            if (!BILDNAME.test(name)) {
+              fehler(`${ort} · ${wort}`, `„${name}“ ist kein Bildname (leitbild, 01, 02 …).`);
+              text(`${ort} · ${wort} „${name}“`, wert, max);
+              continue;
+            }
+            /* Das Bild so, wie es in der Verwaltung heißt („STAMP · Startbild",
+               „STAMP · 02"), das Feld wie im Bild-Panel. */
+            const bild = istText(a.id) ? { bild: `arbeiten/${a.id}${name === "leitbild" ? "" : `/${name}`}` } : {};
+            text(`${ort} · ${name === "leitbild" ? "Startbild" : name} · ${wort}`, wert, max, bild);
           }
         }
         if (a.notiz !== undefined) text(`${ort} · Notiz`, a.notiz, { leer: true, max: MAX.notiz });
@@ -331,8 +374,13 @@ export function pruefeInhalt(eingabe: unknown, bilder: Iterable<string>): Befund
     link("Über mich · SWR", u.swr);
     if (istObjekt(u.bilder)) {
       for (const [k, w] of Object.entries(u.bilder)) {
-        if (!/^ueber\/[a-z0-9_-]+$/.test(k)) fehler("Über mich · Beschriftungen", `„${k}“ ist kein Bild unter ueber/.`);
-        text(`Über mich · Beschriftung „${k}“`, w);
+        if (!/^ueber\/[a-z0-9_-]+$/.test(k)) {
+          fehler("Über mich · Beschriftungen", `„${k}“ ist kein Bild unter ueber/.`);
+          text(`Über mich · Beschriftung „${k}“`, w);
+          continue;
+        }
+        /* „Über mich · 02" — so heißt das Bild in der Verwaltung. */
+        text(`Über mich · ${k.slice("ueber/".length)} · Beschriftung`, w, {}, { bild: k });
       }
     } else fehler("Über mich · Beschriftungen", "fehlen.");
     ueberReihenfolge = schluesselListe("Über mich · Reihenfolge", u.reihenfolge);
@@ -396,10 +444,13 @@ export function pruefeInhalt(eingabe: unknown, bilder: Iterable<string>): Befund
     ausgeblendet.has(k) ? "ist ausgeblendet" : papierkorb.has(k) ? "liegt im Papierkorb" : null;
 
   /* Diese Warnungen nennen das Bild nicht im Text, sondern als `schluessel`
-     — die Verwaltung setzt den Namen davor, den Jakob aus den Reitern kennt. */
+     — die Verwaltung setzt den Namen davor, den Jakob aus den Reitern kennt.
+     Ein Platz der Startseite, den sie zurzeit nicht zeigt (Rückfall), bleibt
+     auch nicht leer: kein Wort dazu. */
   const leer = "der Platz bleibt auf der Seite leer";
+  const gezeigt = startNamen.filter(([, , zuSehen]) => zuSehen);
   for (const [ort, k, folge] of [
-    ...startNamen.map(([ort, k]) => [ort, k, leer] as const),
+    ...gezeigt.map(([ort, k]) => [ort, k, leer] as const),
     ...hero.map((k) => ["Hero auf /foto", k, "im Hero erscheint es nicht"] as const),
   ]) {
     if (!k) continue;
@@ -413,7 +464,7 @@ export function pruefeInhalt(eingabe: unknown, bilder: Iterable<string>): Befund
   /* Die Startseite sucht jedes Bild unter den Fotos von /foto
      (`fotosFuerMosaik` in `app/page.tsx`) — ein Bild von „Über mich" oder
      ein Film-Standbild fände sie nie. */
-  for (const [ort, k] of startNamen) {
+  for (const [ort, k] of gezeigt) {
     if (k && !k.startsWith("arbeiten/")) warnung(ort, `ist kein Foto aus /foto — ${leer}.`, { schluessel: k });
   }
 

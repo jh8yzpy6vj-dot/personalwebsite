@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import type { Bildquelle } from "@/lib/bilder";
 import type { Inhalt } from "@/lib/inhalt";
-import { ORT_BESCHREIBUNGEN, pruefeInhalt, type Befund } from "@/lib/inhalt-pruefen";
+import { pruefeInhalt, type Befund } from "@/lib/inhalt-pruefen";
 import {
   ZIEL,
   type HochladenAntwort,
@@ -19,7 +19,6 @@ import {
   bildBezeichnung,
   erwarteteBilder,
   fasseZusammen,
-  feldFuerBefund,
   gleich,
   gleicherCommit,
   istDoppelklick,
@@ -31,11 +30,9 @@ import {
   nachDemEingang,
   naechsteZiele,
   nachStufe,
-  ohneBeschreibung,
   ohneEmail,
   pruefeDatei,
   REITER,
-  reiterFuerBefund,
   schrittVor,
   schrittZurueck,
   stapelNachSpeichern,
@@ -44,6 +41,7 @@ import {
   tippgruppen,
   verarbeitungsanzeige,
   werteAus,
+  zeigeziel,
   type Folge,
   type Klick,
   type Reiter,
@@ -885,31 +883,25 @@ export default function Verwaltung() {
   };
 
   /**
-   * „Zeigen" an einem Befund: in seinen Reiter und dort an die Stelle. Ein
-   * Bild, das es gibt, öffnet das Bild-Panel (aus dem Hero mit Blättern
-   * durch den Hero, aus dem Hinweis „Bildbeschreibungen" durch die Bilder
-   * ohne Beschreibung). Eine Arbeit oder ein Film wird aufgeklappt, das Feld
-   * fokussiert (`springeZu`, ein Bild später — dann steht der Reiter).
+   * „Zeigen" an einem Befund: in seinen Reiter und dort an die Stelle —
+   * wohin genau, rechnet `zeigeziel`. Ein Bild öffnet das Bild-Panel; geht
+   * es um einen Text des Bilds, steht der Fokus danach im Feld. Eine Arbeit
+   * oder ein Film wird aufgeklappt, das Feld fokussiert (`springeZu`). Beides
+   * ein Bild später — dann steht der Reiter bzw. das Panel.
    */
   const zeigeBefund = (b: Befund) => {
-    const ziel = reiterFuerBefund(b);
+    const ziel = zeigeziel(b, { inhalt: geladen.inhalt, bilder: geladen.bilder });
     if (!ziel) return;
-    setReiter(ziel);
-    if (b.ort === ORT_BESCHREIBUNGEN) {
-      const liste = ohneBeschreibung({ inhalt: geladen.inhalt, bilder: geladen.bilder });
-      const s = b.schluessel ?? liste[0];
-      if (s) setPanel({ schluessel: s, folge: liste });
+    const { reiter: r, aufklappen, panel: p, feld, bild } = ziel;
+    setReiter(r);
+    if (aufklappen && (r === "arbeiten" || r === "filme")) klappe(r, aufklappen);
+    if (p) {
+      setPanel({ schluessel: p.schluessel, folge: p.folge });
+      const imPanel = p.feld;
+      if (imPanel) requestAnimationFrame(() => fokussiereImPanel(imPanel));
       return;
     }
-    if (b.kennung && (ziel === "arbeiten" || ziel === "filme")) klappe(ziel, b.kennung);
-    if (b.schluessel && geladen.bilder[b.schluessel]) {
-      setPanel({ schluessel: b.schluessel, folge: ziel === "hero" ? "hero" : undefined });
-      return;
-    }
-    const feld = feldFuerBefund(b);
-    const kennung = b.kennung ?? null;
-    const schluessel = b.schluessel ?? null;
-    requestAnimationFrame(() => springeZu(feld, kennung, schluessel));
+    requestAnimationFrame(() => springeZu(feld, aufklappen, bild));
   };
 
   /** „Zum Fehler" in der Leiste: die Prüfung in den Blick, Fokus darauf. */
@@ -1471,28 +1463,51 @@ function zeigeKachel(s: string, nachbar: string | null) {
 }
 
 /**
+ * Das Eingabefeld in `bereich`, dessen Beschriftung so beginnt („Kunde" für
+ * „Kunde (optional)") — nur, wenn es zu sehen ist (nicht zugeklappt).
+ */
+function feldMit(bereich: Element, feld: string): HTMLElement | null {
+  const beschriftung = [...bereich.querySelectorAll("label")].find((l) => l.textContent?.startsWith(feld));
+  const eingabe = beschriftung?.htmlFor ? document.getElementById(beschriftung.htmlFor) : null;
+  return eingabe && eingabe.getClientRects().length > 0 ? eingabe : null;
+}
+
+/**
  * Nach „Zeigen" (ein Bild später, wenn der Reiter steht): das Feld, um das
  * es geht — gesucht über seine Beschriftung, bei einer Arbeit oder einem
- * Film nur in deren aufgeklappter Zeile (`data-sortier`). Gibt es keins
- * (oder ist es zugeklappt), die Zeile selbst (ihr Stift), sonst das Bild
- * (`data-bild`; ist es gesperrt, ein Knopf seiner Zeile), sonst der Anfang
- * des Reiters.
+ * Film nur in deren aufgeklappter Zeile (`data-sortier`) —, oder der Knopf
+ * mit genau diesem Namen („Highlight 2 ändern"). Gibt es keins (oder ist es
+ * zugeklappt), die Zeile selbst (ihr Stift), sonst das Bild (`data-bild`;
+ * ist es gesperrt, ein Knopf seiner Zeile), sonst der Anfang des Reiters.
  */
 function springeZu(feld: string | null, kennung: string | null, schluessel: string | null) {
   const bereich = document.getElementById("reiter-inhalt");
   if (!bereich) return;
   const zeile = kennung ? bereich.querySelector<HTMLElement>(`[data-sortier="${CSS.escape(kennung)}"]`) : null;
-  const beschriftung = feld
-    ? [...(zeile ?? bereich).querySelectorAll("label")].find((l) => l.textContent?.startsWith(feld))
+  const eingabe = feld ? feldMit(zeile ?? bereich, feld) : null;
+  const knopf = feld
+    ? [...(zeile ?? bereich).querySelectorAll<HTMLElement>("button[aria-label]")].find(
+        (k) => k.getAttribute("aria-label") === feld,
+      )
     : undefined;
-  const eingabe = beschriftung?.htmlFor ? document.getElementById(beschriftung.htmlFor) : null;
   const bild = schluessel ? bereich.querySelector<HTMLButtonElement>(`[data-bild="${CSS.escape(schluessel)}"]`) : null;
   const ziel =
-    (eingabe && eingabe.getClientRects().length > 0 ? eingabe : null) ??
+    eingabe ??
+    knopf ??
     zeile?.querySelector<HTMLElement>("[aria-expanded]") ??
     (bild && !bild.disabled ? bild : bild?.closest("li")?.querySelector<HTMLElement>("button:not(:disabled)"));
   if (ziel) holeInDenBlick(ziel);
   else holeInDenBlick(bereich, "anfang");
+}
+
+/**
+ * Nach „Zeigen" bei einem Text eines Bilds (ein Bild später, wenn das
+ * Bild-Panel offen ist): den Fokus in dessen Feld. Der Browser holt es dabei
+ * im Panel in den Blick.
+ */
+function fokussiereImPanel(feld: string) {
+  const panel = document.querySelector(`dialog.${CSS.escape(styles.panel)}[open]`);
+  if (panel) feldMit(panel, feld)?.focus();
 }
 
 /**

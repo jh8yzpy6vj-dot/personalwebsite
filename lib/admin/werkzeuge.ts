@@ -1,4 +1,4 @@
-import { alleBilderDerArbeit, filmeMitStandbild, fotosFuerMosaik, nachWunsch, type Kontext } from "../arbeiten";
+import { alleBilderDerArbeit, fotosFuerMosaik, nachWunsch, type Kontext } from "../arbeiten";
 import { AUSSCHNITT_MITTIG, type Streckenbild } from "../bilder";
 import { arbeitZu, bildName, istVerborgen, type Film, type Fotoarbeit, type Inhalt, type Link } from "../inhalt";
 import {
@@ -6,6 +6,7 @@ import {
   istHttps,
   nurFehler,
   ORT_BESCHREIBUNGEN,
+  platzZuSehen,
   pruefeInhalt,
   RECHTSFORM,
   STARTPLATZ_NAMEN,
@@ -727,19 +728,113 @@ export function reiterFuerBefund(b: Befund): Reiter | null {
 }
 
 /**
+ * Die Beschriftungen der Felder in den Reitern und im Bild-Panel — an einer
+ * Stelle, weil „Zeigen" ein Feld über den Anfang seiner Beschriftung sucht:
+ * Der Ort eines Befunds nennt es („Arbeit „STAMP“ · Kunde", siehe
+ * `feldFuerBefund`). Die Reiter und der Test benutzen genau diese Wörter —
+ * heißt ein Feld anders, fällt das im Test auf, nicht erst bei Jakob.
+ */
+export const FELDNAMEN = {
+  name: "Name (Schriftzug)",
+  zeile: "Zeile unter dem Namen",
+  orte: "Orte",
+  heroAlt: "Beschreibung des großen Bilds oben (optional)",
+  heroVideo: "Video oben, von außerhalb (optional)",
+  absatz: (n: number) => `Absatz ${n}`,
+  portraitAlt: "Beschreibung des Porträts (Alt-Text)",
+  email: "E-Mail",
+  instagramBezeichnung: "Instagram · Bezeichnung",
+  instagramAdresse: "Instagram · Adresse",
+  swrBezeichnung: "SWR · Bezeichnung",
+  swrAdresse: "SWR · Adresse",
+  titel: "Titel",
+  kundeOptional: "Kunde (optional)",
+  kunde: "Kunde",
+  kategorie: "Kategorie",
+  link: "Link zum Film",
+  notiz: "Notiz (nur hier sichtbar, nie auf der Seite)",
+  kennung: "Kennung",
+  bildtitel: "Bildtitel (optional)",
+  alt: "Bildbeschreibung (Alt-Text)",
+  beschriftung: "Beschriftung",
+  /** Kein Feld, sondern der Knopf zu einem Bildplatz der Startseite („Highlight 2 ändern"). */
+  platzAendern: (platz: string) => `${platz} ändern`,
+} as const;
+
+/**
  * Der Name des Felds, um das es geht — so, wie er über dem Feld steht (oder
  * wie es beginnt: „Kunde" für „Kunde (optional)"). Steht nach dem Kopf des
  * Orts: „Startseite · Zeile unter dem Namen", „Über mich · Instagram ·
  * Adresse", „Film „X“ · Link". Bei Arbeiten und Filmen nach dem Titel —
- * der darf selbst „ · " enthalten. `null`, wenn der Ort kein Feld nennt.
+ * der darf selbst „ · " enthalten. Bei einem Text eines Bilds (`bild`) ganz
+ * hinten: „Über mich · 02 · Beschriftung". `null`, wenn der Ort kein Feld
+ * nennt.
  */
 export function feldFuerBefund(b: Befund): string | null {
+  if (b.bild) return b.ort.slice(b.ort.lastIndexOf(" · ") + 3);
   const kopf = ortKopf(b);
   if (/^(Arbeit|Film) „/.test(kopf)) {
     const ende = b.ort.indexOf("“ · ");
     return ende < 0 ? null : b.ort.slice(ende + 4);
   }
   return b.ort.length > kopf.length ? b.ort.slice(kopf.length + 3) : null;
+}
+
+/** Die Bilder einer Arbeit ohne die im Papierkorb — so zeigt sie der Reiter Arbeiten, und so blättert das Panel aus ihm. */
+export function bilderDerArbeit(k: Kontext, id: string): Streckenbild[] {
+  const a = k.inhalt.foto.arbeiten.find((x) => x.id === id);
+  return a ? alleBilderDerArbeit(a, k).filter((b) => !(b.schluessel in k.inhalt.papierkorb)) : [];
+}
+
+/** Wohin „Zeigen" an einem Befund führt (`zeigeziel`) — `Verwaltung.tsx` führt es aus. */
+export type Zeigeziel = {
+  reiter: Reiter;
+  /** Diese Arbeit bzw. diesen Film aufklappen. */
+  aufklappen: string | null;
+  /** Das Bild-Panel öffnen (`folge`: wodurch es blättert), darin den Fokus ins Feld `feld`. */
+  panel: { schluessel: string; folge?: Folge; feld: string | null } | null;
+  /**
+   * Sonst im Reiter: das Feld mit dieser Beschriftung (der Anfang genügt)
+   * oder der Knopf mit genau diesem Namen, sonst das Bild (`data-bild`),
+   * sonst die Zeile der Arbeit bzw. des Films, sonst der Anfang des Reiters.
+   */
+  feld: string | null;
+  bild: string | null;
+};
+
+/**
+ * Wohin „Zeigen" führt: in den Reiter des Befunds, und dort
+ * - zu den Bildern ohne Beschreibung (Bild-Panel, blättert durch genau diese),
+ * - bei einem Text eines Bilds ins Bild-Panel, Fokus im Feld,
+ * - bei einem Bild, das es gibt, ins Bild-Panel (aus dem Hero mit Blättern
+ *   durch den Hero) — außer auf der Startseite bei einem Bild, das sie nicht
+ *   zeigen kann (kein Foto aus /foto, gibt es nicht): Daran ändert das Panel
+ *   nichts, der Platz braucht ein anderes Bild — also „{Platz} ändern",
+ * - sonst zum Feld, zum Bild, zur Zeile oder an den Anfang des Reiters.
+ * `null`: in keinen Reiter (Form des Inhalts kaputt).
+ */
+export function zeigeziel(b: Befund, k: Kontext): Zeigeziel | null {
+  const reiter = reiterFuerBefund(b);
+  if (!reiter) return null;
+  const aufklappen = b.kennung && (reiter === "arbeiten" || reiter === "filme") ? b.kennung : null;
+  const ziel: Zeigeziel = { reiter, aufklappen, panel: null, feld: null, bild: null };
+  if (b.ort === ORT_BESCHREIBUNGEN) {
+    const liste = ohneBeschreibung(k);
+    const s = b.schluessel ?? liste[0];
+    return s ? { ...ziel, panel: { schluessel: s, folge: liste, feld: null } } : ziel;
+  }
+  const feld = feldFuerBefund(b);
+  if (b.bild && k.bilder[b.bild]) {
+    const id = arbeitZu(b.bild);
+    const folge = id ? bilderDerArbeit(k, id).map((x) => x.schluessel) : "mosaik";
+    return { ...ziel, panel: { schluessel: b.bild, folge, feld } };
+  }
+  const s = b.schluessel;
+  if (s && reiter === "startseite" && feld && !(k.bilder[s] && s.startsWith("arbeiten/"))) {
+    return { ...ziel, feld: FELDNAMEN.platzAendern(feld) };
+  }
+  if (s && k.bilder[s]) return { ...ziel, panel: { schluessel: s, folge: reiter === "hero" ? "hero" : undefined, feld: null } };
+  return { ...ziel, feld, bild: s ?? b.bild ?? null };
 }
 
 /**
@@ -754,6 +849,28 @@ export function wasDannFehlt(k: Kontext, schluessel: string[]): string | null {
   const orte = [hero > 0 && `${hero} davon im Hero`, start > 0 && `${start} ${hero > 0 ? "" : "davon "}auf der Startseite`];
   const satz = orte.filter(Boolean).join(", ");
   return `${satz} — dort ${hero + start === 1 ? "fehlt es" : "fehlen sie"} dann.`;
+}
+
+/**
+ * Warum von einer Arbeit nichts zu sehen ist, wenn „Arbeit löschen" nichts
+ * mehr zum Ausblenden anbietet (kein Bild sichtbar) — nach Lage: Bilder in
+ * Verarbeitung, ausgeblendet, im Papierkorb. Vorher hieß es immer „schon
+ * ausgeblendet", auch wenn sie im Papierkorb lagen oder gerade erst
+ * verarbeitet wurden.
+ */
+export function nichtsZuSehen(k: Kontext, id: string, unterwegs: Iterable<string>): string {
+  const warten = platzhalter(unterwegs, k.bilder, `arbeiten/${id}`).filter((s) => arbeitZu(s) === id).length;
+  if (warten > 0) {
+    return warten === 1
+      ? "Ein Bild wird gerade noch verarbeitet — ist es fertig, kannst du es ausblenden."
+      : `${warten} Bilder werden gerade noch verarbeitet — sind sie fertig, kannst du sie ausblenden.`;
+  }
+  const a = k.inhalt.foto.arbeiten.find((x) => x.id === id);
+  const alle = a ? alleBilderDerArbeit(a, k).map((b) => b.schluessel) : [];
+  const geloescht = alle.filter((s) => s in k.inhalt.papierkorb).length;
+  if (geloescht === 0) return "Alle ihre Bilder sind schon ausgeblendet — auf der Seite erscheint sie nicht.";
+  if (geloescht === alle.length) return "Alle ihre Bilder liegen im Papierkorb — auf der Seite erscheint sie nicht.";
+  return "Ihre Bilder sind ausgeblendet oder liegen im Papierkorb — auf der Seite erscheint sie nicht.";
 }
 
 /* ── Rückgängig und Tasten ──────────────────────────────────────────── */
@@ -1164,12 +1281,30 @@ export function blaetterTaste(
  * genau wie in `app/page.tsx`: Das große Bild oben steht nur da, solange es
  * kein eigenes Standbild oben gibt (`hero/standbild`), das Bild zum Bereich
  * Film nur, solange kein Film ein Standbild hat — sonst nimmt die Seite das
- * des ersten (`filmeMitStandbild`, dieselbe Funktion wie dort).
+ * des ersten. Die Regel selbst steht in `platzZuSehen` (`inhalt-pruefen.ts`),
+ * damit die Prüfung dieselbe benutzt.
  */
 export function startplatzZuSehen(k: Kontext, p: Startplatz): boolean {
-  if (p === "heroErsatz") return !k.bilder["hero/standbild"];
-  if (p === "wegeFilm") return filmeMitStandbild(k).length === 0;
-  return true;
+  return platzZuSehen(typeof p === "string" ? p : "highlight", k.inhalt.filme, (s) => Boolean(k.bilder[s]));
+}
+
+/**
+ * Was die Zeile eines Bildplatzes im Reiter Startseite hinter dem Bild sagt:
+ * warum der Platz auf der Seite leer bleibt — dieselben Gründe wie in der
+ * Prüfung —, oder dass ihn die Seite gerade gar nicht zeigt (Rückfall). `""`:
+ * nichts zu sagen.
+ */
+export function startplatzZustand(k: Kontext, p: Startplatz): string {
+  const s = startbild(k.inhalt, p);
+  if (s === null) return "";
+  if (!startplatzZuSehen(k, p)) return " · Rückfall, zurzeit nicht zu sehen";
+  const leer = "der Platz bleibt auf der Seite leer";
+  /* Die Seite sucht jedes Bild unter den sichtbaren Fotos von /foto
+     (`waehlbareBilder`); alles andere lässt den Platz leer. */
+  if (s in k.inhalt.papierkorb) return ` · im Papierkorb — ${leer}`;
+  if (istVerborgen(k.inhalt, s)) return ` · ausgeblendet — ${leer}`;
+  if (!s.startsWith("arbeiten/")) return ` · kein Foto aus /foto — ${leer}`;
+  return "";
 }
 
 /** Steht das Bild auf einem Platz der Startseite, den sie zurzeit zeigt? */

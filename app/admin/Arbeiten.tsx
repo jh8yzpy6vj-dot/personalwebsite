@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { alleBilderDerArbeit } from "@/lib/arbeiten";
 import { arbeitZu, istVerborgen, type Fotoarbeit } from "@/lib/inhalt";
 import {
   aendereArbeit,
   bildBezeichnung,
+  bilderDerArbeit,
   eindeutigeId,
   entferneArbeit,
+  FELDNAMEN,
   hatBilder,
   neueArbeit,
+  nichtsZuSehen,
   ordneArbeiten,
   platzhalter,
   setzeAusgeblendet,
@@ -76,6 +78,17 @@ export default function Arbeiten() {
     requestAnimationFrame(() => fokussiereInZeile(id, "[aria-expanded]"));
   };
 
+  /* „Alle Bilder ausblenden" bzw. „Alle einblenden": Der Knopf verschwindet
+     danach (es gibt nichts mehr aus- bzw. einzublenden), der andere steht
+     da — der Fokus geht auf ihn, statt auf die Seite zurückzufallen. */
+  const alleUmschalten = (a: Fotoarbeit, schluessel: string[], aus: boolean) => {
+    aendereMitMeldung(
+      (i) => setzeAusgeblendet(i, schluessel, aus),
+      aus ? `Alle Bilder von „${a.titel}“ sind ausgeblendet.` : `Alle Bilder von „${a.titel}“ sind wieder sichtbar.`,
+    );
+    requestAnimationFrame(() => fokussiereInZeile(a.id, `[data-alle="${aus ? "ein" : "aus"}"]`));
+  };
+
   return (
     <section className={styles.abschnitt} aria-labelledby="arbeiten-titel">
       <div className={styles.abschnittKopf}>
@@ -97,8 +110,7 @@ export default function Arbeiten() {
         bezeichnung={(a) => a.titel}
         beiNeuerReihenfolge={(neu) => aendere((i) => ordneArbeiten(i, neu))}
         kind={(a, st) => {
-          const alle = alleBilderDerArbeit(a, { inhalt, bilder });
-          const vorhanden = alle.filter((b) => !(b.schluessel in inhalt.papierkorb));
+          const vorhanden = bilderDerArbeit({ inhalt, bilder }, a.id);
           const sichtbar = vorhanden.filter((b) => !istVerborgen(inhalt, b.schluessel));
           const aus = vorhanden.length - sichtbar.length;
           const warten = platzhalter(unterwegs, bilder, `arbeiten/${a.id}`).filter((s) => arbeitZu(s) === a.id);
@@ -144,26 +156,26 @@ export default function Arbeiten() {
                 <div className={styles.zeileInhalt}>
                   <div className={styles.formularZwei}>
                     <Textfeld
-                      bezeichnung="Titel"
+                      bezeichnung={FELDNAMEN.titel}
                       wert={a.titel}
                       beiAenderung={(w) => aendere((i) => aendereArbeit(i, a.id, { titel: w }))}
                       hinweis="So, wie er auf der Seite stehen soll. Gehört das Jahr dazu, hier mit hinein."
                     />
                     <Textfeld
-                      bezeichnung="Kunde (optional)"
+                      bezeichnung={FELDNAMEN.kundeOptional}
                       wert={a.kunde ?? ""}
                       beiAenderung={(w) => aendere((i) => aendereArbeit(i, a.id, { kunde: w }))}
                       hinweis="Ohne „e.V.“ oder „GmbH“."
                     />
                     <Auswahl
-                      bezeichnung="Kategorie"
+                      bezeichnung={FELDNAMEN.kategorie}
                       wert={a.kategorie}
                       optionen={inhalt.foto.kategorien}
                       beiAenderung={(w) => aendere((i) => aendereArbeit(i, a.id, { kategorie: w }))}
                     />
                   </div>
                   <Textfeld
-                    bezeichnung="Notiz (nur hier sichtbar, nie auf der Seite)"
+                    bezeichnung={FELDNAMEN.notiz}
                     mehrzeilig
                     wert={a.notiz ?? ""}
                     beiAenderung={(w) => aendere((i) => aendereArbeit(i, a.id, { notiz: w }))}
@@ -210,12 +222,8 @@ export default function Arbeiten() {
                           <button
                             type="button"
                             className={styles.knopf}
-                            onClick={() =>
-                              aendereMitMeldung(
-                                (i) => setzeAusgeblendet(i, vorhanden.map((b) => b.schluessel), true),
-                                `Alle Bilder von „${a.titel}“ sind ausgeblendet.`,
-                              )
-                            }
+                            data-alle="aus"
+                            onClick={() => alleUmschalten(a, vorhanden.map((b) => b.schluessel), true)}
                           >
                             <Zeichen name="augeZu" />
                             Alle Bilder ausblenden
@@ -225,12 +233,8 @@ export default function Arbeiten() {
                           <button
                             type="button"
                             className={styles.knopf}
-                            onClick={() =>
-                              aendereMitMeldung(
-                                (i) => setzeAusgeblendet(i, vorhanden.map((b) => b.schluessel), false),
-                                `Alle Bilder von „${a.titel}“ sind wieder sichtbar.`,
-                              )
-                            }
+                            data-alle="ein"
+                            onClick={() => alleUmschalten(a, vorhanden.map((b) => b.schluessel), false)}
                           >
                             <Zeichen name="auge" />
                             Alle einblenden
@@ -261,7 +265,7 @@ export default function Arbeiten() {
 
                   <Aufklappen titel="Technisches" leise>
                     <Textfeld
-                      bezeichnung="Kennung"
+                      bezeichnung={FELDNAMEN.kennung}
                       wert={a.id}
                       nurLesen
                       hinweis="Der Ordnername im Bildspeicher. Lässt sich nicht ändern — sonst fänden sich die Bilder nicht mehr."
@@ -284,13 +288,13 @@ export default function Arbeiten() {
         <h3 className={styles.abschnittTitel}>Neue Arbeit</h3>
         <div className={styles.formularZwei}>
           <Textfeld
-            bezeichnung="Titel"
+            bezeichnung={FELDNAMEN.titel}
             wert={neuTitel}
             beiAenderung={setNeuTitel}
             hinweis="Der Titel lässt sich später jederzeit ändern."
           />
           <Auswahl
-            bezeichnung="Kategorie"
+            bezeichnung={FELDNAMEN.kategorie}
             wert={neuKategorie}
             optionen={inhalt.foto.kategorien}
             beiAenderung={setNeuKategorie}
@@ -327,9 +331,7 @@ function LoeschDialog({
   const { inhalt, bilder, unterwegs, aendereMitMeldung } = useSitzung();
   const nochBilder = hatBilder(arbeit.id, [...Object.keys(bilder), ...unterwegs]);
   /* Was sich ausblenden ließe: alles, was nicht im Papierkorb liegt. */
-  const vorhanden = alleBilderDerArbeit(arbeit, { inhalt, bilder })
-    .map((b) => b.schluessel)
-    .filter((s) => !(s in inhalt.papierkorb));
+  const vorhanden = bilderDerArbeit({ inhalt, bilder }, arbeit.id).map((b) => b.schluessel);
   const sichtbar = vorhanden.filter((s) => !istVerborgen(inhalt, s));
   const fehlt = wasDannFehlt({ inhalt, bilder }, sichtbar);
   return (
@@ -369,7 +371,7 @@ function LoeschDialog({
               </>
             ) : (
               <>
-                <p className={styles.text}>Alle ihre Bilder sind schon ausgeblendet — auf der Seite erscheint sie nicht.</p>
+                <p className={styles.text}>{nichtsZuSehen({ inhalt, bilder }, arbeit.id, unterwegs)}</p>
                 <div className={styles.knopfreihe}>
                   <button type="button" className={styles.knopf} onClick={schliesse}>
                     Verstanden

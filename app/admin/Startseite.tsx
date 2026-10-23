@@ -1,16 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { istVerborgen } from "@/lib/inhalt";
 import { AUSSCHNITT_MITTIG } from "@/lib/bilder";
 import {
   bildBezeichnung,
+  FELDNAMEN,
   mitHttps,
   setzeSeite,
   setzeStartbild,
   setzeStartText,
   startbild,
   startplatzName,
+  startplatzZustand,
   waehlbareBilder,
   type Startplatz,
 } from "@/lib/admin/werkzeuge";
@@ -36,7 +37,7 @@ const PLAETZE = (
   [
     {
       platz: "heroErsatz",
-      hinweis: "Steht oben, solange es dort kein Video gibt. Querformat, keine erkennbaren Gesichter.",
+      hinweis: "Nur Rückfall: Steht oben, solange es dort kein eigenes Standbild gibt. Querformat, keine erkennbaren Gesichter.",
       erscheint: "Startseite, ganz oben",
     },
     { platz: "wegeFoto", hinweis: "Das Bild am Link zu /foto.", erscheint: "Startseite, im Bereich Foto" },
@@ -68,30 +69,30 @@ export default function Startseite() {
         </h2>
         <div className={styles.formular}>
           <Textfeld
-            bezeichnung="Name (Schriftzug)"
+            bezeichnung={FELDNAMEN.name}
             wert={inhalt.seite.name}
             beiAenderung={(w) => aendere((i) => setzeSeite(i, "name", w))}
             hinweis="Bewusst klein geschrieben."
           />
           <Textfeld
-            bezeichnung="Zeile unter dem Namen"
+            bezeichnung={FELDNAMEN.zeile}
             wert={inhalt.seite.positioning}
             beiAenderung={(w) => aendere((i) => setzeSeite(i, "positioning", w))}
           />
           <Textfeld
-            bezeichnung="Orte"
+            bezeichnung={FELDNAMEN.orte}
             wert={inhalt.seite.locations}
             beiAenderung={(w) => aendere((i) => setzeSeite(i, "locations", w))}
           />
           <Textfeld
-            bezeichnung="Beschreibung des großen Bilds oben (optional)"
+            bezeichnung={FELDNAMEN.heroAlt}
             mehrzeilig
             wert={st.heroAlt ?? ""}
             beiAenderung={(w) => aendere((i) => setzeStartText(i, "heroAlt", w))}
             hinweis="Leer heißt: reine Dekoration, Screenreader überspringen es."
           />
           <Textfeld
-            bezeichnung="Video oben, von außerhalb (optional)"
+            bezeichnung={FELDNAMEN.heroVideo}
             typ="url"
             wert={st.heroVideo ?? ""}
             platzhalter="https://"
@@ -111,18 +112,10 @@ export default function Startseite() {
         <ul className={styles.reihen}>
           {PLAETZE.map((p) => {
             const s = startbild(inhalt, p.platz);
-            /* Die Seite sucht jedes Bild unter den sichtbaren Fotos von /foto
-               (`waehlbareBilder`); alles andere lässt den Platz leer. */
-            const bleibtLeer =
-              s === null
-                ? ""
-                : s in inhalt.papierkorb
-                  ? " · im Papierkorb — der Platz bleibt auf der Seite leer"
-                  : istVerborgen(inhalt, s)
-                    ? " · ausgeblendet — der Platz bleibt auf der Seite leer"
-                    : !s.startsWith("arbeiten/")
-                      ? " · kein Foto aus /foto — der Platz bleibt auf der Seite leer"
-                      : "";
+            /* Warum der Platz leer bleibt — oder dass die Seite ihn gerade
+               gar nicht zeigt (Rückfall). Dieselbe Regel wie in der Prüfung
+               und in „Verwendet: …". */
+            const zustand = startplatzZustand({ inhalt, bilder }, p.platz);
             return (
               <li key={kennung(p.platz)} className={styles.zeile}>
                 <div className={styles.zeileKopf}>
@@ -149,7 +142,7 @@ export default function Startseite() {
                     <strong>{p.name}</strong>
                     <span>
                       {s ? bildBezeichnung(inhalt, s) : "leer"}
-                      {bleibtLeer}
+                      {zustand}
                     </span>
                     {p.hinweis && <span>{p.hinweis}</span>}
                   </span>
@@ -157,7 +150,7 @@ export default function Startseite() {
                     <button
                       type="button"
                       className={styles.knopf}
-                      aria-label={`${p.name} ändern`}
+                      aria-label={FELDNAMEN.platzAendern(p.name)}
                       onClick={() => setWahl(p)}
                     >
                       Ändern

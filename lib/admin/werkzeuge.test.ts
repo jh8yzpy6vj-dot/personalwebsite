@@ -100,6 +100,11 @@ import {
   reiterFuerBefund,
   setzeAusgeblendet,
   wasDannFehlt,
+  bilderDerArbeit,
+  FELDNAMEN,
+  nichtsZuSehen,
+  startplatzZustand,
+  zeigeziel,
 } from "./werkzeuge";
 import type { Lauf } from "./vertrag";
 
@@ -908,29 +913,19 @@ describe("Prüfung: „Zeigen“", () => {
     expect(feldFuerBefund(befund("Film „X“ · Link"))).toBe("Link");
     expect(feldFuerBefund(befund("Arbeit „STAMP“"))).toBeNull();
     expect(feldFuerBefund(befund("Hero auf /foto"))).toBeNull();
+    /* Ein Text eines Bilds: das Feld steht hinter dem Bild. */
+    const bild = (ort: string, s: string): Befund => ({ ...befund(ort), bild: s });
+    expect(feldFuerBefund(bild("Über mich · 02 · Beschriftung", "ueber/02"))).toBe("Beschriftung");
+    expect(feldFuerBefund(bild("Arbeit „Film · Fest“ · Startbild · Bildtitel", "arbeiten/x"))).toBe("Bildtitel");
   });
 
   it("jeder Befund der Prüfung zu Startseite, Über mich, Arbeiten und Filmen nennt ein Feld, das es dort gibt", () => {
-    /* Die Beschriftungen der Felder in den Reitern (Anfang genügt — „Kunde (optional)"). */
+    /* Die Beschriftungen, mit denen Reiter und Bild-Panel ihre Felder
+       auszeichnen — dieselben Konstanten, keine Abschrift (der Anfang
+       genügt: „Kunde" für „Kunde (optional)"). */
     const felder = [
-      "Name (Schriftzug)",
-      "Zeile unter dem Namen",
-      "Orte",
-      "Beschreibung des großen Bilds oben (optional)",
-      "Video oben, von außerhalb (optional)",
-      "Absatz 1",
-      "Absatz 2",
-      "Beschreibung des Porträts (Alt-Text)",
-      "E-Mail",
-      "Instagram · Bezeichnung",
-      "Instagram · Adresse",
-      "SWR · Bezeichnung",
-      "SWR · Adresse",
-      "Titel",
-      "Kunde (optional)",
-      "Kategorie",
-      "Link zum Film",
-      "Notiz (nur hier sichtbar, nie auf der Seite)",
+      ...Object.values(FELDNAMEN).filter((f): f is Exclude<typeof f, (n: never) => string> => typeof f === "string"),
+      ...[1, 2, 3, 4, 5].map(FELDNAMEN.absatz),
     ];
     const i = kopie();
     i.seite.name = "";
@@ -947,9 +942,13 @@ describe("Prüfung: „Zeigen“", () => {
     i.foto.arbeiten[0].kunde = "A GmbH";
     i.foto.arbeiten[0].kategorie = "gibtsnicht";
     i.foto.arbeiten[0].notiz = "x".repeat(2000);
+    i.foto.arbeiten[0].bildtitel = { leitbild: "x".repeat(200) };
+    i.foto.arbeiten[0].alt = { "01": "" };
+    i.ueber.bilder["ueber/02"] = "x".repeat(200);
     i.filme.push({ id: "f", titel: "F", kunde: "K e.V.", link: "http://x" });
     const befunde = nurFehler(pruefeInhalt(i, Object.keys(BILDER)));
-    expect(befunde.length).toBeGreaterThan(15);
+    expect(befunde.length).toBeGreaterThan(18);
+    expect(befunde.filter((b) => b.bild)).toHaveLength(3);
     for (const b of befunde) {
       const feld = feldFuerBefund(b);
       expect(feld, b.ort).not.toBeNull();
@@ -958,6 +957,95 @@ describe("Prüfung: „Zeigen“", () => {
         `${b.ort}: kein Feld „${feld}“`,
       ).toBe(true);
     }
+  });
+});
+
+describe("Prüfung: wohin „Zeigen“ führt", () => {
+  const ohneBild = (i: Inhalt) => pruefeInhalt(i, Object.keys(BILDER));
+  const finde = (b: Befund[], f: (x: Befund) => boolean) => b.find(f) as Befund;
+
+  it("ohne Feld und Bild: nur der Reiter — dessen Anfang holt `springeZu`", () => {
+    const i = kopie();
+    i.ausgeblendet.push(...i.foto.hero.slice(0, 3));
+    const anzahl = finde(ohneBild(i), (x) => /empfohlen sind/.test(x.text));
+    expect(zeigeziel(anzahl, k(i))).toEqual({ reiter: "hero", aufklappen: null, panel: null, feld: null, bild: null });
+    i.ueber.zeilen = ["a", "b", "c", "d", "e"];
+    const text = finde(ohneBild(i), (x) => x.ort === "Über mich · Text");
+    expect(zeigeziel(text, k(i))).toMatchObject({ reiter: "ueber", panel: null, feld: "Text", bild: null });
+  });
+
+  it("ein Text eines Bilds: das Bild-Panel, mit dem Fokus im Feld — Arbeit aufgeklappt, Blättern durch ihre Bilder", () => {
+    const i = kopie();
+    const a = i.foto.arbeiten.find((x) => x.id === "tete-a-tete") as (typeof i.foto.arbeiten)[number];
+    a.bildtitel = { ...a.bildtitel, leitbild: "x".repeat(200) };
+    i.ueber.bilder["ueber/02"] = "x".repeat(200);
+    i.papierkorb["arbeiten/tete-a-tete/05"] = "2026-10-20";
+    const b = ohneBild(i);
+    const titel = finde(b, (x) => x.bild === "arbeiten/tete-a-tete");
+    const ziel = zeigeziel(titel, k(i));
+    expect(ziel).toEqual({
+      reiter: "arbeiten",
+      aufklappen: "tete-a-tete",
+      panel: {
+        schluessel: "arbeiten/tete-a-tete",
+        folge: ["arbeiten/tete-a-tete", ...["01", "02", "03", "04"].map((n) => `arbeiten/tete-a-tete/${n}`)],
+        feld: "Bildtitel",
+      },
+      feld: null,
+      bild: null,
+    });
+    expect(FELDNAMEN.bildtitel.startsWith(ziel?.panel?.feld as string)).toBe(true);
+    /* Dieselbe Folge wie im Reiter Arbeiten: ohne Papierkorb. */
+    expect(bilderDerArbeit(k(i), "tete-a-tete").map((x) => x.schluessel)).toEqual(ziel?.panel?.folge);
+    const ueber = finde(b, (x) => x.bild === "ueber/02");
+    expect(zeigeziel(ueber, k(i))?.panel).toEqual({ schluessel: "ueber/02", folge: "mosaik", feld: "Beschriftung" });
+    /* Gibt es das Bild (noch) nicht, bleibt es beim Reiter. */
+    i.ueber.bilder["ueber/09"] = "x".repeat(200);
+    const fehlt = finde(ohneBild(i), (x) => x.bild === "ueber/09");
+    expect(zeigeziel(fehlt, k(i))).toMatchObject({ reiter: "ueber", panel: null, bild: "ueber/09" });
+  });
+
+  it("Startseite: ein Bild, das sie nicht zeigen kann, führt zu „{Platz} ändern“ — ein Foto aus /foto ins Panel", () => {
+    const i = kopie();
+    i.startseite.highlights = ["ueber/01", "arbeiten/stamp/09", i.foto.hero[0], null];
+    i.ausgeblendet.push(i.foto.hero[0]);
+    const b = ohneBild(i);
+    const kein = finde(b, (x) => x.ort === "Startseite · Highlight 1");
+    expect(kein.text).toMatch(/kein Foto aus \/foto/);
+    expect(zeigeziel(kein, k(i))).toEqual({
+      reiter: "startseite",
+      aufklappen: null,
+      panel: null,
+      feld: "Highlight 1 ändern",
+      bild: null,
+    });
+    expect(zeigeziel(finde(b, (x) => x.ort === "Startseite · Highlight 2"), k(i))?.feld).toBe("Highlight 2 ändern");
+    /* Ausgeblendet: Im Panel lässt es sich wieder einblenden. */
+    const aus = finde(b, (x) => x.ort === "Startseite · Highlight 3");
+    expect(zeigeziel(aus, k(i))?.panel).toEqual({ schluessel: i.foto.hero[0], folge: undefined, feld: null });
+    /* Aus dem Hero: Blättern durch den Hero. */
+    const hero = finde(b, (x) => x.ort === "Hero auf /foto" && x.schluessel === i.foto.hero[0]);
+    expect(zeigeziel(hero, k(i))?.panel).toEqual({ schluessel: i.foto.hero[0], folge: "hero", feld: null });
+  });
+
+  it("ein Feld einer Arbeit: aufklappen und das Feld; Bilder ohne Beschreibung: das Panel durch genau diese", () => {
+    const i = kopie();
+    i.foto.arbeiten[1].kunde = "Muster GmbH";
+    const b = ohneBild(i);
+    const kunde = finde(b, (x) => x.ort.endsWith("· Kunde"));
+    expect(zeigeziel(kunde, k(i))).toEqual({
+      reiter: "arbeiten",
+      aufklappen: i.foto.arbeiten[1].id,
+      panel: null,
+      feld: "Kunde",
+      bild: null,
+    });
+    const hinweis = finde(b, (x) => x.ort === ORT_BESCHREIBUNGEN);
+    const liste = ohneBeschreibung(k(i));
+    expect(zeigeziel(hinweis, k(i))?.panel).toEqual({ schluessel: liste[0], folge: liste, feld: null });
+    expect(zeigeziel({ ...hinweis, schluessel: liste[2] }, k(i))?.panel?.schluessel).toBe(liste[2]);
+    /* Ohne Reiter (Form kaputt): nichts. */
+    expect(zeigeziel({ stufe: "fehler", ort: "Inhalt", text: "ist kein Objekt." }, k(i))).toBeNull();
   });
 });
 
@@ -1290,6 +1378,36 @@ describe("Bild-Panel: Verwendung und Beschreibungen", () => {
     }
   });
 
+  it("die Zeilen im Reiter Startseite sagen, warum ein Platz leer bleibt — und kennen die Rückfälle", () => {
+    const i = kopie();
+    const reihe = alleFotos(k(i)).map((x) => x.schluessel);
+    const [a, b, c] = reihe;
+    i.startseite.heroErsatz = a;
+    i.startseite.wege = { foto: c, film: b };
+    i.startseite.highlights = ["ueber/01", c, null, null];
+    i.ausgeblendet.push(a);
+    i.papierkorb[b] = "2026-10-20";
+    const leer = "der Platz bleibt auf der Seite leer";
+    expect(startplatzZustand(k(i), "heroErsatz")).toBe(` · ausgeblendet — ${leer}`);
+    expect(startplatzZustand(k(i), "wegeFilm")).toBe(` · im Papierkorb — ${leer}`);
+    expect(startplatzZustand(k(i), { highlight: 0 })).toBe(` · kein Foto aus /foto — ${leer}`);
+    expect(startplatzZustand(k(i), { highlight: 1 })).toBe("");
+    expect(startplatzZustand(k(i), { highlight: 2 })).toBe("");
+    /* Zeigt die Seite den Platz zurzeit nicht, bleibt er auch nicht leer. */
+    const beide = { inhalt: i, bilder: { ...BILDER, "hero/standbild": BILDER[c], [`film/${i.filme[0].id}`]: BILDER[c] } };
+    expect(startplatzZustand(beide, "heroErsatz")).toBe(" · Rückfall, zurzeit nicht zu sehen");
+    expect(startplatzZustand(beide, "wegeFilm")).toBe(" · Rückfall, zurzeit nicht zu sehen");
+    expect(startplatzZustand(beide, { highlight: 0 })).toBe(` · kein Foto aus /foto — ${leer}`);
+    /* Dieselbe Regel wie die Prüfung: Wo die Zeile „leer" sagt, warnt sie — sonst nicht. */
+    for (const kontext of [k(i), beide]) {
+      const warnt = pruefeInhalt(i, Object.keys(kontext.bilder))
+        .filter((x) => x.stufe === "warnung" && x.ort.startsWith("Startseite · "))
+        .map((x) => x.ort.slice("Startseite · ".length));
+      const leerePlaetze = STARTPLAETZE.filter((p) => startplatzZustand(kontext, p).includes(leer)).map(startplatzName);
+      expect([...new Set(warnt)].sort()).toEqual(leerePlaetze.sort());
+    }
+  });
+
   it("hat für jeden Bildplatz der Startseite einen Namen", () => {
     expect(STARTPLAETZE.map(startplatzName)).toEqual([
       "Großes Bild oben",
@@ -1342,6 +1460,29 @@ describe("Bild-Panel: Verwendung und Beschreibungen", () => {
     for (const s of ohne.slice(1)) nurEins = setzeBildtext(nurEins, s, "alt", "Szene");
     expect(ohneBeschreibung(k(nurEins))).toEqual([ohne[0]]);
     expect(naechstesOhneBeschreibung(k(nurEins), ohne[0])).toBeNull();
+  });
+});
+
+describe("Arbeit löschen, wenn nichts mehr auszublenden ist", () => {
+  it("sagt nach Lage, warum nichts zu sehen ist: Verarbeitung, ausgeblendet, Papierkorb", () => {
+    const i = kopie();
+    const eigene = bilderDerArbeit(k(i), "stamp").map((x) => x.schluessel);
+    expect(eigene.length).toBeGreaterThan(2);
+    i.ausgeblendet.push(...eigene);
+    expect(nichtsZuSehen(k(i), "stamp", [])).toBe("Alle ihre Bilder sind schon ausgeblendet — auf der Seite erscheint sie nicht.");
+    i.papierkorb[eigene[0]] = "2026-10-20";
+    expect(nichtsZuSehen(k(i), "stamp", [])).toBe(
+      "Ihre Bilder sind ausgeblendet oder liegen im Papierkorb — auf der Seite erscheint sie nicht.",
+    );
+    for (const s of eigene) i.papierkorb[s] = "2026-10-20";
+    expect(nichtsZuSehen(k(i), "stamp", [])).toBe("Alle ihre Bilder liegen im Papierkorb — auf der Seite erscheint sie nicht.");
+    /* Ein neues Bild, das noch verarbeitet wird, geht vor; ein ersetztes (schon im Manifest) zählt nicht. */
+    expect(nichtsZuSehen(k(i), "stamp", ["arbeiten/stamp/09", eigene[1], "arbeiten/at-tension/07"])).toBe(
+      "Ein Bild wird gerade noch verarbeitet — ist es fertig, kannst du es ausblenden.",
+    );
+    expect(nichtsZuSehen(k(i), "stamp", ["arbeiten/stamp/09", "arbeiten/stamp/10"])).toBe(
+      "2 Bilder werden gerade noch verarbeitet — sind sie fertig, kannst du sie ausblenden.",
+    );
   });
 });
 

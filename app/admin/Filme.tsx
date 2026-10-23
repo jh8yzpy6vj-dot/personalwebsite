@@ -7,6 +7,7 @@ import {
   aendereFilm,
   eindeutigeId,
   entferneFilm,
+  FELDNAMEN,
   grundGegenFilm,
   mitHttps,
   neuerFilm,
@@ -131,18 +132,18 @@ export default function Filme() {
                 <div className={styles.zeileInhalt}>
                   <div className={styles.formularZwei}>
                     <Textfeld
-                      bezeichnung="Titel"
+                      bezeichnung={FELDNAMEN.titel}
                       wert={f.titel}
                       beiAenderung={(w) => aendere((i) => aendereFilm(i, f.id, { titel: w }))}
                     />
                     <Textfeld
-                      bezeichnung="Kunde"
+                      bezeichnung={FELDNAMEN.kunde}
                       wert={f.kunde}
                       beiAenderung={(w) => aendere((i) => aendereFilm(i, f.id, { kunde: w }))}
                       hinweis="Ohne Rechtsform; mehrere mit Schrägstrich, „SWR/ARD“."
                     />
                     <Textfeld
-                      bezeichnung="Link zum Film"
+                      bezeichnung={FELDNAMEN.link}
                       typ="url"
                       wert={f.link}
                       platzhalter="https://"
@@ -154,7 +155,7 @@ export default function Filme() {
                     />
                   </div>
                   <Textfeld
-                    bezeichnung="Notiz (nur hier sichtbar, nie auf der Seite)"
+                    bezeichnung={FELDNAMEN.notiz}
                     mehrzeilig
                     wert={f.notiz ?? ""}
                     beiAenderung={(w) => aendere((i) => aendereFilm(i, f.id, { notiz: w }))}
@@ -190,7 +191,7 @@ export default function Filme() {
 
                   <Aufklappen titel="Technisches" leise>
                     <Textfeld
-                      bezeichnung="Kennung"
+                      bezeichnung={FELDNAMEN.kennung}
                       wert={f.id}
                       nurLesen
                       hinweis="Name des Standbilds im Bildspeicher — nicht mehr änderbar."
@@ -213,19 +214,19 @@ export default function Filme() {
         <h3 className={styles.abschnittTitel}>Neuer Film</h3>
         <div className={styles.formularZwei}>
           <Textfeld
-            bezeichnung="Titel"
+            bezeichnung={FELDNAMEN.titel}
             wert={neuTitel}
             beiAenderung={setNeuTitel}
             hinweis="Der Titel lässt sich später jederzeit ändern."
           />
           <Textfeld
-            bezeichnung="Kunde"
+            bezeichnung={FELDNAMEN.kunde}
             wert={neuKunde}
             beiAenderung={setNeuKunde}
             hinweis="Ohne Rechtsform; mehrere mit Schrägstrich, „SWR/ARD“."
           />
           <Textfeld
-            bezeichnung="Link zum Film"
+            bezeichnung={FELDNAMEN.link}
             typ="url"
             wert={neuLink}
             platzhalter="https://"

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import manifest from "./bilder-manifest.json";
 import { INHALT, type Inhalt } from "./inhalt";
-import { istHttps, nurFehler, pruefeInhalt, type Befund } from "./inhalt-pruefen";
+import { istHttps, nurFehler, platzZuSehen, pruefeInhalt, type Befund } from "./inhalt-pruefen";
 import { alsJsonLd } from "./site";
 
 /**
@@ -28,10 +28,13 @@ describe("pruefeInhalt — Regeln", () => {
     }
   });
 
-  it("verbietet Rechtsformzusätze im Kunden (E10)", () => {
+  it("verbietet Rechtsformzusätze im Kunden (E10) — ohne die Regelnummer im Text", () => {
     const i = kopie();
     i.foto.arbeiten[1].kunde = "altonale GmbH";
-    expect(fehlerText(pruefeInhalt(i, BILDER)).join()).toMatch(/Rechtsform/);
+    const f = fehlerText(pruefeInhalt(i, BILDER)).join();
+    expect(f).toMatch(/Rechtsform/);
+    /* Jakob kennt keine Regel „E10" — die steht nur im UI-SPEC. */
+    expect(f).not.toMatch(/E10|Regel/);
   });
 
   it("verbietet doppelte ids und unbekannte Kategorien", () => {
@@ -243,8 +246,39 @@ describe("pruefeInhalt — Regeln", () => {
     a.alt = { ...a.alt, "01": "x".repeat(500) };
     const b = pruefeInhalt(i, BILDER);
     expect(fehlerText(b)).toContain("Über mich · Absatz 2: ist leer.");
-    expect(fehlerText(b)).toContain(`Arbeit „${a.titel}“ · Bildbeschreibung „01“: ist länger als 400 Zeichen.`);
+    expect(fehlerText(b)).toContain(`Arbeit „${a.titel}“ · 01 · Bildbeschreibung: ist länger als 400 Zeichen.`);
     expect(b).toContainEqual({ stufe: "warnung", ort: "Über mich · Text", text: "5 Absätze — gedacht sind drei bis vier." });
+  });
+
+  it("nennt Texte eines Bilds beim Bild wie in der Verwaltung — mit dem Bild als Bezug, nie mit dem Schlüssel", () => {
+    const i = kopie();
+    const a = i.foto.arbeiten[0];
+    a.bildtitel = { ...a.bildtitel, leitbild: "x".repeat(130) };
+    a.alt = { ...a.alt, "02": "" };
+    i.ueber.bilder["ueber/02"] = "y".repeat(130);
+    const f = nurFehler(pruefeInhalt(i, BILDER));
+    expect(f).toContainEqual({
+      stufe: "fehler",
+      ort: `Arbeit „${a.titel}“ · Startbild · Bildtitel`,
+      text: "ist länger als 120 Zeichen.",
+      bild: `arbeiten/${a.id}`,
+      kennung: a.id,
+    });
+    expect(f).toContainEqual({
+      stufe: "fehler",
+      ort: `Arbeit „${a.titel}“ · 02 · Bildbeschreibung`,
+      text: "ist leer.",
+      bild: `arbeiten/${a.id}/02`,
+      kennung: a.id,
+    });
+    expect(f).toContainEqual({
+      stufe: "fehler",
+      ort: "Über mich · 02 · Beschriftung",
+      text: "ist länger als 120 Zeichen.",
+      bild: "ueber/02",
+    });
+    /* Weder Schlüssel noch „leitbild" — Jakob kennt „Startbild". */
+    for (const x of f) expect(`${x.ort} ${x.text}`).not.toMatch(/leitbild|ueber\/|arbeiten\//);
   });
 
   it("nennt in keiner Warnung mit Bild-Bezug den rohen Schlüssel und nirgends das UI-SPEC", () => {
@@ -261,6 +295,50 @@ describe("pruefeInhalt — Regeln", () => {
       expect(x.text).not.toMatch(/„/);
     }
     expect(b.map((x) => `${x.ort} ${x.text}`).join("\n")).not.toMatch(/UI-SPEC/);
+  });
+
+  it("kennt die Rückfälle der Startseite: kein Wort zu Plätzen, die sie zurzeit nicht zeigt", () => {
+    const i = kopie();
+    const [a, b] = i.foto.hero;
+    i.startseite.heroErsatz = a;
+    i.startseite.wege.film = b;
+    i.ausgeblendet.push(a);
+    i.papierkorb[b] = "2026-10-17";
+    i.startseite.highlights = ["ueber/01", null, null, null];
+    const orte = (bilder: string[]) =>
+      pruefeInhalt(i, bilder)
+        .filter((x) => x.ort.startsWith("Startseite ·") && x.stufe === "warnung")
+        .map((x) => x.ort);
+    /* Ohne Standbild oben und ohne Film mit Standbild zeigt die Seite beide Rückfälle. */
+    expect(orte(BILDER)).toEqual([
+      "Startseite · Großes Bild oben",
+      "Startseite · Bild zum Bereich Film",
+      "Startseite · Highlight 1",
+    ]);
+    /* Mit eigenem Standbild oben bleibt das große Bild oben nicht leer — die Seite zeigt es gar nicht. */
+    expect(orte([...BILDER, "hero/standbild"])).toEqual(["Startseite · Bild zum Bereich Film", "Startseite · Highlight 1"]);
+    /* Hat ein Film ein Standbild, nimmt die Seite das statt des Bilds zum Bereich Film. */
+    expect(orte([...BILDER, `film/${i.filme[0].id}`])).toEqual(["Startseite · Großes Bild oben", "Startseite · Highlight 1"]);
+    /* Ein Standbild zu keinem Film zählt nicht — die Seite fände es auch nicht. */
+    expect(orte([...BILDER, "film/gibt-es-nicht"])).toHaveLength(3);
+    /* Auch „kein Foto aus /foto" und „gibt es nicht" nur bei gezeigten Plätzen. */
+    i.startseite.heroErsatz = "ueber/02";
+    i.startseite.wege.film = "arbeiten/stamp/09";
+    expect(orte([...BILDER, "hero/standbild", `film/${i.filme[0].id}`])).toEqual(["Startseite · Highlight 1"]);
+  });
+
+  it("platzZuSehen: nur die beiden Rückfälle hängen vom Manifest ab", () => {
+    const gibt = (...k: string[]) => (s: string) => k.includes(s);
+    expect(platzZuSehen("heroErsatz", INHALT.filme, gibt())).toBe(true);
+    expect(platzZuSehen("heroErsatz", INHALT.filme, gibt("hero/standbild"))).toBe(false);
+    expect(platzZuSehen("wegeFilm", INHALT.filme, gibt(`film/${INHALT.filme[0].id}`))).toBe(false);
+    expect(platzZuSehen("wegeFilm", INHALT.filme, gibt("film/gibt-es-nicht"))).toBe(true);
+    /* Überlebt jede Form der Filmliste. */
+    expect(platzZuSehen("wegeFilm", null, gibt("film/x"))).toBe(true);
+    expect(platzZuSehen("wegeFilm", [null, 3, { id: 4 }], gibt("film/4"))).toBe(true);
+    for (const p of ["wegeFoto", "highlight"] as const) {
+      expect(platzZuSehen(p, INHALT.filme, gibt("hero/standbild", `film/${INHALT.filme[0].id}`))).toBe(true);
+    }
   });
 
   it("zählt den Hinweis auf fehlende Beschreibungen auch für ein einziges Bild richtig", () => {

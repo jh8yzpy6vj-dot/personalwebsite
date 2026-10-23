@@ -169,13 +169,19 @@ const LUFT = 16;
  * (oben) und Speicherleiste (unten) liegen über der Seite: Was darunter
  * steht, zählt nicht als sichtbar. `"mitte"`: nur wenn nötig, dann in die
  * Mitte; `"anfang"`: direkt unter die Reiterleiste (Anfang eines Reiters).
+ *
+ * ⚠️ Für `"anfang"` zählt die **Höhe** der Reiterleiste, nicht ihre
+ * Unterkante: Sie klebt erst oben (`top: 0`), wenn man an ihr vorbeiscrollt.
+ * Stehen Befunde darüber, liegt sie vorher weiter unten — mit ihrer
+ * Unterkante gerechnet, scrollte „Zeigen" dann nur ein paar Pixel.
  */
 export function holeInDenBlick(el: HTMLElement, wohin: "mitte" | "anfang" = "mitte") {
   const r = el.getBoundingClientRect();
-  const oben = document.querySelector(`.${CSS.escape(styles.reiter)}`)?.getBoundingClientRect().bottom ?? 0;
+  const reiter = document.querySelector<HTMLElement>(`.${CSS.escape(styles.reiter)}`);
+  const oben = reiter?.getBoundingClientRect().bottom ?? 0;
   const unten =
     document.querySelector(`.${CSS.escape(styles.leiste)}`)?.getBoundingClientRect().top ?? window.innerHeight;
-  if (wohin === "anfang") window.scrollBy({ top: r.top - oben - LUFT });
+  if (wohin === "anfang") window.scrollBy({ top: r.top - (reiter?.offsetHeight ?? 0) - LUFT });
   else if (r.top < oben || r.bottom > unten) el.scrollIntoView({ block: "center" });
   el.focus({ preventScroll: true });
 }

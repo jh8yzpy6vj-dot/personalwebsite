@@ -498,11 +498,19 @@ Umbaus abgehakt.
     · Absatz 2", „Arbeit „{Titel}" · Kunde", „Film „{Titel}" · Link", „Hero auf /foto", „Mosaik ·
     Reihenfolge". Bilder heißen wie überall („„STAMP · 02" ist ausgeblendet — der Platz bleibt auf
     der Seite leer."), Arbeiten und Filme beim Titel, nie bei der Kennung (nur, wenn der Titel
-    fehlt). Kein Verweis auf interne Dokumente („UI-SPEC").
+    fehlt). Texte eines Bilds nennen erst das Bild, dann das Feld wie im Bild-Panel: „Arbeit
+    „STAMP" · Startbild · Bildtitel", „Arbeit „STAMP" · 02 · Bildbeschreibung", „Über mich · 02 ·
+    Beschriftung" — nie den Bildschlüssel oder „leitbild". Kein Verweis auf interne Dokumente
+    („UI-SPEC", „Regel E10").
   - **„Zeigen"** wechselt in den Reiter. Geht es um ein Bild, das es gibt, öffnet es das
-    Bild-Panel (aus dem Hero mit Blättern durch den Hero). Geht es um ein Feld, steht es im Blick
-    und hat den Fokus — bei Arbeiten und Filmen ist die Zeile dafür aufgeklappt. Sonst steht der
-    Anfang des Reiters (bzw. die Zeile der Arbeit) im Blick und hat den Fokus.
+    Bild-Panel (aus dem Hero mit Blättern durch den Hero). Geht es um einen Text eines Bilds,
+    öffnet es dessen Panel, und der Fokus steht im Feld (aus einer Arbeit mit Blättern durch ihre
+    Bilder, auf /ueber durch das Mosaik). Geht es um ein Feld, steht es im Blick und hat den Fokus
+    — bei Arbeiten und Filmen ist die Zeile dafür aufgeklappt. Kann die Startseite das Bild eines
+    Platzes gar nicht zeigen („kein Foto aus /foto", „gibt es (noch) nicht"), hat der Knopf
+    „{Platz} ändern" den Fokus — am Bild selbst lässt sich dort nichts beheben. Sonst steht der
+    Anfang des Reiters (bzw. die Zeile der Arbeit) im Blick, direkt unter der Reiterleiste, und hat
+    den Fokus.
   - **Hinweis „Bildbeschreibungen":** unter dem Text die Bilder ohne Beschreibung als leise Knöpfe
     mit ihrem Namen, in einer umbrechenden Reihe. Ein Tipp öffnet das Bild-Panel und blättert
     durch genau diese Bilder; „Zeigen" beginnt beim ersten.
@@ -513,6 +521,12 @@ Umbaus abgehakt.
     hießen anders als die Felder („Ersatzbild", „Weg „foto"", „Standbild") und führten nirgendwohin
     — Jakob musste Reiter und Feld selbst suchen, „oben" hieß bei langen Listen viele Bildschirme
     scrollen. Ohne sichtbares Zeichen sah „Ein Hinweis" nicht aufklappbar aus.
+  - Nachgebessert (2026-10-23, aus der unabhängigen Prüfung): „Zeigen" ohne Feld (etwa „Hero auf
+    /foto hat 4 sichtbare Bilder") scrollte nur ein paar Pixel — gerechnet wurde mit der
+    Unterkante der Reiterleiste, die erst klebt, wenn man an ihr vorbei ist. Texte eines Bilds
+    nannten den Schlüssel („Beschriftung „ueber/02"", „Bildtitel „leitbild"") und führten nicht
+    ins Feld, die Rechtsform-Regel nannte „Regel E10", und bei „kein Foto aus /foto" öffnete
+    „Zeigen" das Panel eines Bilds, an dem sich nichts ändern ließ.
 - **Ordnen** per Ziehen (Maus und Touch) und zusätzlich per Knöpfen „nach oben / nach unten"
   für Tastatur und Screenreader. Ausblenden statt Löschen ist der Normalfall; Gelöschtes liegt
   **30 Tage** im Papierkorb und lässt sich zurückholen. Weite Wege gehen im Bild-Panel mit einem
@@ -624,6 +638,14 @@ Umbaus abgehakt.
   leer bleibt: „· ausgeblendet — der Platz bleibt auf der Seite leer", „· im Papierkorb — …",
   „· kein Foto aus /foto — …". Begründung (2026-10-21): Ein Bild von „Über mich" ließ sich wählen,
   der Platz blieb auf der Seite aber leer, ohne Warnung.
+  - **Rückfälle** (seit 2026-10-23): „Großes Bild oben" zeigt die Seite nur ohne eigenes Standbild
+    oben, „Bild zum Bereich Film" nur, solange kein Film ein Standbild hat — dieselbe Regel wie
+    bei „Verwendet: …" (siehe *Bild-Panel*). Zeigt die Seite den Platz zurzeit nicht, steht in
+    der Zeile „· Rückfall, zurzeit nicht zu sehen" statt eines Grunds, und die Prüfung warnt für
+    diesen Platz nicht. Die Hinweise unter den beiden Plätzen beginnen mit „Nur Rückfall:" („Steht
+    oben, solange es dort kein eigenes Standbild gibt. …" bzw. „Gibt es einen Film mit Standbild,
+    nimmt die Seite dessen Standbild."). Begründung: Zeile und Prüfung warnten „der Platz bleibt
+    auf der Seite leer" für Plätze, die die Seite gar nicht zeigt.
 - **Startseite, Begriffe** (seit 2026-10-22): Die Felder heißen „Name (Schriftzug)", „Zeile unter
   dem Namen", „Orte", „Beschreibung des großen Bilds oben (optional)", „Video oben, von außerhalb
   (optional)"; die Bildplätze wie unter *Bild-Panel* („Großes Bild oben" …). Die Bildwahl nennt
@@ -645,10 +667,16 @@ Umbaus abgehakt.
     solange eins sichtbar ist, und „Alle einblenden" (Zeichen Auge), solange eins ausgeblendet ist,
     daneben leise „{x} von {y} ausgeblendet". Stehen sichtbare davon im Hero oder auf der
     Startseite, darunter leise „{n} davon im Hero, {m} auf der Startseite — dort fehlen sie dann."
-    Gelöschte Bilder (Papierkorb) bleiben unberührt. Meldung mit „Rückgängig" (siehe oben).
+    Gelöschte Bilder (Papierkorb) bleiben unberührt. Meldung mit „Rückgängig" (siehe oben). Der
+    gedrückte Knopf verschwindet danach; der Fokus steht auf dem anderen (seit 2026-10-23 — vorher
+    fiel er auf die Seite zurück).
   - **„Arbeit löschen"** mit Bildern im Bildspeicher erklärt wie bisher, warum das noch nicht geht,
-    und bietet statt „Verstanden" den Hauptknopf „Alle Bilder ausblenden" und „Abbrechen" (sind
-    schon alle ausgeblendet: „Verstanden").
+    und bietet statt „Verstanden" den Hauptknopf „Alle Bilder ausblenden" und „Abbrechen". Ist
+    keins mehr sichtbar, nur „Verstanden" und davor nach Lage: „Alle ihre Bilder sind schon
+    ausgeblendet — auf der Seite erscheint sie nicht.", „Alle ihre Bilder liegen im Papierkorb —
+    …", „Ihre Bilder sind ausgeblendet oder liegen im Papierkorb — …" oder, solange neue noch
+    verarbeitet werden, „Ein Bild wird gerade noch verarbeitet — ist es fertig, kannst du es
+    ausblenden." (bzw. „{n} Bilder werden …"). Vorher hieß es immer „schon ausgeblendet".
   - Begründung: Aufgeklappt wurde der Stift zum Pfeil nach oben — zwei Plätze neben „Nach oben",
     ein Fehltipp verschob die Arbeit. Das gesperrte Feld „Kennung … lässt sich nicht ändern" machte
     Angst vor Tippfehlern im Titel. Der Löschdialog riet „Blende alle ihre Bilder aus", einen Knopf

@@ -8,6 +8,7 @@ import {
   alleUeberBilder,
   bildBezeichnung,
   entferneZeile,
+  FELDNAMEN,
   legeInPapierkorb,
   mitHttps,
   neueZeile,
@@ -68,7 +69,7 @@ export default function Ueber() {
           {u.zeilen.map((zeile, n) => (
             <div key={n} className={styles.zeileMitKnopf}>
               <Textfeld
-                bezeichnung={`Absatz ${n + 1}`}
+                bezeichnung={FELDNAMEN.absatz(n + 1)}
                 mehrzeilig
                 wert={zeile}
                 beiAenderung={(w) => aendere((i) => setzeZeile(i, n, w))}
@@ -119,7 +120,7 @@ export default function Ueber() {
         </div>
         <div className={`${styles.formular} ${styles.unterTitel}`}>
           <Textfeld
-            bezeichnung="Beschreibung des Porträts (Alt-Text)"
+            bezeichnung={FELDNAMEN.portraitAlt}
             mehrzeilig
             wert={u.portraitAlt}
             beiAenderung={(w) => aendere((i) => setzeUeberFeld(i, "portraitAlt", w))}
@@ -133,19 +134,19 @@ export default function Ueber() {
         </h2>
         <div className={styles.formularZwei}>
           <Textfeld
-            bezeichnung="E-Mail"
+            bezeichnung={FELDNAMEN.email}
             typ="email"
             wert={u.email}
             beiAenderung={(w) => aendere((i) => setzeUeberFeld(i, "email", w))}
           />
           <span />
           <Textfeld
-            bezeichnung="Instagram · Bezeichnung"
+            bezeichnung={FELDNAMEN.instagramBezeichnung}
             wert={u.instagram.label}
             beiAenderung={(w) => aendere((i) => setzeUeberLink(i, "instagram", "label", w))}
           />
           <Textfeld
-            bezeichnung="Instagram · Adresse"
+            bezeichnung={FELDNAMEN.instagramAdresse}
             typ="url"
             wert={u.instagram.url}
             beiAenderung={(w) => aendere((i) => setzeUeberLink(i, "instagram", "url", w))}
@@ -154,12 +155,12 @@ export default function Ueber() {
             }}
           />
           <Textfeld
-            bezeichnung="SWR · Bezeichnung"
+            bezeichnung={FELDNAMEN.swrBezeichnung}
             wert={u.swr.label}
             beiAenderung={(w) => aendere((i) => setzeUeberLink(i, "swr", "label", w))}
           />
           <Textfeld
-            bezeichnung="SWR · Adresse"
+            bezeichnung={FELDNAMEN.swrAdresse}
             typ="url"
             wert={u.swr.url}
             beiAenderung={(w) => aendere((i) => setzeUeberLink(i, "swr", "url", w))}

@@ -10,6 +10,7 @@ import {
   blaetterListe,
   blaettern,
   blaetterTaste,
+  FELDNAMEN,
   istTextfeld,
   legeInPapierkorb,
   lesePlatz,
@@ -329,14 +330,14 @@ export default function BildPanel({
             <div className={styles.formular}>
               <Textfeld
                 key={`${schluessel}:bildtitel`}
-                bezeichnung="Bildtitel (optional)"
+                bezeichnung={FELDNAMEN.bildtitel}
                 wert={bildtext(inhalt, schluessel, "bildtitel")}
                 beiAenderung={(w) => aendere((i) => setzeBildtext(i, schluessel, "bildtitel", w))}
                 hinweis={`Meist die Compagnie. Die Beschriftung wird dann „Bildtitel – ${titel ?? "Titel"}“.`}
               />
               <Textfeld
                 key={`${schluessel}:alt`}
-                bezeichnung="Bildbeschreibung (Alt-Text)"
+                bezeichnung={FELDNAMEN.alt}
                 mehrzeilig
                 autoFokus={sprung === schluessel}
                 wert={bildtext(inhalt, schluessel, "alt")}
@@ -365,7 +366,7 @@ export default function BildPanel({
           {ueber && (
             <Textfeld
               key={`${schluessel}:beschriftung`}
-              bezeichnung="Beschriftung"
+              bezeichnung={FELDNAMEN.beschriftung}
               wert={inhalt.ueber.bilder[schluessel] ?? ""}
               platzhalter="Jakob Sax"
               beiAenderung={(w) => aendere((i) => setzeUeberBeschriftung(i, schluessel, w))}
@@ -385,7 +386,7 @@ export default function BildPanel({
               </summary>
               <div className={styles.aufklappenInhalt}>
                 <p className={styles.leise}>
-                  Gilt überall, wo das Bild beschnitten wird: im Hero, auf der Startseite
+                  Gilt überall, wo das Bild beschnitten wird: im Hero auf /foto, auf der Startseite
                   {film ? ", beim Film-Standbild" : ""}. Im Mosaik steht es immer ganz.
                 </p>
                 <Ausschnitt schluessel={schluessel} />
