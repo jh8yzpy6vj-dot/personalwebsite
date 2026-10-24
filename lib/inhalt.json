@@ -174,12 +174,13 @@
     ],
     "hero": [
       "arbeiten/at-tension",
+      "arbeiten/toedliches-gold/02",
       "arbeiten/welttheater-der-strasse",
-      "arbeiten/tete-a-tete/01",
-      "arbeiten/welttheater-der-strasse/04",
       "arbeiten/wiwawo-52",
-      "arbeiten/stadtfest-karlsruhe",
-      "arbeiten/tete-a-tete/03"
+      "arbeiten/tete-a-tete/01",
+      "arbeiten/wiwawo-53/07",
+      "arbeiten/strg-f/01",
+      "arbeiten/stamp"
     ]
   },
   "ueber": {
@@ -276,12 +277,14 @@
   "bildausschnitte": {
     "arbeiten/wiwawo-53/02": "50% 78%",
     "arbeiten/wiwawo-53/08": "50% 45%",
-    "arbeiten/wiwawo-52": "50% 65%",
+    "arbeiten/wiwawo-52": "49% 71%",
     "arbeiten/kanu-freestyle-untertuerkheim": "50% 40%",
     "arbeiten/at-tension": "50% 22%",
     "arbeiten/stadtfest-karlsruhe": "50% 28%",
     "arbeiten/tete-a-tete/03": "50% 38%",
     "arbeiten/welttheater-der-strasse/02": "50% 38%",
-    "arbeiten/welttheater-der-strasse/04": "50% 30%"
+    "arbeiten/welttheater-der-strasse/04": "50% 30%",
+    "arbeiten/strg-f/01": "50% 56%",
+    "arbeiten/stamp": "43% 65%"
   }
 }
