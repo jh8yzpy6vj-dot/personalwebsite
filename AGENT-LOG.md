@@ -6,6 +6,21 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-24 — „Tödliches Gold": ganze Doku statt Trailer
+
+Jan schickte den Link zur ganzen Doku in der ARD Mediathek: „Hier ist die Doku – stell sie auch
+auf die Website."
+
+- `lib/inhalt.json`: Link von „Tödliches Gold" auf die Doku
+  (`…/y-kollektiv/toedliches-gold/swr/Y3JpZDovL3N3ci5kZS9hZXgvbzIzNTkyMzc`), die Notiz „Link ist der
+  Trailer …" entfernt. Kunde unverändert „Y-Kollektiv/ARD".
+- **Nicht eingebettet:** Die Mediathek bleibt nach „Filme einbetten" (UI-SPEC) ein Link. Ihr
+  Einbett-Player ist aus der Cloud-Sitzung nicht erreichbar, also ungeprüft, und bräuchte eine
+  eigene Einwilligung und einen eigenen Abschnitt in der Datenschutzerklärung.
+- Geprüft: Tests (Inhaltsprüfung), `next build`.
+
+---
+
 ## 2026-10-24 — `/film`: YouTube-Filme eingebettet, Hinweis zur Einwilligung
 
 Jan: „Ich will die Filme direkt einbetten auf der Seite, statt nur extern zu verlinken. Dann ist's
