@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import manifest from "./bilder-manifest.json";
 import type { Bildquelle } from "./bilder";
 import { bereich } from "./bereich";
-import { istUebergang, mitUebergang, UEBERGANG_DATEI, UEBERGANG_FILM, UEBERGANG_STANDBILD } from "./uebergang";
+import { istUebergang, mitUebergang, UEBERGANG_DATEI, UEBERGANG_FILM, UEBERGANG_GOLD, UEBERGANG_STANDBILD } from "./uebergang";
 
 /** Die Übergangsfassung des Videos oben (`lib/uebergang.ts`). */
 describe("Übergang: Video oben aus dem Repo", () => {
@@ -16,11 +16,20 @@ describe("Übergang: Video oben aus dem Repo", () => {
     expect(istUebergang(undefined)).toBe(false);
   });
 
+  it("Standbild „Tödliches Gold“: nur, solange der Bucket keins hat", () => {
+    const echt = Object.values(manifest)[0] as Bildquelle;
+    expect(mitUebergang({})["film/toedliches-gold"]).toBe(UEBERGANG_GOLD);
+    expect(mitUebergang({ "film/toedliches-gold": echt })["film/toedliches-gold"]).toBe(echt);
+    expect(istUebergang(UEBERGANG_GOLD)).toBe(true);
+  });
+
   it("jede genannte Datei liegt unter public/", () => {
     const adressen = [
       UEBERGANG_DATEI,
       UEBERGANG_STANDBILD.fallback,
       ...UEBERGANG_STANDBILD.webp.split(", ").map((e) => e.split(" ")[0]),
+      UEBERGANG_GOLD.fallback,
+      ...UEBERGANG_GOLD.webp.split(", ").map((e) => e.split(" ")[0]),
     ];
     for (const a of adressen) expect(existsSync(`public${a.split("?")[0]}`), a).toBe(true);
   });

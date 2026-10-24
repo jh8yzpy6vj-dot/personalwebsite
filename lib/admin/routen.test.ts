@@ -8,7 +8,7 @@ import * as speichern from "@/app/api/admin/speichern/route";
 import * as verlauf from "@/app/api/admin/verlauf/route";
 import * as zuruecksetzen from "@/app/api/admin/zuruecksetzen/route";
 import * as hochladen from "@/app/api/admin/hochladen/route";
-import { UEBERGANG_STANDBILD } from "@/lib/uebergang";
+import { UEBERGANG_BILDER } from "@/lib/uebergang";
 import * as verarbeiten from "@/app/api/admin/verarbeiten/route";
 import * as verarbeitung from "@/app/api/admin/verarbeitung/route";
 import * as live from "@/app/api/admin/live/route";
@@ -217,8 +217,8 @@ describe("stand", () => {
     const d = await (await stand.GET(new Request(`${BASIS}/stand`))).json();
     expect(d.sha).toBe(SHA);
     expect(d.inhalt.seite.name).toBe("von main");
-    /* Das Manifest von main — dazu die Übergangsfassung des Videos oben (`lib/uebergang.ts`). */
-    expect(d.bilder).toEqual({ "hero/film": UEBERGANG_STANDBILD });
+    /* Das Manifest von main — dazu die Übergangsbilder (`lib/uebergang.ts`). */
+    expect(d.bilder).toEqual(UEBERGANG_BILDER);
     expect(d.konfiguration.github).toBe(true);
     expect(JSON.stringify(d)).not.toContain("GEHEIM");
   });

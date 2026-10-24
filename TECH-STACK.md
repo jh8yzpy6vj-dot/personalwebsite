@@ -1135,6 +1135,12 @@ noch nicht eingerichtet, und aus der Cloud-Sitzung gibt es keinen Zugang zum Buc
 - `/uebergang/` ist von der Regel „HTML immer nachfragen" in `next.config.mjs` ausgenommen; die
   Route setzt `immutable`, die Adresse trägt einen Fingerabdruck.
 
+- **Seit 2026-10-24 ebenso das Standbild zu „Tödliches Gold"** (`film/toedliches-gold`, das
+  Titelbild der Doku, von Jan geschickt): `public/uebergang/film/toedliches-gold-{960,1920}.webp`
+  und `-1920.jpg` (aus 3840 px verkleinert, ohne Metadaten), eingehängt über `UEBERGANG_BILDER`
+  in `lib/uebergang.ts`. Gleiche Regel: Ein Standbild im Bucket hat Vorrang. Da es das erste Film-
+  Standbild ist, trägt es auch die Wege-Kachel „film" auf `/`.
+
 **Aufräumen, sobald das Video im Bucket liegt:** `public/uebergang/`, `lib/uebergang.ts`
 (+ Test), `lib/bereich.ts`, `app/uebergang/` und die Aufrufe von `mitUebergang`/`UEBERGANG_FILM`
 löschen (`TODO.md`). ⚠️ Aus dem Git-Verlauf verschwinden die gut 8 MB damit nicht — das war der

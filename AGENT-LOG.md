@@ -6,6 +6,21 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-24 — „Tödliches Gold": Titelbild als Standbild
+
+Jan schickte das Titelbild der Doku (3840×2160, mit Y-Kollektiv-Logo und Titel): „Hier nimm das
+als Preview-Bild." Scrapen aus der Mediathek ging nicht (aus der Sitzung gesperrt).
+
+- Wie beim Hero-Video **übergangsweise im Repo**, weil Hochladen und Bucket aus der Sitzung nicht
+  gehen: `public/uebergang/film/` (WebP 960/1920, JPEG 1920, ohne Metadaten, zusammen ~690 KB),
+  eingehängt als `film/toedliches-gold` über `UEBERGANG_BILDER` (`lib/uebergang.ts`, Test
+  erweitert). Ein echtes Standbild im Bucket hat Vorrang.
+- Folge nach bestehender Regel: Als erstes Film-Standbild trägt es auch die Wege-Kachel „film"
+  auf `/` (bisher dunkle Kachel).
+- Geprüft: `tsc`, ESLint, 471 Tests, `next build`, `/film` und `/` im Browser bei 1440 px.
+
+---
+
 ## 2026-10-24 — „Tödliches Gold": ganze Doku statt Trailer
 
 Jan schickte den Link zur ganzen Doku in der ARD Mediathek: „Hier ist die Doku – stell sie auch
