@@ -1,6 +1,7 @@
 import { BILDER, AUSSCHNITT_MITTIG, type Bildquelle, type Streckenbild } from "./bilder";
 import "./content"; // Prüft lib/inhalt.json beim Build — siehe dort.
 import { INHALT, bildName, istVerborgen, type Film, type Fotoarbeit, type Inhalt } from "./inhalt";
+import { youtubeId } from "./youtube";
 
 /**
  * Ableitungen aus den Arbeiten — die einzige Stelle, an der aus `lib/inhalt.json`
@@ -213,13 +214,24 @@ export function filmeMitStandbild(k: Kontext = STANDARD): Filmkachel[] {
 }
 
 /** Ein Film auf `/film` — mit Standbild oder, solange keins da ist, ohne (`null`). */
-export type Filmeintrag = Omit<Filmkachel, "standbild"> & { standbild: Bildquelle | null };
+export type Filmeintrag = Omit<Filmkachel, "standbild"> & {
+  standbild: Bildquelle | null;
+  /**
+   * Kennung des YouTube-Videos, wenn der Link eins ist — dann läuft der Film
+   * auf `/film` selbst (nach Einwilligung). Sonst `null`: Link nach außen.
+   */
+  youtube: string | null;
+};
 
 /**
  * **Alle** Filme für `/film`, in der Reihenfolge von `filme`. Seit dem
  * 2026-10-23 steht ein Film auch ohne Standbild da — als dunkle Kachel mit ▶
  * (UI-SPEC, „Ausnahme: Film ohne Standbild"). Die Startseite nimmt weiter
  * nur `filmeMitStandbild`.
+ *
+ * Seit dem 2026-10-24 laufen YouTube-Filme auf der Seite selbst (`youtube`);
+ * nach der Einwilligung zeigt die Kachel ohne eigenes Standbild das
+ * Vorschaubild von YouTube (UI-SPEC, „Filme einbetten").
  */
 export function filmeFuerSeite(k: Kontext = STANDARD): Filmeintrag[] {
   return k.inhalt.filme.map((film) => ({
@@ -228,10 +240,11 @@ export function filmeFuerSeite(k: Kontext = STANDARD): Filmeintrag[] {
     standbild: k.bilder[`film/${film.id}`] ?? null,
     ausschnitt: ausschnitt(k, `film/${film.id}`),
     ziel: zielDesLinks(film.link),
+    youtube: youtubeId(film.link),
   }));
 }
 
-/** Filme ohne Standbild — für Warnungen. */
+/** Filme ohne Standbild — für die Verwaltung. */
 export function filmeOhneStandbild(k: Kontext = STANDARD): Film[] {
   return k.inhalt.filme.filter((f) => !k.bilder[`film/${f.id}`]);
 }

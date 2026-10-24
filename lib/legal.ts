@@ -102,7 +102,7 @@ export const LEGAL = {
   },
 
   /** Datum der letzten inhaltlichen Änderung an den Rechtstexten. */
-  lastUpdated: "2026-10-08",
+  lastUpdated: "2026-10-24",
 } as const;
 
 /**

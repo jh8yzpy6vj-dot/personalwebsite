@@ -6,6 +6,46 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-24 — `/film`: YouTube-Filme eingebettet, Hinweis zur Einwilligung
+
+Jan: „Ich will die Filme direkt einbetten auf der Seite, statt nur extern zu verlinken. Dann ist's
+kein Stress mehr mit den Vorschaubildern und man muss die Seite nicht verlassen, um die Arbeit zu
+sehen. Also bau bei allen, wo du es einfach einbetten kannst, das so um. Erstelle auch den
+entsprechenden Cookie-Banner." Push direkt auf `main` freigegeben.
+
+- **Vertrag zuerst:** `design/UI-SPEC.md` hat den neuen Abschnitt „Filme einbetten" (Regeln,
+  Texte, Zustände); „Keine eingebetteten Player" ist in `SITE-PLAN.md` mit Begründung
+  aufgehoben, „Kein Cookie-Banner" auf „außer für die YouTube-Filme, nur auf `/film`"
+  eingeschränkt. `TECH-STACK.md` („Filme", „Analytics & Datenschutz"), `TODO.md` angepasst.
+- **Eingebettet:** die sieben YouTube-Filme (`lib/youtube.ts` erkennt einzelne Videos).
+  „Tödliches Gold" (ARD Mediathek, Trailer) bleibt ein Link — Mediathek-Player sind nicht für
+  jeden Beitrag freigegeben, und Mediatheken depublizieren.
+- **Ablauf (`app/film/FilmPlayer.tsx`):** ohne Skript ein Link wie bisher. Mit Einwilligung:
+  eigenes Standbild, sonst YouTubes Vorschaubild (`maxresdefault`, Rückfall `hqdefault`), ▶ →
+  Player über `youtube-nocookie.com`, spielt sofort. Ohne Einwilligung: dunkle Kachel, ▶ fragt in
+  der Kachel („Erlauben und abspielen" · „Auf YouTube ↗" · „Abbrechen").
+- **Hinweis („Cookie-Banner", `app/components/Einwilligung.tsx`):** nur auf `/film`, nur solange
+  nichts entschieden ist, nicht modal, „Ablehnen" und „Erlauben" gleich gestaltet. Die
+  Entscheidung liegt in `localStorage` (`einwilligung-youtube`, `lib/einwilligung.ts`) — die
+  Seite setzt weiterhin kein eigenes Cookie. Widerrufen: Zeile unten auf `/film` und in der
+  Datenschutzerklärung.
+- **Datenschutzerklärung:** neuer Abschnitt „YouTube-Filme" (`#youtube`: Anbieter, Daten,
+  Einwilligung nach Art. 6 Abs. 1 lit. a DSGVO / § 25 TDDDG, Widerruf, USA/DPF), „Grundsatz",
+  „Bilder und Video" und „Links" angepasst, Stand 2026-10-24. ⚠️ Weiterhin nicht anwaltlich
+  geprüft.
+- **Verwaltung:** Prüfung warnt bei YouTube-Filmen nicht mehr über ein fehlendes Standbild;
+  Reiter Filme sagt „läuft auf der Seite" bzw. „Vorschaubild von YouTube".
+- **Geprüft:** `tsc`, ESLint, 470 Tests (neu `lib/youtube.test.ts`, `lib/einwilligung.test.ts`),
+  `next build`, `opennextjs-cloudflare build`; im Browser bei 1440 und 390 px mit nachgebautem
+  YouTube (aus der Sitzung gesperrt): vor der Einwilligung **null** Anfragen an Dritte,
+  Rückfrage mit Fokus, Ablehnen blendet den Hinweis aus, „Erlauben und abspielen" setzt
+  `ja` und öffnet den Player, nach Neuladen Vorschaubilder ohne Hinweis; ohne Skript alle
+  Kacheln Links.
+- **Offen:** einmal echt abspielen (Handy und Rechner), Nebentätigkeitsfrage gilt jetzt fürs
+  Einbetten (`TODO.md`).
+
+---
+
 ## 2026-10-23 — Hero-Video live (Übergangsfassung aus dem Repo)
 
 Jan: „Blende das in der UI schon ein auch wenns noch am hochladen scheitert. Setze, wenn du es

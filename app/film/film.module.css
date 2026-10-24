@@ -25,18 +25,123 @@
   }
 }
 
-/* Die ganze Kachel ist der Link — Standbild und Beschriftung. */
+/* Die ganze Kachel ist der Link — Standbild und Beschriftung. Bei
+   eingebetteten Filmen ist sie ein Knopf (▶), die Beschriftung steht darunter. */
 .kachel {
   display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
   color: var(--schrift);
+  font: inherit;
+  text-align: left;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .rahmen {
+  position: relative;
   display: block;
   aspect-ratio: 16 / 9;
   overflow: hidden;
   border-radius: var(--radius-bild);
+  background: linear-gradient(160deg, #1d1d22 0%, #0b0b0d 100%);
+}
+
+/* Eingebetteter Film: ▶ über dem Bild, mittig. Der weiche Schatten hält das
+   Zeichen auf hellen Standbildern lesbar, ohne das Bild abzudunkeln. */
+.abspielen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--schrift);
+  filter: drop-shadow(0 2px 12px rgb(0 0 0 / 0.55));
+}
+
+.player {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* Rückfrage in der Kachel, wenn noch nicht eingewilligt ist. */
+.frage {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--schrift);
+}
+
+.frageText a {
+  color: var(--schrift);
+  text-underline-offset: 4px;
+}
+
+.frageKnoepfe {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-sm);
+  align-items: center;
+}
+
+.knopf,
+.knopfLeise {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: 44px;
+  padding: 0 var(--space-md);
+  border: 1px solid var(--schrift);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--schrift);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.knopfLeise {
+  padding: 0 var(--space-sm);
+  border-color: transparent;
+  color: var(--leise);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .knopf:hover {
+    background: var(--schrift);
+    color: var(--grund);
+  }
+
+  .knopfLeise:hover {
+    color: var(--schrift);
+  }
+}
+
+.knopf:focus-visible,
+.knopfLeise:focus-visible {
+  outline: 2px solid var(--schrift);
+  outline-offset: 2px;
+}
+
+/* Sehr schmale Kacheln: weniger Abstand, damit Text und Knöpfe in 16:9
+   passen. Die Knöpfe behalten ihre 44px. */
+@media (max-width: 400px) {
+  .frage {
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+  }
+}
+
+.einwilligung {
+  margin: var(--space-2xl) 0 0;
 }
 
 .bild {
@@ -64,7 +169,7 @@
 
 .zeile {
   display: block;
-  margin-top: var(--space-sm);
+  margin: var(--space-sm) 0 0;
   font-size: var(--text-label);
   line-height: var(--leading-label);
 }

@@ -1,4 +1,5 @@
 import type { Inhalt } from "./inhalt";
+import { youtubeId } from "./youtube";
 
 /**
  * **Die eine Prüfung für `lib/inhalt.json`** — läuft an drei Stellen mit
@@ -441,7 +442,9 @@ export function pruefeInhalt(eingabe: unknown, bilder: Iterable<string>): Befund
       text(`${ort} · Titel`, film.titel);
       kunde(`${ort} · Kunde`, film.kunde, true);
       if (!istHttps(film.link)) fehler(`${ort} · Link`, KEINE_ADRESSE);
-      if (istText(film.id) && !vorhanden.has(`film/${film.id}`)) {
+      /* YouTube-Filme brauchen keins: Nach der Einwilligung zeigt /film das
+         Vorschaubild von YouTube (UI-SPEC, „Filme einbetten"). */
+      if (istText(film.id) && !vorhanden.has(`film/${film.id}`) && !(istText(film.link) && youtubeId(film.link))) {
         warnung(ort, "hat (noch) kein Standbild — auf /film steht bis dahin eine dunkle Kachel mit ▶.");
       }
       if (film.notiz !== undefined) text(`${ort} · Notiz`, film.notiz, { leer: true, max: MAX.notiz });

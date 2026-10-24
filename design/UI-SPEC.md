@@ -53,7 +53,7 @@ Daraus folgen drei Regeln, an denen sich jede Entscheidung unten messen lassen m
 |-------|--------|-----------------|
 | `/` | **Seit dem 2026-10-10 (Jans Entscheidung) wieder eine scrollende Startseite**, siehe *Startseite* unten: Hero → Über-mich-Anriss → zwei Wege (foto, film) → Highlights → Footer | Positionierungszeile und Orte im Hero, „jakob." mit zwei Sätzen, Beschriftung der Wege |
 | `/foto` | **Seit 2026-10-14 abends:** randloses Hero mit Blende über 6–8 ausgewählte Bilder → **ein** Mosaik aus allen Bildern, nach Kategorie sortiert, ohne Zwischenüberschriften → Footer. Keine Detailseiten. Siehe *`/foto`* | Bildbeschriftung beim Überfahren und im Lichtkasten — sonst kein Text |
-| `/film` | Topbar, darunter ein Raster aus Standbildern; jede Kachel ist ein Link nach außen | je Film „Titel – Kunde" unter dem Standbild |
+| `/film` | Topbar, darunter ein Raster aus Kacheln. **YouTube-Filme laufen seit 2026-10-24 auf der Seite selbst** (nach Einwilligung, siehe *Filme einbetten*), alle anderen sind ein Link nach außen | je Film „Titel – Kunde" unter der Kachel; bei YouTube-Filmen der Hinweis zur Einwilligung |
 | `/ueber` | Topbar, darunter zweispaltig: Bild links, rechts 3–4 Zeilen und eine Kontaktzeile. Darunter seit 2026-10-14 ein Mosaik aus den Bildern der Kategorie „Über mich" aus Jakobs Liste (`original/ueber/NN`) | 3–4 Zeilen, Kontaktzeile |
 | `/impressum`, `/datenschutz` | Topbar, Lesespalte | Pflichttext |
 | 404 | Topbar, eine Zeile, zwei Wege | „Hier ist nichts." · foto · film |
@@ -151,12 +151,12 @@ Punkt wie im ●REC: hier wird gerade aufgenommen.
 | Mosaik — warum so | ⚠️ Die ungleichen Breiten sind der Hebel, nicht Zierde: Gleich breite Spalten stellen Hochformate zwangsläufig gleich hoch nebeneinander. ⚠️ Reihenweise, nicht spaltenweise (`column-count` kann das nicht) — sonst läse sich die obere Reihe 1-3-5. ⚠️ **Aber nicht blind reihum** (so bis 2026-10-16): Reihum ignoriert die Formate. Auf `/foto` endeten die vier Spalten bei 1440px um bis zu 1200px versetzt, unten stand eine Spalte mehrere Bilder lang allein. Jan: „sie ist verbuggt". Wer stets die kürzeste Spalte füllt, hält die Enden auf weniger als eine Bildhöhe beisammen. Zwei gescheiterte Vorstufen (Flanken, Zeilensatz) sind im alten Vertrag dokumentiert. |
 | **Beschriftung im Mosaik** | Die Beschriftung des Bildes (siehe *Beschriftung je Bild*) erscheint **beim Überfahren mit der Maus und bei Tastaturfokus**, unten im Bild auf einem Verlauf (siehe *Text über Fotos*). Nur unter `@media (hover: hover) and (pointer: fine)` für das Überfahren; auf Touch gibt es kein Überfahren, dort ist der Lichtkasten der Weg. Sonst ist die Fläche textfrei. |
 | **Lichtkasten** | Jede Mosaikkachel öffnet groß: Klick oder `Enter`; `←`/`→` blättert **über alle Bilder der Seite**; `Esc` und ein Klick neben das Bild schließen. Bild `contain` auf `--grund`, darunter die Beschriftung. `sizes` **je Bild** aus der Fensterhöhe und dem Seitenverhältnis (`kastenSizes` in `lib/bilder.ts`) — sonst lüde ein Hochformat die größte Stufe, um sie auf ein Drittel zu verkleinern. ⚠️ **`position: fixed`, nie `absolute`** — sonst springt die Seite beim Öffnen an den Anfang und man steht nach dem Schließen oben. ⚠️ Beim Schließen geht der Fokus **auf die Kachel zurück**, von der er kam. Ohne Skript ist jede Kachel ein gewöhnlicher Link auf die Bilddatei. **Öffnen und Schließen:** Das Foto wächst aus seiner Kachel in den Lichtkasten und kehrt beim Schließen in die Kachel des **zuletzt gezeigten** Bildes zurück — wie in einer Foto-App (siehe *Motion*). Geht der Fokus nach dem Blättern auf diese Kachel statt auf die ursprüngliche, ist das Absicht: Man steht dort, wo man zuletzt hingesehen hat. |
-| **Film-Standbild** (`/film`) | Festes Seitenverhältnis **16:9**, `object-fit: cover`. Ausschnitt je Bild aus `lib/bildausschnitte.ts` (Schlüssel `film/<id>`), sonst mittig. Die **ganze Kachel** — Standbild und Beschriftung — ist der Link. |
-| Film-Standbild — Quelle | **Liegt bei uns** (`original/film/<id>.jpg` im Bucket). ⚠️ Keine Vorschaubilder von YouTube, Vimeo oder der Mediathek nachladen: Das wäre bei jedem Seitenaufruf eine Anfrage an Dritte und gehörte in die Datenschutzerklärung. **Keine eingebetteten Player.** |
+| **Film-Standbild** (`/film`) | Festes Seitenverhältnis **16:9**, `object-fit: cover`. Ausschnitt je Bild aus `lib/bildausschnitte.ts` (Schlüssel `film/<id>`), sonst mittig. Bei verlinkten Filmen ist die **ganze Kachel** — Standbild und Beschriftung — der Link; bei eingebetteten ist die Kachel der ▶-Knopf, die Beschriftung steht darunter (siehe *Filme einbetten*). |
+| Film-Standbild — Quelle | **Eigenes Standbild liegt bei uns** (`original/film/<id>.jpg` im Bucket) und hat immer Vorrang. ⚠️ **Vorschaubilder von YouTube erst nach Einwilligung** (seit 2026-10-24, siehe *Filme einbetten*) — vorher wäre es bei jedem Seitenaufruf eine Anfrage an Dritte. Von Vimeo oder der Mediathek nie. |
 | **Porträt** (`/ueber`) | **Ohne Zuschnitt** — das Bild bringt seine Form mit. Begrenzt wird die **Höhe** (`max-height: 80svh`), sonst schiebt ein Hochformat den Text unter die Falz. |
 | Ecken | **Genau ein Radius** (`--radius-bild`, 12px) für Mosaikkacheln, Film-Standbilder und Porträt. Das Hero-Video und das Hero von `/foto` sind randlos und haben keinen. |
 | **Was kein Bild hat, erscheint nicht** | Eine Fotoarbeit ohne Bilder wird **nicht** angezeigt — keine Platzhalterkachel. Eine Seite, die nur aus Bildern besteht, darf keine grauen Flächen zeigen. `npm run medien` nennt, was fehlt. Der Goldbarren-Platzhalter für „Tödliches Gold" ist am 2026-10-14 entfallen. |
-| **Ausnahme: Film ohne Standbild** (seit 2026-10-23) | Ein Film ohne Standbild steht trotzdem im Raster: dieselbe 16:9-Kachel mit Radius, darin **die dunkle Fläche mit ▶ der Wege-Kachel auf `/`** (Verlauf `#1d1d22` → `#0b0b0d`, Kreis mit Dreieck in `--leise`), darunter wie immer „Titel – Kunde ↗". Sobald ein Standbild da ist, ersetzt es die Fläche, ohne dass jemand etwas umstellt. **Warum:** Jakob hat am 2026-10-22 acht Filme geliefert, aber noch keine Standbilder, und der Bildspeicher war noch nicht eingerichtet. Ohne die Ausnahme wäre `/film` leer geblieben, obwohl alle Links stimmen. Jan: „Oder du nutzt einfach einen Platzhalter?" Die Fläche ist kein Grau, sondern das Zeichen für „Film", das die Startseite schon verwendet. Ein Vorschaubild von YouTube zu laden ist weiterhin ausgeschlossen (siehe *Film-Standbild — Quelle*). |
+| **Ausnahme: Film ohne Standbild** (seit 2026-10-23) | Ein Film ohne Standbild steht trotzdem im Raster: dieselbe 16:9-Kachel mit Radius, darin **die dunkle Fläche mit ▶ der Wege-Kachel auf `/`** (Verlauf `#1d1d22` → `#0b0b0d`, Kreis mit Dreieck in `--leise`), darunter wie immer „Titel – Kunde ↗". Sobald ein Standbild da ist, ersetzt es die Fläche, ohne dass jemand etwas umstellt. **Warum:** Jakob hat am 2026-10-22 acht Filme geliefert, aber noch keine Standbilder, und der Bildspeicher war noch nicht eingerichtet. Ohne die Ausnahme wäre `/film` leer geblieben, obwohl alle Links stimmen. Jan: „Oder du nutzt einfach einen Platzhalter?" Die Fläche ist kein Grau, sondern das Zeichen für „Film", das die Startseite schon verwendet. Ein Vorschaubild von YouTube zu laden ist weiterhin ausgeschlossen (siehe *Film-Standbild — Quelle*). **Seit 2026-10-24:** Bei YouTube-Filmen gilt die Fläche nur noch, solange niemand eingewilligt hat; danach steht dort YouTubes Vorschaubild (siehe *Filme einbetten*). Ein ▶ in `--schrift` heißt „spielt hier", eins in `--leise` „Link nach außen". |
 | Auslieferung | WebP **und** AVIF mit `srcset` in bis zu **sieben** Breiten (480–4000, seit 2026-10-14; vorher bis 2400), JPEG als Rückfall, `width`/`height` am `img` gegen Layoutsprünge. Erzeugt von `npm run medien`, nicht im Deploy. ⚠️ Beide Formate müssen **dieselben** Breiten abdecken — sonst greift der Browser still zur kleineren Stufe und rechnet hoch. |
 | Breite der Quelle | Eine Quelle liefert nur die Breiten, die sie hat; es wird nie hochskaliert. Die **Breite** entscheidet über die Schärfe, nicht die Pixelzahl. |
 | Ladezustand | Ein 16px breites Vorschaubildchen als Datei-URI im HTML füllt die Fläche, bis das Foto da ist. Kein Skript, keine zusätzliche Anfrage. |
@@ -168,6 +168,26 @@ Punkt wie im ●REC: hier wird gerade aufgenommen.
 seit dem 2026-10-10.)
 
 ---
+
+### Filme einbetten (seit 2026-10-24)
+
+Jan: „Ich will die Filme direkt einbetten auf der Seite, statt nur extern zu verlinken. Dann ist's
+kein Stress mehr mit den Vorschaubildern und man muss die Seite nicht verlassen, um die Arbeit zu
+sehen. […] Erstelle auch den entsprechenden Cookie-Banner." Das ersetzt die frühere Regel „Keine
+eingebetteten Player" (bis 2026-10-23, Begründung damals: Anfrage an Dritte bei jedem Aufruf).
+Die Begründung bleibt richtig — deshalb lädt **vor der Einwilligung nichts** von YouTube.
+
+| Element | Regel |
+|---------|-------|
+| Was eingebettet wird | **Nur einzelne YouTube-Videos** (`youtubeId` in `lib/youtube.ts`: `youtu.be/…`, `watch?v=…`, `/embed/`, `/shorts/`, `/live/`). Mediathek, Vimeo, Kanäle und Playlists bleiben Links nach außen. ⚠️ Mediatheken depublizieren und ihre Einbett-Player sind nicht für jeden Beitrag freigegeben — dort bleibt der Link verlässlicher |
+| Player | `www.youtube-nocookie.com/embed/<id>?autoplay=1&rel=0&playsinline=1` (erweiterter Datenschutzmodus). Er entsteht **erst beim Klick auf ▶** und spielt dann sofort — sieben Player beim Seitenaufruf wären mehrere MB Skript. `referrerpolicy="strict-origin-when-cross-origin"`: Ohne Referer verweigert YouTube das Abspielen. `title` = „Titel – Kunde". Der Fokus geht auf den Player |
+| Kachel mit Einwilligung | Eigenes Standbild, sonst YouTubes Vorschaubild (`maxresdefault`, Rückfall `hqdefault`, wenn YouTube nur das 120px-Ersatzbild liefert). Darüber mittig das ▶ der Wege-Kachel in `--schrift` mit weichem Schatten. Die Kachel ist ein `<button>`, `aria-label` „{Titel – Kunde} abspielen" |
+| Kachel ohne Einwilligung | Eigenes Standbild, sonst die dunkle Fläche, ▶ wie oben. Klick → **Rückfrage in der Kachel** (siehe *Copywriting*): „Erlauben und abspielen" (speichert die Einwilligung für alle Filme), „Auf YouTube ↗" (Link, selber Tab), „Abbrechen" (leise, Fokus zurück auf die Kachel) |
+| Ohne Skript / vor der Hydration | Die Kachel ist wie bisher ein **Link nach außen**. Die Seite weiß da noch nicht, was entschieden ist, und zeigt, was in jedem Fall stimmt |
+| **Hinweis („Cookie-Banner")** | **Nur auf `/film`** und nur, solange nichts entschieden ist — nur dort lädt die Seite etwas von einem Dritten. Unten rechts fest am Fenster, höchstens 560px breit (unter 700px über die volle Breite mit 8px Abstand), Fläche `--grund`, 1px Rahmen in `--leise`, Radius `--radius-bild`, Schatten. **Nicht modal**: Die Seite bleibt bedienbar. Zwei **gleich gestaltete** Knöpfe „Ablehnen" und „Erlauben" (Pille, 1px `--schrift`, min. 44px hoch) — keine Wahl wird nahegelegt. Kein Rot |
+| Entscheidung merken | `localStorage`, Eintrag `einwilligung-youtube` = `ja`/`nein` (`lib/einwilligung.ts`). **Die Seite setzt weiterhin kein eigenes Cookie.** Abgelehnt heißt: Der Hinweis kommt nicht wieder, ▶ fragt je Film. Gesperrter Speicher: gilt für diese Seite |
+| Widerrufen | So leicht wie Erlauben: unten auf `/film` die Zeile „YouTube-Filme: erlaubt · Einwilligung widerrufen" (bzw. „nicht erlaubt · Erlauben") in `--leise`, dieselbe Zeile in der Datenschutzerklärung (Abschnitt `#youtube`) |
+| Startseite | Die Wege-Kachel „film" auf `/` nimmt weiter nur eigene Standbilder — auf `/` wird nicht eingewilligt, also lädt dort nichts von YouTube |
 
 ## Farbe
 
@@ -300,10 +320,13 @@ neu messen — sonst werden alle abhängigen Stellen still falsch.
 | **Beschriftung einer Arbeit** | „{Titel} – {Kunde}". Halbgeviertstrich (–, U+2013) mit je einem Leerzeichen. Beispiele: „WiWaWo 2026 – Bayerischer Kanuverband", „Y-Kollektiv: Tödliches Gold – SWR/ARD" |
 | Kundennamen | **Ohne Rechtsformzusatz** (kein e.V., GmbH, gGmbH) — E10. Mehrere Auftraggeber mit Schrägstrich **ohne** Leerzeichen („SWR/ARD") |
 | Titel | So, wie Jakob ihn schreibt. Doppelpunkt erlaubt („Y-Kollektiv: Tödliches Gold") |
-| Externes Ziel (nur Screenreader) | an die Beschriftung angehängt: „, auf YouTube" bzw. „auf Vimeo", „in der ARD Mediathek" — abgeleitet aus der Adresse. Sichtbar steht nur ein kleines ↗ (`aria-hidden`) |
+| Externes Ziel (nur Screenreader, nur verlinkte Filme) | an die Beschriftung angehängt: „, auf YouTube" bzw. „auf Vimeo", „in der ARD Mediathek" — abgeleitet aus der Adresse. Sichtbar steht nur ein kleines ↗ (`aria-hidden`) |
 | `/ueber` | 3–4 Zeilen **von Jakob**, erste Person. Bis sie vorliegen, die beiden bisher freigegebenen Absätze (Journalist beim SWR; Aufmerksamkeit auf dem Festivalplatz). Nichts erfinden |
 | Kontaktzeile | „mail@jakobsax.de · Instagram · SWR-Autorenseite" — drei Links, sonst nichts (E6, E12) |
 | Footer | „Impressum · Datenschutz" |
+| Hinweis YouTube (`/film`) | „Die Filme auf dieser Seite liegen bei YouTube. Erst wenn Sie es erlauben, lädt die Seite Vorschaubilder und Player von YouTube — dabei gehen Daten wie Ihre IP-Adresse an Google, und YouTube kann Cookies setzen. Mehr dazu" · Knöpfe „Ablehnen", „Erlauben". „Sie" wie in der Datenschutzerklärung |
+| Rückfrage in der Filmkachel | „Der Film liegt bei YouTube. Beim Abspielen gehen Daten an YouTube (Google). Datenschutz" · „Erlauben und abspielen" · „Auf YouTube ↗" · „Abbrechen" |
+| Einwilligung ändern | „YouTube-Filme: erlaubt · Einwilligung widerrufen" bzw. „YouTube-Filme: nicht erlaubt · Erlauben"; ohne Skript „YouTube-Filme: werden erst nach Einwilligung geladen." |
 | Pause-Knopf | sichtbar ein Symbol; `aria-label` „Video anhalten" bzw. „Video abspielen" |
 | Lichtkasten | Beschriftung des Bildes darunter; Knöpfe mit `aria-label` „Schließen", „Vorheriges Bild", „Nächstes Bild" |
 | Kategorien | „festival", „theater", „paddeln", „journalismus" — klein, ohne Punkt. „journalismus" heißt in Jakobs Liste „SWR"; umbenannt, weil STRG_F vom NDR ist |
@@ -354,7 +377,7 @@ für Seiten, die er nie öffnet). `content-visibility: auto` auf Mosaikkacheln *
 
 ## Zustände
 
-Applicable state considerations resolved: **10 covered, 1 backstop, 0 unresolved**
+Applicable state considerations resolved: **13 covered, 1 backstop, 0 unresolved**
 
 | Kategorie | Element | Status | Lösung |
 |-----------|---------|--------|--------|
@@ -365,7 +388,10 @@ Applicable state considerations resolved: **10 covered, 1 backstop, 0 unresolved
 | loading | Mosaikkachel, Film-Standbild, Porträt | ✅ covered | Vorschaubildchen aus dem Manifest, deckungsgleich mit dem späteren Bild |
 | error | Bild kommt nicht an | ✅ covered | Der Browser zeichnet den Alt-Text in die Bildbox — Schrift, Größe (14px) und Farbe (`--leise`) sind dafür gesetzt |
 | empty | Fotoarbeit ohne Bilder | ✅ covered | Erscheint nicht (siehe *Bildbehandlung*) |
-| empty | Film ohne Standbild | ✅ covered | Dunkle Kachel mit ▶ (siehe *Bildbehandlung*, „Ausnahme: Film ohne Standbild") |
+| empty | Film ohne Standbild | ✅ covered | Dunkle Kachel mit ▶ (siehe *Bildbehandlung*, „Ausnahme: Film ohne Standbild"); bei YouTube-Filmen nach Einwilligung YouTubes Vorschaubild |
+| consent | YouTube-Film, nicht eingewilligt / abgelehnt | ✅ covered | Keine Anfrage an YouTube; ▶ fragt in der Kachel (siehe *Filme einbetten*) |
+| error | YouTube-Vorschaubild in großer Stufe fehlt | ✅ covered | Rückfall auf `hqdefault` |
+| error | Einbetten vom Kanal gesperrt / Video entfernt | ✅ covered | YouTube zeigt im Player selbst „Auf YouTube ansehen" bzw. den Fehler; `npm run links` meldet entfernte Videos |
 | empty | `/foto` oder `/film` ganz ohne Inhalt | 🧪 backstop | Eine Zeile „Fotos folgen." bzw. „Filme folgen." Live soll das nie erscheinen: Der Umbau geht erst mit mindestens einer Fotoarbeit und drei Filmen live (`TODO.md`, Schritt 6) |
 | zero-one-many | Mosaik | ✅ covered | Mit 1, 2, 3 und 20+ Bildern prüfen — bei einem Bild steht es in Spalte 1, die anderen bleiben leer; vertretbar, weil der Zustand nur vor dem Livegang vorkommt |
 | long-text | Beschriftung | ✅ covered | Bricht im Blockfluss um; `hyphens: auto` mit `lang="de"` plus `overflow-wrap` als Netz |

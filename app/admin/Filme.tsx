@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Film } from "@/lib/inhalt";
+import { youtubeId } from "@/lib/youtube";
 import { ZIEL } from "@/lib/admin/vertrag";
 import {
   aendereFilm,
@@ -23,7 +24,10 @@ import styles from "./verwaltung.module.css";
 /**
  * **Reiter Filme** — die Filme auf `/film`, in dieser Reihenfolge. Der Film
  * selbst liegt bei YouTube, Vimeo oder in einer Mediathek; bei uns liegt
- * nur das Standbild (`film/<id>`). Ohne Standbild zeigt `/film` eine dunkle Kachel mit ▶.
+ * nur das Standbild (`film/<id>`). YouTube-Filme laufen seit 2026-10-24 auf
+ * `/film` selbst und brauchen kein Standbild (nach der Einwilligung zeigt die
+ * Seite das von YouTube); bei allen anderen steht ohne Standbild eine dunkle
+ * Kachel mit ▶.
  *
  * Aufklappen wie im Reiter Arbeiten: Der Stift bleibt der Stift, zu klappt
  * „Fertig"; welcher Film offen ist, hält die Verwaltung (`aufgeklappt`).
@@ -105,7 +109,14 @@ export default function Filme() {
                   <strong>{f.titel || f.id}</strong>
                   <span>
                     {f.kunde || "ohne Kunde"}
-                    {!bilder[s] ? (unterwegs.has(s) ? " · Standbild wird verarbeitet" : " · ohne Standbild, zeigt eine dunkle Kachel") : ""}
+                    {youtubeId(f.link) ? " · läuft auf der Seite" : ""}
+                    {!bilder[s]
+                      ? unterwegs.has(s)
+                        ? " · Standbild wird verarbeitet"
+                        : youtubeId(f.link)
+                          ? " · Vorschaubild von YouTube"
+                          : " · ohne Standbild, zeigt eine dunkle Kachel"
+                      : ""}
                   </span>
                 </span>
                 <span className={styles.zeileKnoepfe}>
@@ -151,7 +162,7 @@ export default function Filme() {
                       beiVerlassen={(w) => {
                         if (mitHttps(w) !== w) aendere((i) => aendereFilm(i, f.id, { link: mitHttps(w) }));
                       }}
-                      hinweis="Vollständige Adresse bei YouTube, Vimeo oder der Mediathek."
+                      hinweis="Vollständige Adresse bei YouTube, Vimeo oder der Mediathek. Ein einzelnes YouTube-Video läuft auf /film selbst, alles andere wird verlinkt."
                     />
                   </div>
                   <Textfeld
@@ -167,7 +178,11 @@ export default function Filme() {
                       <Ausschnitt schluessel={s} />
                     ) : (
                       <p className={styles.leise}>
-                        {unterwegs.has(s) ? "Wird verarbeitet." : "Noch keins. Bis dahin zeigt /film eine dunkle Kachel mit ▶."}
+                        {unterwegs.has(s)
+                          ? "Wird verarbeitet."
+                          : youtubeId(f.link)
+                            ? "Keins nötig: Der Film läuft auf /film, und wer YouTube erlaubt hat, sieht das Vorschaubild von YouTube. Ein eigenes Standbild hier hat Vorrang."
+                            : "Noch keins. Bis dahin zeigt /film eine dunkle Kachel mit ▶."}
                       </p>
                     )}
                     <div className={`${styles.knopfreihe} ${styles.unterTitel}`}>
@@ -232,7 +247,7 @@ export default function Filme() {
             platzhalter="https://"
             beiAenderung={setNeuLink}
             beiVerlassen={(w) => setNeuLink(mitHttps(w))}
-            hinweis="Vollständige Adresse bei YouTube, Vimeo oder der Mediathek."
+            hinweis="Vollständige Adresse bei YouTube, Vimeo oder der Mediathek. Ein einzelnes YouTube-Video läuft auf /film selbst, alles andere wird verlinkt."
           />
         </div>
         <div className={`${styles.knopfreihe} ${styles.unterTitel}`}>

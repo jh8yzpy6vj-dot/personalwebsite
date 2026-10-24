@@ -75,7 +75,7 @@ erledigt (`TODO.md`, Launch-Blocker).
 |-------|-----|--------|
 | `/` | **Der erste Eindruck.** | Seit dem 2026-10-10 (Jans Entscheidung) wieder scrollend: Hero mit Positionierungszeile wie vor dem Umbau, Über-mich-Anriss, zwei Wege zu foto und film, vier Highlights, Footer. Details: UI-SPEC, „Startseite" |
 | `/foto` | **Die Fotos.** | Seit dem 2026-10-14 abends (Jakobs Wunsch): oben ein Hero, in dem 6–8 der besten Bilder mit der Blende durchlaufen, darunter **ein** Mosaik mit allen Bildern und Großansicht — nach Kategorie sortiert, aber ohne sichtbare Grenzen. Keine Detailseiten |
-| `/film` | **Die Filme.** | Standbild und „Titel – Kunde" je Film; jeder führt nach außen (YouTube, Vimeo, Mediathek). Kein Film liegt auf der Seite selbst |
+| `/film` | **Die Filme.** | Kachel und „Titel – Kunde" je Film. **Seit 2026-10-24 laufen YouTube-Filme auf der Seite selbst** (nach Einwilligung, `design/UI-SPEC.md`, „Filme einbetten"); Mediathek und Vimeo bleiben Links nach außen. Gespeichert wird bei uns weiterhin kein Film |
 | `/ueber` | **Wer.** | Bild seitlich, daneben 3–4 Zeilen, darunter E-Mail, Instagram, SWR-Autorenseite. Darunter die Bilder, die in Jakobs Liste unter „Über mich" stehen (Jakob bei der Arbeit) |
 | `/impressum`, `/datenschutz` | Pflicht | Nur im Footer verlinkt, nicht im Header |
 
@@ -130,17 +130,21 @@ Damit die Diskussion nicht alle drei Monate von vorn losgeht (Stand 2026-10-08):
 
 - **Kein Angebot, kein Preis, kein Formular, kein Call to Action.** Der Kern der Neuausrichtung.
 - **Keine Detailseiten, keine Kategorien, kein Filter.** Siehe oben.
-- **Keine eingebetteten Player** (YouTube, Vimeo, Mediathek). Ein eingebetteter Player lädt beim
-  Seitenaufruf Inhalte und Tracker eines Dritten und müsste in die Datenschutzerklärung —
-  ein Link tut das nicht.
+- ~~**Keine eingebetteten Player**~~ — **aufgehoben am 2026-10-24** (Jan: „Ich will die Filme
+  direkt einbetten … dann ist's kein Stress mehr mit den Vorschaubildern und man muss die Seite
+  nicht verlassen"). YouTube-Filme laufen jetzt auf `/film`. Was vom Grund bleibt: **Vor der
+  Einwilligung lädt nichts** von YouTube, und Mediathek/Vimeo bleiben Links. Details im UI-SPEC,
+  „Filme einbetten".
 - **Kein Text, der nicht Titel, Kunde, die Zeilen auf `/ueber` oder Pflichttext ist.** Keine
   Einleitung, keine Positionierungszeile, keine Bildunterschriften mit Aufnahmedaten.
 - **Kein Blog.** Ein Blog mit drei Beiträgen aus 2026 ist schlechter als keiner — er signalisiert
   „aufgegeben".
 - **Kein Instagram-Feed-Embed.** Tracking-Problem, bricht regelmäßig. Ein Textlink reicht.
 - **Keine selbstgebaute Kundengalerie.** Picdrop oder Pixieset lösen Auswahl, Download und Rechte.
-- **Kein Cookie-Banner** — und das ist ein Feature. Mit cookieloser Analytics braucht die Seite
-  keine Einwilligung. Das muss so bleiben, sobald jemand „nur kurz Google Analytics" vorschlägt.
+- **Kein Cookie-Banner — außer für die YouTube-Filme** (seit 2026-10-24). Der Hinweis steht nur
+  auf `/film`, weil nur dort etwas von einem Dritten lädt; die Seite selbst setzt weiterhin kein
+  Cookie. Für alles andere gilt: Mit cookieloser Analytics braucht die Seite keine Einwilligung.
+  Das muss so bleiben, sobald jemand „nur kurz Google Analytics" vorschlägt.
 - **Kein Hero-Karussell.** Ein Video, ausgewählt.
 - **Keine Schriften von fremden Servern** (Adobe Fonts, Google-CDN). Selbst ausliefern.
 
@@ -313,6 +317,10 @@ weiter unten unter *Bewusst nicht Teil der Struktur*.
 gewerblichen Privatseite einzubetten ist rechtlich sehr wahrscheinlich nicht gedeckt, und die
 Nebentätigkeitsfrage ist offen (siehe Launch-Blocker). Ein Link auf die Mediathek ist zudem das
 glaubwürdigere Signal.
+↩ **Seit 2026-10-24 werden YouTube-Filme eingebettet** — auch Beiträge, die auf den öffentlichen
+Kanälen der Sender liegen (Brisant, Tagesschau, STRG_F). Das ist das Einbetten über YouTubes
+eigenen Player, den der Kanal freigegeben hat, nicht das Hochladen fremden Materials; geklärt ist
+die Nebentätigkeitsfrage damit trotzdem nicht (TODO, Launch-Blocker).
 
 #### Bewusst nicht Teil der Struktur
 

@@ -1,0 +1,107 @@
+/*
+ * Hinweis zu YouTube (UI-SPEC, „Filme einbetten"): unten am Fenster, auf
+ * derselben dunklen Fläche wie die Seite, abgesetzt nur durch einen Rahmen in
+ * `--leise`. Kein Rot — das gehört allein dem ●REC.
+ */
+.hinweis {
+  position: fixed;
+  right: var(--rand);
+  bottom: var(--rand);
+  left: var(--rand);
+  z-index: 50;
+  max-width: 560px;
+  margin-left: auto;
+  padding: var(--space-lg);
+  border: 1px solid var(--leise);
+  border-radius: var(--radius-bild);
+  background: var(--grund);
+  box-shadow: 0 12px 40px rgb(0 0 0 / 0.6);
+  font-family: var(--font-text);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--schrift);
+}
+
+@media (max-width: 700px) {
+  .hinweis {
+    right: var(--space-sm);
+    bottom: var(--space-sm);
+    left: var(--space-sm);
+    padding: var(--space-md);
+  }
+}
+
+.text {
+  margin: 0;
+}
+
+.text a {
+  color: var(--schrift);
+  text-underline-offset: 4px;
+}
+
+/* Beide Knöpfe gleich — keine Wahl wird nahegelegt. */
+.knoepfe {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  justify-content: flex-end;
+  margin-top: var(--space-md);
+}
+
+.knopf {
+  min-width: 120px;
+  min-height: 44px;
+  padding: 0 var(--space-md);
+  border: 1px solid var(--schrift);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--schrift);
+  font: inherit;
+  cursor: pointer;
+}
+
+@media (max-width: 700px) {
+  .knopf {
+    flex: 1;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .knopf:hover {
+    background: var(--schrift);
+    color: var(--grund);
+  }
+}
+
+.knopf:focus-visible,
+.schalterKnopf:focus-visible {
+  outline: 2px solid var(--schrift);
+  outline-offset: 2px;
+}
+
+/* Die Zeile zum Ändern: leise, wie der Footer. */
+.schalter {
+  font-family: var(--font-text);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  color: var(--leise);
+}
+
+.schalterKnopf {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--leise);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .schalterKnopf:hover {
+    color: var(--schrift);
+  }
+}

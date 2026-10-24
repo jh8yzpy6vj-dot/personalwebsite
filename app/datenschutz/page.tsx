@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import LegalPage, { Missing, legalStyles as styles } from "../components/LegalPage";
 import { LEGAL } from "@/lib/legal";
+import { Schalter } from "../components/Einwilligung";
 
 /**
  * Datenschutzerklärung nach DSGVO.
@@ -15,6 +16,12 @@ import { LEGAL } from "@/lib/legal";
  *
  * Seit dem Umbau vom 2026-10-08 gibt es kein Formular mehr — damit
  * entfallen Formular, Versanddienstleister und Turnstile auch hier.
+ *
+ * Seit dem 2026-10-24 laufen YouTube-Filme auf `/film` eingebettet, nach
+ * Einwilligung (`lib/einwilligung.ts`, `app/film/FilmPlayer.tsx`). Der
+ * Abschnitt „YouTube-Filme" beschreibt genau das — ändert sich dort etwas
+ * (andere Domain, Laden ohne Einwilligung, weitere Anbieter wie Vimeo), muss
+ * er mit.
  *
  * **Noch NICHT enthalten, weil noch nicht umgesetzt** (siehe TODO.md) —
  * beim Umsetzen hier ergänzen, mit Auftragsverarbeitungsvertrag:
@@ -43,10 +50,15 @@ export default function Datenschutz() {
 
       <h2>Grundsatz</h2>
       <p>
-        Diese Website ist bewusst datensparsam gebaut. Sie setzt{" "}
+        Diese Website ist bewusst datensparsam gebaut. Sie setzt selbst{" "}
         <strong>keine Cookies</strong>, bindet <strong>keine Werbenetzwerke</strong>{" "}
         ein und verwendet <strong>keine Tracking-Dienste</strong>. Es gibt
         keine Nutzerkonten und keine Registrierung.
+      </p>
+      <p>
+        Einzige Ausnahme sind die Filme auf der Seite „film“: Sie liegen bei
+        YouTube und werden <strong>erst nach Ihrer Einwilligung</strong>{" "}
+        geladen — siehe „YouTube-Filme“.
       </p>
 
       <h2>Server-Logfiles beim Aufruf der Website</h2>
@@ -104,16 +116,53 @@ export default function Datenschutz() {
         Fotos, Standbilder und das Video auf der Startseite werden von einer
         eigenen Adresse dieser Website ausgeliefert, die ebenfalls bei{" "}
         {LEGAL.host.name} liegt. Es gelten dieselben Angaben wie unter
-        „Hosting“. Inhalte Dritter werden nicht eingebunden.
+        „Hosting“. Inhalte Dritter werden — abgesehen von den YouTube-Filmen
+        nach Ihrer Einwilligung — nicht eingebunden.
       </p>
+
+      <h2 id="youtube">YouTube-Filme</h2>
+      <p>
+        Auf der Seite „film“ sind Filme von YouTube eingebettet. Anbieter ist
+        die Google Ireland Limited, Gordon House, Barrow Street, Dublin 4,
+        Irland. Die Filme sind im erweiterten Datenschutzmodus
+        (youtube-nocookie.com) eingebunden und werden{" "}
+        <strong>erst geladen, wenn Sie zustimmen</strong> — über den Hinweis auf
+        der Seite „film“ oder über die Rückfrage, wenn Sie einen Film starten.
+        Vorher wird keine Verbindung zu YouTube aufgebaut.
+      </p>
+      <p>
+        Nach Ihrer Einwilligung lädt Ihr Browser die Vorschaubilder und, sobald
+        Sie einen Film starten, den Player von Servern von YouTube bzw. Google.
+        Dabei werden insbesondere Ihre IP-Adresse, Datum und Uhrzeit, die
+        aufgerufene Seite sowie Angaben zu Browser und Gerät übermittelt. Beim
+        Abspielen kann YouTube Cookies oder ähnliche Techniken auf Ihrem Gerät
+        speichern und auslesen, etwa für Statistiken oder um Missbrauch zu
+        verhindern. Sind Sie bei einem Google-Konto angemeldet, kann YouTube
+        den Abruf Ihrem Konto zuordnen. Dabei kann es zu einer Übermittlung in
+        die USA kommen; Google ist nach dem EU-US Data Privacy Framework
+        zertifiziert.
+      </p>
+      <p>
+        Rechtsgrundlage ist Ihre Einwilligung (Art. 6 Abs. 1 lit. a DSGVO,
+        § 25 Abs. 1 TDDDG). Sie können sie jederzeit mit Wirkung für die
+        Zukunft widerrufen, hier oder unten auf der Seite „film“. Ihre
+        Entscheidung wird nur in Ihrem Browser gespeichert (im lokalen
+        Speicher, Eintrag „einwilligung-youtube“) und nicht an diese Website
+        übertragen. Weitere Informationen in der{" "}
+        <a href="https://policies.google.com/privacy" rel="noreferrer">
+          Datenschutzerklärung von Google
+        </a>
+        .
+      </p>
+      <Schalter />
 
       <h2>Links zu anderen Websites</h2>
       <p>
-        Die Filme auf dieser Seite sind nicht eingebettet, sondern verlinkt
-        (etwa zu YouTube, Vimeo oder einer Mediathek). Beim Aufruf dieser
-        Seite wird dabei <strong>keine Verbindung</strong> zu diesen Anbietern
-        aufgebaut. Erst wenn Sie einem Link folgen, verlassen Sie diese Website;
-        dann gilt die Datenschutzerklärung des jeweiligen Anbieters.
+        Filme, die nicht bei YouTube liegen (etwa in einer Mediathek), sind
+        nicht eingebettet, sondern verlinkt. Beim Aufruf dieser Seite wird
+        dabei <strong>keine Verbindung</strong> zu diesen Anbietern aufgebaut.
+        Erst wenn Sie einem Link folgen, verlassen Sie diese Website; dann gilt
+        die Datenschutzerklärung des jeweiligen Anbieters.
       </p>
 
       <h2>Kontaktaufnahme</h2>

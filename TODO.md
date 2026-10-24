@@ -196,7 +196,7 @@ und **drei Filme mit Standbild** vorliegen. Sonst ist `/film` leer.
   - **§ 18 Abs. 2 MStV, falls einschlägig:** Der Abschnitt erscheint nur, wenn `mstvResponsible` gesetzt ist. Ein reines Portfolio ist in der Regel kein journalistisch-redaktionelles Angebot; eigene Beiträge oder redaktionell aufbereitete Bildstrecken können die Pflicht auslösen.
   - **Beim Aktivieren der Analytics:** Die Datenschutzerklärung beschreibt bewusst nur, was tatsächlich passiert. Cloudflare Web Analytics muss dort ergänzt werden, sobald es live ist. Das Kontaktformular entfällt mit dem Umbau (E6); Formular, Versanddienstleister und Turnstile werden in UMBAU-Schritt 4.5 aus der Datenschutzerklärung entfernt.
 - [ ] **Alle Inhalte von Jakob freigeben lassen.** Sämtliche Angaben in `lib/content.ts` stammen aus dem Briefing und sind **nicht gegengeprüft**. Nichts davon darf ungeprüft live gehen.
-- [ ] **Nebentätigkeit klären:** Braucht Jakob für die selbstständige Tätigkeit eine Genehmigung des SWR? Und ist es unproblematisch, eigene SWR-Beiträge auf `/film` zu **verlinken**? Eingebettet wird nach dem Umbau nichts mehr.
+- [ ] **Nebentätigkeit klären:** Braucht Jakob für die selbstständige Tätigkeit eine Genehmigung des SWR? Und ist es unproblematisch, eigene Beiträge auf `/film` zu zeigen? **Seit 2026-10-24 werden YouTube-Filme eingebettet** (auch Brisant, Tagesschau, Tagesthemen, STRG_F von den Senderkanälen) — die Frage gilt damit fürs Einbetten, nicht nur fürs Verlinken.
 - [ ] **Bild- und Persönlichkeitsrechte** an den Festivalfotos klären: Was darf werblich auf die eigene Seite, was nur ins Kundenarchiv? Bei Auftritten im öffentlichen Raum sind Persönlichkeitsrechte von Künstlerinnen, Künstlern und Publikum ein reales Thema.
 - [ ] **Referenznennungen freigeben lassen:** Dürfen tête-à-tête und der Bayerische Kanu-Verband namentlich genannt werden?
 
@@ -214,7 +214,7 @@ nur, wer was anstoßen muss. Alles, was nicht hier steht, kann Claude selbst erl
 | 🔲 | **Zuordnung gegenlesen** (Stand 2026-10-14) | ① **ONE09173** lag ohne Listeneintrag im Ordner und zeigt eine Moderation vor einem SWR-Logo — steht jetzt unter `/ueber`. Richtig? ② Titel „Stadtfest" für das KME-Bild (in der Liste ohne Überschrift). ③ Welttheater der Strasse komplett unter „theater", auch Commando Percu und Malunés (in der Liste „Festival"). ④ „journalismus" statt „SWR" als Kategorie. ⑤ Startbild je Arbeit = erste Zeile der Liste (im Mosaik das erste Bild der Arbeit). ⑥ Bildausschnitte im Hero (`lib/bildausschnitte.ts`) und die vier Highlights auf `/` — Claudes Wahl |
 | ✅ | **Hero-Video live** (Übergangsfassung aus dem Repo, 2026-10-23) | Läuft oben auf der Startseite aus `public/uebergang/` (TECH-STACK, „Übergang"). **Offen:** auf einem echten iPhone prüfen (Range über die Route), und sobald Hochladen eingerichtet ist und Jakob das Video hochgeladen hat, die Übergangsdateien löschen (Liste in TECH-STACK) |
 | ⏳ | **Hero-Video über die Verwaltung** | Geliefert (`261017_jakobsax.de_Header_v1.mov`, 18 s, 30 MB). Seit 2026-10-23 lädt Jakob es selbst hoch: Verwaltung → Startseite → „Video" → „Video hochladen"; die Medien-Action macht daraus ein stummes MP4 ohne Metadaten (7,1 MB) und das Standbild. `startseite.heroArt` steht schon auf `"video"`. **Geht erst, wenn „Hochladen" eingerichtet ist** (Eingangs-Bucket, Worker-Variablen, Action-Secrets — `TECH-STACK.md`, „Einrichtung"). Bis dahin der Weg von Hand: **Jan** legt die fertig umgerechneten Dateien (`film.mp4`, `film.jpg` aus der Sitzung vom 2026-10-23) nach `original/hero/` und lässt `npm run medien` laufen. Danach 6.2 (Pause-Knopf, reduzierte Bewegung, Ausfall) prüfen |
-| ⏳ | **Zwei Listen liefern: Fotoarbeiten und Filme** | ✅ Filmliste am 2026-10-22 geliefert, alle 8 Filme stehen in `lib/inhalt.json`. Offen: **ein Standbild je Film** (Verwaltung → Filme; bis dahin zeigt `/film` eine dunkle Kachel mit ▶) und für „Tödliches Gold“ der Link zum ganzen Film (verlinkt ist bisher der Trailer in der ARD Mediathek). **Porträt tauschen** gegen das Foto mit Kamera und Gimbal (Verwaltung → Über mich) |
+| ⏳ | **Zwei Listen liefern: Fotoarbeiten und Filme** | ✅ Filmliste am 2026-10-22 geliefert, alle 8 Filme stehen in `lib/inhalt.json`. Offen: für „Tödliches Gold“ ein **Standbild** (Verwaltung → Filme; bis dahin dunkle Kachel mit ▶) und der Link zum ganzen Film (verlinkt ist bisher der Trailer in der ARD Mediathek) — liegt er auf YouTube, läuft er direkt auf der Seite. Die sieben YouTube-Filme brauchen seit 2026-10-24 **kein** Standbild mehr (nach der Einwilligung zeigt `/film` YouTubes Vorschaubild); ein eigenes hat trotzdem Vorrang. **Porträt tauschen** gegen das Foto mit Kamera und Gimbal (Verwaltung → Über mich) |
 | 🔲 | **Alle Inhalte gegenlesen** | Alles in `lib/content.ts` stammt ungeprüft aus dem Briefing |
 | 🔲 | **USt-IdNr. mitteilen**, falls vorhanden | Nie die normale Steuernummer |
 | 🔲 | **Nebentätigkeit beim SWR klären** | Genehmigung nötig? Ist Verlinken eigener Beiträge unproblematisch? |
@@ -223,7 +223,7 @@ nur, wer was anstoßen muss. Alles, was nicht hier steht, kann Claude selbst erl
 | 🔲 | **Onetake-Rechte klären**, falls die Arbeiten gezeigt werden sollen | Liefen über eine Firma, an der er nicht mehr beteiligt ist |
 | 🔲 | **Schriftdateien liefern und Lizenzart nennen** | Druk Wide Bold und Avenir Next als `woff2`; Desktop- oder Web-Lizenz? Siehe `TECH-STACK.md`, „Schriften“ |
 | 🔲 | **3–4 Zeilen für „Über mich“ schreiben** | Wird nicht erfunden |
-| 🔲 | **WiWaWo 50–52 online stellen** (YouTube oder Vimeo) | Filme werden nur noch verlinkt; diese liegen bisher nirgends öffentlich |
+| 🔲 | **WiWaWo 50–52 online stellen** (YouTube oder Vimeo) | Diese liegen bisher nirgends öffentlich. Auf YouTube laufen sie dann direkt auf `/film` (seit 2026-10-24) |
 | 🔲 | **Hell oder dunkel?** (E1) | Gebaut wird dunkel, bis er widerspricht |
 
 ### Jan
@@ -258,6 +258,13 @@ ist mit der Neuausrichtung hinfällig.
 
 ## Kurzfristig
 
+- [ ] **YouTube-Filme auf `/film` einmal echt abspielen** (seit 2026-10-24 eingebettet). Aus der
+  Cloud-Sitzung ist YouTube gesperrt; geprüft ist der Ablauf mit nachgebautem Player. Am Handy
+  und am Rechner: Hinweis erscheint → „Erlauben" → Vorschaubilder → ▶ spielt. Falls ein Kanal das
+  Einbetten gesperrt hat, zeigt der Player „Auf YouTube ansehen" — dann den Film hier notieren
+  (er lässt sich als Link behalten, indem man in der Verwaltung z. B. die Kanal-Adresse statt
+  des Videos einträgt, oder ein eigenes Upload nutzt).
+
 - [ ] **⚠️ Ersten echten Medien-Lauf abschließen.** Bucket `websitebucket` steht (Stand 2026-08-30), Bilder sind hochgeladen — **aber flach im Wurzelverzeichnis, mit Kameranamen und 11–12 MB**. So findet die Pipeline nichts. Zu tun:
   1. **Public access → Custom Domain** setzen, z. B. `medien.jakobsax.de`. ⚠️ Nicht die `…r2.dev`-Adresse.
   2. **Token** mit **Object Read & Write** für diesen Bucket, dann `.dev.vars` füllen (`R2_BUCKET=websitebucket`). Die Datei ist von Git ausgenommen — **nichts davon committen**.
@@ -278,7 +285,7 @@ ist mit der Neuausrichtung hinfällig.
 - [ ] **Domain-Entscheidung:** Briefing empfiehlt `jakobsax.media` als primäre Domain (passend zum bestehenden Handle `@jakobsax.media`), `jakobsax.de` weiterleiten. Aktuell läuft alles auf `jakobsax.de`. Entscheiden, bevor Adressen gedruckt werden.
   - **Gegenvorschlag aus dem Brainstorm (2026-08-27): `.de` als primäre Domain behalten**, `.media` per 301 darauf weiterleiten. Begründung: deutsches Publikum, deutsche Auftraggeber, lokale Suchintention („Festivalfotograf Rastatt") — `.de` ist bei Vertrauen und lokalem Ranking im Vorteil. Handle-Konsistenz mit Instagram wiegt das nicht auf. **Wichtig unabhängig von der Entscheidung: vor dem ersten externen Link entscheiden**, ein späterer Domainwechsel kostet Ranking.
 - [ ] **`INDEXABLE` auf `true` setzen** (`lib/site.ts`), sobald die Launch-Blocker oben erledigt sind. Steht bewusst auf `false` — die Seite ist live und war bis dahin uneingeschränkt indexierbar, mit erfundener E-Mail-Adresse und ohne Impressum. **Beim Umlegen zusätzlich:** OpenGraph-Bild in `app/layout.tsx` ergänzen und echte Kontaktdaten in `app/StructuredData.tsx` nachtragen (beides dort als Kommentar markiert).
-- [ ] **Cloudflare Web Analytics aktivieren** — cookielos, damit **kein Cookie-Banner nötig** ist. Das ist eine bewusste Entscheidung, kein Verzicht: siehe die Anti-Feature-Liste in `SITE-PLAN.md`.
+- [ ] **Cloudflare Web Analytics aktivieren** — cookielos, damit **kein Cookie-Banner auf allen Seiten** nötig ist (der Hinweis für die YouTube-Filme steht nur auf `/film`). Das ist eine bewusste Entscheidung, kein Verzicht: siehe die Anti-Feature-Liste in `SITE-PLAN.md`.
 
 ## Langfristig
 

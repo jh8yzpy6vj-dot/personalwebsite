@@ -257,6 +257,13 @@ describe("Was kein Bild hat, erscheint nicht", () => {
       ["b", true],
     ]);
     expect(seite[0].ziel).toBe("auf Vimeo");
+
+    // Eingebettet wird nur, was eindeutig ein YouTube-Video ist.
+    expect(seite.map((f) => f.youtube)).toEqual([null, null]);
+    const yt = filmeFuerSeite(
+      kontext([], [], { filme: [{ id: "c", titel: "C", kunde: "K", link: "https://youtu.be/73MpHsj1OqI?si=x" }] }),
+    );
+    expect(yt[0].youtube).toBe("73MpHsj1OqI");
   });
 });
 

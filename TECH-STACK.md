@@ -25,7 +25,7 @@ Ersatzschriften). Wo ein älterer Abschnitt weiter unten dem widerspricht, gilt 
 | Inhalte | `WORKS`, `CATEGORIES`, `SERVICES`, `REFERENCES`, `CONTACT` | `FOTOS` (`id`, `titel`, `kunde`), `FILME` (dazu `link`), `ABOUT` — seit 2026-10-17 in `lib/inhalt.json`, siehe „Verwaltung (/admin)" | 2 |
 | Schriften | Bricolage Grotesque, Newsreader, Martian Mono über `next/font/google` | Druk Wide Bold und Avenir Next über `next/font/local` — siehe „Schriften" unten | 3 |
 | Kontaktformular | Route `app/api/anfrage`, `lib/anfrage.ts`, `lib/mailer.ts`, Resend, Turnstile | **entfällt ersatzlos.** Keine Worker-Secrets `RESEND_API_KEY`, `ANFRAGE_AN`, `ANFRAGE_VON`; kein AV-Vertrag nötig | 5 |
-| Filme | selbst ausgeliefert aus `original/video/<id>.mp4` | **verlinkt**, nicht gespeichert. Nur das Standbild liegt bei uns: `original/film/<id>.jpg` | 2, 4 |
+| Filme | selbst ausgeliefert aus `original/video/<id>.mp4` | **verlinkt**, nicht gespeichert. Nur das Standbild liegt bei uns: `original/film/<id>.jpg`. **Seit 2026-10-24 YouTube-Filme eingebettet** (nach Einwilligung, siehe unten) | 2, 4 |
 | Bucket-Pfade | siehe „Wohin welche Datei" | `original/arbeiten/<id>/01.jpg …` **bleibt**; neu `original/film/<id>.jpg`; entfallen: `original/arbeiten/<id>.jpg` (Leitbild), `…/serie/`, `original/video/` | 2 |
 | EXIF | als Aufnahmezeile angezeigt | **nicht mehr angezeigt.** Die GPS-Sperre (`EXIF_FELDER`) bleibt unverändert — sie ist Schutz, nicht Anzeige | 2 |
 | Vorschaukarten | je Arbeit eine plus `start.jpg` | nur noch `start.jpg` | 2 |
@@ -36,8 +36,28 @@ Ersatzschriften). Wo ein älterer Abschnitt weiter unten dem widerspricht, gilt 
 ⚠️ **Warum die Filme nicht mehr bei uns liegen:** Jakobs Vorgabe („alle verlinkt, nicht auf
 Website selbst gespeichert"). Folge: **Links verfallen.** ARD- und SWR-Mediathek depublizieren
 nach Ablauf der Verweildauer. Deshalb die Linkprüfung, und deshalb wo möglich dauerhafte Orte
-bevorzugen (YouTube-Kanal von Y-Kollektiv/funk, eigener Kanal). Ein eingebetteter Player kommt
-nicht in Frage — er lädt beim Seitenaufruf Inhalte und Tracker eines Dritten.
+bevorzugen (YouTube-Kanal von Y-Kollektiv/funk, eigener Kanal).
+
+**YouTube einbetten (seit 2026-10-24, Jans Entscheidung).** Ist der Link ein einzelnes
+YouTube-Video, läuft der Film auf `/film` selbst — gespeichert wird er weiterhin nicht bei uns.
+
+| Teil | Wo |
+|------|-----|
+| Videokennung aus dem Link, Player- und Vorschau-Adresse | `lib/youtube.ts` (Tests daneben) |
+| Einwilligung (`localStorage`, `einwilligung-youtube` = `ja`/`nein`, `useSyncExternalStore`) | `lib/einwilligung.ts` |
+| Kachel: Link ohne Skript → ▶ → Rückfrage bzw. Player | `app/film/FilmPlayer.tsx` |
+| Hinweis („Cookie-Banner", nur `/film`) und die Zeile zum Widerrufen | `app/components/Einwilligung.tsx` |
+| Rechtstext | `app/datenschutz/page.tsx`, Abschnitt `#youtube` |
+
+- Player über `youtube-nocookie.com`, erst beim Klick; Vorschaubilder von `i.ytimg.com` erst nach
+  Einwilligung. **Vorher geht keine einzige Anfrage an YouTube** — im Browser geprüft.
+- ⚠️ Der `Referrer-Policy`-Header (`strict-origin-when-cross-origin`, `next.config.mjs`) muss
+  bleiben, wie er ist: Ohne Referer verweigert YouTube das Abspielen eingebetteter Videos.
+  `X-Frame-Options: DENY` betrifft nur, ob *unsere* Seite eingebettet werden darf — nicht die
+  Player auf ihr. Eine Content-Security-Policy gibt es nicht; kommt eine, braucht sie
+  `frame-src https://www.youtube-nocookie.com` und `img-src https://i.ytimg.com`.
+- Kommt Vimeo o. Ä. dazu: eigene Erkennung, eigene Einwilligung, eigener Abschnitt in der
+  Datenschutzerklärung — nicht einfach unter „YouTube" mitlaufen lassen.
 
 ## Schriften
 
@@ -1379,8 +1399,9 @@ Aufgaben selbst stehen in `TODO.md`.
 ### Analytics & Datenschutz
 
 - **Cloudflare Web Analytics** (cookielos, keine Einwilligung nötig, keine personenbezogene
-  Speicherung). Bewusst **kein** Google Analytics — das würde ein Consent-Banner erzwingen, siehe
-  die Anti-Feature-Liste in `SITE-PLAN.md`.
+  Speicherung). Bewusst **kein** Google Analytics — das würde ein Consent-Banner auf jeder Seite
+  erzwingen, siehe die Anti-Feature-Liste in `SITE-PLAN.md`. Der einzige Hinweis zur Einwilligung
+  betrifft die YouTube-Filme und steht nur auf `/film` (seit 2026-10-24, siehe „Filme").
 - **Schriften sind bereits unbedenklich:** `next/font/google` lädt die Schriften zur Build-Zeit
   herunter und liefert sie vom eigenen Worker aus. Es gibt **keine** Anfrage des Browsers an ein
   Google-CDN — die bekannte Google-Fonts-Abmahnfalle greift hier nicht. Das darf nicht
