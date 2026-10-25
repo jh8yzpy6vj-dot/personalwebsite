@@ -127,6 +127,34 @@ export function platzZuSehen(
   return true;
 }
 
+/**
+ * Wo die Felder für Google und Teilen stehen — Reiter Startseite. Was nach
+ * „Startseite · " steht, ist der Anfang der Beschriftung (`FELDNAMEN`).
+ */
+export const ORT_SEO = {
+  titel: "Startseite · Titel bei Google",
+  beschreibung: "Startseite · Beschreibung bei Google",
+  bild: "Startseite · Vorschaubild beim Teilen",
+} as const;
+
+/** Die Felder im Reiter Impressum, ebenso. */
+export const ORT_IMPRESSUM = {
+  name: "Impressum · Name",
+  strasse: "Impressum · Straße und Hausnummer",
+  plzOrt: "Impressum · PLZ und Ort",
+  land: "Impressum · Land",
+  email: "Impressum · E-Mail",
+  telefon: "Impressum · Telefon",
+  ustId: "Impressum · USt-IdNr.",
+  mstv: "Impressum · Verantwortlich nach § 18 Abs. 2 MStV",
+} as const;
+
+/** Eine E-Mail-Adresse, grob: etwas@etwas.tld, ohne Leerraum und Zeichen wie < > " '. */
+const EMAIL = /^[^\s@<>"'`]+@[^\s@<>"'`]+\.[^\s@<>"'`.]{2,}$/;
+const TELEFON = /^\+?[\d\s/()-]{4,30}$/;
+/** USt-IdNr.: „DE" und neun Ziffern (§ 27a UStG). */
+export const UST_ID = /^DE\d{9}$/;
+
 /** Obergrenzen gegen Versehen (eingefügter Roman) — keine Stilregeln. */
 const MAX = { kurz: 120, zeile: 800, alt: 400, notiz: 1000, liste: 2000 };
 
@@ -307,6 +335,54 @@ export function pruefeInhalt(eingabe: unknown, bilder: Iterable<string>): Befund
       s.highlights.forEach((h, n) => platz("highlight", STARTPLATZ_NAMEN.highlight(n + 1), h));
     } else fehler("Startseite · Highlights", "müssen genau vier Plätze sein (leere Plätze als null).");
   } else fehler("Startseite", "fehlt.");
+
+  /* ── Google und Teilen (seit 2026-10-25, Reiter Startseite) ─────── */
+
+  /* Darf fehlen (ältere Stände) — dann gilt `SEO_STANDARD`. */
+  if (i.seo !== undefined) {
+    if (istObjekt(i.seo)) {
+      text(ORT_SEO.titel, i.seo.titel, { max: 70 });
+      if (text(ORT_SEO.beschreibung, i.seo.beschreibung, { max: 300 }) && i.seo.beschreibung.length > 160) {
+        hinweis(ORT_SEO.beschreibung, "ist länger als 160 Zeichen — Google kürzt meist ab dort.");
+      }
+      const b = einSchluessel(ORT_SEO.bild, i.seo.bild, true);
+      if (b && !vorhanden.has(b)) {
+        warnung(ORT_SEO.bild, "gibt es (noch) nicht im Bildspeicher — beim Teilen erscheint solange die feste Vorschaukarte.", { schluessel: b });
+      }
+    } else fehler("Startseite · Google und Teilen", "ist kein Objekt.");
+  }
+
+  /* ── Impressum (seit 2026-10-25, Reiter Impressum) ──────────────── */
+
+  /* Darf fehlen (ältere Stände) — dann gilt `IMPRESSUM_STANDARD`. */
+  if (i.impressum !== undefined) {
+    if (istObjekt(i.impressum)) {
+      const m = i.impressum;
+      const PFLICHT = "ist Pflicht im Impressum (§ 5 DDG).";
+      const pflicht = (ort: string, w: unknown, max = MAX.kurz) => {
+        if (istText(w) && w.trim() === "") fehler(ort, PFLICHT);
+        else text(ort, w, { max });
+      };
+      pflicht(ORT_IMPRESSUM.name, m.name);
+      pflicht(ORT_IMPRESSUM.strasse, m.strasse);
+      if (istText(m.strasse) && /postfach/i.test(m.strasse)) {
+        fehler(ORT_IMPRESSUM.strasse, "muss eine ladungsfähige Anschrift sein — ein Postfach genügt nicht.");
+      }
+      pflicht(ORT_IMPRESSUM.plzOrt, m.plzOrt);
+      pflicht(ORT_IMPRESSUM.land, m.land);
+      pflicht(ORT_IMPRESSUM.email, m.email);
+      if (istText(m.email) && m.email.trim() !== "" && !EMAIL.test(m.email)) {
+        fehler(ORT_IMPRESSUM.email, "ist keine E-Mail-Adresse.");
+      }
+      if (m.telefon !== null && (!istText(m.telefon) || !TELEFON.test(m.telefon))) {
+        fehler(ORT_IMPRESSUM.telefon, "muss leer sein oder eine Telefonnummer (Ziffern, Leerzeichen, + / - ( )).");
+      }
+      if (m.ustId !== null && (!istText(m.ustId) || !UST_ID.test(m.ustId))) {
+        fehler(ORT_IMPRESSUM.ustId, "muss leer sein oder „DE“ und neun Ziffern — die USt-IdNr., nie die Steuernummer.");
+      }
+      if (m.mstv !== null) text(ORT_IMPRESSUM.mstv, m.mstv, { max: MAX.alt });
+    } else fehler("Impressum", "ist kein Objekt.");
+  }
 
   /* ── Fotoarbeiten ───────────────────────────────────────────────── */
 

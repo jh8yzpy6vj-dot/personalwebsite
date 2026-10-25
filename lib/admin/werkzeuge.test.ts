@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import manifest from "../bilder-manifest.json";
 import type { Bildquelle } from "../bilder";
-import { INHALT, istVerborgen, type Inhalt } from "../inhalt";
+import { IMPRESSUM_STANDARD, INHALT, istVerborgen, SEO_STANDARD, type Inhalt } from "../inhalt";
 import { nurFehler, ORT_BESCHREIBUNGEN, ORT_VIDEO_OBEN, pruefeInhalt, type Befund } from "../inhalt-pruefen";
 import { filmeMitStandbild, fotosFuerHero, fotosFuerMosaik } from "../arbeiten";
 import {
@@ -107,6 +107,9 @@ import {
   zeigeziel,
   scrollSchritt,
   setzeHeroArt,
+  setzeSeo,
+  setzeSeoBild,
+  setzeImpressum,
 } from "./werkzeuge";
 import type { Lauf } from "./vertrag";
 
@@ -1730,5 +1733,47 @@ describe("Hochladen und Verarbeitung", () => {
 
   it("schreibt Größen deutsch", () => {
     expect(groesse(1024 * 1024 * 12.34)).toBe("12,3 MB");
+  });
+});
+
+describe("Google und Teilen, Impressum (seit 2026-10-25)", () => {
+  it("legt fehlende Angaben aus dem Standard an (ältere Stände)", () => {
+    const i = kopie();
+    delete i.seo;
+    delete i.impressum;
+    expect(setzeSeo(i, "titel", "neu").seo).toEqual({ ...SEO_STANDARD, titel: "neu" });
+    expect(setzeSeoBild(i, "portrait").seo?.bild).toBe("portrait");
+    expect(setzeImpressum(i, "telefon", "0721 123").impressum).toEqual({ ...IMPRESSUM_STANDARD, telefon: "0721 123" });
+    /* Die Eingabe bleibt unberührt. */
+    expect(i.seo).toBeUndefined();
+  });
+
+  it("macht Freiwilliges leer zu null und räumt die USt-IdNr. auf", () => {
+    const i = kopie();
+    expect(setzeImpressum(setzeImpressum(i, "telefon", "1234"), "telefon", "  ").impressum?.telefon).toBeNull();
+    expect(setzeImpressum(i, "ustId", "de 123 456 789").impressum?.ustId).toBe("DE123456789");
+    /* Pflichtfelder bleiben Text — leer meldet die Prüfung. */
+    const leer = setzeImpressum(i, "strasse", "");
+    expect(leer.impressum?.strasse).toBe("");
+    expect(fehlerText(pruefeInhalt(leer, Object.keys(BILDER))).join()).toMatch(/Impressum · Straße und Hausnummer: ist Pflicht/);
+  });
+
+  it("nennt es in der Speicher-Nachricht, ohne Werte", () => {
+    const i = kopie();
+    const n = setzeImpressum(setzeSeo(i, "beschreibung", "x"), "plzOrt", "12345 Neustadt");
+    const satz = fasseZusammen(i, n);
+    expect(satz).toContain("Google und Teilen");
+    expect(satz).toContain("Impressum");
+    expect(satz).not.toContain("Neustadt");
+  });
+
+  it("„Zeigen“ führt zum richtigen Reiter und Feld", () => {
+    const b = (ort: string): Befund => ({ stufe: "fehler", ort, text: "" });
+    expect(reiterFuerBefund(b("Impressum · USt-IdNr."))).toBe("impressum");
+    expect(FELDNAMEN.impUstId.startsWith(feldFuerBefund(b("Impressum · USt-IdNr."))!)).toBe(true);
+    expect(FELDNAMEN.impMstv.startsWith(feldFuerBefund(b("Impressum · Verantwortlich nach § 18 Abs. 2 MStV"))!)).toBe(true);
+    expect(FELDNAMEN.seoTitel.startsWith(feldFuerBefund(b("Startseite · Titel bei Google"))!)).toBe(true);
+    expect(FELDNAMEN.seoBeschreibung.startsWith(feldFuerBefund(b("Startseite · Beschreibung bei Google"))!)).toBe(true);
+    expect(feldFuerBefund(b("Startseite · Vorschaubild beim Teilen"))).toBe(FELDNAMEN.seoBild);
   });
 });

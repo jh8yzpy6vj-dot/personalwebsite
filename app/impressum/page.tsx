@@ -9,6 +9,9 @@ import { LEGAL } from "@/lib/legal";
  * ⚠️ KEINE RECHTSBERATUNG — siehe Hinweis in lib/legal.ts. Struktur und
  * Bausteine sind üblich, aber nicht anwaltlich geprüft.
  *
+ * Die Angaben (Name, Anschrift, Kontakt, USt-IdNr., MStV) bearbeitet Jakob
+ * seit dem 2026-10-25 in der Verwaltung, Reiter Impressum.
+ *
  * Pflichtseiten gehören nie in den Suchindex-Wettbewerb, aber sie müssen
  * erreichbar und crawlbar sein — deshalb hier `index: false`, aber kein
  * `nofollow` und kein Ausschluss in der robots.txt.
@@ -71,7 +74,10 @@ export default function Impressum() {
         <>
           <h2>Verantwortlich für den Inhalt</h2>
           <p>Nach § 18 Abs. 2 Medienstaatsvertrag (MStV):</p>
-          <address className={styles.address}>{LEGAL.mstvResponsible}</address>
+          {/* Mehrzeilig aus der Verwaltung — Zeilenumbrüche bleiben stehen. */}
+          <address className={styles.address} style={{ whiteSpace: "pre-line" }}>
+            {LEGAL.mstvResponsible}
+          </address>
         </>
       )}
 

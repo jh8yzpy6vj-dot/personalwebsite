@@ -395,6 +395,37 @@ describe("pruefeInhalt — Regeln", () => {
   });
 });
 
+describe("pruefeInhalt — Google und Teilen, Impressum", () => {
+  it("lässt beides fehlen (Stände vor dem 2026-10-25)", () => {
+    const i = kopie();
+    delete i.seo;
+    delete i.impressum;
+    expect(fehlerText(pruefeInhalt(i, BILDER))).toEqual([]);
+  });
+
+  it("prüft die Pflichtangaben und Formate im Impressum", () => {
+    const i = kopie();
+    i.impressum = { ...i.impressum!, name: " ", strasse: "Postfach 12", email: "keine-mail", ustId: "12345/678/90", telefon: "abc" };
+    const f = fehlerText(pruefeInhalt(i, BILDER)).join("\n");
+    expect(f).toMatch(/Impressum · Name: ist Pflicht/);
+    expect(f).toMatch(/Postfach genügt nicht/);
+    expect(f).toMatch(/Impressum · E-Mail: ist keine E-Mail-Adresse/);
+    expect(f).toMatch(/nie die Steuernummer/);
+    expect(f).toMatch(/Impressum · Telefon/);
+    i.impressum = { ...i.impressum, name: "Jakob Sax", strasse: "Weg 1", email: "a@b.de", ustId: "DE123456789", telefon: "+49 721 123-4" };
+    expect(fehlerText(pruefeInhalt(i, BILDER))).toEqual([]);
+  });
+
+  it("prüft Titel, Beschreibung und Bild für Google", () => {
+    const i = kopie();
+    i.seo = { titel: "", beschreibung: "x".repeat(200), bild: "gibt/es-nicht" };
+    const alle = pruefeInhalt(i, BILDER);
+    expect(fehlerText(alle).join()).toMatch(/Titel bei Google: ist leer/);
+    expect(alle.some((b) => b.stufe === "hinweis" && /160 Zeichen/.test(b.text))).toBe(true);
+    expect(alle.some((b) => b.stufe === "warnung" && b.schluessel === "gibt/es-nicht")).toBe(true);
+  });
+});
+
 /*
  * Die Links von „Über mich“ landen im JSON-LD jeder Seite. Zwei Sicherungen:
  * Die Prüfung lässt keine Adresse mit < > " ' durch, und `alsJsonLd`

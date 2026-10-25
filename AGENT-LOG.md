@@ -6,6 +6,43 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-25 — Anriss, SEO und Impressum in der Verwaltung, Video auf `/film`, Autostart
+
+Jan: „Über mich auf Startseite nur erster Absatz · SEO Text und Bild bearbeiten · Impressum
+bearbeitbar machen · Bei Filme auch das Video von der Startseite in den Header" — und: „bei mir
+läuft das Video irgendwie nicht mehr automatisch ab, muss immer Play drücken".
+
+- **Anriss auf `/`:** nur noch Absatz 1 aus „Über mich" (`UeberAnriss.tsx`); Hinweis im Reiter
+  Über mich, UI-SPEC angepasst.
+- **SEO:** `inhalt.seo` (Titel, Beschreibung, Vorschaubild), gelesen in `app/layout.tsx`
+  (`og:image` = JPEG-Stufe, sonst `public/og/start.jpg`). Verwaltung → Startseite → „Google und
+  Teilen" mit Bildwahl. Prüfung: Titel ≤ 70, Beschreibung ≤ 300 (Hinweis ab 160), Bild fehlt →
+  Warnung.
+- **Impressum:** `inhalt.impressum`, `lib/legal.ts` liest daraus (`LEGAL.*` unverändert für die
+  Seiten). Neuer Reiter **Impressum**. Prüfung: Pflichtfelder nicht leer, kein Postfach, E-Mail-,
+  Telefon- und USt-IdNr.-Format (nur `DE` + 9 Ziffern — schützt vor der Steuernummer). MStV
+  mehrzeilig.
+- **Beide optional** mit Rückfall auf die bisherigen Werte (`SEO_STANDARD`,
+  `IMPRESSUM_STANDARD`), damit „Wiederherstellen" älterer Stände weiter geht.
+  Speicher-Nachricht nennt „Google und Teilen" / „Impressum", nie Werte.
+- **`/film`:** oben randlos das Video der Startseite (`Seite` hat dafür `kopf`), gleiche Höhe
+  wie das Hero von `/foto`, unabhängig von „Foto oder Video". Der YouTube-Hinweis sitzt jetzt
+  unten links, weil er rechts den Pause-Knopf verdeckte.
+- **Autostart:** Im lokalen Worker startet das Video auch unter strenger Autoplay-Regel von
+  selbst — der Code war nicht kaputt. Wahrscheinliche Ursachen bei Jan: iPhone im
+  Stromsparmodus, „Bewegung reduzieren" (dann bewusst kein Autoplay, UI-SPEC) oder Safari
+  „Automatische Wiedergabe: Nie". Neu (`HeroVideo.tsx`): `muted` zusätzlich als Eigenschaft;
+  verweigert der Browser den Start, läuft das Video beim ersten Antippen/Klick/Tastendruck
+  irgendwo auf der Seite an (der Pause-Knopf selbst ausgenommen, sonst schaltete er doppelt).
+  Im Browser mit gesperrtem `play()` nachgestellt: vorher steht es, nach einem Tipp läuft es;
+  Knopf als erster Klick → läuft.
+- **Geprüft:** `tsc`, ESLint, 478 Tests (neu: Prüfung und Setter für SEO/Impressum, „Zeigen"),
+  `opennextjs-cloudflare build`, `wrangler dev` (Startseite, `/film` mit Video bei 1440/390 px,
+  Meta-Tags, `/impressum`), Verwaltung unter `next dev` (Reiter Impressum mit Fehler bei falscher
+  USt-IdNr., Abschnitt „Google und Teilen").
+
+---
+
 ## 2026-10-24 — „Tödliches Gold": Titelbild als Standbild
 
 Jan schickte das Titelbild der Doku (3840×2160, mit Y-Kollektiv-Logo und Titel): „Hier nimm das

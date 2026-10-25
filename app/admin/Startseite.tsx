@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AUSSCHNITT_MITTIG } from "@/lib/bilder";
-import { heroArtVon } from "@/lib/inhalt";
+import { heroArtVon, seoVon } from "@/lib/inhalt";
 import { istUebergang } from "@/lib/uebergang";
 import { MAX_UPLOAD_BYTES, VIDEO_ZIEL } from "@/lib/admin/vertrag";
 import {
@@ -11,6 +11,8 @@ import {
   mitHttps,
   setzeHeroArt,
   setzeSeite,
+  setzeSeo,
+  setzeSeoBild,
   setzeStartbild,
   setzeStartText,
   startbild,
@@ -28,8 +30,9 @@ import styles from "./verwaltung.module.css";
 /**
  * **Reiter Startseite** — was oben steht (Foto oder Video, seit 2026-10-23,
  * mit „Video hochladen"), Name und Zeile, die Bildplätze (das große Bild
- * oben, die Bilder zu den Bereichen Foto und Film, vier Highlights) und das
- * Video von außerhalb.
+ * oben, die Bilder zu den Bereichen Foto und Film, vier Highlights), das
+ * Video von außerhalb und — seit 2026-10-25 — wie die Seite bei Google und
+ * beim Teilen erscheint (`inhalt.seo`).
  *
  * ⚠️ „Hero" sagt hier nichts: Der Reiter Hero und der Stern meinen die
  * Blende auf /foto. Für den oberen Teil der Startseite heißt es „oben"
@@ -64,7 +67,9 @@ const kennung = (p: Startplatz) => (typeof p === "string" ? p : `highlight-${p.h
 export default function Startseite() {
   const { inhalt, bilder, aendere, aendereMitMeldung, bearbeite, konfiguration, unterwegs } = useSitzung();
   const [wahl, setWahl] = useState<(typeof PLAETZE)[number] | null>(null);
+  const [seoWahl, setSeoWahl] = useState(false);
   const st = inhalt.startseite;
+  const seo = seoVon(inhalt);
   const art = heroArtVon(st);
   const auswahl = waehlbareBilder({ inhalt, bilder });
   /* Fertig ist das Video, sobald sein erstes Bild im Manifest steht
@@ -259,6 +264,71 @@ export default function Startseite() {
           Tipp aufs Bild, um seinen Ausschnitt zu wählen — die Startseite beschneidet.
         </p>
       </section>
+
+      <section className={styles.abschnitt} aria-labelledby="start-seo">
+        <h2 id="start-seo" className={`${styles.abschnittTitel} ${styles.unterTitel}`}>
+          Google und Teilen
+        </h2>
+        <p className={`${styles.leise} ${styles.unterTitel}`}>
+          So erscheint die Seite im Suchergebnis und als Vorschau, wenn jemand den Link verschickt (WhatsApp,
+          Instagram, LinkedIn …). Nach dem Speichern kann es dauern, bis Google und die Apps es neu einlesen.
+        </p>
+        <div className={styles.formular}>
+          <Textfeld
+            bezeichnung={FELDNAMEN.seoTitel}
+            wert={seo.titel}
+            beiAenderung={(w) => aendere((i) => setzeSeo(i, "titel", w))}
+            hinweis="Kurz, höchstens 70 Zeichen — z. B. „jakob sax – Fotos und Filme“."
+          />
+          <Textfeld
+            bezeichnung={FELDNAMEN.seoBeschreibung}
+            mehrzeilig
+            wert={seo.beschreibung}
+            beiAenderung={(w) => aendere((i) => setzeSeo(i, "beschreibung", w))}
+            hinweis={`Ein bis zwei Sätze. Google zeigt etwa 160 Zeichen — jetzt ${seo.beschreibung.length}.`}
+          />
+        </div>
+        <ul className={`${styles.reihen} ${styles.unterTitel}`}>
+          <li className={styles.zeile}>
+            <div className={styles.zeileKopf}>
+              <span className={styles.platzBild}>
+                {seo.bild && bilder[seo.bild] ? (
+                  <Daumen quelle={bilder[seo.bild]} art="voll" breite="96px" />
+                ) : (
+                  <span className={styles.daumenLeer}>Karte</span>
+                )}
+              </span>
+              <span className={styles.zeileName}>
+                <strong>{FELDNAMEN.seoBild}</strong>
+                <span>{seo.bild ? bildBezeichnung(inhalt, seo.bild) : "Die feste Vorschaukarte mit dem Schriftzug."}</span>
+                <span>Am besten ein Querformat. Leer heißt: die feste Vorschaukarte.</span>
+              </span>
+              <span className={styles.zeileKnoepfe}>
+                <button
+                  type="button"
+                  className={styles.knopf}
+                  aria-label={FELDNAMEN.platzAendern(FELDNAMEN.seoBild)}
+                  onClick={() => setSeoWahl(true)}
+                >
+                  Ändern
+                </button>
+              </span>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      {seoWahl && (
+        <Bildwahl
+          titel={FELDNAMEN.seoBild}
+          erscheint="als Vorschau, wenn jemand den Link zur Seite teilt"
+          auswahl={auswahl}
+          aktuell={seo.bild}
+          leer
+          beiWahl={(s) => aendere((i) => setzeSeoBild(i, s))}
+          beiSchliessen={() => setSeoWahl(false)}
+        />
+      )}
 
       {wahl && (
         <Bildwahl

@@ -17,6 +17,11 @@ type Props = {
   aktuell?: string;
   /** Größte Inhaltsbreite, siehe UI-SPEC, „Spacing". */
   breite: "foto" | "film" | "ueber" | "text";
+  /**
+   * Randlos über dem Inhalt, direkt unter der Topbar — auf `/film` das Video
+   * der Startseite (seit 2026-10-25).
+   */
+  kopf?: ReactNode;
   children: ReactNode;
 };
 
@@ -36,11 +41,13 @@ export default function Seite({
   titelSichtbar = false,
   aktuell,
   breite,
+  kopf,
   children,
 }: Props) {
   return (
     <div className={styles.seite}>
       <Topbar aktuell={aktuell} />
+      {kopf}
       <main
         className={`${styles.inhalt} ${BREITE[breite]}`}
         id="inhalt"

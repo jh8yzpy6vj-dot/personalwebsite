@@ -4,12 +4,14 @@ import Bild from "./Bild";
 import styles from "./UeberAnriss.module.css";
 
 /**
- * Kurzvorstellung auf der Startseite: Porträt, zwei Sätze, ein Weiterweg.
+ * Kurzvorstellung auf der Startseite: Porträt, der erste Absatz, ein Weiterweg.
  *
  * Seit dem 2026-10-10 wieder da, im Aufbau von vor dem Umbau (Jans
  * Entscheidung, UI-SPEC „Startseite"): heller Grund, Porträt links, „jakob."
- * und die zwei Sätze rechts. Die Sätze kommen aus `ABOUT.zeilen` — dieselben
- * wie auf `/ueber`, damit es keine zweite Fassung gibt, die auseinanderläuft.
+ * und der Text rechts. Er kommt aus `ABOUT.zeilen` — denselben Absätzen wie
+ * auf `/ueber`, damit es keine zweite Fassung gibt, die auseinanderläuft.
+ * Seit dem 2026-10-25 nur **der erste** (Jan) — der Rest steht hinter
+ * „→ mehr erfahren".
  */
 export default function UeberAnriss() {
   const portrait = bild("portrait");
@@ -39,11 +41,7 @@ export default function UeberAnriss() {
           <h2 className={styles.titel} id="ueber-anriss">
             jakob.
           </h2>
-          {ABOUT.zeilen.map((satz) => (
-            <p key={satz} className={styles.satz}>
-              {satz}
-            </p>
-          ))}
+          {ABOUT.zeilen[0] && <p className={styles.satz}>{ABOUT.zeilen[0]}</p>}
           <p className={styles.mehrZeile}>
             <a className={styles.mehr} href="/ueber">
               → mehr erfahren

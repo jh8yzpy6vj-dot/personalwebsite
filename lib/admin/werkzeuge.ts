@@ -1,6 +1,17 @@
 import { alleBilderDerArbeit, fotosFuerMosaik, nachWunsch, type Kontext } from "../arbeiten";
 import { AUSSCHNITT_MITTIG, type Streckenbild } from "../bilder";
-import { arbeitZu, bildName, istVerborgen, type Film, type Fotoarbeit, type Inhalt, type Link } from "../inhalt";
+import {
+  arbeitZu,
+  bildName,
+  impressumVon,
+  istVerborgen,
+  seoVon,
+  type Film,
+  type Fotoarbeit,
+  type Impressum,
+  type Inhalt,
+  type Link,
+} from "../inhalt";
 import {
   ID,
   istHttps,
@@ -662,6 +673,8 @@ export function fasseZusammen(alt: Inhalt, neu: Inhalt): string {
   if (!gleich(gemeinsam(altF, new Set(neuF)), gemeinsam(neuF, new Set(altF)))) teile.push("Filme umsortiert");
 
   if (!gleich(alt.ueber, neu.ueber)) teile.push("Über mich");
+  if (!gleich(seoVon(alt), seoVon(neu))) teile.push("Google und Teilen");
+  if (!gleich(impressumVon(alt), impressumVon(neu))) teile.push("Impressum");
 
   const dazu = (x: string[], y: string[]) => x.filter((s) => !y.includes(s)).length;
   const aus = dazu(neu.ausgeblendet, alt.ausgeblendet);
@@ -741,6 +754,7 @@ export const REITER = [
   ["ueber", "Über mich"],
   ["filme", "Filme"],
   ["startseite", "Startseite"],
+  ["impressum", "Impressum"],
   ["papierkorb", "Papierkorb"],
   ["verlauf", "Verlauf"],
 ] as const;
@@ -763,6 +777,7 @@ export function reiterFuerBefund(b: Befund): Reiter | null {
   if (kopf === "Über mich") return "ueber";
   if (kopf === "Mosaik" || b.ort === ORT_BESCHREIBUNGEN) return "fotos";
   if (kopf === "Papierkorb") return "papierkorb";
+  if (kopf === "Impressum") return "impressum";
   return null;
 }
 
@@ -801,6 +816,20 @@ export const FELDNAMEN = {
   beschriftung: "Beschriftung",
   /** Kein Feld, sondern der Knopf zu einem Bildplatz der Startseite („Highlight 2 ändern"). */
   platzAendern: (platz: string) => `${platz} ändern`,
+  /* Google und Teilen (Reiter Startseite) — wie `ORT_SEO` in lib/inhalt-pruefen.ts. */
+  seoTitel: "Titel bei Google und beim Teilen",
+  seoBeschreibung: "Beschreibung bei Google und beim Teilen",
+  /** Der Bildplatz; sein Knopf heißt `platzAendern(seoBild)`. */
+  seoBild: "Vorschaubild beim Teilen",
+  /* Reiter Impressum — wie `ORT_IMPRESSUM`. */
+  impName: "Name (vollständig)",
+  impStrasse: "Straße und Hausnummer",
+  impPlzOrt: "PLZ und Ort",
+  impLand: "Land",
+  impEmail: "E-Mail",
+  impTelefon: "Telefon (optional)",
+  impUstId: "USt-IdNr. (optional)",
+  impMstv: "Verantwortlich nach § 18 Abs. 2 MStV (optional)",
 } as const;
 
 /**
@@ -1171,6 +1200,40 @@ export function setzeSeite(i: Inhalt, feld: keyof Inhalt["seite"], wert: string)
 export function setzeStartText(i: Inhalt, feld: "heroAlt" | "heroVideo", wert: string): Inhalt {
   const n = kopie(i);
   n.startseite[feld] = wert.trim() === "" ? null : wert;
+  return n;
+}
+
+/**
+ * Titel und Beschreibung für Google und Teilen. Fehlt `seo` (älterer Stand),
+ * wird es aus `SEO_STANDARD` angelegt.
+ */
+export function setzeSeo(i: Inhalt, feld: "titel" | "beschreibung", wert: string): Inhalt {
+  const n = kopie(i);
+  n.seo = { ...seoVon(i), [feld]: wert };
+  return n;
+}
+
+/** Das Vorschaubild beim Teilen; `null` = die feste Vorschaukarte. */
+export function setzeSeoBild(i: Inhalt, schluessel: string | null): Inhalt {
+  const n = kopie(i);
+  n.seo = { ...seoVon(i), bild: schluessel };
+  return n;
+}
+
+/** Die freiwilligen Angaben im Impressum — leer heißt `null`, dann fehlt der Abschnitt. */
+const IMPRESSUM_FREIWILLIG = new Set<keyof Impressum>(["telefon", "ustId", "mstv"]);
+
+/**
+ * Ein Feld im Impressum. Freiwilliges wird leer zu `null`; die USt-IdNr.
+ * ohne Leerzeichen und groß geschrieben, damit „de 123 456 789" durchgeht.
+ */
+export function setzeImpressum(i: Inhalt, feld: keyof Impressum, wert: string): Inhalt {
+  const n = kopie(i);
+  const roh = feld === "ustId" ? wert.replace(/\s+/g, "").toUpperCase() : wert;
+  const neu: Impressum = { ...impressumVon(i) };
+  if (IMPRESSUM_FREIWILLIG.has(feld)) (neu[feld] as string | null) = roh.trim() === "" ? null : roh;
+  else (neu[feld] as string) = roh;
+  n.impressum = neu;
   return n;
 }
 

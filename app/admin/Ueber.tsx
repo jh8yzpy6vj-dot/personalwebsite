@@ -91,7 +91,7 @@ export default function Ueber() {
               <Zeichen name="plus" />
               Absatz hinzufügen
             </button>
-            <span className={styles.leise}>Gedacht sind drei bis vier.</span>
+            <span className={styles.leise}>Gedacht sind drei bis vier. Auf der Startseite steht nur Absatz 1.</span>
           </div>
         </div>
       </section>

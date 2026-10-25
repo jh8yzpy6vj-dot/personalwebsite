@@ -285,5 +285,20 @@
     "arbeiten/welttheater-der-strasse/04": "50% 30%",
     "arbeiten/strg-f/01": "50% 56%",
     "arbeiten/stamp": "43% 65%"
+  },
+  "seo": {
+    "titel": "jakob sax",
+    "beschreibung": "Fotos und Filme von Jakob Sax.",
+    "bild": null
+  },
+  "impressum": {
+    "name": "Jakob Sax",
+    "strasse": "Röttererbergstraße 1",
+    "plzOrt": "76437 Rastatt",
+    "land": "Deutschland",
+    "email": "mail@jakobsax.de",
+    "telefon": null,
+    "ustId": null,
+    "mstv": null
   }
 }

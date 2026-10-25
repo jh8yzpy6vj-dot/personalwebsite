@@ -58,6 +58,7 @@ import Arbeiten from "./Arbeiten";
 import Ueber from "./Ueber";
 import Filme from "./Filme";
 import Startseite from "./Startseite";
+import Impressum from "./Impressum";
 import Papierkorb from "./Papierkorb";
 import VerlaufReiter from "./Verlauf";
 import { Dialog, holeInDenBlick, Zeichen } from "./teile";
@@ -1296,6 +1297,7 @@ export default function Verwaltung() {
           {reiter === "ueber" && <Ueber />}
           {reiter === "filme" && <Filme />}
           {reiter === "startseite" && <Startseite />}
+          {reiter === "impressum" && <Impressum />}
           {reiter === "papierkorb" && <Papierkorb />}
           {reiter === "verlauf" && (
             <VerlaufReiter

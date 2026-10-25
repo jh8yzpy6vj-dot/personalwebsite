@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import Seite, { seitenStyles } from "../components/Seite";
 import Bild from "../components/Bild";
+import HeroVideo from "../components/HeroVideo";
 import { filmeFuerSeite } from "@/lib/arbeiten";
-import { FILM_SIZES } from "@/lib/bilder";
+import { FILM_SIZES, ausschnittAus, bild, heroSizes } from "@/lib/bilder";
+import { HERO_VIDEO } from "@/lib/content";
+import { heroVideo } from "@/lib/video";
 import { Hinweis, Schalter } from "../components/Einwilligung";
 import FilmPlayer from "./FilmPlayer";
 import styles from "./film.module.css";
@@ -27,13 +30,41 @@ const SOFORT = 2;
  *   öffnen ist eine Barriere.
  *
  * Siehe UI-SPEC, „Filme einbetten".
+ *
+ * **Oben das Video der Startseite** (seit 2026-10-25, Jan: „Bei Filme auch
+ * das Video von der Startseite in den Header"), randlos wie die Blende auf
+ * `/foto`. Dieselbe Quelle wie auf `/` — Video von außerhalb vor dem aus dem
+ * Bildspeicher —, aber unabhängig vom Schalter „Foto oder Video": Auf der
+ * Filmseite steht immer das Video. Ohne Video kein Kopf.
  */
 export default function Filme() {
   const filme = filmeFuerSeite();
   const eingebettet = filme.some((f) => f.youtube);
 
+  const ausDemBucket = HERO_VIDEO ? null : heroVideo();
+  const video = HERO_VIDEO ?? ausDemBucket?.url ?? null;
+  /* Das erste Bild des Videos nur zu dem Video, aus dem es stammt (wie auf `/`). */
+  const posterSchluessel = ausDemBucket ? "hero/film" : "hero/standbild";
+  const poster = bild(posterSchluessel);
+
+  const kopf = video ? (
+    <section className={styles.kopf} aria-label="Video">
+      {poster && (
+        <Bild
+          className={styles.kopfMedium}
+          quelle={poster}
+          alt=""
+          sizes={heroSizes(poster, "foto")}
+          ausschnitt={ausschnittAus(posterSchluessel)}
+          vorrang
+        />
+      )}
+      <HeroVideo className={styles.kopfMedium} src={video} poster={poster?.fallback} />
+    </section>
+  ) : null;
+
   return (
-    <Seite titel="Filme von Jakob Sax" aktuell="/film" breite="film">
+    <Seite titel="Filme von Jakob Sax" aktuell="/film" breite="film" kopf={kopf}>
       {filme.length > 0 ? (
         <ul className={styles.raster}>
           {filme.map((film, i) => {

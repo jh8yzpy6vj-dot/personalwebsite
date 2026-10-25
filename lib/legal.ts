@@ -1,3 +1,5 @@
+import { INHALT, impressumVon } from "./inhalt";
+
 /**
  * Rechtliche Pflichtangaben für Impressum und Datenschutzerklärung.
  *
@@ -31,13 +33,23 @@
  * STRG_F zu Rechtsextremismus recherchiert), die Alternativen ebenfalls
  * (Geschäftsadresse, Anbieter für ladungsfähige Adressen). **Jakob hat sich
  * am 2026-08-27 ausdrücklich für diese Adresse entschieden.** Nicht ohne
- * Rücksprache ändern.
+ * Rücksprache ändern. (Seit 2026-10-25 kann Jakob sie in der Verwaltung,
+ * Reiter Impressum, selbst ändern — das ist die Rücksprache.)
  */
 export const LEGAL_DATA_COMPLETE = true;
 
+/**
+ * Name, Anschrift und Kontakt stehen seit dem 2026-10-25 in
+ * `lib/inhalt.json` (`impressum`) und sind in der Verwaltung bearbeitbar.
+ * Was hier fest steht (Aufsichtsbehörde, Hoster, Stand), betrifft die
+ * Technik bzw. den Rechtstext und bleibt im Code.
+ */
+const IMPRESSUM = impressumVon(INHALT);
+const leerAlsNull = (w: string) => (w.trim() === "" ? null : w);
+
 export const LEGAL = {
   /** Vollständiger Name des Diensteanbieters. */
-  name: "Jakob Sax",
+  name: IMPRESSUM.name,
 
   /**
    * Ladungsfähige Anschrift — Pflicht nach § 5 DDG, ein Postfach genügt
@@ -45,13 +57,13 @@ export const LEGAL = {
    * damit öffentlich. Übliche Lösungen sind eine Geschäftsadresse, ein
    * Coworking-Space oder ein Anbieter für ladungsfähige Adressen.
    */
-  street: "Röttererbergstraße 1" as string | null,
-  postalCity: "76437 Rastatt" as string | null,
-  country: "Deutschland",
+  street: leerAlsNull(IMPRESSUM.strasse),
+  postalCity: leerAlsNull(IMPRESSUM.plzOrt),
+  country: IMPRESSUM.land,
 
   /** Kontakt — E-Mail ist Pflicht, Telefon üblich, aber nicht zwingend. */
-  email: "mail@jakobsax.de" as string | null,
-  phone: null as string | null,
+  email: leerAlsNull(IMPRESSUM.email),
+  phone: IMPRESSUM.telefon,
 
   /**
    * Umsatzsteuer-Identifikationsnummer nach § 27a UStG (Format: `DE` + neun
@@ -67,7 +79,7 @@ export const LEGAL = {
    * gefordert, und sie zu veröffentlichen ist ein unnötiges Risiko. Gemeint
    * ist ausschließlich die USt-IdNr.
    */
-  ustId: null as string | null,
+  ustId: IMPRESSUM.ustId,
 
   /**
    * Verantwortlich für journalistisch-redaktionelle Inhalte nach
@@ -79,7 +91,7 @@ export const LEGAL = {
    * Bildstrecken veröffentlicht, kann die Pflicht entstehen. Im Zweifel
    * angeben — es schadet nicht.
    */
-  mstvResponsible: null as string | null,
+  mstvResponsible: IMPRESSUM.mstv,
 
   /**
    * Zuständige Datenschutz-Aufsichtsbehörde. Richtet sich nach dem

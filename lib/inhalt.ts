@@ -81,6 +81,42 @@ export type Film = {
   notiz?: string;
 };
 
+/**
+ * Wie die Seite bei Google und beim Teilen eines Links erscheint (seit
+ * 2026-10-25, Reiter Startseite). Gilt für die Startseite und überall, wo eine
+ * Seite nichts Eigenes setzt.
+ */
+export type Seo = {
+  /** Titel im Suchergebnis und auf der Vorschaukarte. */
+  titel: string;
+  /** Die Zeile darunter. Google kürzt meist nach etwa 160 Zeichen. */
+  beschreibung: string;
+  /**
+   * Vorschaubild beim Teilen (WhatsApp, Instagram, LinkedIn …) — ein Foto aus
+   * `/foto`. `null`: die feste Vorschaukarte `public/og/start.jpg`.
+   */
+  bild: string | null;
+};
+
+/**
+ * Die Angaben im Impressum (seit 2026-10-25 in der Verwaltung, vorher fest in
+ * `lib/legal.ts`). ⚠️ Pflicht nach § 5 DDG: Name, ladungsfähige Anschrift
+ * (kein Postfach), E-Mail. Hinweise zu jedem Feld in `lib/legal.ts`.
+ */
+export type Impressum = {
+  name: string;
+  strasse: string;
+  plzOrt: string;
+  land: string;
+  email: string;
+  /** Freiwillig. */
+  telefon: string | null;
+  /** Nur „soweit vorhanden": `DE` + neun Ziffern. ⚠️ Nie die Steuernummer. */
+  ustId: string | null;
+  /** Verantwortlich nach § 18 Abs. 2 MStV (Name und Anschrift) — nur, falls einschlägig. */
+  mstv: string | null;
+};
+
 export type Inhalt = {
   seite: {
     /** Schriftzug und Wortmarke — bewusst kleingeschrieben (UI-SPEC, E7). */
@@ -200,6 +236,14 @@ export type Inhalt = {
    * Ohne Eintrag mittig. Warum es das gibt: `lib/bildausschnitte.ts`.
    */
   bildausschnitte: Record<string, string>;
+  /**
+   * ⚠️ **Darf fehlen** (Stände vor dem 2026-10-25) — dann gelten
+   * `SEO_STANDARD` bzw. `IMPRESSUM_STANDARD`, die Werte von davor. Sonst
+   * ließe sich kein älterer Stand aus dem Verlauf wiederherstellen. Lesen
+   * immer über `seoVon` und `impressumVon`.
+   */
+  seo?: Seo;
+  impressum?: Impressum;
 };
 
 /**
@@ -207,6 +251,33 @@ export type Inhalt = {
  * die Form stimmt, prüft `pruefeInhalt` beim Build (`lib/content.ts`).
  */
 export const INHALT = roh as unknown as Inhalt;
+
+/** Was vor dem 2026-10-25 fest im Code stand — Rückfall für ältere Stände. */
+export const SEO_STANDARD: Seo = {
+  titel: "jakob sax",
+  beschreibung: "Fotos und Filme von Jakob Sax.",
+  bild: null,
+};
+
+/** Was vor dem 2026-10-25 fest in `lib/legal.ts` stand — Rückfall für ältere Stände. */
+export const IMPRESSUM_STANDARD: Impressum = {
+  name: "Jakob Sax",
+  strasse: "Röttererbergstraße 1",
+  plzOrt: "76437 Rastatt",
+  land: "Deutschland",
+  email: "mail@jakobsax.de",
+  telefon: null,
+  ustId: null,
+  mstv: null,
+};
+
+export function seoVon(inhalt: Pick<Inhalt, "seo">): Seo {
+  return inhalt.seo ?? SEO_STANDARD;
+}
+
+export function impressumVon(inhalt: Pick<Inhalt, "impressum">): Impressum {
+  return inhalt.impressum ?? IMPRESSUM_STANDARD;
+}
 
 /** Foto oder Video oben — fehlt der Eintrag (Stand vor dem 2026-10-23), heißt das „Video". */
 export function heroArtVon(startseite: Pick<Inhalt["startseite"], "heroArt">): "foto" | "video" {

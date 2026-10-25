@@ -51,9 +51,9 @@ Daraus folgen drei Regeln, an denen sich jede Entscheidung unten messen lassen m
 
 | Route | Aufbau | Sichtbarer Text |
 |-------|--------|-----------------|
-| `/` | **Seit dem 2026-10-10 (Jans Entscheidung) wieder eine scrollende Startseite**, siehe *Startseite* unten: Hero → Über-mich-Anriss → zwei Wege (foto, film) → Highlights → Footer | Positionierungszeile und Orte im Hero, „jakob." mit zwei Sätzen, Beschriftung der Wege |
+| `/` | **Seit dem 2026-10-10 (Jans Entscheidung) wieder eine scrollende Startseite**, siehe *Startseite* unten: Hero → Über-mich-Anriss → zwei Wege (foto, film) → Highlights → Footer | Positionierungszeile und Orte im Hero, „jakob." mit dem ersten Absatz von „Über mich“, Beschriftung der Wege |
 | `/foto` | **Seit 2026-10-14 abends:** randloses Hero mit Blende über 6–8 ausgewählte Bilder → **ein** Mosaik aus allen Bildern, nach Kategorie sortiert, ohne Zwischenüberschriften → Footer. Keine Detailseiten. Siehe *`/foto`* | Bildbeschriftung beim Überfahren und im Lichtkasten — sonst kein Text |
-| `/film` | Topbar, darunter ein Raster aus Kacheln. **YouTube-Filme laufen seit 2026-10-24 auf der Seite selbst** (nach Einwilligung, siehe *Filme einbetten*), alle anderen sind ein Link nach außen | je Film „Titel – Kunde" unter der Kachel; bei YouTube-Filmen der Hinweis zur Einwilligung |
+| `/film` | Topbar, **darunter randlos das Video der Startseite** (seit 2026-10-25, siehe *Bildbehandlung*), dann ein Raster aus Kacheln. **YouTube-Filme laufen seit 2026-10-24 auf der Seite selbst** (nach Einwilligung, siehe *Filme einbetten*), alle anderen sind ein Link nach außen | je Film „Titel – Kunde" unter der Kachel; bei YouTube-Filmen der Hinweis zur Einwilligung |
 | `/ueber` | Topbar, darunter zweispaltig: Bild links, rechts 3–4 Zeilen und eine Kontaktzeile. Darunter seit 2026-10-14 ein Mosaik aus den Bildern der Kategorie „Über mich" aus Jakobs Liste (`original/ueber/NN`) | 3–4 Zeilen, Kontaktzeile |
 | `/impressum`, `/datenschutz` | Topbar, Lesespalte | Pflichttext |
 | 404 | Topbar, eine Zeile, zwei Wege | „Hier ist nichts." · foto · film |
@@ -71,7 +71,7 @@ erreichbar" sein (§ 5 DDG).
 | Block | Inhalt | Fläche |
 |-------|--------|--------|
 | **Hero** | Wie vor dem Umbau: Medium in voller Fensterhöhe (Video → Standbild → `HERO_ERSATZ` → Verlauf; seit 2026-10-23 wählt Jakob in der Verwaltung **Foto oder Video** — bei „Foto" läuft kein Video, bei „Video" steht unter dem Video dessen erstes Bild, siehe *Bildbehandlung*), unten links als `<h1>` die Positionierungszeile „fotografie für kultur & theater im öffentlichen raum", darunter ●-Punkt und „rastatt · stuttgart". Pause-Knopf unten rechts, sobald ein Video läuft | dunkel, Verlauf unter dem Text deckend 0.80 |
-| **Über-mich-Anriss** | Wie vor dem Umbau: Porträt links (420px, ohne Zuschnitt), rechts „jakob.", die zwei Sätze aus `ABOUT.zeilen`, darunter „→ mehr erfahren" nach `/ueber`. Fehlt das Porträt: Platzhalter „Porträt folgt" | **hell** (`--schrift` als Fläche, `--grund` als Schrift) |
+| **Über-mich-Anriss** | Wie vor dem Umbau: Porträt links (420px, ohne Zuschnitt), rechts „jakob.", **nur der erste Absatz** aus `ABOUT.zeilen` (seit 2026-10-25, Jan), darunter „→ mehr erfahren" nach `/ueber`. Fehlt das Porträt: Platzhalter „Porträt folgt" | **hell** (`--schrift` als Fläche, `--grund` als Schrift) |
 | **Wege** | Zwei große Bild-Buttons nebeneinander (untereinander ≤ 700px): „foto" und „film", je mit einem Bild als Grund und „→". Bild für foto: `WEGE.foto` aus `lib/content.ts`; für film das Standbild des ersten Films, sonst eine dunkle Fläche mit ▶ | dunkel |
 | **Highlights** | Überschrift „highlights.", darunter vier Fotos im Hochformat 4:5 nebeneinander (2×2 bis 900px). Welche, steht in `HIGHLIGHTS` in `lib/content.ts`; fehlt ein Bild, steht dort ein Platzhalter „Highlight folgt". Jede Kachel führt nach `/foto` (am 2026-10-14 ein paar Stunden lang auf die Detailseite) | dunkel |
 | **Footer** | `SiteFooter` wie auf allen Seiten | dunkel |
@@ -145,6 +145,7 @@ Punkt wie im ●REC: hier wird gerade aufgenommen.
 | Hero ohne Video (oder „Foto" gewählt) | Das Standbild allein, gleiche Regeln. **Das Standbild muss für sich tragen**: iPhones im Energiesparmodus spielen gar kein Video ab. |
 | Hero ohne beides | **Ein Foto aus `/foto` trägt das Hero** (`HERO_ERSATZ` in `lib/content.ts`), gleiche Regeln wie das Standbild. Begründung: Eine schwarze Fläche ist als erster Eindruck einer Seite, die durch Bilder überzeugen soll, das Schwächste, was es gibt. Querformat, möglichst ohne erkennbare Gesichter. Sobald `hero/standbild` im Bucket liegt, hat es Vorrang. |
 | Hero ohne alles | Fläche `--grund` mit Schriftzug. Gültiger Zustand, kein Fehler. |
+| **Video oben auf `/film`** (seit 2026-10-25) | Jan: „Bei Filme auch das Video von der Startseite in den Header." Dasselbe Video wie auf `/` (Video von außerhalb vor dem aus dem Bildspeicher), **unabhängig vom Schalter „Foto oder Video"** — auf der Filmseite steht immer das Video, sonst gar kein Kopf. Randlos unter der deckenden Topbar, gleiche Höhe wie das Hero von `/foto` (`calc(100svh - var(--topbar-h))`, mind. 420px, am Telefon höchstens `125vw`), `object-fit: cover`, Standbild darunter wie auf `/`. Kein Text im Bild, Pause-Knopf unten rechts. Der ●REC-Punkt blinkt dort nicht (nur auf `/`). |
 | **Mosaik** (`/foto`, `/ueber`) | Die Bilder in **drei ungleich breiten Spalten** (bei weniger als drei Bildern so viele Spalten wie Bilder) (Gewichte 1.18 / 0.9 / 1.12); **auf `/foto` vier** (dazu 0.96) — seit 2026-10-15, Jakob: „die Bilder noch nen Ticken kleiner", verteilt **in die jeweils kürzeste Spalte** (seit 2026-10-16; gerechnet aus Seitenverhältnis und Spaltengewicht beim Rendern, nicht im Browser). Die erste Reihe liest sich damit weiterhin 1-2-3(-4). **Kein Bild wird beschnitten** — jedes steht in seiner eigenen Form. Unter 860px eine Spalte, die Bilder tragen dann `order`, damit die Reihenfolge stimmt. Kein JavaScript im Layout. |
 | Mosaik — Reihenfolge | Auf `/foto` nach Kategorie, darin nach `FOTOS` (siehe *`/foto`*). Innerhalb einer Arbeit: Startbild, dann nach Dateiname (`01`, `02`, …) — beim Hochladen in der Reihenfolge von Jakobs Liste vergeben. **Keine Sortierung nach Jahr** — die Abfolge ist Jakobs Kuration. |
 | **Hero von `/foto`** | `object-fit: cover`, Ausschnitt je Bild aus `lib/bildausschnitte.ts`, sonst mittig. `sizes` **je Bild** aus Hero-Höhe und Seitenverhältnis (`heroSizes` in `lib/bilder.ts`; gilt ebenso für das Hero der Startseite) — ⚠️ nie pauschal `100vw`: Ein Querformat im hohen Hero wird am Telefon durch `cover` mehr als dreimal so breit wie der Bildschirm, mit `100vw` lädt der Browser eine viel zu kleine Stufe und das Bild wird unscharf (2026-10-15). Erstes Bild `fetchpriority="high"`. Die weiteren Bilder hängen erst eine Standzeit vor ihrem Auftritt im Dokument, nie die ganze Folge auf einmal. |
@@ -184,7 +185,7 @@ Die Begründung bleibt richtig — deshalb lädt **vor der Einwilligung nichts**
 | Kachel mit Einwilligung | Eigenes Standbild, sonst YouTubes Vorschaubild (`maxresdefault`, Rückfall `hqdefault`, wenn YouTube nur das 120px-Ersatzbild liefert). Darüber mittig das ▶ der Wege-Kachel in `--schrift` mit weichem Schatten. Die Kachel ist ein `<button>`, `aria-label` „{Titel – Kunde} abspielen" |
 | Kachel ohne Einwilligung | Eigenes Standbild, sonst die dunkle Fläche, ▶ wie oben. Klick → **Rückfrage in der Kachel** (siehe *Copywriting*): „Erlauben und abspielen" (speichert die Einwilligung für alle Filme), „Auf YouTube ↗" (Link, selber Tab), „Abbrechen" (leise, Fokus zurück auf die Kachel) |
 | Ohne Skript / vor der Hydration | Die Kachel ist wie bisher ein **Link nach außen**. Die Seite weiß da noch nicht, was entschieden ist, und zeigt, was in jedem Fall stimmt |
-| **Hinweis („Cookie-Banner")** | **Nur auf `/film`** und nur, solange nichts entschieden ist — nur dort lädt die Seite etwas von einem Dritten. Unten rechts fest am Fenster, höchstens 560px breit (unter 700px über die volle Breite mit 8px Abstand), Fläche `--grund`, 1px Rahmen in `--leise`, Radius `--radius-bild`, Schatten. **Nicht modal**: Die Seite bleibt bedienbar. Zwei **gleich gestaltete** Knöpfe „Ablehnen" und „Erlauben" (Pille, 1px `--schrift`, min. 44px hoch) — keine Wahl wird nahegelegt. Kein Rot |
+| **Hinweis („Cookie-Banner")** | **Nur auf `/film`** und nur, solange nichts entschieden ist — nur dort lädt die Seite etwas von einem Dritten. Unten **links** fest am Fenster (seit 2026-10-25 — rechts verdeckte er den Pause-Knopf des Videos oben), höchstens 560px breit (unter 700px über die volle Breite mit 8px Abstand), Fläche `--grund`, 1px Rahmen in `--leise`, Radius `--radius-bild`, Schatten. **Nicht modal**: Die Seite bleibt bedienbar. Zwei **gleich gestaltete** Knöpfe „Ablehnen" und „Erlauben" (Pille, 1px `--schrift`, min. 44px hoch) — keine Wahl wird nahegelegt. Kein Rot |
 | Entscheidung merken | `localStorage`, Eintrag `einwilligung-youtube` = `ja`/`nein` (`lib/einwilligung.ts`). **Die Seite setzt weiterhin kein eigenes Cookie.** Abgelehnt heißt: Der Hinweis kommt nicht wieder, ▶ fragt je Film. Gesperrter Speicher: gilt für diese Seite |
 | Widerrufen | So leicht wie Erlauben: unten auf `/film` die Zeile „YouTube-Filme: erlaubt · Einwilligung widerrufen" (bzw. „nicht erlaubt · Erlauben") in `--leise`, dieselbe Zeile in der Datenschutzerklärung (Abschnitt `#youtube`) |
 | Startseite | Die Wege-Kachel „film" auf `/` nimmt weiter nur eigene Standbilder — auf `/` wird nicht eingewilligt, also lädt dort nichts von YouTube |
@@ -313,7 +314,7 @@ neu messen — sonst werden alle abhängigen Stellen still falsch.
 |---------|------|
 | Schriftzug, Wortmarke | „jakob sax" |
 | Hero auf `/` | „fotografie für kultur & theater im öffentlichen raum" (Jakobs Instagram-Bio, klein geschrieben) · „rastatt · stuttgart" |
-| Anriss auf `/` | „jakob." · zwei Sätze aus `ABOUT.zeilen` · „→ mehr erfahren" |
+| Anriss auf `/` | „jakob." · erster Absatz aus `ABOUT.zeilen` · „→ mehr erfahren" |
 | Wege auf `/` | „foto" · „film" (Druk Wide 36px) mit „→"; Screenreader: „Alle Fotos" bzw. „Alle Filme" |
 | Highlights auf `/` | „highlights." · Platzhalter „Highlight folgt" |
 | Navigation | „foto", „film", „über mich" |
@@ -352,7 +353,7 @@ und unvergessliche Momente. Zielregister: präzise, konkret, unangestrengt.
 
 | Was | Regel |
 |-----|-------|
-| Hero-Video | Läuft in Schleife. **Pause-Knopf ist Pflicht** (WCAG 2.2.2: Was sich länger als fünf Sekunden von selbst bewegt, muss sich anhalten lassen). Unten rechts, 44×44px, `--schrift` auf `--grund` mit 0.60 Deckung. Die Wahl bleibt für die Sitzung erhalten (`sessionStorage`), damit das Video nach einem Seitenwechsel nicht wieder anläuft. |
+| Hero-Video | Läuft in Schleife. **Pause-Knopf ist Pflicht** (WCAG 2.2.2: Was sich länger als fünf Sekunden von selbst bewegt, muss sich anhalten lassen). Unten rechts, 44×44px, `--schrift` auf `--grund` mit 0.60 Deckung. Die Wahl bleibt für die Sitzung erhalten (`sessionStorage`), damit das Video nach einem Seitenwechsel nicht wieder anläuft. **Verweigert der Browser den Start** (iPhone im Stromsparmodus, Safari mit „Automatische Wiedergabe: Nie", Datensparmodus), läuft es beim ersten Antippen, Klicken oder Tastendruck irgendwo auf der Seite an — nicht erst über den Knopf (seit 2026-10-25). `prefers-reduced-motion` bleibt davon unberührt. |
 | `prefers-reduced-motion: reduce` | **Kein Autoplay.** Das Standbild steht, der Knopf zeigt „abspielen". Wer das Video sehen will, startet es selbst. |
 | Video im Hintergrund-Tab | Pausiert, solange die Seite nicht sichtbar ist (`visibilitychange`). Spart Akku und Datenvolumen. |
 | Beschriftung im Mosaik | Erscheint mit 120ms Überblendung (`opacity`). Höchstens **drei Zeilen** (`line-clamp`), sonst deckt ein langer Titel ein kleines Querformat zu; vollständig steht er im Lichtkasten. |
@@ -462,7 +463,7 @@ Umbaus abgehakt.
   bricht ab. Trotzdem abmelden?", bei beidem „Ungespeicherte Änderungen gehen verloren, und das
   Hochladen bricht ab. Trotzdem abmelden?"; danach kein zweites „Seite verlassen?" des Browsers);
   darunter Reiter
-  **Fotos · Hero · Arbeiten · Über mich · Filme · Startseite · Papierkorb · Verlauf**
+  **Fotos · Hero · Arbeiten · Über mich · Filme · Startseite · Impressum · Papierkorb · Verlauf**
   (Pfeiltasten, Pos1 und Ende wechseln den Reiter; der Reiter „Hero" heißt so, er meint die
   Blende oben auf `/foto` — der obere Teil der Startseite heißt nirgends „Hero", siehe
   *Startseite*); unten eine feste Leiste mit Speicherstand, „Zum Fehler" (nur neben „Erst den
@@ -694,6 +695,22 @@ Umbaus abgehakt.
     oben, solange es dort kein eigenes Standbild gibt. …" bzw. „Gibt es einen Film mit Standbild,
     nimmt die Seite dessen Standbild."). Begründung: Zeile und Prüfung warnten „der Platz bleibt
     auf der Seite leer" für Plätze, die die Seite gar nicht zeigt.
+- **Startseite, „Google und Teilen"** (seit 2026-10-25, Jan: „SEO Text und Bild bearbeiten"):
+  eigener Abschnitt unten im Reiter Startseite. Leise Einleitung („So erscheint die Seite im
+  Suchergebnis und als Vorschau, wenn jemand den Link verschickt …"), zwei Felder **„Titel bei
+  Google und beim Teilen"** (höchstens 70 Zeichen, Fehler darüber) und **„Beschreibung bei Google
+  und beim Teilen"** (mehrzeilig, höchstens 300; ab 160 ein leiser Hinweis, der Zähler steht im
+  Hinweis darunter). Darunter eine Zeile wie die Bildplätze: **„Vorschaubild beim Teilen"**,
+  links das Bild bzw. „Karte", Knopf „Ändern" → dieselbe Bildwahl wie die Plätze (Fotos aus
+  `/foto`, „kein Bild" = die feste Vorschaukarte `public/og/start.jpg`). Gespeichert in
+  `inhalt.seo`; die Seite nimmt die JPEG-Stufe des Bildes (1200px) als `og:image`.
+- **Reiter Impressum** (seit 2026-10-25, Jan: „Impressum bearbeitbar machen"): zwischen
+  Startseite und Papierkorb. Abschnitt **„Pflichtangaben"** (Name, Straße und Hausnummer, PLZ und
+  Ort, Land, E-Mail — leer ist ein Fehler, „Postfach" in der Straße ebenso) mit dem leisen Satz,
+  dass die Anschrift öffentlich auffindbar ist; Abschnitt **„Nur falls zutreffend"** (Telefon,
+  USt-IdNr. — nur „DE" und neun Ziffern, Leerzeichen werden entfernt, Hinweis „Nie die normale
+  Steuernummer eintragen." —, Verantwortlich nach § 18 Abs. 2 MStV, mehrzeilig). Leer heißt bei
+  diesen: Der Abschnitt fehlt im Impressum. Die Rechtstexte selbst bleiben im Code.
 - **Startseite, oben: Foto oder Video** (seit 2026-10-23, Jakob: „zwischen Fotos und Filmen
   switchen und dann einen Hochladen-Button"): Ganz oben im Reiter der Abschnitt **„Oben auf der
   Startseite"** mit zwei Knöpfen **„Foto"** und **„Video"** (`aria-pressed`, Gruppe „Oben auf der

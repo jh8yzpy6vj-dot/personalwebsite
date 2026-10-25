@@ -128,6 +128,16 @@ Reiter „Verlauf"), und ein kaputter Stand geht nie live, weil der Build ihn mi
 prüft wie die Verwaltung (`lib/inhalt-pruefen.ts`) und dann abbricht — Cloudflare lässt in dem
 Fall die alte Fassung online.
 
+**Seit 2026-10-25 auch SEO und Impressum in `lib/inhalt.json`:** `seo` (Titel, Beschreibung,
+Vorschaubild → `app/layout.tsx`, `og:image` = JPEG-Stufe des Bildes, ohne Bild
+`public/og/start.jpg`) und `impressum` (Name, Anschrift, Kontakt, USt-IdNr., MStV →
+`lib/legal.ts`, das die Felder unter den alten Namen `LEGAL.*` weiterreicht). Beide **dürfen
+fehlen** — ältere Stände aus dem Verlauf gelten dann mit `SEO_STANDARD` bzw.
+`IMPRESSUM_STANDARD` (`lib/inhalt.ts`, die Werte von vorher). Lesen nur über `seoVon` /
+`impressumVon`. Aufsichtsbehörde, Hoster und „Stand" der Rechtstexte bleiben im Code.
+⚠️ Die Seite steht weiter auf `noindex` (`INDEXABLE` in `lib/site.ts`, Launch-Blocker) — Titel
+und Beschreibung wirken bei Google erst danach; die Vorschau beim Teilen wirkt sofort.
+
 ### Architektur
 
 ```

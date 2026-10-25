@@ -10,7 +10,7 @@
   left: var(--rand);
   z-index: 50;
   max-width: 560px;
-  margin-left: auto;
+  margin-right: auto;
   padding: var(--space-lg);
   border: 1px solid var(--leise);
   border-radius: var(--radius-bild);

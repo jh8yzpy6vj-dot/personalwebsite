@@ -3,6 +3,8 @@ import { Archivo, Figtree } from "next/font/google";
 import "./globals.css";
 import StructuredData from "./StructuredData";
 import { INDEXABLE, SITE_URL, alsJsonLd } from "@/lib/site";
+import { INHALT, seoVon } from "@/lib/inhalt";
+import { bild } from "@/lib/bilder";
 
 /*
  * ⚠️ **Ersatzschriften für den Übergang** — nicht die Schriften der Seite.
@@ -35,8 +37,19 @@ const avenirErsatz = Figtree({
   display: "swap",
 });
 
-const TITLE = "jakob sax";
-const DESCRIPTION = "Fotos und Filme von Jakob Sax.";
+/*
+ * Titel, Beschreibung und Vorschaubild stellt Jakob seit dem 2026-10-25 in
+ * der Verwaltung ein (Reiter Startseite, „Google und Teilen", `inhalt.seo`).
+ * Ohne eigenes Bild gilt die feste Vorschaukarte `public/og/start.jpg`.
+ */
+const SEO = seoVon(INHALT);
+const TITLE = SEO.titel;
+const DESCRIPTION = SEO.beschreibung;
+const SEO_BILD = bild(SEO.bild);
+/* `fallback` ist die JPEG-Stufe (1200 px breit) — genau, was Vorschaukarten wollen. */
+const OG_BILD = SEO_BILD
+  ? { url: SEO_BILD.fallback, alt: TITLE }
+  : { url: "/og/start.jpg", width: 1200, height: 630, alt: TITLE };
 
 /*
  * Statusleiste und Browserleiste auf dem Telefon in der Farbe der Fläche
@@ -58,7 +71,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "de_DE",
     url: "/",
-    siteName: "jakob sax",
+    siteName: INHALT.seite.name,
     title: TITLE,
     description: DESCRIPTION,
     /*
@@ -66,13 +79,13 @@ export const metadata: Metadata = {
      * als fertige Datei unter `public/og/`. Eine Karte für alle Seiten —
      * Detailseiten mit eigener Karte gibt es seit dem Umbau nicht mehr.
      */
-    images: [{ url: "/og/start.jpg", width: 1200, height: 630, alt: TITLE }],
+    images: [OG_BILD],
   },
   twitter: {
     card: "summary_large_image",
     title: TITLE,
     description: DESCRIPTION,
-    images: ["/og/start.jpg"],
+    images: [OG_BILD.url],
   },
   // Siehe lib/site.ts: bleibt auf noindex, solange die Launch-Blocker offen
   // sind.
