@@ -135,8 +135,8 @@ Vorschaubild → `app/layout.tsx`, `og:image` = JPEG-Stufe des Bildes, ohne Bild
 fehlen** — ältere Stände aus dem Verlauf gelten dann mit `SEO_STANDARD` bzw.
 `IMPRESSUM_STANDARD` (`lib/inhalt.ts`, die Werte von vorher). Lesen nur über `seoVon` /
 `impressumVon`. Aufsichtsbehörde, Hoster und „Stand" der Rechtstexte bleiben im Code.
-⚠️ Die Seite steht weiter auf `noindex` (`INDEXABLE` in `lib/site.ts`, Launch-Blocker) — Titel
-und Beschreibung wirken bei Google erst danach; die Vorschau beim Teilen wirkt sofort.
+Seit 2026-10-26 ist die Seite für Suchmaschinen freigegeben (`INDEXABLE`); Änderungen an Titel
+und Beschreibung sieht Google erst beim nächsten Besuch des Crawlers.
 
 ### Architektur
 
@@ -1464,10 +1464,10 @@ Aufgaben selbst stehen in `TODO.md`.
 
 - **`SITE_URL`** — die kanonische Basis-URL an genau einer Stelle. Die Domain-Entscheidung
   (`.de` vs. `.media`) ist offen, ein Wechsel ist dadurch ein Einzeiler.
-- **`INDEXABLE`** — steht auf `false` und steuert `robots` in `app/layout.tsx` sowie die
-  Sitemap-Anmeldung in `app/robots.ts`. Grund: Die Seite ist live und war bis dahin
-  uneingeschränkt indexierbar — mit erfundener E-Mail-Adresse, Preisen auf „noch festzulegen",
-  ungeprüften Inhalten und **ohne Impressum**.
+- **`INDEXABLE`** — steuert `robots` in `app/layout.tsx` sowie die Sitemap-Anmeldung in
+  `app/robots.ts`. Stand lange auf `false` (die Seite war anfangs mit erfundener E-Mail-Adresse
+  und ohne Impressum indexierbar); **seit 2026-10-26 `true`** auf Jans Entscheidung. Impressum
+  und Datenschutz bleiben je Seite `noindex`, `/admin` und `/api/` gesperrt.
 
 ⚠️ **Feinheit, die oft falsch gemacht wird:** `robots.txt` enthält für die Seite bewusst **kein**
 `Disallow`. (Einzige Ausnahme seit 2026-10-17: `/admin` und `/api/` — Begründung unter

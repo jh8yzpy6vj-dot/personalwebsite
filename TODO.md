@@ -161,9 +161,12 @@ leer — der Code ist in Schritt 2–6 schneller fertig als das.
 ### Schritt 8 — Danach
 
 - [ ] `npm run links` regelmäßig laufen lassen, z. B. vierteljährlich oder als geplanter Lauf.
-- [ ] `INDEXABLE` auf `true`, sobald die verbleibenden Launch-Blocker erledigt sind. Übrig nach
-  dem Umbau: Rechtstexte prüfen lassen, Bild- und Persönlichkeitsrechte, Kundennennung,
-  Nebentätigkeit, Jakobs Freigabe aller Texte.
+- [x] `INDEXABLE` steht seit 2026-10-26 auf `true` (Jans Entscheidung, siehe `AGENT-LOG.md`) —
+  **vor** den übrigen Launch-Blockern, die damit dringender werden: Rechtstexte prüfen lassen,
+  Bild- und Persönlichkeitsrechte, Kundennennung, Nebentätigkeit, Jakobs Freigabe aller Texte.
+- [ ] **Google Search Console** für `jakobsax.de` einrichten (Inhaberschaft per DNS-TXT-Eintrag
+  in Cloudflare — die IONOS-Mail-Einträge nicht anfassen, siehe `CLAUDE.md`) und
+  `https://jakobsax.de/sitemap.xml` einreichen. Geht nur mit einem Google-Konto — Jan oder Jakob.
 - [ ] Domain-Entscheidung (`.de`/`.media`), cookielose Analytics — beide unverändert offen.
 
 ### Umfang und Abhängigkeiten
@@ -284,7 +287,6 @@ ist mit der Neuausrichtung hinfällig.
 - [ ] **Hero-Video.** Die Referenzseite hat ein randloses Loop-Video; unser Hero unterstützt das bereits (`HERO_VIDEO` in `lib/content.ts`), zeigt bis dahin einen Farbverlauf. Seit 2026-10-23 über die Verwaltung (Reiter Startseite, „Video hochladen") — Umrechnen und Standbild (`original/hero/film.jpg`, das erste Bild) macht die Medien-Action; siehe den Punkt „Hero-Video live bringen". Von Hand weiterhin als `original/hero/film.mp4` plus `film.jpg`. `HERO_ALT` in `lib/inhalt.json` füllen, falls das Standbild beschrieben werden soll. Vorgaben in `TECH-STACK.md`, Abschnitt „Medien".
 - [ ] **Domain-Entscheidung:** Briefing empfiehlt `jakobsax.media` als primäre Domain (passend zum bestehenden Handle `@jakobsax.media`), `jakobsax.de` weiterleiten. Aktuell läuft alles auf `jakobsax.de`. Entscheiden, bevor Adressen gedruckt werden.
   - **Gegenvorschlag aus dem Brainstorm (2026-08-27): `.de` als primäre Domain behalten**, `.media` per 301 darauf weiterleiten. Begründung: deutsches Publikum, deutsche Auftraggeber, lokale Suchintention („Festivalfotograf Rastatt") — `.de` ist bei Vertrauen und lokalem Ranking im Vorteil. Handle-Konsistenz mit Instagram wiegt das nicht auf. **Wichtig unabhängig von der Entscheidung: vor dem ersten externen Link entscheiden**, ein späterer Domainwechsel kostet Ranking.
-- [ ] **`INDEXABLE` auf `true` setzen** (`lib/site.ts`), sobald die Launch-Blocker oben erledigt sind. Steht bewusst auf `false` — die Seite ist live und war bis dahin uneingeschränkt indexierbar, mit erfundener E-Mail-Adresse und ohne Impressum. **Beim Umlegen zusätzlich:** echte Kontaktdaten in `app/StructuredData.tsx` nachtragen (dort als Kommentar markiert). Titel, Beschreibung und Vorschaubild stellt Jakob seit 2026-10-25 selbst ein (Verwaltung → Startseite → „Google und Teilen") — vor dem Umlegen einmal ansehen.
 - [ ] **Cloudflare Web Analytics aktivieren** — cookielos, damit **kein Cookie-Banner auf allen Seiten** nötig ist (der Hinweis für die YouTube-Filme steht nur auf `/film`). Das ist eine bewusste Entscheidung, kein Verzicht: siehe die Anti-Feature-Liste in `SITE-PLAN.md`.
 
 ## Langfristig

@@ -18,15 +18,17 @@ export const SITE_URL = "https://jakobsax.de";
 /**
  * Steuert, ob Suchmaschinen die Seite indexieren dürfen.
  *
- * ⚠️ **Steht bewusst auf `false`.** Solange die Launch-Blocker aus TODO.md
- * offen sind, darf die Seite nicht in den Index: Die Inhalte sind nicht von
- * Jakob gegengeprüft und die Rechtstexte nicht anwaltlich gelesen. Ein einmal
- * indexierter Stand wird auch nach der Korrektur noch eine Weile ausgeliefert.
+ * **Seit dem 2026-10-26 `true`** — Jan: „Entsperr die Seite für Google."
+ * Impressum und Datenschutz stehen, die Kontaktdaten sind echt. Bewusst vor
+ * den übrigen Launch-Blockern in TODO.md (Rechtstexte anwaltlich lesen,
+ * Nebentätigkeit, Bild- und Persönlichkeitsrechte, Kundennennung) — die
+ * bleiben offen.
  *
- * **Auf `true` setzen, wenn:** Impressum und Datenschutz existieren, die
- * Kontaktdaten echt sind und Jakob die Inhalte freigegeben hat.
+ * ⚠️ **Zurück auf `false`** nimmt die Seite nicht sofort heraus: Google muss
+ * das `noindex` erst wieder lesen (deshalb kein `Disallow`, siehe
+ * app/robots.ts). Schneller geht es über die Search Console („Entfernen").
  */
-export const INDEXABLE = false;
+export const INDEXABLE = true;
 
 /**
  * JSON für ein `<script>`-Element (JSON-LD, Speculation Rules).

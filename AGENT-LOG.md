@@ -6,6 +6,21 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-10-26 — Seite für Google freigegeben
+
+Jan: „Entsperr die Seite für Google."
+
+- `INDEXABLE` in `lib/site.ts` auf `true`: Startseite, `/foto`, `/film`, `/ueber` tragen jetzt
+  `index, follow`, die robots.txt meldet `sitemap.xml` an. Unverändert `noindex`: Impressum,
+  Datenschutz (je Seite) und die Verwaltung (`X-Robots-Tag`, `Disallow`).
+- ⚠️ **Bewusst vor den übrigen Launch-Blockern** (Rechtstexte anwaltlich lesen, Nebentätigkeit,
+  Bild- und Persönlichkeitsrechte, Kundennennung, Jakobs Freigabe) — die stehen weiter in
+  `TODO.md`. Neu dort: Search Console einrichten und die Sitemap einreichen.
+- Geprüft: `tsc`, Tests, `opennextjs-cloudflare build`, im lokalen Worker die Meta-Robots je Seite
+  und die robots.txt.
+
+---
+
 ## 2026-10-25 — Anriss, SEO und Impressum in der Verwaltung, Video auf `/film`, Autostart
 
 Jan: „Über mich auf Startseite nur erster Absatz · SEO Text und Bild bearbeiten · Impressum
