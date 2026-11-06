@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import PauseZeichen from "./PauseZeichen";
 import styles from "./HeroVideo.module.css";
 
 type Props = {
@@ -163,16 +164,7 @@ export default function HeroVideo({ src, poster, className }: Props) {
         onClick={umschalten}
         aria-label={laeuft ? "Video anhalten" : "Video abspielen"}
       >
-        {laeuft ? (
-          <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
-            <rect x="3" y="2" width="3.5" height="12" fill="currentColor" />
-            <rect x="9.5" y="2" width="3.5" height="12" fill="currentColor" />
-          </svg>
-        ) : (
-          <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
-            <path d="M4 2 L14 8 L4 14 Z" fill="currentColor" />
-          </svg>
-        )}
+        <PauseZeichen laeuft={laeuft} />
       </button>
     </>
   );

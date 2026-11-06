@@ -242,6 +242,7 @@
   text-align: center;
   text-decoration: none;
   cursor: pointer;
+  transition: transform 160ms cubic-bezier(0.2, 0, 0, 1);
 }
 
 .knopfLeise {
@@ -293,6 +294,17 @@
   background: none;
   color: var(--schrift);
   cursor: pointer;
+  transition: transform 160ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Drücken (UI-SPEC, „Motion" → „Drücken"): 97 %, hinein 80ms, zurück
+   160ms. Gesperrte Knöpfe bleiben stehen. */
+.knopf:active:not(:disabled, [aria-disabled="true"]),
+.knopfLeise:active:not(:disabled, [aria-disabled="true"]),
+.knopfHaupt:active:not(:disabled),
+.knopfSymbol:active:not(:disabled, [aria-disabled="true"]) {
+  transform: scale(0.97);
+  transition-duration: 80ms;
 }
 
 /* Gedrückt — und der Stift einer aufgeklappten Zeile (Arbeiten, Filme,
@@ -812,6 +824,30 @@ select.eingabe {
   line-height: var(--leading-label);
 }
 
+/* Der Haken vor „Gespeichert …": pulsiert einmal (UI-SPEC, „Motion" →
+   „Verwaltung"), dann steht er. Keine neue Farbe. */
+.haken {
+  display: inline-flex;
+  vertical-align: -4px;
+  margin-right: var(--space-xs);
+  animation: puls 450ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+@keyframes puls {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .leisteStatusZeile > .knopfLeise {
   flex: none;
 }
@@ -991,6 +1027,82 @@ select.eingabe {
 .panel[open] {
   display: flex;
   flex-direction: column;
+}
+
+/*
+ * Öffnen und Schließen (UI-SPEC, „Motion" → „Verwaltung"): Dialoge aus
+ * 95 %, das Panel von rechts, der Grund blendet mit. Geschlossen gelten die
+ * kürzeren Zeiten (rund 20 % unter dem Öffnen). `display` und `overlay`
+ * diskret mitgeführt, sonst verschwände der Dialog beim Schließen sofort.
+ * Browser ohne `@starting-style` öffnen und schließen ohne Übergang.
+ */
+.dialog,
+.panel,
+.dialog::backdrop,
+.panel::backdrop {
+  transition-property: opacity, transform, overlay, display;
+  transition-behavior: allow-discrete;
+  transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
+}
+
+.dialog,
+.dialog::backdrop {
+  transition-duration: 160ms;
+}
+
+.panel,
+.panel::backdrop {
+  transition-duration: 190ms;
+}
+
+.dialog {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.panel {
+  transform: translateX(100%);
+}
+
+.dialog::backdrop,
+.panel::backdrop {
+  opacity: 0;
+}
+
+.dialog[open],
+.panel[open],
+.dialog[open]::backdrop,
+.panel[open]::backdrop {
+  opacity: 1;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+.dialog[open],
+.dialog[open]::backdrop {
+  transform: none;
+  transition-duration: 200ms;
+}
+
+.panel[open],
+.panel[open]::backdrop {
+  transform: none;
+  transition-duration: 240ms;
+}
+
+@starting-style {
+  .dialog[open] {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  .panel[open] {
+    transform: translateX(100%);
+  }
+
+  .dialog[open]::backdrop,
+  .panel[open]::backdrop {
+    opacity: 0;
+  }
 }
 
 /* Die Meldung im Panel — wie die Zeile der Leiste: unten, klebt beim

@@ -149,6 +149,10 @@ export default function Mosaik({ bilder, spaltenMax = 3 }: Props) {
     soll.current = null;
     const ziel = kacheln.current[i] ?? null;
     const zielBild = bildIn(ziel);
+    /* Schließen ist kürzer als Öffnen (UI-SPEC, „Gehen kürzer als
+       Kommen"); globals.css liest das Merkmal am <html>. */
+    const wurzel = document.documentElement;
+    wurzel.dataset.kasten = "zu";
     mitUebergang(
       () => {
         flushSync(() => setOffen(null));
@@ -164,6 +168,7 @@ export default function Mosaik({ bilder, spaltenMax = 3 }: Props) {
       },
       () => {
         if (zielBild) zielBild.style.viewTransitionName = "";
+        delete wurzel.dataset.kasten;
       },
     );
   }, []);

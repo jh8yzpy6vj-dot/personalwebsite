@@ -251,6 +251,8 @@ button {
  */
 @view-transition {
   navigation: auto;
+  /* Merkmal für die Regeln „Kachel → Kopf der Seite" weiter unten. */
+  types: seitenwechsel;
 }
 
 /*
@@ -277,6 +279,17 @@ button {
 }
 
 /*
+ * Schließen ist rund 20 % kürzer als Öffnen (UI-SPEC, „Gehen kürzer als
+ * Kommen"). Das Merkmal setzt Mosaik.tsx nur für die Dauer des Übergangs.
+ * Das Attribut hebt die Spezifität über die 300ms-Regeln hier und für
+ * `*.foto` — das zurückkehrende Foto trägt beide.
+ */
+:root[data-kasten="zu"]::view-transition-group(lichtkasten),
+:root[data-kasten="zu"]::view-transition-group(root) {
+  animation-duration: 240ms;
+}
+
+/*
  * Fotos, die per View Transition ihren Platz wechseln (Klasse `foto`, gesetzt
  * in Bild.tsx) — heute die Mosaikkachel → Lichtkasten. Bis 2026-10-14 auch
  * Startbild → Hero der Detailseite. Ohne `cover` würde ein Foto unterwegs
@@ -290,6 +303,39 @@ button {
 
 ::view-transition-old(*.foto),
 ::view-transition-new(*.foto) {
+  height: 100%;
+  object-fit: cover;
+}
+
+/*
+ * Kachel → Kopf der Seite (UI-SPEC, „Motion"): Das Bild der Kachel auf `/`
+ * wächst in den Kopf von `/foto` bzw. `/film`. Den Namen auf der Startseite
+ * setzt WegLink.tsx beim Klick.
+ *
+ * ⚠️ Der Kopf trägt seinen Namen **nur während eines Seitenwechsels**.
+ * Trüge er ihn immer, würde er beim Öffnen des Lichtkastens (ein
+ * Übergang auf derselben Seite) als eigene Ebene über den Kasten gelegt
+ * und verschwände erst am Ende. Browser ohne Übergangstypen verwerfen die
+ * Regel und blenden nur über.
+ */
+:root:active-view-transition-type(seitenwechsel) [data-kopf="foto"] {
+  view-transition-name: kopf-foto;
+}
+
+:root:active-view-transition-type(seitenwechsel) [data-kopf="film"] {
+  view-transition-name: kopf-film;
+}
+
+::view-transition-group(kopf-foto),
+::view-transition-group(kopf-film) {
+  animation-duration: 300ms;
+  animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+::view-transition-old(kopf-foto),
+::view-transition-new(kopf-foto),
+::view-transition-old(kopf-film),
+::view-transition-new(kopf-film) {
   height: 100%;
   object-fit: cover;
 }

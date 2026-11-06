@@ -207,6 +207,18 @@
   font-family: var(--font-text);
   font-size: var(--text-body);
   cursor: pointer;
+  transition: transform 160ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Drücken (UI-SPEC, „Motion" → „Drücken"): 97 %, hinein 80ms, zurück 160ms. */
+.zu:active {
+  transform: scale(0.97);
+  transition-duration: 80ms;
+}
+
+.pfeil:active:not(:disabled) {
+  transform: translateY(-50%) scale(0.97);
+  transition-duration: 80ms;
 }
 
 /* Nur mit echtem Zeigegerät — auf Touch bliebe der Zustand nach dem

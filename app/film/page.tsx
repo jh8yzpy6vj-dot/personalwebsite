@@ -48,7 +48,7 @@ export default function Filme() {
   const poster = bild(posterSchluessel);
 
   const kopf = video ? (
-    <section className={styles.kopf} aria-label="Video">
+    <section className={styles.kopf} aria-label="Video" data-kopf="film">
       {poster && (
         <Bild
           className={styles.kopfMedium}

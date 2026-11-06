@@ -42,7 +42,7 @@ export default function Foto() {
           einem Bild steht das erste.
         */}
         {hero.length > 0 && (
-          <section className={styles.hero} aria-label="Ausgewählte Fotos">
+          <section className={styles.hero} aria-label="Ausgewählte Fotos" data-kopf="foto">
             <Blende
               bilder={hero.map((b) => ({ quelle: b.quelle, ausschnitt: b.ausschnitt, alt: b.alt }))}
               alt="Fotos von Jakob Sax"

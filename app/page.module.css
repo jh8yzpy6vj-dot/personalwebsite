@@ -325,6 +325,24 @@
   }
 }
 
+/*
+ * Drücken (UI-SPEC, „Motion" → „Drücken"): die ganze Kachel auf 98 %. Nur
+ * mit echtem Zeigegerät — am Telefon griffe `:active` schon, wenn der
+ * Finger zum Scrollen auf der Kachel landet.
+ */
+@media (hover: hover) and (pointer: fine) {
+  .weg,
+  .highlight {
+    transition: transform 160ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .weg:active,
+  .highlight:active {
+    transform: scale(0.98);
+    transition-duration: 80ms;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .wegBild,
   .wegPfeil,

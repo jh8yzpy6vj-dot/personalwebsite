@@ -3,6 +3,7 @@ import SiteFooter from "./components/SiteFooter";
 import Bild from "./components/Bild";
 import HeroVideo from "./components/HeroVideo";
 import UeberAnriss from "./components/UeberAnriss";
+import WegLink from "./components/WegLink";
 import styles from "./page.module.css";
 import {
   HERO_ALT,
@@ -119,7 +120,7 @@ export default function Home() {
 
         {/* ── 3. Wege zu foto und film ────────────────────────────── */}
         <nav className={styles.wege} aria-label="Bereiche">
-          <a className={styles.weg} href="/foto">
+          <WegLink className={styles.weg} href="/foto" uebergang="kopf-foto">
             {fotoWeg ? (
               <Bild
                 className={styles.wegBild}
@@ -138,9 +139,9 @@ export default function Home() {
                 →
               </span>
             </span>
-          </a>
+          </WegLink>
 
-          <a className={styles.weg} href="/film">
+          <WegLink className={styles.weg} href="/film" uebergang="kopf-film">
             {filmWeg ? (
               <Bild
                 className={styles.wegBild}
@@ -166,7 +167,7 @@ export default function Home() {
                 →
               </span>
             </span>
-          </a>
+          </WegLink>
         </nav>
 
         {/* ── 4. Highlights ───────────────────────────────────────── */}

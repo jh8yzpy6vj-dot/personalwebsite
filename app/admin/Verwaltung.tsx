@@ -971,6 +971,16 @@ export default function Verwaltung() {
   const fehlerImWeg =
     geladen.konfiguration.github && !veraltet && speicher.art !== "laeuft" && fehler.length > 0 && ungespeichert;
 
+  /* Die Leiste meldet ein geglücktes Speichern — dieselbe Kette wie `status` unten. */
+  const bestaetigt =
+    geladen.konfiguration.github &&
+    !veraltet &&
+    !fehlerImWeg &&
+    !speicherFehler &&
+    !ungespeichert &&
+    laedtNoch === 0 &&
+    (speicher.art === "veroeffentlicht" || speicher.art === "live");
+
   const status = !geladen.konfiguration.github
     ? "Speichern ist noch nicht eingerichtet."
     : veraltet
@@ -1325,6 +1335,14 @@ export default function Verwaltung() {
                 „Speichern" bei 1024px in eine zweite Zeile. */}
             <div className={styles.leisteStatusZeile}>
               <p className={styles.leisteStatus} role="status">
+                {/* Gespeichert: Ein Haken pulsiert einmal (UI-SPEC, „Motion" →
+                    „Verwaltung"). `key`: Von „wird veröffentlicht" zu „live"
+                    pulsiert er ein zweites Mal. */}
+                {bestaetigt && (
+                  <span key={speicher.art} className={styles.haken}>
+                    <Zeichen name="haken" />
+                  </span>
+                )}
                 {status}
                 {speicherFehler?.anmelden && (
                   <>

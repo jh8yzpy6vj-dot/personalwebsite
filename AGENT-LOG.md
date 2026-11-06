@@ -6,6 +6,42 @@ Erledigte kurzfristige Todos aus `TODO.md` werden hier verlinkt/dokumentiert, so
 
 ---
 
+## 2026-11-06 — Animationen nach den „20 Regeln" nachgeschärft
+
+Jan schickte eine Liste mit 20 Animationsregeln („20 Ways to Make Beautiful AI Animations") und
+fragte, was davon fehlt; dann: „Setz alle um bis auf die die du nicht willst und push es live".
+
+- **Schon erfüllt, nichts geändert:** Ease-out beim Erscheinen (1), Ease-in-out in der Blende (9),
+  Lichtkasten aus der Kachel und zurück (11, 12), kein Nachfedern (13), Ziehen ohne Nachlaufen in
+  der Verwaltung (14), Überblenden (16), Aufdecken in Flächen (17), `view-transition-name` als
+  „layoutId" (20).
+- **Neu (Vertrag zuerst: UI-SPEC, *Motion*):**
+  - **Drücken (4):** runde Knöpfe, Einwilligung und Verwaltungsknöpfe auf 97 %, Kacheln
+    „foto"/„film" und Highlights auf 98 % — die nur mit Maus, am Telefon träfe `:active` beim
+    Scrollen.
+  - **Gehen kürzer als Kommen (15):** Lichtkasten schließt in 240 statt 300ms (Merkmal
+    `data-kasten="zu"` am `<html>` für die Dauer des Übergangs, `Mosaik.tsx`).
+  - **Zeichen überblenden (18):** Pause ↔ Abspielen über `PauseZeichen.tsx` (Hero-Video und
+    Blende), ohne Unschärfe — `filter` ist im Vertrag nicht erlaubt.
+  - **Verwaltung (2, 10, 15, 8):** Dialoge aus 95 % (200/160ms), Seitenpanel von rechts
+    (240/190ms), per `@starting-style` und `transition-behavior: allow-discrete`; einmal
+    pulsierender Haken vor „Gespeichert …" / „Gespeichert und live.".
+  - **Kachel → Kopf der Seite (20 in groß):** Ein Klick auf „foto"/„film" auf `/` lässt das
+    Kachelbild in das Hero von `/foto` bzw. das Video von `/film` wachsen (`WegLink.tsx`). Der Kopf
+    trägt den Namen nur während eines Seitenwechsels (`types: seitenwechsel` +
+    `:active-view-transition-type`) — sonst läge er beim Öffnen des Lichtkastens als eigene
+    Ebene über dem Kasten. Die Kachel bekommt ihn erst beim Klick und verliert ihn nach „Zurück".
+- **Bewusst nicht:** gestaffeltes Erscheinen (3, 6 — „Kein Aufsteigen beim Scrollen" steht unter
+  *Entfallen*), gedehnte Schalterknöpfe (5 — es gibt keine), Bögen (7 — bei 300ms nicht zu sehen),
+  Gummiband (19 — unser Wischen folgt dem Finger nicht und läuft im Kreis).
+- **Geprüft:** `tsc`, ESLint, 478 Tests, `next build`; im Browser (`next start`, Chromium): Kachel
+  wächst verlangsamt sichtbar ins Hero, Lichtkasten-Schließen 240ms und Merkmal danach weg, Kopf
+  ohne Namen während des Lichtkastens, Kachel ohne Namen nach „Zurück"; Dialog/Panel der
+  Verwaltung mit eingespieltem CSS: 200/160ms bzw. 240/190ms, beim Schließen bis zum Ende
+  sichtbar. Den Haken habe ich ohne Anmeldung nicht im echten Speichern gesehen.
+
+---
+
 ## 2026-10-26 — Seite für Google freigegeben
 
 Jan: „Entsperr die Seite für Google."

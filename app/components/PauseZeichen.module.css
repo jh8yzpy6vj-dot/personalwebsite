@@ -1,0 +1,20 @@
+/*
+ * Pause ↔ Abspielen (UI-SPEC, „Motion" → „Zeichen wechseln"): beide Zeichen
+ * in derselben Zelle, das ausgeschaltete unsichtbar und auf 60 %. Nur
+ * `opacity` und `transform` — keine Unschärfe, `filter` ist nicht erlaubt.
+ */
+.zeichen {
+  display: grid;
+}
+
+.zeichen > svg {
+  grid-area: 1 / 1;
+  transition:
+    opacity 160ms cubic-bezier(0.2, 0, 0, 1),
+    transform 160ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.zeichen > .aus {
+  opacity: 0;
+  transform: scale(0.6);
+}

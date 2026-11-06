@@ -88,6 +88,7 @@ const PFADE = {
       <line x1="5" y1="12" x2="19" y2="12" />
     </>
   ),
+  haken: <polyline points="4 12.5 9.5 18 20 6.5" />,
 } as const;
 
 export type Zeichenname = keyof typeof PFADE;

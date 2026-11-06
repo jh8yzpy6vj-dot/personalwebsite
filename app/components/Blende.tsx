@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Bild from "./Bild";
 import { heroSizes, type Bildquelle } from "@/lib/bilder";
+import PauseZeichen from "./PauseZeichen";
 import styles from "./Blende.module.css";
 
 /**
@@ -509,16 +510,7 @@ export default function Blende({ bilder, alt }: Props) {
               onClick={() => setAngehalten((a) => !a)}
               aria-label={angehalten ? "Bilder abspielen" : "Bilder anhalten"}
             >
-              {angehalten ? (
-                <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
-                  <path d="M4 2 L14 8 L4 14 Z" fill="currentColor" />
-                </svg>
-              ) : (
-                <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
-                  <rect x="3" y="2" width="3.5" height="12" fill="currentColor" />
-                  <rect x="9.5" y="2" width="3.5" height="12" fill="currentColor" />
-                </svg>
-              )}
+              <PauseZeichen laeuft={!angehalten} />
             </button>
           )}
         </p>
